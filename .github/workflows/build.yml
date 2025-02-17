@@ -1,0 +1,17 @@
+name: build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  Build:
+    runs-on: self-hosted
+    strategy:
+      fail-fast: true
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build Genesis core image
+        run: |
+          genesis-images build $(pwd)/images/core
+
