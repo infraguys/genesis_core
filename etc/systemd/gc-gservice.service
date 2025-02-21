@@ -1,0 +1,12 @@
+[Unit]
+Description=Genesis Core General Service
+After=network-online.target
+
+[Service]
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=5
+ExecStart=gc-gservice --config-file /etc/genesis_core/genesis_core.conf
+
+[Install]
+WantedBy=multi-user.target
