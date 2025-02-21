@@ -19,6 +19,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install tox
         run: sudo apt update && sudo apt install --yes tox
+      - name: Install EV library
+        run: sudo apt update && sudo apt install --yes libev-dev
       - name: Black
         run: |
           tox -e black-check
