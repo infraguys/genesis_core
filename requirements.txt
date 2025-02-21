@@ -2,4 +2,4 @@ pbr>=1.10.0,<=5.8.1  # Apache-2.0
 oslo.config>=3.22.2,<10.0.0  # Apache-2.0
 bjoern>=3.2.2  # BSD
 gcl_looper>=0.1.0,<=1.0.0  # Apache-2.0
-restalchemy>=11.0.1,<12.0.0
+restalchemy>=12.0.0,<13.0.0
