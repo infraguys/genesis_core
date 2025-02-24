@@ -13,6 +13,7 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+
 from restalchemy.api import applications
 from restalchemy.api import middlewares
 from restalchemy.api import routes
@@ -22,33 +23,31 @@ from restalchemy.api.middlewares import logging as logging_mw
 from restalchemy.openapi import structures as openapi_structures
 from restalchemy.openapi import engines as openapi_engines
 
-from genesis_core.user_api import controllers
-from genesis_core.user_api import routes as app_routes
-from genesis_core.user_api import versions
+from genesis_core.orch_api.api import routes as app_routes
+from genesis_core.orch_api.api import versions
 from genesis_core import version
 
 
-class UserApiApp(routes.Route):
-    __controller__ = controllers.RootController
-    __allow_methods__ = [routes.FILTER]
+class OrchApiApp(routes.RootRoute):
+    pass
 
 
 # Route to /v1/ endpoint.
 setattr(
-    UserApiApp,
+    OrchApiApp,
     versions.API_VERSION_v1,
     routes.route(app_routes.ApiEndpointRoute),
 )
 
 
 def get_api_application():
-    return UserApiApp
+    return OrchApiApp
 
 
 def get_openapi_engine():
     openapi_engine = openapi_engines.OpenApiEngine(
         info=openapi_structures.OpenApiInfo(
-            title=f"Genesis Core {versions.API_VERSION_v1} User API",
+            title=f"Genesis Core {versions.API_VERSION_v1} Orch API",
             version=version.version_info.release_string(),
             description=f"OpenAPI - Genesis Core {versions.API_VERSION_v1}",
         ),

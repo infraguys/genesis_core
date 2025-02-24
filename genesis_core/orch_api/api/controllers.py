@@ -13,35 +13,17 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+
 from restalchemy.api import controllers
-from genesis_core.user_api import versions
 
 
-class RootController(controllers.Controller):
-    """Controller for / endpoint"""
-
-    def filter(self, filters):
-        return [versions.API_VERSION_v1]
-
-
-class ApiEndpointController(controllers.Controller):
+class ApiEndpointController(controllers.RoutesListController):
     """Controller for /v1/ endpoint"""
 
-    def filter(self, filters):
-        return [
-            "nodes",
-            "sets",
-            "elements",
-            "configs",
-            "artifacts",
-            "services",
-            "public_endpoints",
-            "values",
-            "profiles",
-            "secrets",
-        ]
+    __TARGET_PATH__ = "/v1/"
 
 
+# TODO(e.frolov): should be raw route
 class HealthController(controllers.Controller):
     """Controller for /v1/health/ endpoint"""
 
