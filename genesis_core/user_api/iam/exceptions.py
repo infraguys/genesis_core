@@ -1,6 +1,6 @@
-#    Copyright 2025 Genesis Corporation.
+# Copyright 2025 Genesis Corporation
 #
-#    All Rights Reserved.
+# All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -13,15 +13,10 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-import os
-import uuid as sys_uuid
 
 
-GLOBAL_SERVICE_NAME = "genesis_core"
-SERVICE_PROJECT_ID = sys_uuid.UUID("00000000-0000-0000-0000-000000000000")
+from genesis_core.common import exceptions
 
-WORK_DIR = "/var/lib/genesis"
-NODE_UUID_PATH = os.path.join(WORK_DIR, "node-id")
 
-DEFAULT_USER_API_HOST = "127.0.0.1"
-DEFAULT_USER_API_PORT = 11010
+class UserNotFound(exceptions.CommonNotFoundException):
+    __template__ = "User with login {username} not found"

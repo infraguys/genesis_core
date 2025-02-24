@@ -1,0 +1,107 @@
+#    Copyright 2025 Genesis Corporation.
+#
+#    All Rights Reserved.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+from restalchemy.api import routes
+
+from genesis_core.user_api.iam.api import controllers
+
+
+class WebRoute(routes.Route):
+
+    def do(self, parent_resource=None):
+        controller = self.get_controller(self._req)
+        return controller.do(
+            path=self._req.path_info, parent_resource=parent_resource
+        )
+
+
+class UserRoute(routes.Route):
+    """Handler for /v1/health endpoint"""
+
+    __controller__ = controllers.UserController
+
+
+class LoginAction(routes.Action):
+    """Handler for /v1/iam/idp/<uuid>/actions/login/invoke endpoint"""
+
+    __controller__ = controllers.IdpController
+
+
+class CallbackAction(routes.Action):
+    """Handler for /v1/iam/idp/<uuid>/actions/callback/invoke endpoint"""
+
+    __controller__ = controllers.IdpController
+
+
+class IdpRoute(routes.Route):
+    """Handler for /v1/iam/idp/ endpoint"""
+
+    __controller__ = controllers.IdpController
+
+    login = routes.action(LoginAction, invoke=True)
+    callback = routes.action(CallbackAction, invoke=True)
+
+
+class AuthAction(routes.Action):
+    """Handler for /v1/iam/clients/<uuid>/actions/auth/invoke endpoint"""
+
+    __controller__ = controllers.ClientsController
+
+
+class loginAction(routes.Action):
+    """Handler for /v1/iam/clients/<uuid>/actions/login/invoke endpoint"""
+
+    __controller__ = controllers.ClientsController
+
+
+class GetTokenAction(routes.Action):
+    """Handler for /v1/iam/clients/<uuid>/actions/get_token/invoke endpoint"""
+
+    __controller__ = controllers.ClientsController
+
+
+class IntrospectAction(routes.Action):
+    """Handler for /v1/iam/clients/<uuid>/actions/introspection endpoint"""
+
+    __controller__ = controllers.ClientsController
+
+
+class IamClientsRoute(routes.Route):
+    """Handler for /v1/iam/clients/ endpoint"""
+
+    __controller__ = controllers.ClientsController
+
+    auth = routes.action(AuthAction, invoke=True)
+    login = routes.action(loginAction, invoke=True)
+    get_token = routes.action(GetTokenAction, invoke=True)
+    introspect = routes.action(IntrospectAction)
+
+
+class IamWebRoute(WebRoute):
+    __controller__ = controllers.IamWebController
+    __allow_methods__ = []
+
+
+class IamRoute(routes.Route):
+    """Handler for /v1/iam/ endpoint"""
+
+    __allow_methods__ = [routes.FILTER]
+    __controller__ = controllers.IamController
+
+    users = routes.route(UserRoute)
+    idp = routes.route(IdpRoute)
+    clients = routes.route(IamClientsRoute)
+    web = routes.route(IamWebRoute)

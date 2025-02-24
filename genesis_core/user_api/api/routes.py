@@ -17,6 +17,7 @@
 from restalchemy.api import routes
 
 from genesis_core.user_api.api import controllers
+from genesis_core.user_api.iam.api import routes as iam_routes
 
 
 # TODO(e.frolov): should be raw route
@@ -65,6 +66,7 @@ class ApiEndpointRoute(routes.Route):
     __allow_methods__ = [routes.FILTER]
 
     health = routes.route(HealthRoute)
+    iam = routes.route(iam_routes.IamRoute)
     nodes = routes.route(NodeRoute)
     machines = routes.route(MachineRoute)
     hypervisors = routes.route(HypervisorRoute)

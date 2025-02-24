@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html >
+<head>
+  <meta charset="UTF-8">
+  <title>Nice dark sign in form</title>
+  
+  
+  
+      <link rel="stylesheet" href="css/style.css">
+
+  
+</head>
+
+<body>
+  <h1>Genesis Core</h1>
+<div id="wrapper">
+	<form id="signin" method="post" autocomplete="off" action="{{ host_url }}/v1/iam/clients/{{ client_uuid }}/actions/login/invoke">
+		<input type="text" id="user" name="user" placeholder="username" />
+		<input type="password" id="password" name="password" placeholder="password" />
+		
+		<!-- oidc fields-->
+		
+		<input type="hidden" name="scope" value="{{ scope }}">
+		<input type="hidden" name="state" value="{{ state }}">
+		<input type="hidden" name="response_type" value="{{ response_type }}">
+		<input type="hidden" name="client_id" value="{{ client_id }}">
+		<input type="hidden" name="redirect_uri" value="{{ redirect_uri }}">
+		<input type="hidden" name="nonce" value="{{ nonce }}">
+
+		<button type="submit">&#xf0da;</button>
+		<!-- <p>forgot your password? <a href="#">click here</a></p> -->
+	</form>
+</div>
+  
+  
+</body>
+</html>

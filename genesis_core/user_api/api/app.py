@@ -13,18 +13,37 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+
+from gcl_iam import middlewares as iam_mw
 from restalchemy.api import applications
+from restalchemy.api import constants as ra_c
 from restalchemy.api import middlewares
 from restalchemy.api import routes
-from restalchemy.api.middlewares import contexts as context_mw
-from restalchemy.api.middlewares import errors as errors_mw
 from restalchemy.api.middlewares import logging as logging_mw
+from restalchemy.dm import types as ra_types
 from restalchemy.openapi import structures as openapi_structures
 from restalchemy.openapi import engines as openapi_engines
 
+from genesis_core.common.api.middlewares import errors as errors_mw
 from genesis_core.user_api.api import routes as app_routes
 from genesis_core.user_api.api import versions
+from genesis_core.user_api.iam import drivers
 from genesis_core import version
+
+
+skip_auth_endpoints = [
+    iam_mw.EndpointComparator("/"),
+    iam_mw.EndpointComparator("/specifications/.*"),
+    iam_mw.EndpointComparator("/v1/"),
+    iam_mw.EndpointComparator("/v1/health/"),
+    iam_mw.EndpointComparator("/v1/iam/"),
+    iam_mw.EndpointComparator("/v1/iam/clients/"),
+    iam_mw.EndpointComparator(
+        f"/v1/iam/clients/({ra_types.UUID_RE_TEMPLATE})"
+        "/actions/get_token/invoke",
+        methods=[ra_c.POST],
+    ),
+]
 
 
 class UserApiApp(routes.RootRoute):
@@ -56,14 +75,22 @@ def get_openapi_engine():
     return openapi_engine
 
 
-def build_wsgi_application():
+def build_wsgi_application(context_storage, token_algorithm):
     return middlewares.attach_middlewares(
         applications.OpenApiApplication(
             route_class=get_api_application(),
             openapi_engine=get_openapi_engine(),
         ),
         [
-            context_mw.ContextMiddleware,
+            middlewares.configure_middleware(
+                iam_mw.GenesisCoreAuthMiddleware,
+                token_algorithm=token_algorithm,
+                context_kwargs={
+                    "context_storage": context_storage,
+                },
+                iam_engine_driver=drivers.DirectDriver(),
+                skip_auth_endpoints=skip_auth_endpoints,
+            ),
             errors_mw.ErrorsHandlerMiddleware,
             logging_mw.LoggingMiddleware,
         ],

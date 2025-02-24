@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>500 Internal Server Error</title>
+  <style>
+    @import url(https://fonts.googleapis.com/css?family=Open+Sans:400,700);
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.2.0/css/font-awesome.min.css');
+
+    * {
+      font-family: 'Open Sans', 'sans-serif', 'FontAwesome';
+    }
+
+    body {
+      background: rgb(52, 56, 61);
+    }
+
+    h1 {
+      color: rgb(255, 255, 255);
+      margin: 20px auto 0;
+      width: 500px;
+      text-align: center;
+    }
+
+    #wrapper {
+      position: absolute;
+      width: 320px;
+      left: 50%;
+      margin-left: -160px;
+      top: 50%;
+      margin-top: -75px;
+    }
+
+    /* Стили для страницы 404 */
+    .error-content {
+      text-align: center;
+      color: #fff;
+      padding: 30px;
+      background: rgb(28, 30, 33);
+      border-radius: 8px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+
+    .error-content h2 {
+      font-size: 80px;
+      margin: 0;
+      color: rgb(0, 126, 165);
+      text-shadow: 0 0 15px rgba(0,126,165,0.5);
+    }
+
+    .error-content p {
+      font-size: 24px;
+      margin: 10px 0 20px;
+    }
+
+    .error-message {
+      font-size: 16px;
+      color: rgb(111, 119, 135);
+      margin-bottom: 30px;
+    }
+
+    .home-link {
+      display: inline-flex;
+      align-items: center;
+      color: rgb(0, 126, 165);
+      text-decoration: none;
+      font-weight: 700;
+      padding: 12px 25px;
+      border: 2px solid rgb(0, 126, 165);
+      border-radius: 25px;
+      transition: all 0.3s ease;
+    }
+
+    .home-link span {
+      margin-right: 10px;
+      font-size: 20px;
+    }
+
+    .home-link:hover {
+      background: rgba(0, 126, 165, 0.1);
+      text-shadow: 0 0 10px rgba(0,126,165,0.5);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Genesis Core</h1>
+  <div id="wrapper">
+    <div class="error-content">
+      <h2>500</h2>
+      <p>Internal Server Error</p>
+      <div class="error-message">
+        The server encountered an internal error while processing your request...
+      </div>
+      <!-- <a href="/" class="home-link">
+        <span>&#xf015;</span> Return to Homepage
+      </a> -->
+    </div>
+  </div>
+</body>
+</html>

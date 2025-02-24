@@ -1,6 +1,6 @@
-#    Copyright 2025 Genesis Corporation.
+# Copyright 2025 Genesis Corporation
 #
-#    All Rights Reserved.
+# All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -14,13 +14,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from gcl_iam import drivers as iam_drivers
 
-class GCException(Exception):
-    message = "An unknown exception occurred."
+from genesis_core.user_api.iam.dm import models
 
-    def __init__(self, **kwargs):
-        self.msg = self.message % kwargs
-        super(GCException, self).__init__(self.msg)
 
-    def __repr__(self):
-        return "%s: %s" % (type(self), self.msg)
+class DirectDriver(iam_drivers.AbstractAuthDriver):
+
+    def get_introspection_info(self, token_info):
+        token = models.Token.my(token_info=token_info)
+        token.validate_expiration()
+        return token.introspect(token_info=token_info).get_response_body()
