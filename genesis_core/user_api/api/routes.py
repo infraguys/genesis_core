@@ -16,9 +16,10 @@
 
 from restalchemy.api import routes
 
-from genesis_core.orch_api import controllers
+from genesis_core.user_api.api import controllers
 
 
+# TODO(e.frolov): should be raw route
 class HealthRoute(routes.Route):
     """Handler for /v1/health endpoint"""
 

@@ -16,7 +16,7 @@
 
 from restalchemy.api import routes
 
-from genesis_core.user_api import controllers
+from genesis_core.orch_api.api import controllers
 
 
 class HealthRoute(routes.Route):
