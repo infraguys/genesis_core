@@ -13,12 +13,24 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-import os
-import uuid as sys_uuid
+from __future__ import annotations
+
+from restalchemy.dm import types
+from restalchemy.dm import properties
+from restalchemy.dm import relationships
+
+from genesis_core.node.dm import models
 
 
-GLOBAL_SERVICE_NAME = "genesis_core"
-SERVICE_PROJECT_ID = sys_uuid.UUID("00000000-0000-0000-0000-000000000000")
+class Machine(models.Machine):
+    node = relationships.relationship(models.Node)
+    pool = relationships.relationship(models.MachinePool)
 
-WORK_DIR = "/var/lib/genesis"
-NODE_UUID_PATH = os.path.join(WORK_DIR, "node-id")
+
+class Netboot(models.Netboot):
+    # TODO(akremenetsky): Remove these default values
+    # after support of multiple stands
+    gc_host = image = properties.property(
+        types.String(max_length=255), default="10.20.0.2"
+    )
+    gc_port = properties.property(types.Integer(min_value=0), default=11010)
