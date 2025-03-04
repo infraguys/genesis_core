@@ -53,7 +53,7 @@ class DumpToSimpleViewMixin:
 
             result[name] = prop_type.to_simple_type(getattr(self, name))
 
-        # Covert the custom properties.
+        # Convert the custom properties.
         if not custom_properties and not hasattr(
             self, "__custom_properties__"
         ):
