@@ -3,11 +3,31 @@ build:
   
   # Dependencies of the project
   deps:
-      # Target path in the image
+    # Genesis project
     - dst: /opt/genesis_core
       # Local path
       path:
         src: ../../genesis_core
+    
+    # Network configuration
+    - dst: /etc/netplan/90-genesis-net-base-config.yaml
+      # Local path
+      path:
+        src: ../../genesis_core/etc/90-genesis-net-base-config.yaml
+    
+    # Binary artifacts. Kernel, initrd, boot loaders.
+    - dst: /opt/genesis_core/artifacts/undionly.kpxe
+      # Local path
+      http:
+        src: http://repository.genesis-core.tech:8081/ipxe/latest/undionly.kpxe
+    - dst: /opt/genesis_core/artifacts/initrd.img
+      # Local path
+      http:
+        src: http://repository.genesis-core.tech:8081/seed_os/latest/initrd.img
+    - dst: /opt/genesis_core/artifacts/vmlinuz
+      # Local path
+      http:
+        src: http://repository.genesis-core.tech:8081/seed_os/latest/vmlinuz
   
   # List of elements in the project
   elements:
@@ -17,9 +37,13 @@ build:
         format: raw
         
         # OS profile for the image
-        profile: ubuntu_24
+        profile: genesis_core
 
         # Provisioning script
         script: images/install.sh
+        
+        # Override image build parameters, for instance Packer parameters
+        override:
+          disk_size: "5G"
       # manifest: manifests/genesis-core.yaml
 

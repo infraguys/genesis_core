@@ -22,6 +22,7 @@ set -o pipefail
 
 GC_PATH="/opt/genesis_core"
 GC_CFG_DIR=/etc/genesis_core
+GC_ART_DIR="$GC_PATH/artifacts"
 VENV_PATH="$GC_PATH/.venv"
 
 GC_PG_USER="genesis_core"
@@ -32,7 +33,15 @@ SYSTEMD_SERVICE_DIR=/etc/systemd/system/
 
 # Install packages
 sudo apt update
-sudo apt install build-essential python3.12-dev postgresql libev-dev python3.12-venv -y
+sudo apt install build-essential python3.12-dev python3.12-venv postgresql \
+    libev-dev libvirt-dev tftpd-hpa isc-dhcp-server -y
+
+# Configure netboot
+sudo cp "$GC_ART_DIR/dhcpd.conf" /etc/dhcp/dhcpd.conf
+sudo mkdir -p /srv/tftp/bios
+sudo cp "$GC_ART_DIR/undionly.kpxe" /srv/tftp/bios/undionly.kpxe
+sudo cp "$GC_ART_DIR/initrd.img" /srv/tftp/bios/initrd.img
+sudo cp "$GC_ART_DIR/vmlinuz" /srv/tftp/bios/vmlinuz
 
 # Default creds for genesis core services
 sudo -u postgres psql -c "CREATE ROLE $GC_PG_USER WITH LOGIN PASSWORD '$GC_PG_PASS';"
@@ -49,6 +58,9 @@ source "$GC_PATH"/.venv/bin/activate
 pip install pip --upgrade
 pip install -r "$GC_PATH"/requirements.txt
 pip install -e "$GC_PATH"
+
+# Apply migrations
+ra-apply-migration --config-dir "$GC_PATH/etc/genesis_core/" --path "$GC_PATH/migrations"
 deactivate
 
 # Create links to venv

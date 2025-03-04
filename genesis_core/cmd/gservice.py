@@ -42,7 +42,7 @@ def main():
 
     engines.engine_factory.configure_postgresql_factory(CONF)
 
-    service = GeneralService(iter_min_period=0.5)
+    service = GeneralService(iter_min_period=3)
 
     service.start()
 
