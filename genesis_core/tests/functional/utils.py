@@ -13,7 +13,9 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+from __future__ import annotations
 
+import os
 import socket
 import contextlib
 from urllib import parse
@@ -42,8 +44,13 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
         cls.destroy_engine()
 
     @staticmethod
-    def get_migration_engine():
-        migrations_path = "/home/akrem/devel/genesis_core/migrations"
+    def get_migration_engine(migrations_path: str | None = None) -> None:
+        if migrations_path is None:
+            migrations_path = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "../../../migrations",
+            )
+
         migration_engine = migrations.MigrationEngine(
             migrations_path=migrations_path
         )
