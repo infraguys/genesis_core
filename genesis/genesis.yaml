@@ -19,15 +19,15 @@ build:
     - dst: /opt/genesis_core/artifacts/undionly.kpxe
       # Local path
       http:
-        src: http://46.138.252.241:8081/ipxe/latest/undionly.kpxe
+        src: http://repository.genesis-core.tech:8081/ipxe/latest/undionly.kpxe
     - dst: /opt/genesis_core/artifacts/initrd.img
       # Local path
       http:
-        src: http://46.138.252.241:8081/seed_os/latest/initrd.img
+        src: http://repository.genesis-core.tech:8081/seed_os/latest/initrd.img
     - dst: /opt/genesis_core/artifacts/vmlinuz
       # Local path
       http:
-        src: http://46.138.252.241:8081/seed_os/latest/vmlinuz
+        src: http://repository.genesis-core.tech:8081/seed_os/latest/vmlinuz
   
   # List of elements in the project
   elements:
