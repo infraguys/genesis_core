@@ -32,10 +32,362 @@ class MigrationStep(migrations.AbstarctMigrationStep):
         return False
 
     def upgrade(self, session):
-        pass
+        default_admin_secret = (
+            "7ebbd94f4bfe898e672c4986bace12a28fa58026c56f4c5623"
+            "7829e93fe10cc95b10f20d7805ce9917dd59900cf5bf393c45"
+            "68b58b31fb7f61c515c289b7fed1"
+        )
+        default_client_secret = (
+            "e2ebeb35f476cd71cf569a1dd8db3abd2854576369ac0cc601"
+            "afd3c225b07a86b148d77234c0fd24d88db7386dc990fb1258"
+            "a0dad087e5855f0e0c9525d67814"
+        )
+
+        expressions = [
+            # Organizations
+            """
+                CREATE TABLE IF NOT EXISTS "iam_organizations" (
+                    "uuid" UUID PRIMARY KEY,
+                    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'
+                        CHECK (status IN ('ACTIVE')),
+                    "name" VARCHAR(128) NOT NULL,
+                    "description" VARCHAR(256) DEFAULT '',
+                    "created_at" TIMESTAMP(6) NOT NULL DEFAULT NOW(),
+                    "updated_at" TIMESTAMP(6) NOT NULL DEFAULT NOW()
+                );
+            """,
+            """
+                CREATE INDEX "iam_organizations_name_idx" ON
+                    "iam_organizations" ("name");
+            """,
+            """
+                INSERT INTO "iam_organizations" (
+                    "uuid", "name", description
+                ) VALUES (
+                    '00000000-0000-0000-0000-000000000000',
+                    'admin', 'Admin Organization'
+                );
+            """,
+            # Projects
+            """
+                CREATE TABLE IF NOT EXISTS "iam_projects" (
+                    "uuid" UUID PRIMARY KEY,
+                    status VARCHAR(20) NOT NULL DEFAULT 'NEW'
+                        CHECK (
+                            status IN (
+                                'NEW',
+                                'IN_PROGRESS',
+                                'ACTIVE',
+                                'DELETING'
+                            )
+                        ),
+                    "name" VARCHAR(128) NOT NULL,
+                    "description" VARCHAR(256) DEFAULT '',
+                    "organization" UUID NOT NULL REFERENCES
+                        "iam_organizations" ("uuid"),
+                    "created_at" TIMESTAMP(6) NOT NULL DEFAULT NOW(),
+                    "updated_at" TIMESTAMP(6) NOT NULL DEFAULT NOW()
+                );
+            """,
+            """
+                CREATE INDEX "iam_projects_name_idx" ON "iam_projects"
+                    ("name");
+            """,
+            """
+                CREATE INDEX "iam_projects_organization_idx" ON
+                    "iam_projects" ("organization");
+            """,
+            """
+                INSERT INTO "iam_projects" (
+                    "uuid", "name", description, organization
+                ) VALUES (
+                    '00000000-0000-0000-0000-000000000000',
+                    'admin', 'Admin Project',
+                    '00000000-0000-0000-0000-000000000000'
+                );
+            """,
+            # Users
+            """
+                CREATE TABLE IF NOT EXISTS "iam_users" (
+                    "uuid" UUID PRIMARY KEY,
+                    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'
+                        CHECK (status IN ('ACTIVE')),
+                    "name" VARCHAR(256) NOT NULL,
+                    "description" VARCHAR(256) NOT NULL,
+                    "first_name" VARCHAR(128) NOT NULL,
+                    "last_name" VARCHAR(128) NOT NULL,
+                    "email" VARCHAR(128) NOT NULL,
+                    "secret_hash" CHAR(128) NOT NULL,
+                    "salt" CHAR(24) NOT NULL,
+                    "otp_secret" VARCHAR(128) DEFAULT '',
+                    "otp_enabled" BOOLEAN DEFAULT FALSE,
+                    "created_at" TIMESTAMP(6) NOT NULL DEFAULT NOW(),
+                    "updated_at" TIMESTAMP(6) NOT NULL DEFAULT NOW()
+                );
+            """,
+            """
+                CREATE UNIQUE INDEX "iam_users_name_idx" ON "iam_users" (
+                    "name"
+                );
+            """,
+            """
+                CREATE UNIQUE INDEX "iam_users_email_idx" ON "iam_users" (
+                    "email"
+                );
+            """,
+            f"""
+                INSERT INTO "iam_users" (
+                    "uuid", "name", "description", "first_name", "last_name",
+                    "email", "secret_hash", "salt"
+                ) VALUES (
+                    '00000000-0000-0000-0000-000000000000',
+                    'admin',
+                    'System administrator',
+                    'Admin',
+                    'User',
+                    'admin@example.com',
+                    '{default_admin_secret}',
+                    'd4JJ9QYuEEJxHCFja9FZskG4'
+                );
+            """,
+            # Roles
+            """
+                CREATE TABLE IF NOT EXISTS "iam_roles" (
+                    "uuid" UUID PRIMARY KEY,
+                    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'
+                        CHECK (status IN ('ACTIVE')),
+                    "name" VARCHAR(128) NOT NULL,
+                    "description" VARCHAR(256) DEFAULT '',
+                    "project_id" UUID DEFAULT NULL,
+                    "created_at" TIMESTAMP(6) NOT NULL DEFAULT NOW(),
+                    "updated_at" TIMESTAMP(6) NOT NULL DEFAULT NOW()
+                );
+            """,
+            """
+                CREATE INDEX "iam_roles_name_idx" ON "iam_roles" ("name");
+            """,
+            """
+                INSERT INTO "iam_roles" (
+                    "uuid", "name", "description"
+                ) VALUES (
+                    '00000000-0000-0000-0000-000000000000',
+                    'admin', 'Admin Role'
+                );
+            """,
+            # Permissions
+            """
+                CREATE TABLE IF NOT EXISTS "iam_permissions" (
+                    "uuid" UUID PRIMARY KEY,
+                    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'
+                        CHECK (status IN ('ACTIVE')),
+                    "name" VARCHAR(256) NOT NULL,
+                    "description" VARCHAR(256) DEFAULT '',
+                    "created_at" TIMESTAMP(6) NOT NULL DEFAULT NOW(),
+                    "updated_at" TIMESTAMP(6) NOT NULL DEFAULT NOW()
+                );
+            """,
+            """
+                CREATE UNIQUE INDEX "iam_permissions_name_idx" ON
+                    "iam_permissions" ("name");
+            """,
+            """
+            INSERT INTO "iam_permissions" (
+                "uuid", "name", "description"
+            ) VALUES (
+                '00000000-0000-0000-0000-000000000000',
+                '*.*.*', 'Allow All'
+            );
+            """,
+            # Bindings
+            """
+                CREATE TABLE IF NOT EXISTS "iam_binding_permissions" (
+                    "uuid" UUID PRIMARY KEY,
+                    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'
+                        CHECK (status IN ('ACTIVE')),
+                    "project_id" UUID DEFAULT NULL,
+                    "role" UUID NOT NULL REFERENCES "iam_roles" ("uuid"),
+                    "permission" UUID NOT NULL REFERENCES
+                        "iam_permissions" ("uuid"),
+                    "description" VARCHAR(256) DEFAULT '',
+                    "created_at" TIMESTAMP(6) NOT NULL DEFAULT NOW(),
+                    "updated_at" TIMESTAMP(6) NOT NULL DEFAULT NOW()
+                );
+            """,
+            """
+                CREATE INDEX "iam_binding_permissions_role_permission_idx" ON
+                    "iam_binding_permissions" ("role", "permission");
+            """,
+            """
+                INSERT INTO "iam_binding_permissions" (
+                    "uuid", "role", "permission"
+                ) VALUES (
+                    '00000000-0000-0000-0000-000000000000',
+                    '00000000-0000-0000-0000-000000000000',
+                    '00000000-0000-0000-0000-000000000000'
+                );
+            """,
+            """
+                CREATE TABLE IF NOT EXISTS "iam_binding_roles" (
+                    "uuid" UUID PRIMARY KEY,
+                    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'
+                        CHECK (status IN ('ACTIVE')),
+                    "user" UUID NOT NULL REFERENCES "iam_users" ("uuid"),
+                    "role" UUID NOT NULL REFERENCES "iam_roles" ("uuid"),
+                    "project" UUID DEFAULT NULL REFERENCES
+                        "iam_projects" ("uuid"),
+                    "description" VARCHAR(256) DEFAULT '',
+                    "created_at" TIMESTAMP(6) NOT NULL DEFAULT NOW(),
+                    "updated_at" TIMESTAMP(6) NOT NULL DEFAULT NOW()
+                );
+            """,
+            """
+                CREATE INDEX "iam_binding_roles_user_idx" ON
+                    "iam_binding_roles" ("user");
+            """,
+            """
+                CREATE INDEX "iam_binding_roles_role_idx" ON
+                    "iam_binding_roles" ("role");
+            """,
+            """
+                CREATE INDEX "iam_binding_roles_project_idx" ON
+                    "iam_binding_roles" ("project");
+            """,
+            """
+                INSERT INTO "iam_binding_roles" (
+                    "uuid", "user", "role", "description"
+                ) VALUES (
+                    '00000000-0000-0000-0000-000000000000',
+                    '00000000-0000-0000-0000-000000000000',
+                    '00000000-0000-0000-0000-000000000000',
+                    'Super Administrator'
+                );
+            """,
+            # IDP
+            """
+                CREATE TABLE IF NOT EXISTS "iam_idp" (
+                    "uuid" UUID PRIMARY KEY,
+                    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'
+                        CHECK (status IN ('ACTIVE')),
+                    "name" VARCHAR(256) NOT NULL,
+                    "project_id" UUID DEFAULT NULL,
+                    "description" VARCHAR(256) DEFAULT '',
+                    "client_id" VARCHAR(64) NOT NULL,
+                    "secret_hash" CHAR(128) NOT NULL,
+                    "salt" CHAR(24) NOT NULL,
+                    "scope" VARCHAR(64) DEFAULT 'openid',
+                    "well_known_endpoint" VARCHAR(256) NOT NULL,
+                    "redirect_uri_template" VARCHAR(256) NOT NULL,
+                    "created_at" TIMESTAMP(6) NOT NULL DEFAULT NOW(),
+                    "updated_at" TIMESTAMP(6) NOT NULL DEFAULT NOW()
+                );
+            """,
+            """
+                CREATE UNIQUE INDEX "iam_idp_id_idx" ON "iam_idp" (
+                    "client_id"
+            )
+            """,
+            # Clients
+            """
+                CREATE TABLE IF NOT EXISTS "iam_clients" (
+                    "uuid" UUID PRIMARY KEY,
+                    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'
+                        CHECK (status IN ('ACTIVE')),
+                    "name" VARCHAR(256) NOT NULL,
+                    "project_id" UUID DEFAULT NULL,
+                    "description" VARCHAR(256) DEFAULT '',
+                    "client_id" VARCHAR(64) NOT NULL,
+                    "secret_hash" CHAR(128) NOT NULL,
+                    "salt" CHAR(24) NOT NULL,
+                    "redirect_url" VARCHAR(256) NOT NULL,
+                    "created_at" TIMESTAMP(6) NOT NULL DEFAULT NOW(),
+                    "updated_at" TIMESTAMP(6) NOT NULL DEFAULT NOW()
+                );
+            """,
+            """
+                CREATE UNIQUE INDEX "iam_client_id_idx" ON "iam_clients" (
+                    "client_id"
+            )""",
+            f"""
+                INSERT INTO "iam_clients" (
+                    "uuid", "name", "description", "client_id",
+                    "secret_hash", "salt", "redirect_url"
+                ) VALUES(
+                    '00000000-0000-0000-0000-000000000000',
+                    'GenesisCoreClient',
+                    'Genesis Core OIDC Client',
+                    'GenesisCoreClientId',
+                    '{default_client_secret}',
+                    '5fOuZXeIn5e5TJlo9Pv5T219',
+                    'http://127.0.0.1:11010/v1/'
+                );
+            """,
+            # Tokens
+            """
+                CREATE TABLE IF NOT EXISTS "iam_tokens" (
+                    "uuid" UUID PRIMARY KEY,
+                    "user" UUID NOT NULL REFERENCES "iam_users" ("uuid"),
+                    "project" UUID DEFAULT NULL REFERENCES "iam_projects"
+                        ("uuid"),
+                    "experation_at" TIMESTAMP(6) NOT NULL,
+                    "refresh_token_uuid" UUID NOT NULL,
+                    "refresh_experation_at" TIMESTAMP(6) NOT NULL,
+                    "issuer" VARCHAR(256) DEFAULT NULL,
+                    "audience" VARCHAR(256) DEFAULT 'account',
+                    "typ" VARCHAR(64) DEFAULT 'Bearer',
+                    "scope" VARCHAR(128) NOT NULL,
+                    "created_at" TIMESTAMP(6) NOT NULL DEFAULT NOW(),
+                    "updated_at" TIMESTAMP(6) NOT NULL DEFAULT NOW()
+                );
+            """,
+            """
+                CREATE OR REPLACE VIEW "iam_permissions_fast_view" AS
+                    SELECT
+                        "t1"."uuid" AS "uuid",
+                        "t1"."uuid" AS "permission",
+                        "t4"."uuid" AS "user",
+                        "t3"."uuid" AS "role",
+                        "t3"."project" as "project"
+                    FROM
+                        "iam_permissions" AS "t1"
+                    LEFT JOIN
+                        "iam_binding_permissions" AS "t2"
+                        ON ("t2"."permission" = "t1"."uuid")
+                    LEFT JOIN
+                        "iam_binding_roles" AS "t3"
+                        ON ("t3"."role" = "t2"."role")
+                    LEFT JOIN
+                        "iam_users" AS "t4"
+                        ON ("t4"."uuid" = "t3"."user");
+            """,
+        ]
+
+        for expression in expressions:
+            session.execute(expression)
 
     def downgrade(self, session):
-        pass
+        tables = [
+            "iam_tokens",
+            "iam_clients",
+            "iam_idp",
+            "iam_binding_roles",
+            "iam_binding_permissions",
+            "iam_permissions",
+            "iam_roles",
+            "iam_users",
+            "iam_projects",
+            "iam_organizations",
+        ]
+
+        views = [
+            "iam_permissions_fast_view",
+        ]
+
+        for view in views:
+            self._delete_view_if_exists(session, view)
+
+        for table in tables:
+            self._delete_table_if_exists(session, table)
+            # session.execute(f'DROP TABLE IF EXISTS "{table}" CASCADE;')
 
 
 migration_step = MigrationStep()

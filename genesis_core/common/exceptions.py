@@ -13,15 +13,21 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-import os
-import uuid as sys_uuid
+
+from izulu import root
 
 
-GLOBAL_SERVICE_NAME = "genesis_core"
-SERVICE_PROJECT_ID = sys_uuid.UUID("00000000-0000-0000-0000-000000000000")
+class GCException(root.Error):
+    __template__ = "An unknown exception occurred."
 
-WORK_DIR = "/var/lib/genesis"
-NODE_UUID_PATH = os.path.join(WORK_DIR, "node-id")
 
-DEFAULT_USER_API_HOST = "127.0.0.1"
-DEFAULT_USER_API_PORT = 11010
+class CommonNotFoundException(GCException):
+    __template__ = "The requested resource was not found."
+
+
+class CommonForbiddenException(GCException):
+    __template__ = "Access to the requested resource is forbidden."
+
+
+class CommonValueErrorException(GCException):
+    __template__ = "The provided value is invalid."

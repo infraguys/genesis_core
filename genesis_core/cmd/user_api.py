@@ -17,25 +17,30 @@
 import logging
 import sys
 
+from gcl_iam import algorithms
+from gcl_iam import constants as glc_iam_c
 from gcl_looper.services import bjoern_service
 from oslo_config import cfg
 from restalchemy.common import config_opts as ra_config_opts
+from restalchemy.common import contexts
 from restalchemy.storage.sql import engines
 
 from genesis_core.user_api.api import app
 from genesis_core.common import config
+from genesis_core.common import constants as c
 from genesis_core.common import log as infra_log
+from genesis_core.user_api.iam import constants as iam_c
 
 
 api_cli_opts = [
     cfg.StrOpt(
         "bind-host",
-        default="127.0.0.1",
+        default=c.DEFAULT_USER_API_HOST,
         help="The host IP to bind to",
     ),
     cfg.IntOpt(
         "bind-port",
-        default=11010,
+        default=c.DEFAULT_USER_API_PORT,
         help="The port to bind to",
     ),
     cfg.IntOpt(
@@ -45,13 +50,51 @@ api_cli_opts = [
     ),
 ]
 
+iam_cli_opts = [
+    cfg.StrOpt(
+        "global_salt",
+        default="FOy/2kwwdn0ig1QOq7cestqe",
+        help="Global salt for IAM passwords",
+    ),
+    cfg.StrOpt(
+        "token_encryption_algorithm",
+        default="HS256",
+        choices=("HS256",),
+        help="Token encryption algorithm",
+    ),
+]
+
+iam_token_encryption_algorithms = [
+    cfg.StrOpt(
+        "encryption_key",
+        default="secret",
+        help="Token encryption key",
+    ),
+]
+
 
 DOMAIN = "user_api"
+DOMAIN_IAM = "iam"
 
 
 CONF = cfg.CONF
 CONF.register_cli_opts(api_cli_opts, DOMAIN)
+CONF.register_cli_opts(iam_cli_opts, DOMAIN_IAM)
+CONF.register_cli_opts(
+    iam_token_encryption_algorithms,
+    iam_c.DOMAIN_IAM_TOKEN_HS256,
+)
 ra_config_opts.register_posgresql_db_opts(CONF)
+
+
+def get_token_encryption_algorithm(conf=CONF):
+    tea_name = conf[DOMAIN_IAM].token_encryption_algorithm
+    if tea_name == glc_iam_c.ALGORITHM_HS256:
+        return algorithms.HS256(
+            key=conf[iam_c.DOMAIN_IAM_TOKEN_HS256].encryption_key,
+        )
+    else:
+        raise ValueError("Unknown token encryption algorithm: {tea_name}")
 
 
 def main():
@@ -64,6 +107,20 @@ def main():
 
     engines.engine_factory.configure_postgresql_factory(CONF)
 
+    token_algorithm = get_token_encryption_algorithm(CONF)
+    context_storage = contexts.Storage(
+        data={
+            iam_c.STORAGE_KEY_IAM_GLOBAL_SALT: {
+                "value": CONF[DOMAIN_IAM].global_salt,
+                "read_only": True,
+            },
+            iam_c.STORAGE_KEY_IAM_TOKEN_ENCRYPTION_ALGORITHM: {
+                "value": token_algorithm,
+                "read_only": True,
+            },
+        }
+    )
+
     log.info(
         "Start service on %s:%s",
         CONF[DOMAIN].bind_host,
@@ -71,7 +128,10 @@ def main():
     )
 
     service = bjoern_service.BjoernService(
-        wsgi_app=app.build_wsgi_application(),
+        wsgi_app=app.build_wsgi_application(
+            context_storage=context_storage,
+            token_algorithm=token_algorithm,
+        ),
         host=CONF[DOMAIN].bind_host,
         port=CONF[DOMAIN].bind_port,
         bjoern_kwargs=dict(reuse_port=True),
