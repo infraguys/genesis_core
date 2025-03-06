@@ -40,7 +40,8 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
 
     @classmethod
     def teardown_class(cls):
-        cls.drop_all_tables()
+        cls.drop_all_views()
+        cls.drop_all_tables(cascade=True)
         cls.destroy_engine()
 
     @staticmethod
@@ -59,6 +60,60 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
     @property
     def base_url(self) -> str:
         return self.get_endpoint() + self.__API_VERSION__ + "/"
+
+    @classmethod
+    def drop_table(cls, table_name, session=None, cascade=False):
+        cascade = " CASCADE" if cascade else ""
+        with cls.engine.session_manager(session=session) as s:
+            s.execute(
+                f"drop table if exists {session.engine.escape(table_name)}{cascade}"
+            )
+
+    @classmethod
+    def drop_all_tables(cls, session=None, cascade=False):
+        with cls.engine.session_manager(session=session) as s:
+            tables = cls.get_all_tables(session=s)
+            for table in tables:
+                cls.drop_table(table, session=s, cascade=cascade)
+
+    @classmethod
+    def get_all_views(cls, session=None) -> set[str]:
+        with cls.engine.session_manager(session=session) as s:
+            if session.engine.dialect.name == "mysql":
+                res = s.execute(
+                    """
+                    select
+                        table_name as table_name
+                    from information_schema.views
+                    where table_schema = database();
+                """
+                ).fetchall()
+            elif session.engine.dialect.name == "postgresql":
+                res = s.execute(
+                    """
+                    select
+                        table_name as table_name
+                    from information_schema.views
+                    where table_schema = current_schema();
+                """
+                ).fetchall()
+            else:
+                raise NotImplementedError("Unsupported dialect")
+        return {row["table_name"] for row in res}
+
+    @classmethod
+    def drop_all_views(cls, session=None):
+        with cls.engine.session_manager(session=session) as s:
+            views = cls.get_all_views(session=s)
+            for view in views:
+                cls.drop_view(view, session=s)
+
+    @classmethod
+    def drop_view(cls, view_name, session=None):
+        with cls.engine.session_manager(session=session) as s:
+            s.execute(
+                f"drop view if exists {session.engine.escape(view_name)}"
+            )
 
     def get_endpoint(self, template: str = ENDPOINT_TEMPLATE) -> str:
         return template % self.service_port

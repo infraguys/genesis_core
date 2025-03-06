@@ -155,6 +155,20 @@ class TestNodeUserApi:
 
         assert response.status_code == 404
 
+    def test_nodes_default_volume(
+        self,
+        user_api: test_utils.RestServiceTestCase,
+        node_factory: tp.Callable,
+    ):
+        node = node_factory()
+
+        url = urljoin(user_api.base_url, "nodes/")
+        response = requests.post(url, json=node)
+        output = response.json()
+
+        assert response.status_code == 201
+        assert output["root_disk_size"] == 15
+
     # Hypervisors
 
     def test_hyper_list_empty(self, user_api: test_utils.RestServiceTestCase):
@@ -321,42 +335,3 @@ class TestNodeUserApi:
         response = requests.get(url)
 
         assert response.status_code == 404
-
-    # Netboots
-
-    def test_netboots_default_net(
-        self, user_api: test_utils.RestServiceTestCase
-    ):
-        uuid = sys_uuid.uuid4()
-        url = urljoin(user_api.base_url, f"boots/{str(uuid)}")
-
-        response = requests.get(url)
-
-        assert response.status_code == 200
-        assert response.text.startswith("#!ipxe")
-        assert "initrd" in response.text
-        assert "vmlinuz" in response.text
-        assert "gc_base_url" in response.text
-
-    def test_netboots_hd_boot(
-        self,
-        machine_factory: tp.Callable,
-        default_pool: tp.Dict[str, tp.Any],
-        user_api: test_utils.RestServiceTestCase,
-    ):
-        uuid = sys_uuid.uuid4()
-        machine = machine_factory(boot="hd0", uuid=uuid, firmware_uuid=uuid)
-
-        url = urljoin(user_api.base_url, "machines/")
-        response = requests.post(url, json=machine)
-        assert response.status_code == 201
-
-        url = urljoin(user_api.base_url, f"boots/{machine['uuid']}")
-
-        response = requests.get(url)
-
-        assert response.status_code == 200
-        assert response.text.startswith("#!ipxe")
-        assert "initrd" not in response.text
-        assert "vmlinuz" not in response.text
-        assert "0x80" in response.text

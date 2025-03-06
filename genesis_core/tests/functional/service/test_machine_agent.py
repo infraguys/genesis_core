@@ -25,6 +25,8 @@ from restalchemy.dm import filters as dm_filters
 from genesis_core.node.machine.pool.driver import base as driver_base
 from genesis_core.node.machine import service
 from genesis_core.node.dm import models
+from genesis_core.common import constants as c
+from genesis_core.node import constants as nc
 from genesis_core.tests.functional import utils as test_utils
 
 
@@ -73,6 +75,19 @@ class TestMachineAgentService:
     def _schedule_machine(
         self, machine_uuid: str, pool: str | models.MachinePool
     ) -> models.Machine:
+        # Node
+        node_uuid = sys_uuid.uuid4()
+        node = models.Node(
+            uuid=node_uuid,
+            name="foo-node",
+            cores=1,
+            ram=1024,
+            image="ubuntu_24.04",
+            project_id=c.SERVICE_PROJECT_ID,
+        )
+        node.insert()
+
+        # Machine
         machine = models.Machine.objects.get_one(
             filters={
                 "uuid": dm_filters.EQ(machine_uuid),
@@ -85,7 +100,21 @@ class TestMachineAgentService:
                 },
             )
         machine.pool = pool.uuid
+        machine.node = node_uuid
         machine.update()
+
+        # Volume
+        volume_name = "root-volume"
+        volume_uuid = sys_uuid.uuid5(node_uuid, volume_name)
+        volume = models.Volume(
+            uuid=volume_uuid,
+            name=volume_name,
+            size=nc.DEF_ROOT_DISK_SIZE,
+            node=node_uuid,
+            project_id=c.SERVICE_PROJECT_ID,
+        )
+        volume.insert()
+
         return machine
 
     def _schedule_node(
@@ -106,7 +135,7 @@ class TestMachineAgentService:
         machine.update()
         return node
 
-    def test_empty_iteration(self):
+    def test_empty_iteration(self, user_api: test_utils.RestServiceTestCase):
         self._service._iteration()
 
     def test_create_machine_no_driver(
@@ -181,6 +210,9 @@ class TestMachineAgentService:
             ) -> None:
                 self.create_machine_called = True
                 self.created_machines.append(machine)
+
+                # Defautl volume
+                assert len(volumes) == 1
 
             def delete_machine(self, machine: models.Machine) -> None:
                 self.delete_machine_called = True
