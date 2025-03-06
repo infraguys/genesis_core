@@ -202,11 +202,6 @@ class Role(
         default=None,
         read_only=True,
     )
-    is_system_role = properties.property(
-        types.Boolean(),
-        default=False,
-        read_only=True,
-    )
 
 
 class Permission(
