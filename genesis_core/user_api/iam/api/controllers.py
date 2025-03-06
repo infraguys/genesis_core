@@ -48,6 +48,30 @@ class UserController(controllers.BaseResourceController):
             update=["salt", "secret_hash"],
             filter=["salt", "secret_hash", "secret", "otp_secret"],
         ),
+        name_map={"secret": "password", "name": "username"},
+    )
+
+
+class OrganizationController(controllers.BaseResourceController):
+    __resource__ = resources.ResourceByRAModel(
+        models.Organization,
+        convert_underscore=False,
+    )
+
+    def _check_access_for_owner(self, owner):
+        pass
+
+    def create(self, owner, **kwargs):
+        return super().create(owner=owner, **kwargs)
+
+    def update(self, uuid, **kwargs):
+        return super().update(uuid=uuid, **kwargs)
+
+
+class ProjectController(controllers.BaseResourceController):
+    __resource__ = resources.ResourceByRAModel(
+        models.Project,
+        convert_underscore=False,
     )
 
 
@@ -163,6 +187,7 @@ class ClientsController(controllers.BaseResourceController):
                 username=kwargs.get(c.PARAM_USERNAME),
                 password=kwargs.get(c.PARAM_PASSWORD),
                 scope=kwargs.get(c.PARAM_SCOPE, None),
+                root_endpoint=resource.redirect_url,
             )
             return token.get_response_body()
         elif grant_type == c.GRANT_TYPE_REFRESH_TOKEN:

@@ -44,68 +44,6 @@ class MigrationStep(migrations.AbstarctMigrationStep):
         )
 
         expressions = [
-            # Organizations
-            """
-                CREATE TABLE IF NOT EXISTS "iam_organizations" (
-                    "uuid" UUID PRIMARY KEY,
-                    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'
-                        CHECK (status IN ('ACTIVE')),
-                    "name" VARCHAR(128) NOT NULL,
-                    "description" VARCHAR(256) DEFAULT '',
-                    "created_at" TIMESTAMP(6) NOT NULL DEFAULT NOW(),
-                    "updated_at" TIMESTAMP(6) NOT NULL DEFAULT NOW()
-                );
-            """,
-            """
-                CREATE INDEX "iam_organizations_name_idx" ON
-                    "iam_organizations" ("name");
-            """,
-            """
-                INSERT INTO "iam_organizations" (
-                    "uuid", "name", description
-                ) VALUES (
-                    '00000000-0000-0000-0000-000000000000',
-                    'admin', 'Admin Organization'
-                );
-            """,
-            # Projects
-            """
-                CREATE TABLE IF NOT EXISTS "iam_projects" (
-                    "uuid" UUID PRIMARY KEY,
-                    status VARCHAR(20) NOT NULL DEFAULT 'NEW'
-                        CHECK (
-                            status IN (
-                                'NEW',
-                                'IN_PROGRESS',
-                                'ACTIVE',
-                                'DELETING'
-                            )
-                        ),
-                    "name" VARCHAR(128) NOT NULL,
-                    "description" VARCHAR(256) DEFAULT '',
-                    "organization" UUID NOT NULL REFERENCES
-                        "iam_organizations" ("uuid"),
-                    "created_at" TIMESTAMP(6) NOT NULL DEFAULT NOW(),
-                    "updated_at" TIMESTAMP(6) NOT NULL DEFAULT NOW()
-                );
-            """,
-            """
-                CREATE INDEX "iam_projects_name_idx" ON "iam_projects"
-                    ("name");
-            """,
-            """
-                CREATE INDEX "iam_projects_organization_idx" ON
-                    "iam_projects" ("organization");
-            """,
-            """
-                INSERT INTO "iam_projects" (
-                    "uuid", "name", description, organization
-                ) VALUES (
-                    '00000000-0000-0000-0000-000000000000',
-                    'admin', 'Admin Project',
-                    '00000000-0000-0000-0000-000000000000'
-                );
-            """,
             # Users
             """
                 CREATE TABLE IF NOT EXISTS "iam_users" (
@@ -148,6 +86,72 @@ class MigrationStep(migrations.AbstarctMigrationStep):
                     'admin@example.com',
                     '{default_admin_secret}',
                     'd4JJ9QYuEEJxHCFja9FZskG4'
+                );
+            """,
+            # Organizations
+            """
+                CREATE TABLE IF NOT EXISTS "iam_organizations" (
+                    "uuid" UUID PRIMARY KEY,
+                    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'
+                        CHECK (status IN ('ACTIVE')),
+                    "name" VARCHAR(128) NOT NULL,
+                    "description" VARCHAR(256) DEFAULT '',
+                    "owner" UUID NOT NULL REFERENCES "iam_users" ("uuid")
+                        ON DELETE RESTRICT
+                        ON UPDATE RESTRICT,
+                    "created_at" TIMESTAMP(6) NOT NULL DEFAULT NOW(),
+                    "updated_at" TIMESTAMP(6) NOT NULL DEFAULT NOW()
+                );
+            """,
+            """
+                CREATE INDEX "iam_organizations_name_idx" ON
+                    "iam_organizations" ("name");
+            """,
+            """
+                INSERT INTO "iam_organizations" (
+                    "uuid", "name", "description", "owner"
+                ) VALUES (
+                    '00000000-0000-0000-0000-000000000000',
+                    'admin', 'Admin Organization',
+                    '00000000-0000-0000-0000-000000000000'
+                );
+            """,
+            # Projects
+            """
+                CREATE TABLE IF NOT EXISTS "iam_projects" (
+                    "uuid" UUID PRIMARY KEY,
+                    status VARCHAR(20) NOT NULL DEFAULT 'NEW'
+                        CHECK (
+                            status IN (
+                                'NEW',
+                                'IN_PROGRESS',
+                                'ACTIVE',
+                                'DELETING'
+                            )
+                        ),
+                    "name" VARCHAR(128) NOT NULL,
+                    "description" VARCHAR(256) DEFAULT '',
+                    "organization" UUID NOT NULL REFERENCES
+                        "iam_organizations" ("uuid"),
+                    "created_at" TIMESTAMP(6) NOT NULL DEFAULT NOW(),
+                    "updated_at" TIMESTAMP(6) NOT NULL DEFAULT NOW()
+                );
+            """,
+            """
+                CREATE INDEX "iam_projects_name_idx" ON "iam_projects"
+                    ("name");
+            """,
+            """
+                CREATE INDEX "iam_projects_organization_idx" ON
+                    "iam_projects" ("organization");
+            """,
+            """
+                INSERT INTO "iam_projects" (
+                    "uuid", "name", description, organization
+                ) VALUES (
+                    '00000000-0000-0000-0000-000000000000',
+                    'admin', 'Admin Project',
+                    '00000000-0000-0000-0000-000000000000'
                 );
             """,
             # Roles
@@ -325,9 +329,13 @@ class MigrationStep(migrations.AbstarctMigrationStep):
             """
                 CREATE TABLE IF NOT EXISTS "iam_tokens" (
                     "uuid" UUID PRIMARY KEY,
-                    "user" UUID NOT NULL REFERENCES "iam_users" ("uuid"),
+                    "user" UUID NOT NULL REFERENCES "iam_users" ("uuid")
+                        ON DELETE CASCADE
+                        ON UPDATE CASCADE,
                     "project" UUID DEFAULT NULL REFERENCES "iam_projects"
-                        ("uuid"),
+                        ("uuid")
+                        ON DELETE CASCADE
+                        ON UPDATE CASCADE,
                     "experation_at" TIMESTAMP(6) NOT NULL,
                     "refresh_token_uuid" UUID NOT NULL,
                     "refresh_experation_at" TIMESTAMP(6) NOT NULL,

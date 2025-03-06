@@ -29,9 +29,21 @@ class WebRoute(routes.Route):
 
 
 class UserRoute(routes.Route):
-    """Handler for /v1/health endpoint"""
+    """Handler for /v1/iam/users/ endpoint"""
 
     __controller__ = controllers.UserController
+
+
+class OrganizationController(routes.Route):
+    """Handler for /v1/iam/organizations/ endpoint"""
+
+    __controller__ = controllers.OrganizationController
+
+
+class ProjectRoute(routes.Route):
+    """Handler for /v1/iam/projects/ endpoint"""
+
+    __controller__ = controllers.ProjectController
 
 
 class LoginAction(routes.Action):
@@ -101,7 +113,11 @@ class IamRoute(routes.Route):
     __allow_methods__ = [routes.FILTER]
     __controller__ = controllers.IamController
 
+    # main resources
     users = routes.route(UserRoute)
+    organizations = routes.route(OrganizationController)
+
+    # oauth2, oidc, sso, etc
     idp = routes.route(IdpRoute)
     clients = routes.route(IamClientsRoute)
     web = routes.route(IamWebRoute)

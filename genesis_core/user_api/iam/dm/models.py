@@ -246,6 +246,12 @@ class Organization(
 ):
     __tablename__ = "iam_organizations"
 
+    owner = relationships.relationship(
+        User,
+        prefetch=True,
+        required=True,
+    )
+
 
 class Project(
     models.ModelWithUUID,
@@ -602,7 +608,7 @@ class IamClient(
         password,
         scope=iam_c.PARAM_SCOPE_DEFAULT,
         root_endpoint=(
-            f"http://{c.DEFAULT_USER_API_HOST}:{c.DEFAULT_USER_API_PORT}"
+            f"http://{c.DEFAULT_USER_API_HOST}:{c.DEFAULT_USER_API_PORT}/v1/"
         ),
         **kwargs,
     ):
@@ -614,7 +620,7 @@ class IamClient(
                 user=user,
                 project=self._get_project_by_scope(scope),
                 scope=scope,
-                issuer=f"{root_endpoint}/v1/iam/clients/{self.uuid}",
+                issuer=f"{root_endpoint}iam/clients/{self.uuid}",
                 audience=self.client_id,
                 **kwargs,
             )
