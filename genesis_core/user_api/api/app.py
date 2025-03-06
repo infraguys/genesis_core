@@ -37,6 +37,7 @@ skip_auth_endpoints = [
     iam_mw.EndpointComparator("/v1/"),
     iam_mw.EndpointComparator("/v1/health/"),
     iam_mw.EndpointComparator("/v1/iam/"),
+    iam_mw.EndpointComparator("/v1/iam/users/", methods=[ra_c.POST]),
     iam_mw.EndpointComparator("/v1/iam/clients/"),
     iam_mw.EndpointComparator(
         f"/v1/iam/clients/({ra_types.UUID_RE_TEMPLATE})"
@@ -84,6 +85,7 @@ def build_wsgi_application(context_storage, token_algorithm):
         [
             middlewares.configure_middleware(
                 iam_mw.GenesisCoreAuthMiddleware,
+                # service_name="iam",
                 token_algorithm=token_algorithm,
                 context_kwargs={
                     "context_storage": context_storage,
