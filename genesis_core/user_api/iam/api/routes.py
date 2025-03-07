@@ -40,10 +40,40 @@ class OrganizationController(routes.Route):
     __controller__ = controllers.OrganizationController
 
 
+class OrganizationMemberRoute(routes.Route):
+    """Handler for /v1/iam/organization_members/<uuid>/members/ endpoint"""
+
+    __controller__ = controllers.OrganizationMemberController
+
+
 class ProjectRoute(routes.Route):
     """Handler for /v1/iam/projects/ endpoint"""
 
     __controller__ = controllers.ProjectController
+
+
+class RoleRoute(routes.Route):
+    """Handler for /v1/iam/roles/ endpoint"""
+
+    __controller__ = controllers.RoleController
+
+
+class RoleBindingRoute(routes.Route):
+    """Handler for /v1/iam/role_bindings/ endpoint"""
+
+    __controller__ = controllers.RoleBindingController
+
+
+class PermissionRoute(routes.Route):
+    """Handler for /v1/iam/permissions/ endpoint"""
+
+    __controller__ = controllers.PermissionController
+
+
+class PermissionBindingRoute(routes.Route):
+    """Handler for /v1/iam/permission_bindings/ endpoint"""
+
+    __controller__ = controllers.PermissionBindingController
 
 
 class LoginAction(routes.Action):
@@ -116,6 +146,12 @@ class IamRoute(routes.Route):
     # main resources
     users = routes.route(UserRoute)
     organizations = routes.route(OrganizationController)
+    organization_members = routes.route(OrganizationMemberRoute)
+    projects = routes.route(ProjectRoute)
+    roles = routes.route(RoleRoute)
+    role_bindings = routes.route(RoleBindingRoute)
+    permissions = routes.route(PermissionRoute)
+    permission_bindings = routes.route(PermissionBindingRoute)
 
     # oauth2, oidc, sso, etc
     idp = routes.route(IdpRoute)

@@ -33,12 +33,19 @@ from genesis_core.user_api.iam import constants as c
 from genesis_core.user_api.iam import exceptions as iam_e
 
 
+class EnforceMixin:
+
+    def enforce(self, rule, do_raise=False, exc=None):
+        iam = contexts.get_context().iam_context
+        return iam.enforcer.enforce(rule, do_raise, exc)
+
+
 class IamController(controllers.RoutesListController):
 
     __TARGET_PATH__ = "/v1/iam/"
 
 
-class UserController(controllers.BaseResourceController):
+class UserController(controllers.BaseResourceController, EnforceMixin):
     __resource__ = resources.ResourceByModelWithCustomProps(
         models.User,
         convert_underscore=False,
@@ -51,26 +58,107 @@ class UserController(controllers.BaseResourceController):
         name_map={"secret": "password", "name": "username"},
     )
 
+    def filter(self, filters):
+        self.enforce(c.USER_LISTING, do_raise=True, exc=iam_e.CanNotListUsers)
+        return super().filter(filters)
 
-class OrganizationController(controllers.BaseResourceController):
+
+class OrganizationController(controllers.BaseResourceController, EnforceMixin):
     __resource__ = resources.ResourceByRAModel(
         models.Organization,
         convert_underscore=False,
     )
 
-    def _check_access_for_owner(self, owner):
-        pass
+    def _assign_current_user_as_owner(self, organization):
+        result = models.OrganizationMember(
+            organization=organization,
+            user=models.User.me(),
+            role=c.OrganizationRole.OWNER.value,
+        )
+        result.insert()
+        return result
 
-    def create(self, owner, **kwargs):
-        return super().create(owner=owner, **kwargs)
+    def create(self, **kwargs):
+        result = super().create(**kwargs)
+        models.OrganizationMember(
+            organization=result,
+            user=models.User.me(),
+            role=c.OrganizationRole.OWNER.value,
+        ).insert()
+        return result
 
-    def update(self, uuid, **kwargs):
-        return super().update(uuid=uuid, **kwargs)
+
+class OrganizationMemberController(
+    controllers.BaseResourceController, EnforceMixin
+):
+    __resource__ = resources.ResourceByRAModel(
+        models.OrganizationMember,
+        convert_underscore=False,
+    )
+
+    # def _check_access_for_owner(self, owner):
+    #     current_user = models.User.my()
+    #     if owner != current_user:
+    #         self.enforce(
+    #             c.ORGANIZATION_CHANGE_OWNER,
+    #             do_raise=True,
+    #             exc=iam_e.CanNotSetOwner,
+    #         )
+
+    # def create(self, organization, user, role, **kwargs):
+    #     pass
 
 
-class ProjectController(controllers.BaseResourceController):
+class ProjectController(controllers.BaseResourceController, EnforceMixin):
     __resource__ = resources.ResourceByRAModel(
         models.Project,
+        convert_underscore=False,
+    )
+
+    # def _check_create_project_in_organization(self, organization):
+    #     user = models.User.my()
+    #     if organization.owner != user:
+    #         raise iam_e.CanNotCreateProjectInOrganization(
+    #             name=organization.name,
+    #         )
+
+    # def _check_iam_organization_owner(self, organization):
+    #     user = models.User.my()
+
+    # def create(self, organization, **kwargs):
+    #     self._check_create_project_in_organization(organization)
+    #     return super().create(organization=organization, **kwargs)
+
+    # def get(self, uuid, **kwargs):
+    #     return super().get(uuid=uuid, **kwargs)
+
+
+class RoleController(controllers.BaseResourceController, EnforceMixin):
+    __resource__ = resources.ResourceByRAModel(
+        models.Role,
+        convert_underscore=False,
+    )
+
+
+class RoleBindingController(controllers.BaseResourceController, EnforceMixin):
+    __resource__ = resources.ResourceByRAModel(
+        models.RoleBinding,
+        convert_underscore=False,
+    )
+
+
+class PermissionController(controllers.BaseResourceController, EnforceMixin):
+    __resource__ = resources.ResourceByRAModel(
+        models.Permission,
+        convert_underscore=False,
+    )
+
+
+class PermissionBindingController(
+    controllers.BaseResourceController, EnforceMixin
+):
+    __resource__ = resources.ResourceByRAModel(
+        models.PermissionBinding,
         convert_underscore=False,
     )
 

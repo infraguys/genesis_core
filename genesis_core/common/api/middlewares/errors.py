@@ -16,7 +16,7 @@
 from http import client as http_client
 
 from gcl_iam import middlewares
-from restalchemy.api import middlewares as errors_mw
+from restalchemy.api.middlewares import errors as errors_mw
 
 from genesis_core.common import exceptions as common_exc
 
