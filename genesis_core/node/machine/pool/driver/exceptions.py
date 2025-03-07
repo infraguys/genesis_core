@@ -13,13 +13,16 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from __future__ import annotations
 
-from restalchemy.dm import relationships
-
-from genesis_core.node.dm import models
+import uuid as sys_uuid
+from genesis_core.common import exceptions
 
 
-class Machine(models.Machine):
-    node = relationships.relationship(models.Node)
-    pool = relationships.relationship(models.MachinePool)
+class MachineAlreadyExistsError(exceptions.GCException):
+    __template__ = "The machine {machine} already exists."
+    machine: sys_uuid.UUID
+
+
+class VolumeAlreadyExistsError(exceptions.GCException):
+    __template__ = "The volume {volume} already exists."
+    volume: sys_uuid.UUID

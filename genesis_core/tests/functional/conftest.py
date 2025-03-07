@@ -31,14 +31,18 @@ from genesis_core.user_api.api import app as user_app
 from genesis_core.tests.functional import utils as test_utils
 
 
+FIRST_MIGRATION = "0000-init-compute-tables-0234eb"
+LAST_MIGRATION = "0002-add-volumes-tables-a6972c"
+
+
 @pytest.fixture(scope="module")
-def user_api():
-    class UserApiRestService(test_utils.RestServiceTestCase):
-        __FIRST_MIGRATION__ = "0000-init-compute-tables-0234eb"
-        __LAST_MIGRATION__ = "0000-init-compute-tables-0234eb"
+def user_api_service():
+    class ApiRestService(test_utils.RestServiceTestCase):
+        __FIRST_MIGRATION__ = FIRST_MIGRATION
+        __LAST_MIGRATION__ = LAST_MIGRATION
         __APP__ = user_app.get_api_application()
 
-    rest_service = UserApiRestService()
+    rest_service = ApiRestService()
     rest_service.setup_class()
 
     yield rest_service
@@ -46,13 +50,13 @@ def user_api():
     rest_service.teardown_class()
 
 
-@pytest.fixture(autouse=True)
-def user_api_with_migration(user_api: test_utils.RestServiceTestCase):
-    user_api.setup_method()
+@pytest.fixture()
+def user_api(user_api_service: test_utils.RestServiceTestCase):
+    user_api_service.setup_method()
 
-    yield user_api
+    yield user_api_service
 
-    user_api.teardown_method()
+    user_api_service.teardown_method()
 
 
 @pytest.fixture

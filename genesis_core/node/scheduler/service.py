@@ -17,9 +17,11 @@ from __future__ import annotations
 
 import logging
 import random
+import uuid as sys_uuid
 import typing as tp
 
 from restalchemy.common import contexts
+from restalchemy.storage import exceptions as ra_exceptions
 from restalchemy.dm import filters as dm_filters
 from gcl_looper.services import basic
 
@@ -78,6 +80,21 @@ class NodeSchedulerService(basic.BasicService):
         )
         return machine
 
+    def _build_root_volume(
+        self, node: models.UnscheduledNode
+    ) -> models.Volume:
+        volume_name = "root-volume"
+        volume_uuid = sys_uuid.uuid5(node.uuid, volume_name)
+        volume = models.Volume(
+            uuid=volume_uuid,
+            name=volume_name,
+            size=node.root_disk_size,
+            node=node.uuid,
+            project_id=node.project_id,
+        )
+
+        return volume
+
     def _schedule_nodes(self):
         unsheduled = self._get_unscheduled_nodes()
         if not unsheduled:
@@ -97,6 +114,18 @@ class NodeSchedulerService(basic.BasicService):
             pool = random.choice(pools)
 
             # Scheduler performs a builder role so far
+            # Build root volume
+            if node.root_disk_size:
+                try:
+                    volume = self._build_root_volume(node)
+                    volume.insert()
+                    LOG.info(
+                        "The root volume %s has been created", volume.uuid
+                    )
+                except ra_exceptions.ConflictRecords:
+                    # It's ok, the volume is already created
+                    pass
+
             try:
                 machine = self._build_vm(node, pool)
                 machine.insert()

@@ -52,13 +52,6 @@ class MachineAgentRoute(routes.Route):
     __controller__ = controllers.MachineAgentController
 
 
-class NetbootRoute(routes.Route):
-    """Handler for /v1/boots/ endpoint"""
-
-    __controller__ = controllers.NetBootController
-    __allow_methods__ = [routes.GET]
-
-
 class ApiEndpointRoute(routes.Route):
     """Handler for /v1/ endpoint"""
 
@@ -71,4 +64,3 @@ class ApiEndpointRoute(routes.Route):
     machines = routes.route(MachineRoute)
     hypervisors = routes.route(HypervisorRoute)
     machine_agents = routes.route(MachineAgentRoute)
-    boots = routes.route(NetbootRoute)

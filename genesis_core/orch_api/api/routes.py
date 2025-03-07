@@ -26,6 +26,25 @@ class HealthRoute(routes.Route):
     __allow_methods__ = [routes.FILTER]
 
 
+class NetbootRoute(routes.Route):
+    """Handler for /v1/boots/ endpoint"""
+
+    __controller__ = controllers.NetBootController
+    __allow_methods__ = [routes.GET]
+
+
+class NodeRoute(routes.Route):
+    """Handler for /v1/nodes/ endpoint"""
+
+    __controller__ = controllers.NodesController
+
+
+class MachineRoute(routes.Route):
+    """Handler for /v1/machines/ endpoint"""
+
+    __controller__ = controllers.MachinesController
+
+
 class ApiEndpointRoute(routes.Route):
     """Handler for /v1/ endpoint"""
 
@@ -33,3 +52,6 @@ class ApiEndpointRoute(routes.Route):
     __allow_methods__ = [routes.FILTER]
 
     health = routes.route(HealthRoute)
+    boots = routes.route(NetbootRoute)
+    nodes = routes.route(NodeRoute)
+    machines = routes.route(MachineRoute)

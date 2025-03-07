@@ -18,7 +18,7 @@ from __future__ import annotations
 from restalchemy.api import packers
 
 from genesis_core.node import constants as nc
-from genesis_core.node.machine.dm import models
+from genesis_core.orch_api.dm import models
 
 
 _from_net_template = """#!ipxe

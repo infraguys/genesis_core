@@ -18,6 +18,7 @@ from __future__ import annotations
 import logging
 import uuid as sys_uuid
 import typing as tp
+import itertools
 from collections import defaultdict
 
 from restalchemy.common import contexts
@@ -28,6 +29,7 @@ from gcl_looper.services import basic
 from genesis_core.node import constants as nc
 from genesis_core.common import utils
 from genesis_core.node.dm import models as models
+from genesis_core.node.machine.pool.driver import exceptions as pool_exceptions
 from genesis_core.node.machine.pool.driver import base as pool_driver
 
 
@@ -64,7 +66,7 @@ class MachineAgentService(basic.BasicService):
 
     def _get_machines(
         self, pools: tp.Dict[sys_uuid.UUID, models.MachinePool]
-    ) -> tp.Dict[models.MachinePool, models.Machine]:
+    ) -> tp.Dict[models.MachinePool, tp.List[models.Machine]]:
         machines: tp.List[models.Machine] = models.Machine.objects.get_all(
             filters={
                 "pool": dm_filters.In((str(p.uuid) for p in pools.values())),
@@ -75,10 +77,46 @@ class MachineAgentService(basic.BasicService):
             _map[pools[m.pool]].append(m)
         return _map
 
+    def _get_volumes(
+        self, machines: tp.Iterable[models.Machine]
+    ) -> tp.Dict[models.Machine, tp.List[models.MachineVolume]]:
+        machines = tuple(machines)
+        volumes = models.MachineVolume.objects.get_all(
+            filters={
+                "node": dm_filters.In(
+                    (str(m.node) for m in machines if m.node)
+                ),
+            },
+        )
+        _raw_map = defaultdict(list)
+        for v in volumes:
+            _raw_map[v.machine].append(v)
+
+        # Every machine gets a list of volumes guaranteed even though
+        # if there are no volumes.
+        _map = defaultdict(list)
+        for m in machines:
+            _map[m] = _raw_map[m.uuid]
+
+        return _map
+
+    def _create_volumes(
+        self,
+        driver: pool_driver.AbstractPoolDriver,
+        volumes: tp.Iterable[models.MachineVolume],
+    ) -> None:
+        for v in volumes:
+            try:
+                driver.create_volume(v)
+            except pool_exceptions.VolumeAlreadyExistsError:
+                # Do nothing the volume is already created
+                pass
+
     def _actualize_pool(
         self,
         pool: models.MachinePool,
         target_machines: tp.List[models.Machine],
+        target_volumes: tp.DefaultDict[models.Machine, models.MachineVolume],
     ) -> None:
         if not pool.has_driver:
             LOG.debug("Pool %s has no driver, skipping", pool.uuid)
@@ -103,21 +141,21 @@ class MachineAgentService(basic.BasicService):
 
         # Create any machines that are not in the actual list
         for machine in set(target_machines) - set(actual_machines):
-            volume = None
+            # First create volumes for the machine
             try:
-                # TODO(akremenetsky): Get rid of this default volume
-                # Temporary add a default volume for the machine
-                volume = models.MachineVolume(
-                    uuid=sys_uuid.uuid4(),
-                    machine=machine.uuid,
-                    project_id=machine.project_id,
-                    size=15,
-                )
-                volume = driver.create_volume(volume)
-                driver.create_machine(machine, [volume])
+                self._create_volumes(driver, target_volumes[machine])
             except Exception:
-                if volume:
-                    driver.delete_volume(volume)
+                LOG.exception(
+                    "Unable to create volumes for machine %s in pool %s",
+                    machine.uuid,
+                    pool.uuid,
+                )
+                continue
+
+            # Everything is ready to create the machine
+            try:
+                driver.create_machine(machine, target_volumes[machine])
+            except Exception:
                 LOG.exception(
                     "Unable to create machine %s in pool %s",
                     machine.uuid,
@@ -158,12 +196,15 @@ class MachineAgentService(basic.BasicService):
     def _iteration(self):
         with contexts.Context().session_manager():
             # Get all pools for this agent and machines on them
-            pools = self._get_pools()
+            pools = self._get_pools(limit=10)
             machine_map = self._get_machines(pools)
+            volume_map = self._get_volumes(
+                itertools.chain(*machine_map.values())
+            )
             for pool in pools.values():
                 machines = machine_map.get(pool, [])
                 try:
-                    self._actualize_pool(pool, machines)
+                    self._actualize_pool(pool, machines, volume_map)
                 except Exception:
                     LOG.exception(
                         "Unable to actualize pool %s with machines %s",

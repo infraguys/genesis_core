@@ -29,7 +29,7 @@ class TestSchedulerService:
     def teardown_method(self) -> None:
         pass
 
-    def test_nothing_scheduler(self):
+    def test_nothing_scheduler(self, default_pool: tp.Dict[str, tp.Any]):
         self._service._iteration()
 
     def test_schedule_pool(
@@ -55,6 +55,10 @@ class TestSchedulerService:
     ):
         self._service._iteration()
         machines = models.Machine.objects.get_all()
+        volumes = models.MachineVolume.objects.get_all()
 
         assert len(machines) == 1
+        assert len(volumes) == 1
         assert str(machines[0].node) == default_node["uuid"]
+        assert str(volumes[0].node) == default_node["uuid"]
+        assert volumes[0].machine == machines[0].uuid

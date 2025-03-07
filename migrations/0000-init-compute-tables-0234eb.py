@@ -120,7 +120,6 @@ class MigrationStep(migrations.AbstarctMigrationStep):
         tables = [
             "machines",
             "nodes",
-            # "machine_pool_allocations",
             "machine_pools",
             "machine_agents",
         ]
