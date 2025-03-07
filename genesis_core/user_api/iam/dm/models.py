@@ -119,8 +119,8 @@ class ModelWithStatus(models.Model):
     STATUS = iam_c.Status
 
     status = properties.property(
-        types.Enum([s for s in iam_c.Status]),
-        default=STATUS.NEW,
+        types.Enum([s.value for s in iam_c.Status]),
+        default=STATUS.NEW.value,
     )
 
 
@@ -129,8 +129,8 @@ class ModelWithAlwaysActiveStatus(models.Model):
     STATUS = iam_c.AlwaysActiveStatus
 
     status = properties.property(
-        types.Enum([s for s in iam_c.AlwaysActiveStatus]),
-        default=STATUS.ACTIVE,
+        types.Enum([s.value for s in iam_c.AlwaysActiveStatus]),
+        default=STATUS.ACTIVE.value,
     )
 
 
@@ -179,7 +179,7 @@ class User(
         }
 
     @classmethod
-    def my(cls, token_info=None):
+    def me(cls, token_info=None):
         token_info = (
             token_info or contexts.get_context().iam_context.token_info
         )
@@ -227,12 +227,12 @@ class PermissionBinding(
         read_only=True,
     )
     role = relationships.relationship(
-        "Role",
+        Role,
         required=True,
     )
 
     permission = relationships.relationship(
-        "Permission",
+        Permission,
         required=True,
     )
 
@@ -246,10 +246,27 @@ class Organization(
 ):
     __tablename__ = "iam_organizations"
 
-    owner = relationships.relationship(
+
+class OrganizationMember(
+    models.ModelWithUUID,
+    models.ModelWithTimestamp,
+    orm.SQLStorableMixin,
+):
+    __tablename__ = "iam_organization_members"
+
+    organization = relationships.relationship(
+        Organization,
+        prefetch=True,
+        required=True,
+    )
+    user = relationships.relationship(
         User,
         prefetch=True,
         required=True,
+    )
+    role = properties.property(
+        types.Enum([s.value for s in iam_c.OrganizationRole]),
+        default=iam_c.OrganizationRole.MEMBER.value,
     )
 
 
@@ -299,7 +316,6 @@ class PermissionFastView(
 
 class RoleBinding(
     models.ModelWithUUID,
-    models.ModelWithNameDesc,
     models.ModelWithTimestamp,
     ModelWithAlwaysActiveStatus,
     orm.SQLStorableMixin,
@@ -553,7 +569,7 @@ class Token(
         raise iam_e.InvalidAuthTokenError()
 
     def introspect(self, token_info=None):
-        user = User.my(token_info=token_info)
+        user = User.me(token_info=token_info)
 
         values = PermissionFastView.objects.get_all(
             filters={
@@ -599,8 +615,38 @@ class IamClient(
         ):
             raise iam_e.CredentialsAreInvalidError()
 
-    def _get_project_by_scope(self, scope):
+    def _get_default_project(self, user):
+        for rel in OrganizationMember.objects.get_all(
+            filters={
+                "user": ra_filters.EQ(user),
+            }
+        ):
+            for project in Project.objects.get_all(
+                filters={"organization": ra_filters.EQ(rel.organization)}
+            ):
+                return project
         return None
+
+    def _get_project_by_uuid(self, user, str_uuid):
+        for project in Project.objects.get_all(
+            filters={"uuid": ra_filters.EQ(str_uuid)}
+        ):
+            return project
+
+    def _get_project_by_scope(self, user, scope):
+        scope = scope.lower()
+        project = None
+        for pice in scope.split(" "):
+            if pice.startswith("project"):
+                project_info = pice.split(":", 1)
+                project = (
+                    self._get_project_by_uuid(user, project_info[1])
+                    if len(project_info) > 1 and project_info[1] != "default"
+                    else self._get_default_project(user)
+                )
+                break
+
+        return project
 
     def get_token_by_password(
         self,
@@ -618,7 +664,7 @@ class IamClient(
             user.validate_secret(secret=password)
             token = Token(
                 user=user,
-                project=self._get_project_by_scope(scope),
+                project=self._get_project_by_scope(user, scope),
                 scope=scope,
                 issuer=f"{root_endpoint}iam/clients/{self.uuid}",
                 audience=self.client_id,

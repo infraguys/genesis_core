@@ -16,6 +16,8 @@
 
 import enum
 
+from gcl_iam import rules
+
 
 # Grant Types
 GRANT_TYPE_PASSWORD = "password"
@@ -65,3 +67,21 @@ class Status(str, enum.Enum):
 
 class AlwaysActiveStatus(str, enum.Enum):
     ACTIVE = "ACTIVE"
+
+
+class OrganizationRole(str, enum.Enum):
+    MEMBER = "MEMBER"
+    OWNER = "OWNER"
+
+
+# permissions
+
+# Organizations
+ORGANIZATION_CHANGE_OWNER = rules.Rule.from_raw(
+    "iam.organization.change_owner",
+)
+
+# Users
+USER_LISTING = rules.Rule.from_raw(
+    "iam.user.list",
+)
