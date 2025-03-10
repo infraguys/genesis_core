@@ -1,5 +1,4 @@
 # Copyright 2016 Eugene Frolov <eugene@frolov.net.ru>
-# Copyright 2025 Genesis Corporation
 #
 # All Rights Reserved.
 #
@@ -21,13 +20,11 @@ from restalchemy.storage.sql import migrations
 class MigrationStep(migrations.AbstarctMigrationStep):
 
     def __init__(self):
-        self._depends = [
-            "0000-root-d34de1.py",
-        ]
+        self._depends = []
 
     @property
     def migration_id(self):
-        return "9a7b58bd-c55c-49ef-aebd-238f2007b212"
+        return "d34de1c5-a949-40aa-86d4-687a7da05e16"
 
     @property
     def is_manual(self):

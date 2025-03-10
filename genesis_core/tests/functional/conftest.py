@@ -16,31 +16,74 @@
 
 from __future__ import annotations
 
+import os
 import typing as tp
 import uuid as sys_uuid
-from urllib.parse import urljoin
 
 import pytest
-import requests
+from gcl_iam import algorithms
+from gcl_iam.tests.functional import clients as iam_clients
 
 from genesis_core.common import constants as c
+from genesis_core.common import utils
 from genesis_core.node import constants as nc
 from genesis_core.node.dm import models as node_models
 from genesis_core.user_api.api import app as user_app
-
 from genesis_core.tests.functional import utils as test_utils
 
 
-FIRST_MIGRATION = "0000-init-compute-tables-0234eb"
-LAST_MIGRATION = "0002-add-volumes-tables-a6972c"
+FIRST_MIGRATION = "0000-root-d34de1.py"
+
+
+@pytest.fixture(scope="session")
+def hs256_algorithm():
+    secret = os.getenv("HS256_KEY", c.DEFAULT_HS256_KEY)
+    return algorithms.HS256(key=secret)
+
+
+@pytest.fixture(scope="session")
+def context_storage(
+    hs256_algorithm: algorithms.AbstractAlgorithm,
+):
+    return utils.get_context_storage(
+        global_salt=os.getenv("GLOBAL_SALT", c.DEFAULT_GLOBAL_SALT),
+        token_algorithm=hs256_algorithm,
+    )
+
+
+@pytest.fixture(scope="session")
+def admin_username():
+    return c.DEFAULT_ADMIN_USERNAME
+
+
+@pytest.fixture(scope="session")
+def admin_password():
+    return os.getenv("ADMIN_PASSWORD", c.DEFAULT_ADMIN_PASSWORD)
+
+
+@pytest.fixture(scope="session")
+def default_client_id():
+    return c.DEFAULT_CLIENT_ID
+
+
+@pytest.fixture(scope="session")
+def default_client_secret():
+    return os.getenv("DEFAULT_CLIENT_SECRET", c.DEFAULT_CLIENT_SECRET)
+
+
+@pytest.fixture(scope="session")
+def default_client_uuid():
+    return c.DEFAULT_CLIENT_UUID
 
 
 @pytest.fixture(scope="module")
-def user_api_service():
+def user_api_service(hs256_algorithm, context_storage):
     class ApiRestService(test_utils.RestServiceTestCase):
         __FIRST_MIGRATION__ = FIRST_MIGRATION
-        __LAST_MIGRATION__ = LAST_MIGRATION
-        __APP__ = user_app.get_api_application()
+        __APP__ = user_app.build_wsgi_application(
+            context_storage=context_storage,
+            token_algorithm=hs256_algorithm,
+        )
 
     rest_service = ApiRestService()
     rest_service.setup_class()
@@ -57,6 +100,30 @@ def user_api(user_api_service: test_utils.RestServiceTestCase):
     yield user_api_service
 
     user_api_service.teardown_method()
+
+
+@pytest.fixture(scope="module")
+def auth_user_admin(
+    admin_username: str,
+    admin_password: str,
+    default_client_uuid: str,
+    default_client_id: str,
+    default_client_secret: str,
+):
+    return iam_clients.GenesisCoreAuth(
+        username=admin_username,
+        password=admin_password,
+        client_uuid=default_client_uuid,
+        client_id=default_client_id,
+        client_secret=default_client_secret,
+    )
+
+
+@pytest.fixture()
+def user_api_client(user_api):
+    return lambda auth: iam_clients.GenesisCoreTestRESTClient(
+        f"{user_api.get_endpoint()}v1/", auth
+    )
 
 
 @pytest.fixture
@@ -167,42 +234,50 @@ def machine_factory(default_pool: tp.Dict[str, tp.Any]):
 
 @pytest.fixture
 def default_machine_agent(
-    user_api: test_utils.RestServiceTestCase,
+    user_api_client: iam_clients.GenesisCoreTestRESTClient,
+    auth_user_admin: iam_clients.GenesisCoreAuth,
     machine_agent_factory: tp.Callable,
 ):
     uuid = sys_uuid.UUID("00000000-1110-0000-0000-000000000000")
     default_agent = machine_agent_factory(uuid=uuid)
-    url = urljoin(user_api.base_url, "machine_agents/")
-    requests.post(url, json=default_agent)
+    client = user_api_client(auth_user_admin)
+    url = client.build_collection_uri(["machine_agents"])
+    client.post(url, json=default_agent)
 
     yield default_agent
 
-    requests.delete(urljoin(user_api.base_url, f"machine_agents/{uuid}"))
+    url = client.build_resource_uri(["machine_agents", uuid])
+    client.delete(url)
 
 
-@pytest.fixture
+@pytest.fixture()
 def default_pool(
-    user_api: test_utils.RestServiceTestCase, pool_factory: tp.Callable
+    pool_factory: tp.Callable,
+    user_api_client: iam_clients.GenesisCoreTestRESTClient,
+    auth_user_admin: iam_clients.GenesisCoreAuth,
 ):
     uuid = sys_uuid.UUID("00000000-1111-0000-0000-000000000000")
     default_pool = pool_factory(uuid=uuid)
-    url = urljoin(user_api.base_url, "hypervisors/")
-    requests.post(url, json=default_pool)
+    client = user_api_client(auth_user_admin)
+    url = client.build_collection_uri(["hypervisors"])
+    client.post(url, json=default_pool)
 
-    yield default_pool
-
-    requests.delete(urljoin(user_api.base_url, f"hypervisors/{uuid}"))
+    return default_pool
 
 
 @pytest.fixture
 def default_node(
-    user_api: test_utils.RestServiceTestCase, node_factory: tp.Callable
+    node_factory: tp.Callable,
+    user_api_client: iam_clients.GenesisCoreTestRESTClient,
+    auth_user_admin: iam_clients.GenesisCoreAuth,
 ):
     uuid = sys_uuid.UUID("00000000-1112-0000-0000-000000000000")
     default_node = node_factory(uuid=uuid)
-    url = urljoin(user_api.base_url, "nodes/")
-    requests.post(url, json=default_node)
+    client = user_api_client(auth_user_admin)
+    url = client.build_collection_uri(["nodes"])
+    client.post(url, json=default_node)
 
     yield default_node
 
-    requests.delete(urljoin(user_api.base_url, f"nodes/{uuid}"))
+    url = client.build_resource_uri(["nodes", uuid])
+    client.delete(url)

@@ -274,7 +274,7 @@ class ClientsController(controllers.BaseResourceController):
             token = resource.get_token_by_password(
                 username=kwargs.get(c.PARAM_USERNAME),
                 password=kwargs.get(c.PARAM_PASSWORD),
-                scope=kwargs.get(c.PARAM_SCOPE, None),
+                scope=kwargs.get(c.PARAM_SCOPE, ""),
                 root_endpoint=resource.redirect_url,
             )
             return token.get_response_body()

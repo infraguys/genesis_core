@@ -17,9 +17,9 @@
 import typing as tp
 import uuid as sys_uuid
 from unittest import mock
-from urllib.parse import urljoin
 
-import requests
+import pytest
+from gcl_iam.tests.functional import clients as iam_clients
 from restalchemy.dm import filters as dm_filters
 
 from genesis_core.node.machine.pool.driver import base as driver_base
@@ -27,7 +27,6 @@ from genesis_core.node.machine import service
 from genesis_core.node.dm import models
 from genesis_core.common import constants as c
 from genesis_core.node import constants as nc
-from genesis_core.tests.functional import utils as test_utils
 
 
 def fake_load_driver(
@@ -135,12 +134,14 @@ class TestMachineAgentService:
         machine.update()
         return node
 
-    def test_empty_iteration(self, user_api: test_utils.RestServiceTestCase):
+    @pytest.mark.usefixtures("user_api_client", "auth_user_admin")
+    def test_empty_iteration(self):
         self._service._iteration()
 
     def test_create_machine_no_driver(
         self,
-        user_api: test_utils.RestServiceTestCase,
+        user_api_client: iam_clients.GenesisCoreTestRESTClient,
+        auth_user_admin: iam_clients.GenesisCoreAuth,
         machine_factory: tp.Callable,
         default_node: tp.Dict[str, tp.Any],
         default_pool: tp.Dict[str, tp.Any],
@@ -158,11 +159,12 @@ class TestMachineAgentService:
         # Create machine
         machine_uuid = sys_uuid.uuid4()
         machine_spec = machine_factory(uuid=machine_uuid)
-        url = urljoin(user_api.base_url, "machines/")
-        requests.post(url, json=machine_spec)
+        client = user_api_client(auth_user_admin)
+        url = client.build_collection_uri(["machines"])
+        client.post(url, json=machine_spec)
 
         # Schedule machine to the pool
-        machine = self._schedule_machine(str(machine_uuid), pool)
+        self._schedule_machine(str(machine_uuid), pool)
 
         # Default pool dosn't have any driver, so no actual creation
         # should happen
@@ -170,7 +172,8 @@ class TestMachineAgentService:
 
     def test_create_machine(
         self,
-        user_api: test_utils.RestServiceTestCase,
+        user_api_client: iam_clients.GenesisCoreTestRESTClient,
+        auth_user_admin: iam_clients.GenesisCoreAuth,
         machine_factory: tp.Callable,
         default_node: tp.Dict[str, tp.Any],
         default_pool: tp.Dict[str, tp.Any],
@@ -190,8 +193,9 @@ class TestMachineAgentService:
         # Create machines
         foo_machine_uuid = sys_uuid.uuid4()
         machine_spec = machine_factory(uuid=foo_machine_uuid)
-        url = urljoin(user_api.base_url, "machines/")
-        requests.post(url, json=machine_spec)
+        client = user_api_client(auth_user_admin)
+        url = client.build_collection_uri(["machines"])
+        client.post(url, json=machine_spec)
 
         # Schedule machine to the pool
         machine_foo = self._schedule_machine(str(foo_machine_uuid), pool)
@@ -230,7 +234,8 @@ class TestMachineAgentService:
 
     def test_create_several_machines(
         self,
-        user_api: test_utils.RestServiceTestCase,
+        user_api_client: iam_clients.GenesisCoreTestRESTClient,
+        auth_user_admin: iam_clients.GenesisCoreAuth,
         machine_factory: tp.Callable,
         default_node: tp.Dict[str, tp.Any],
         default_pool: tp.Dict[str, tp.Any],
@@ -250,13 +255,14 @@ class TestMachineAgentService:
         # Create machines
         foo_machine_uuid = sys_uuid.uuid4()
         machine_spec = machine_factory(uuid=foo_machine_uuid)
-        url = urljoin(user_api.base_url, "machines/")
-        requests.post(url, json=machine_spec)
+        client = user_api_client(auth_user_admin)
+        url = client.build_collection_uri(["machines"])
+        client.post(url, json=machine_spec)
 
         bar_machine_uuid = sys_uuid.uuid4()
         machine_spec = machine_factory(uuid=bar_machine_uuid)
-        url = urljoin(user_api.base_url, "machines/")
-        requests.post(url, json=machine_spec)
+        url = client.build_collection_uri(["machines"])
+        client.post(url, json=machine_spec)
 
         # Schedule machine to the pool
         machine_foo = self._schedule_machine(str(foo_machine_uuid), pool)
@@ -294,7 +300,8 @@ class TestMachineAgentService:
 
     def test_delete_machine(
         self,
-        user_api: test_utils.RestServiceTestCase,
+        user_api_client: iam_clients.GenesisCoreTestRESTClient,
+        auth_user_admin: iam_clients.GenesisCoreAuth,
         machine_factory: tp.Callable,
         default_pool: tp.Dict[str, tp.Any],
         default_machine_agent: tp.Dict[str, tp.Any],
