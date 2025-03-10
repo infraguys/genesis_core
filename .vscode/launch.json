@@ -20,6 +20,14 @@
             "args": ["--config-file", "etc/genesis_core/genesis_core.conf"],
             "console": "integratedTerminal",
             "justMyCode": false
+        }, {
+            "name": "Python Debugger: GService",
+            "type": "debugpy",
+            "request": "launch",
+            "program": ".tox/develop/bin/gc-gservice",
+            "args": ["--config-file", "etc/genesis_core/genesis_core.conf"],
+            "console": "integratedTerminal",
+            "justMyCode": false
         }
 
     ]

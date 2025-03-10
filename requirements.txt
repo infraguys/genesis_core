@@ -2,10 +2,10 @@ pbr>=1.10.0,<=5.8.1  # Apache-2.0
 oslo.config>=3.22.2,<10.0.0  # Apache-2.0
 bjoern>=3.2.2  # BSD License (BSD-3-Clause)
 gcl_looper>=0.1.0,<=1.0.0  # Apache-2.0
-restalchemy>=12.5.0,<13.0.0  # Apache-2.0
+restalchemy>=12.5.1,<13.0.0  # Apache-2.0
 libvirt-python>=11.0.0,<12.0.0  # GNU Lesser General Public License v2 or later (LGPLv2+)
 Authlib>=1.5.0,<2.0.0  # BSD License (BSD-3-Clause)
-bazooka>=1.0.0,<2.0.0  # Apache-2.0
+bazooka>=1.1.0,<2.0.0  # Apache-2.0
 Jinja2>=3.1.5,<4.0.0  # BSD License (BSD-3-Clause)
 izulu>=0.5.6,<1.0.0  # MIT License
-gcl_iam>=0.0.1,<1.0.0  # Apache-2.0
+gcl_iam>=0.2.0,<1.0.0  # Apache-2.0

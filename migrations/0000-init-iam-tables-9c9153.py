@@ -15,13 +15,31 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import base64
+import hashlib
+import os
+
 from restalchemy.storage.sql import migrations
 
 
 class MigrationStep(migrations.AbstarctMigrationStep):
 
     def __init__(self):
-        self._depends = []
+        self._depends = [
+            "0000-root-d34de1.py",
+        ]
+        self._global_salt = os.getenv(
+            "GLOBAL_SALT",
+            "FOy/2kwwdn0ig1QOq7cestqe",
+        )
+        self._default_client_secret = os.getenv(
+            "DEFAULT_CLIENT_SECRET",
+            "GenesisCoreSecret",
+        )
+        self._admin_password = os.getenv(
+            "ADMIN_PASSWORD",
+            "admin",
+        )
 
     @property
     def migration_id(self):
@@ -31,16 +49,41 @@ class MigrationStep(migrations.AbstarctMigrationStep):
     def is_manual(self):
         return False
 
-    def upgrade(self, session):
-        default_admin_secret = (
-            "7ebbd94f4bfe898e672c4986bace12a28fa58026c56f4c5623"
-            "7829e93fe10cc95b10f20d7805ce9917dd59900cf5bf393c45"
-            "68b58b31fb7f61c515c289b7fed1"
+    def _generate_hash(cls, secret, secret_salt, global_salt):
+
+        raw_secret_salt = base64.b64decode(secret_salt)
+        raw_global_salt = base64.b64decode(global_salt)
+
+        hashed = hashlib.pbkdf2_hmac(
+            "sha512",
+            secret.encode("utf-8"),
+            raw_secret_salt + raw_global_salt,
+            251685,  # count of iterations
         )
-        default_client_secret = (
-            "e2ebeb35f476cd71cf569a1dd8db3abd2854576369ac0cc601"
-            "afd3c225b07a86b148d77234c0fd24d88db7386dc990fb1258"
-            "a0dad087e5855f0e0c9525d67814"
+
+        return hashed.hex()
+
+    def _get_admin_secret(self):
+        return self._generate_hash(
+            secret=self._admin_password,
+            secret_salt=self._global_salt,
+            global_salt=self._global_salt,
+        )
+
+    def _get_client_secret(self):
+        return None
+
+    def upgrade(self, session):
+        default_admin_salt = "d4JJ9QYuEEJxHCFja9FZskG4"
+        default_admin_secret = self._generate_hash(
+            secret=self._admin_password,
+            secret_salt=default_admin_salt,
+            global_salt=self._global_salt,
+        )
+        default_client_secret = self._generate_hash(
+            secret=self._default_client_secret,
+            secret_salt=default_admin_salt,
+            global_salt=self._global_salt,
         )
 
         expressions = [
@@ -85,7 +128,7 @@ class MigrationStep(migrations.AbstarctMigrationStep):
                     'User',
                     'admin@example.com',
                     '{default_admin_secret}',
-                    'd4JJ9QYuEEJxHCFja9FZskG4'
+                    '{default_admin_salt}'
                 );
             """,
             # Organizations
