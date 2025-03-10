@@ -1,0 +1,26 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: User API",
+            "type": "debugpy",
+            "request": "launch",
+            "program": ".tox/develop/bin/gc-user-api",
+            "args": ["--config-file", "etc/genesis_core/genesis_core.conf"],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        }, {
+            "name": "Python Debugger: Orch API",
+            "type": "debugpy",
+            "request": "launch",
+            "program": ".tox/develop/bin/gc-orch-api",
+            "args": ["--config-file", "etc/genesis_core/genesis_core.conf"],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        }
+
+    ]
+}

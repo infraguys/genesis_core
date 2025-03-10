@@ -22,13 +22,13 @@ from gcl_iam import constants as glc_iam_c
 from gcl_looper.services import bjoern_service
 from oslo_config import cfg
 from restalchemy.common import config_opts as ra_config_opts
-from restalchemy.common import contexts
 from restalchemy.storage.sql import engines
 
 from genesis_core.user_api.api import app
 from genesis_core.common import config
 from genesis_core.common import constants as c
 from genesis_core.common import log as infra_log
+from genesis_core.common import utils
 from genesis_core.user_api.iam import constants as iam_c
 
 
@@ -53,7 +53,7 @@ api_cli_opts = [
 iam_cli_opts = [
     cfg.StrOpt(
         "global_salt",
-        default="FOy/2kwwdn0ig1QOq7cestqe",
+        default=c.DEFAULT_GLOBAL_SALT,
         help="Global salt for IAM passwords",
     ),
     cfg.StrOpt(
@@ -67,7 +67,7 @@ iam_cli_opts = [
 iam_token_encryption_algorithms = [
     cfg.StrOpt(
         "encryption_key",
-        default="secret",
+        default=c.DEFAULT_HS256_KEY,
         help="Token encryption key",
     ),
 ]
@@ -108,17 +108,9 @@ def main():
     engines.engine_factory.configure_postgresql_factory(CONF)
 
     token_algorithm = get_token_encryption_algorithm(CONF)
-    context_storage = contexts.Storage(
-        data={
-            iam_c.STORAGE_KEY_IAM_GLOBAL_SALT: {
-                "value": CONF[DOMAIN_IAM].global_salt,
-                "read_only": True,
-            },
-            iam_c.STORAGE_KEY_IAM_TOKEN_ENCRYPTION_ALGORITHM: {
-                "value": token_algorithm,
-                "read_only": True,
-            },
-        }
+    context_storage = utils.get_context_storage(
+        global_salt=CONF[DOMAIN_IAM].global_salt,
+        token_algorithm=token_algorithm,
     )
 
     log.info(
