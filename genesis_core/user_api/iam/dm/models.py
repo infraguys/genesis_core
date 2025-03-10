@@ -419,8 +419,8 @@ class Token(
 ):
     __tablename__ = "iam_tokens"
 
-    experation_delta = datetime.timedelta(minutes=15)
-    refresh_experation_delta = datetime.timedelta(days=1)
+    expiration_delta = datetime.timedelta(minutes=15)
+    refresh_expiration_delta = datetime.timedelta(days=1)
 
     user = relationships.relationship(
         User,
@@ -432,18 +432,18 @@ class Token(
         prefetch=True,
         required=False,
     )
-    experation_at = properties.property(
+    expiration_at = properties.property(
         types.UTCDateTimeZ(),
         default=lambda: (
             datetime.datetime.now(datetime.timezone.utc)
-            + Token.experation_delta
+            + Token.expiration_delta
         ),
     )
-    refresh_experation_at = properties.property(
+    refresh_expiration_at = properties.property(
         types.UTCDateTimeZ(),
         default=lambda: (
             datetime.datetime.now(datetime.timezone.utc)
-            + Token.refresh_experation_delta
+            + Token.refresh_expiration_delta
         ),
     )
     refresh_token_uuid = properties.property(
@@ -480,7 +480,7 @@ class Token(
 
     def check_refresh_expiration(self):
         now = datetime.datetime.now(datetime.timezone.utc)
-        return now < self.refresh_experation_at
+        return now < self.refresh_expiration_at
 
     def validate_refresh_expiration(self):
         if not self.check_refresh_expiration():
@@ -488,7 +488,7 @@ class Token(
 
     def check_expiration(self):
         now = datetime.datetime.now(datetime.timezone.utc)
-        return now < self.experation_at
+        return now < self.expiration_at
 
     def validate_expiration(self):
         if not self.check_refresh_expiration():
@@ -496,8 +496,8 @@ class Token(
 
     def refresh(self):
         now = datetime.datetime.now(datetime.timezone.utc)
-        new_experation_at = now + Token.experation_delta
-        self.experation_at = new_experation_at
+        new_expiration_at = now + Token.expiration_delta
+        self.expiration_at = new_expiration_at
         self.update()
 
     def get_response_body(self):
@@ -510,7 +510,7 @@ class Token(
         )
 
         access_token_info = {
-            "exp": int(self.experation_at.timestamp()),
+            "exp": int(self.expiration_at.timestamp()),
             "iat": int(self.created_at.timestamp()),
             "auth_time": int(self.created_at.timestamp()),
             "jti": str(self.uuid),
@@ -522,7 +522,7 @@ class Token(
         access_token = algorithm.encode(access_token_info)
 
         id_token_info = {
-            "exp": int(self.experation_at.timestamp()),
+            "exp": int(self.expiration_at.timestamp()),
             "iat": int(self.created_at.timestamp()),
             "auth_time": int(self.created_at.timestamp()),
             "jti": str(self.uuid),
@@ -536,7 +536,7 @@ class Token(
         id_token = algorithm.encode(id_token_info)
 
         refresh_token_info = {
-            "exp": int(self.refresh_experation_at.timestamp()),
+            "exp": int(self.refresh_expiration_at.timestamp()),
             "iat": int(self.created_at.timestamp()),
             "jti": str(self.refresh_token_uuid),
             "iss": self.issuer,
@@ -549,11 +549,11 @@ class Token(
         return {
             "access_token": access_token,
             "token_type": self.typ,
-            "expires_at": int(self.experation_at.timestamp()),
-            "expires_in": (self.experation_at - now).seconds,
+            "expires_at": int(self.expiration_at.timestamp()),
+            "expires_in": (self.expiration_at - now).seconds,
             "id_token": id_token,
             "refresh_token": refresh_token,
-            "refresh_expires_in": (self.refresh_experation_at - now).seconds,
+            "refresh_expires_in": (self.refresh_expiration_at - now).seconds,
             "scope": self.scope,
         }
 
