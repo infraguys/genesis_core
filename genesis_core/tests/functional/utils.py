@@ -22,7 +22,8 @@ from urllib import parse
 
 from restalchemy.storage.sql import migrations
 from restalchemy.tests.functional import db_utils as ra_db_utils
-from restalchemy.tests.functional.restapi.ra_based.microservice import service
+
+from genesis_core.tests.functional import base
 
 
 ENDPOINT_TEMPLATE = "http://127.0.0.1:%s/"
@@ -66,7 +67,8 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
         cascade = " CASCADE" if cascade else ""
         with cls.engine.session_manager(session=session) as s:
             s.execute(
-                f"drop table if exists {session.engine.escape(table_name)}{cascade}"
+                "drop table if exists"
+                f" {session.engine.escape(table_name)}{cascade}"
             )
 
     @classmethod
@@ -130,12 +132,16 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
         # Apply migrations
         self._migrations = self.get_migration_engine()
         self._migrations.rollback_migration(self.__FIRST_MIGRATION__)
-        self._migrations.apply_migration(self.__LAST_MIGRATION__)
+
+        last_migration = (
+            self.__LAST_MIGRATION__ or self._migrations.get_latest_migration()
+        )
+        self._migrations.apply_migration(last_migration)
 
         # Run service
         self.service_port = self.find_free_port()
         url = parse.urlparse(self.get_endpoint())
-        self._service = service.RESTService(
+        self._service = base.RESTService(
             bind_host=url.hostname, bind_port=url.port, app_root=self.__APP__
         )
         self._service.start()

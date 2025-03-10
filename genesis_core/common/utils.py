@@ -18,7 +18,11 @@ import typing as tp
 import uuid as sys_uuid
 from importlib.metadata import entry_points
 
+from gcl_iam import algorithms
+from restalchemy.common import contexts
+
 from genesis_core.common import constants as c
+from genesis_core.user_api.iam import constants as iam_c
 
 
 def node_uuid(path: str = c.NODE_UUID_PATH) -> sys_uuid.UUID:
@@ -38,3 +42,21 @@ def load_from_entry_point(group: str, name: str) -> tp.Any:
 def load_group_from_entry_point(group: str) -> tp.Any:
     """Load class from entry points."""
     return [e for e in entry_points(group=group)]
+
+
+def get_context_storage(
+    global_salt: str,
+    token_algorithm: algorithms.AbstractAlgorithm,
+) -> contexts.Storage:
+    return contexts.Storage(
+        data={
+            iam_c.STORAGE_KEY_IAM_GLOBAL_SALT: {
+                "value": global_salt,
+                "read_only": True,
+            },
+            iam_c.STORAGE_KEY_IAM_TOKEN_ENCRYPTION_ALGORITHM: {
+                "value": token_algorithm,
+                "read_only": True,
+            },
+        }
+    )

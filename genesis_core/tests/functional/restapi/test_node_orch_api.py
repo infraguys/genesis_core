@@ -32,8 +32,7 @@ class TestNodeOrchApi:
     def orch_api_service(self):
         class ApiRestService(test_utils.RestServiceTestCase):
             __FIRST_MIGRATION__ = conftest.FIRST_MIGRATION
-            __LAST_MIGRATION__ = conftest.LAST_MIGRATION
-            __APP__ = orch_app.get_api_application()
+            __APP__ = orch_app.build_wsgi_application()
 
         rest_service = ApiRestService()
         rest_service.setup_class()
