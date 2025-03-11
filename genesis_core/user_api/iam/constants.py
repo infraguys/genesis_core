@@ -82,6 +82,6 @@ ORGANIZATION_CHANGE_OWNER = rules.Rule.from_raw(
 )
 
 # Users
-USER_LISTING = rules.Rule.from_raw(
+PERMISSION_USER_LISTING = rules.Rule.from_raw(
     "iam.user.list",
 )

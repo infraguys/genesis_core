@@ -102,7 +102,7 @@ def user_api(user_api_service: test_utils.RestServiceTestCase):
     user_api_service.teardown_method()
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture()
 def auth_user_admin(
     admin_username: str,
     admin_password: str,
@@ -120,9 +120,57 @@ def auth_user_admin(
 
 
 @pytest.fixture()
+def auth_test1_user(
+    user_api_client: iam_clients.GenesisCoreTestRESTClient,
+    auth_user_admin: iam_clients.GenesisCoreAuth,
+    default_client_uuid: str,
+    default_client_id: str,
+    default_client_secret: str,
+):
+    password = "test1"
+    client = user_api_client(auth_user_admin)
+    result = client.create_user(username="test1", password=password)
+
+    return iam_clients.GenesisCoreAuth(
+        username=result["username"],
+        password=password,
+        client_uuid=default_client_uuid,
+        client_id=default_client_id,
+        client_secret=default_client_secret,
+        uuid=result["uuid"],
+        email=result["email"],
+    )
+
+
+@pytest.fixture()
 def user_api_client(user_api):
-    return lambda auth: iam_clients.GenesisCoreTestRESTClient(
-        f"{user_api.get_endpoint()}v1/", auth
+
+    def build_client(
+        auth: iam_clients.GenesisCoreAuth,
+        permissions: list[str] = None,
+        project_id: str = None,
+    ):
+        permissions = permissions or []
+        client = iam_clients.GenesisCoreTestRESTClient(
+            f"{user_api.get_endpoint()}v1/",
+            auth,
+        )
+
+        client.set_permissions_to_user(
+            user_uuid=auth.uuid,
+            permissions=permissions,
+            project_id=project_id,
+        )
+
+        return client
+
+    return build_client
+
+
+@pytest.fixture()
+def user_api_noauth_client(user_api):
+    return lambda: iam_clients.GenesisCoreTestNoAuthRESTClient(
+        f"{user_api.get_endpoint()}v1/"
     )
 
 

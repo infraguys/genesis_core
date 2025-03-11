@@ -1,5 +1,6 @@
 {
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
-    "python.envFile": "${workspaceFolder}/.vscode/tests.env"
+    "python.envFile": "${workspaceFolder}/.vscode/tests.env",
+    "debugpy.debugJustMyCode": false
 }
