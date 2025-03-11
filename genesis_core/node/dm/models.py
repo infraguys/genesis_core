@@ -83,6 +83,11 @@ class MachinePool(
         default=nc.MachinePoolStatus.DISABLED.value,
     )
 
+    avail_cores = properties.property(types.Integer(), default=0)
+    avail_ram = properties.property(types.Integer(), default=0)
+    all_cores = properties.property(types.Integer(), default=0)
+    all_ram = properties.property(types.Integer(), default=0)
+
     @property
     def has_driver(self) -> bool:
         return self.driver_spec is not None
@@ -162,7 +167,7 @@ class Machine(
         default=nc.NodeType.VM.value,
     )
     node = properties.property(types.AllowNone(types.UUID()), default=None)
-    pool = properties.property(types.UUID())
+    pool = properties.property(types.AllowNone(types.UUID()), default=None)
     boot = properties.property(
         types.Enum([b.value for b in nc.BootAlternative]),
         default=nc.BootAlternative.network.value,
@@ -172,6 +177,12 @@ class Machine(
     firmware_uuid = properties.property(
         types.AllowNone(types.UUID()),
         default=None,
+    )
+
+    builder = properties.property(types.AllowNone(types.UUID()), default=None)
+    build_status = properties.property(
+        types.Enum([s.value for s in nc.MachineBuildStatus]),
+        default=nc.MachineBuildStatus.IN_BUILD.value,
     )
 
 
@@ -215,4 +226,38 @@ class Netboot(
     boot = properties.property(
         types.Enum([b.value for b in nc.BootAlternative]),
         default=nc.BootAlternative.network.value,
+    )
+
+
+class Builder(
+    models.ModelWithUUID,
+    models.ModelWithTimestamp,
+    orm.SQLStorableMixin,
+    models.SimpleViewMixin,
+):
+    __tablename__ = "n_builders"
+
+    status = properties.property(
+        types.Enum([s.value for s in nc.BuilderStatus]),
+        default=nc.BuilderStatus.ACTIVE.value,
+    )
+
+
+class MachinePoolReservations(
+    models.ModelWithUUID,
+    models.ModelWithTimestamp,
+    orm.SQLStorableMixin,
+    models.SimpleViewMixin,
+):
+    __tablename__ = "n_machine_pool_reservations"
+
+    pool = properties.property(types.UUID())
+    machine = properties.property(types.AllowNone(types.UUID()), default=None)
+    cores = properties.property(
+        types.Integer(min_value=0, max_value=4096),
+        required=True,
+        default=0,
+    )
+    ram = properties.property(
+        types.Integer(min_value=0), required=True, default=0
     )

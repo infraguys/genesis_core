@@ -51,6 +51,31 @@ class MachineAgentService(basic.BasicService):
     def _calculate_agent_uuid(self) -> sys_uuid.UUID:
         return sys_uuid.uuid5(utils.node_uuid(), DEF_MACHINE_AGENT_NAME)
 
+    def _is_building(self, machine: models.Machine) -> bool:
+        return machine.build_status != nc.MachineBuildStatus.READY
+
+    def _actualize_pool_state(
+        self,
+        pool: models.MachinePool,
+        actual_machines: tp.List[models.Machine],
+    ) -> None:
+        cores = sum(m.cores for m in actual_machines)
+        ram = sum(m.ram for m in actual_machines)
+
+        avail_cores = pool.all_cores - cores
+        avail_ram = pool.all_ram - ram
+
+        if avail_cores != pool.avail_cores or avail_ram != pool.avail_ram:
+            pool.avail_cores = avail_cores
+            pool.avail_ram = avail_ram
+            pool.update()
+            LOG.info(
+                "The pool %s actualized cores %s and ram %s",
+                pool.uuid,
+                avail_cores,
+                avail_ram,
+            )
+
     def _get_pools(
         self, limit: int = nc.DEF_SQL_LIMIT
     ) -> tp.Dict[sys_uuid.UUID, models.MachinePool]:
@@ -128,6 +153,8 @@ class MachineAgentService(basic.BasicService):
         # Get all machines for this pool
         actual_machines: tp.List[models.Machine] = driver.list_machines()
 
+        self._actualize_pool_state(pool, actual_machines)
+
         # Delete any machines that are not in the target list
         for machine in set(actual_machines) - set(target_machines):
             try:
@@ -141,6 +168,12 @@ class MachineAgentService(basic.BasicService):
 
         # Create any machines that are not in the actual list
         for machine in set(target_machines) - set(actual_machines):
+            # Skip machines that are not ready. They are building and
+            # will be ready a little bit later.
+            if self._is_building(machine):
+                LOG.debug("Machine %s is not ready, skipping", machine.uuid)
+                continue
+
             # First create volumes for the machine
             try:
                 self._create_volumes(driver, target_volumes[machine])
@@ -170,6 +203,14 @@ class MachineAgentService(basic.BasicService):
             if a.uuid == t.uuid
         )
         for target_machine, actual_machine in pending_actualization:
+            # Skip machines that are not ready. They are building and
+            # will be ready a little bit later.
+            if self._is_building(target_machine):
+                LOG.debug(
+                    "Machine %s is not ready, skipping", target_machine.uuid
+                )
+                continue
+
             try:
                 driver.actualize_machine(target_machine, actual_machine)
             except Exception:

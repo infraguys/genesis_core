@@ -302,6 +302,10 @@ def pool_factory():
         name: str = "pool-default",
         driver_spec: dict | None = None,
         status: str = nc.MachinePoolStatus.ACTIVE.value,
+        avail_cores: int = 8,
+        avail_ram: int = 16384,
+        all_cores: int = 8,
+        all_ram: int = 16384,
         **kwargs,
     ) -> tp.Dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
@@ -312,6 +316,10 @@ def pool_factory():
             name=name,
             status=status,
             driver_spec=driver_spec,
+            avail_cores=avail_cores,
+            avail_ram=avail_ram,
+            all_cores=all_cores,
+            all_ram=all_ram,
             **kwargs,
         )
         view = pool.dump_to_simple_view()
@@ -330,6 +338,7 @@ def machine_factory(default_pool: tp.Dict[str, tp.Any]):
         ram: int = 1024,
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
         status: str = nc.MachineStatus.ACTIVE.value,
+        build_status: str = nc.MachineBuildStatus.READY.value,
         **kwargs,
     ) -> tp.Dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
@@ -342,9 +351,54 @@ def machine_factory(default_pool: tp.Dict[str, tp.Any]):
             ram=ram,
             project_id=project_id,
             status=status,
+            build_status=build_status,
             **kwargs,
         )
         view = machine.dump_to_simple_view()
+        return view
+
+    return factory
+
+
+@pytest.fixture
+def builder_factory() -> tp.Callable:
+    def factory(
+        uuid: sys_uuid.UUID | None = None,
+        status: str = nc.BuilderStatus.ACTIVE.value,
+        **kwargs,
+    ) -> tp.Dict[str, tp.Any]:
+        uuid = uuid or sys_uuid.uuid4()
+        builder = node_models.Builder(
+            uuid=uuid,
+            status=status,
+            **kwargs,
+        )
+        view = builder.dump_to_simple_view()
+        return view
+
+    return factory
+
+
+@pytest.fixture
+def machine_pool_reservation_factory() -> tp.Callable:
+    def factory(
+        pool: sys_uuid.UUID,
+        uuid: sys_uuid.UUID | None = None,
+        machine: sys_uuid.UUID | None = None,
+        cores: int = 1,
+        ram: int = 1024,
+        **kwargs,
+    ) -> tp.Dict[str, tp.Any]:
+        uuid = uuid or sys_uuid.uuid4()
+        reservation = node_models.MachinePoolReservations(
+            uuid=uuid,
+            pool=pool,
+            machine=machine,
+            cores=cores,
+            ram=ram,
+            **kwargs,
+        )
+        view = reservation.dump_to_simple_view()
         return view
 
     return factory

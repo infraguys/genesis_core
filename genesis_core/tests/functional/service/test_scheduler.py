@@ -52,7 +52,12 @@ class TestSchedulerService:
         default_pool: tp.Dict[str, tp.Any],
         default_node: tp.Dict[str, tp.Any],
         default_machine_agent: tp.Dict[str, tp.Any],
+        builder_factory: tp.Callable,
     ):
+        view = builder_factory()
+        builder = models.Builder.restore_from_simple_view(**view)
+        builder.insert()
+
         self._service._iteration()
         machines = models.Machine.objects.get_all()
         volumes = models.MachineVolume.objects.get_all()
@@ -62,3 +67,39 @@ class TestSchedulerService:
         assert str(machines[0].node) == default_node["uuid"]
         assert str(volumes[0].node) == default_node["uuid"]
         assert volumes[0].machine == machines[0].uuid
+
+    def test_schedule_node_no_builders(
+        self,
+        default_pool: tp.Dict[str, tp.Any],
+        default_node: tp.Dict[str, tp.Any],
+        default_machine_agent: tp.Dict[str, tp.Any],
+    ):
+        self._service._iteration()
+        machines = models.Machine.objects.get_all()
+        volumes = models.MachineVolume.objects.get_all()
+
+        assert len(machines) == 0
+        assert len(volumes) == 0
+
+    def test_schedule_unscheduled_machine(
+        self,
+        default_pool: tp.Dict[str, tp.Any],
+        default_node: tp.Dict[str, tp.Any],
+        default_machine_agent: tp.Dict[str, tp.Any],
+        builder_factory: tp.Callable,
+        machine_factory: tp.Callable,
+    ):
+        view = builder_factory()
+        builder = models.Builder.restore_from_simple_view(**view)
+        builder.insert()
+
+        view = machine_factory(pool=None)
+        machine = models.Machine.restore_from_simple_view(**view)
+        machine.insert()
+
+        self._service._iteration()
+        machines = models.Machine.objects.get_all()
+
+        assert len(machines) == 2
+        assert str(machines[0].pool) == default_pool["uuid"]
+        assert str(machines[1].pool) == default_pool["uuid"]
