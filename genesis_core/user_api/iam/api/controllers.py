@@ -59,7 +59,9 @@ class UserController(controllers.BaseResourceController, EnforceMixin):
     )
 
     def filter(self, filters):
-        self.enforce(c.USER_LISTING, do_raise=True, exc=iam_e.CanNotListUsers)
+        self.enforce(
+            c.PERMISSION_USER_LISTING, do_raise=True, exc=iam_e.CanNotListUsers
+        )
         return super().filter(filters)
 
 
