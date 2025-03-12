@@ -35,7 +35,7 @@ class TestUsers:
     def test_list_users_wo_auth_bad_request(self, user_api_noauth_client):
         client = user_api_noauth_client()
 
-        with pytest.raises(bazooka_exc.BadRequestError):
+        with pytest.raises(bazooka_exc.UnauthorizedError):
             client.list_users()
 
     def test_list_users_admin_auth_success(
