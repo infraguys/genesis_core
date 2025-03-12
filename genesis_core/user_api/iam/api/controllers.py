@@ -20,6 +20,7 @@ import mimetypes
 
 from authlib.integrations import requests_client
 import jinja2
+from gcl_iam import controllers as iam_controllers
 from restalchemy.api import actions
 from restalchemy.api import controllers
 from restalchemy.api import resources
@@ -65,20 +66,25 @@ class UserController(controllers.BaseResourceController, EnforceMixin):
         return super().filter(filters)
 
 
-class OrganizationController(controllers.BaseResourceController, EnforceMixin):
+class OrganizationController(
+    iam_controllers.PolicyBasedWithoutProjectController,
+    EnforceMixin,
+):
     __resource__ = resources.ResourceByRAModel(
         models.Organization,
         convert_underscore=False,
     )
+    __policy_service_name__ = "iam"
+    __policy_name__ = "organization"
 
-    def _assign_current_user_as_owner(self, organization):
-        result = models.OrganizationMember(
-            organization=organization,
-            user=models.User.me(),
-            role=c.OrganizationRole.OWNER.value,
-        )
-        result.insert()
-        return result
+    # def _assign_current_user_as_owner(self, organization):
+    #     result = models.OrganizationMember(
+    #         organization=organization,
+    #         user=models.User.me(),
+    #         role=c.OrganizationRole.OWNER.value,
+    #     )
+    #     result.insert()
+    #     return result
 
     def create(self, **kwargs):
         result = super().create(**kwargs)
@@ -88,6 +94,34 @@ class OrganizationController(controllers.BaseResourceController, EnforceMixin):
             role=c.OrganizationRole.OWNER.value,
         ).insert()
         return result
+
+    def filter(self, filters):
+        pclass = iam_controllers.PolicyBasedWithoutProjectController
+        if self.enforce(c.PERMISSION_ORGANIZATION_READ_ALL):
+            return super(pclass, self).filter(filters)
+        return models.Organization.list_my()
+
+    def get(self, uuid, **kwargs):
+        pclass = iam_controllers.PolicyBasedWithoutProjectController
+        return super(pclass, self).get(uuid, **kwargs)
+
+    def update(self, uuid, **kwargs):
+        pclass = iam_controllers.PolicyBasedWithoutProjectController
+        org = self.get(uuid)
+        if org.are_i_owner() or self.enforce(
+            c.PERMISSION_ORGANIZATION_WRITE_ALL
+        ):
+            return super(pclass, self).update(uuid, **kwargs)
+        raise iam_e.CanNotUpdateOrganization(name=org.name)
+
+    def delete(self, uuid):
+        pclass = iam_controllers.PolicyBasedWithoutProjectController
+        org = self.get(uuid)
+        if self.enforce(c.PERMISSION_ORGANIZATION_DELETE_ALL):
+            return super(pclass, self).delete(uuid)
+        if org.are_i_owner():
+            return super().delete(uuid)
+        raise iam_e.CanNotDeleteOrganization(name=org.name)
 
 
 class OrganizationMemberController(

@@ -246,6 +246,45 @@ class Organization(
 ):
     __tablename__ = "iam_organizations"
 
+    @classmethod
+    def list_my(cls):
+        user = User.me()
+
+        member_bindings = OrganizationMember.objects.get_all(
+            filters={
+                "user": ra_filters.EQ(user),
+            }
+        )
+
+        return [m.organization for m in member_bindings]
+
+    def are_i_owner(self):
+        user = User.me()
+        for member in OrganizationMember.objects.get_all(
+            filters={
+                "organization": ra_filters.EQ(self),
+                "user": ra_filters.EQ(user),
+                "role": ra_filters.EQ(iam_c.OrganizationRole.OWNER.value),
+            },
+            limit=1,
+        ):
+            return True
+
+        return False
+
+    def are_i_member(self):
+        user = User.me()
+        for member in OrganizationMember.objects.get_all(
+            filters={
+                "organization": ra_filters.EQ(self),
+                "user": ra_filters.EQ(user),
+            },
+            limit=1,
+        ):
+            return True
+
+        return False
+
 
 class OrganizationMember(
     models.ModelWithUUID,
