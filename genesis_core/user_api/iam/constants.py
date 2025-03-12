@@ -75,13 +75,34 @@ class OrganizationRole(str, enum.Enum):
 
 
 # permissions
-
-# Organizations
-ORGANIZATION_CHANGE_OWNER = rules.Rule.from_raw(
-    "iam.organization.change_owner",
-)
-
 # Users
 PERMISSION_USER_LISTING = rules.Rule.from_raw(
     "iam.user.list",
+)
+PERMISSION_USER_WRITE_ALL = rules.Rule.from_raw(
+    "iam.user.write_all",
+)
+PERMISSION_USER_DELETE_ALL = rules.Rule.from_raw(
+    "iam.user.delete_all",
+)
+PERMISSION_USER_DELETE = rules.Rule.from_raw(
+    "iam.user.delete",
+)
+
+
+# Organizations
+PERMISSION_ORGANIZATION_CREATE = rules.Rule.from_raw(
+    "iam.organization.create",
+)
+PERMISSION_ORGANIZATION_READ_ALL = rules.Rule.from_raw(
+    "iam.organization.read_all",
+)
+PERMISSION_ORGANIZATION_WRITE_ALL = rules.Rule.from_raw(
+    "iam.organization.write_all",
+)
+PERMISSION_ORGANIZATION_DELETE = rules.Rule.from_raw(
+    "iam.organization.delete",
+)
+PERMISSION_ORGANIZATION_DELETE_ALL = rules.Rule.from_raw(
+    "iam.organization.delete_all",
 )

@@ -41,6 +41,41 @@ class CanNotListUsers(exceptions.CommonForbiddenException, iam_exc.Forbidden):
     )
 
 
+class CanNotUpdateUser(exceptions.CommonForbiddenException, iam_exc.Forbidden):
+    __template__ = (
+        "The current user is not permitted to update the user `{uuid}`."
+        " This action requires the `{rule}`, which has not been granted."
+    )
+
+
+class CanNotDeleteUser(exceptions.CommonForbiddenException, iam_exc.Forbidden):
+    __template__ = (
+        "The current user is not permitted to delete the user `{uuid}`."
+        " This action requires the `{rule1}` or `{rule2}`, which has not been"
+        " granted."
+    )
+
+
+class CanNotUpdateOrganization(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = (
+        "The current user is not permitted to update the organization"
+        " `{name}`. Only the owner of the organization may update it."
+    )
+
+
+class CanNotDeleteOrganization(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = (
+        "The current user is not permitted to delete the organization"
+        " `{name}`. Only the owner of the organization may delete it."
+    )
+
+
 class CanNotCreateProjectInOrganization(
     exceptions.CommonForbiddenException,
     iam_exc.Forbidden,

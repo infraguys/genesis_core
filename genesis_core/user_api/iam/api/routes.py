@@ -28,10 +28,18 @@ class WebRoute(routes.Route):
         )
 
 
+class ChangePasswordAction(routes.Action):
+    """Handler for .../users/<uuid>/actions/change_password/invoke endpoint"""
+
+    __controller__ = controllers.UserController
+
+
 class UserRoute(routes.Route):
     """Handler for /v1/iam/users/ endpoint"""
 
     __controller__ = controllers.UserController
+
+    change_password = routes.action(ChangePasswordAction, invoke=True)
 
 
 class OrganizationController(routes.Route):
@@ -121,6 +129,12 @@ class IntrospectAction(routes.Action):
     __controller__ = controllers.ClientsController
 
 
+class MeAction(routes.Action):
+    """Handler for /v1/iam/clients/<uuid>/actions/me endpoint"""
+
+    __controller__ = controllers.ClientsController
+
+
 class IamClientsRoute(routes.Route):
     """Handler for /v1/iam/clients/ endpoint"""
 
@@ -130,6 +144,7 @@ class IamClientsRoute(routes.Route):
     login = routes.action(loginAction, invoke=True)
     get_token = routes.action(GetTokenAction, invoke=True)
     introspect = routes.action(IntrospectAction)
+    me = routes.action(MeAction)
 
 
 class IamWebRoute(WebRoute):

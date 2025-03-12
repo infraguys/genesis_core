@@ -26,7 +26,9 @@ class ErrorsHandlerMiddleware(middlewares.ErrorsHandlerMiddleware):
     not_found_exc = middlewares.ErrorsHandlerMiddleware.not_found_exc + (
         common_exc.CommonNotFoundException,
     )
-    forbidden_exc = (common_exc.CommonForbiddenException,)
+    forbidden_exc = middlewares.ErrorsHandlerMiddleware.forbidden_exc + (
+        common_exc.CommonForbiddenException,
+    )
 
     def _construct_error_response(self, req, e):
         if isinstance(e, self.forbidden_exc):

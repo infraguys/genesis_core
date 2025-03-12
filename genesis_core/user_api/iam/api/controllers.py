@@ -20,6 +20,7 @@ import mimetypes
 
 from authlib.integrations import requests_client
 import jinja2
+from gcl_iam import controllers as iam_controllers
 from restalchemy.api import actions
 from restalchemy.api import controllers
 from restalchemy.api import resources
@@ -51,9 +52,10 @@ class UserController(controllers.BaseResourceController, EnforceMixin):
         convert_underscore=False,
         hidden_fields=resources.HiddenFieldMap(
             get=["salt", "secret_hash", "secret", "otp_secret"],
-            create=["salt", "secret_hash"],
-            update=["salt", "secret_hash"],
+            create=["salt", "secret_hash", "otp_secret"],
+            update=["salt", "secret_hash", "secret", "otp_secret"],
             filter=["salt", "secret_hash", "secret", "otp_secret"],
+            action_post=["salt", "secret_hash", "secret", "otp_secret"],
         ),
         name_map={"secret": "password", "name": "username"},
     )
@@ -64,21 +66,50 @@ class UserController(controllers.BaseResourceController, EnforceMixin):
         )
         return super().filter(filters)
 
+    def update(self, uuid, **kwargs):
+        is_me = models.User.me().uuid == uuid
+        if self.enforce(c.PERMISSION_USER_WRITE_ALL) or is_me:
+            return super().update(uuid, **kwargs)
+        raise iam_e.CanNotUpdateUser(
+            uuid=uuid, rule=c.PERMISSION_USER_WRITE_ALL
+        )
 
-class OrganizationController(controllers.BaseResourceController, EnforceMixin):
+    def delete(self, uuid):
+        is_me = models.User.me().uuid == uuid
+        if self.enforce(c.PERMISSION_USER_DELETE_ALL) or (
+            is_me and self.enforce(c.PERMISSION_USER_DELETE)
+        ):
+            return super().delete(uuid)
+        raise iam_e.CanNotDeleteUser(
+            uuid=uuid,
+            rule1=c.PERMISSION_USER_DELETE_ALL,
+            rule2=c.PERMISSION_USER_DELETE,
+        )
+
+    @actions.post
+    def change_password(self, resource, old_password, new_password):
+        is_me = models.User.me() == resource
+        if self.enforce(c.PERMISSION_USER_WRITE_ALL) or is_me:
+            resource.change_secret_safe(
+                old_secret=old_password,
+                new_secret=new_password,
+            )
+            return resource
+        raise iam_e.CanNotUpdateUser(
+            uuid=resource.uuid, rule=c.PERMISSION_USER_WRITE_ALL
+        )
+
+
+class OrganizationController(
+    iam_controllers.PolicyBasedWithoutProjectController,
+    EnforceMixin,
+):
     __resource__ = resources.ResourceByRAModel(
         models.Organization,
         convert_underscore=False,
     )
-
-    def _assign_current_user_as_owner(self, organization):
-        result = models.OrganizationMember(
-            organization=organization,
-            user=models.User.me(),
-            role=c.OrganizationRole.OWNER.value,
-        )
-        result.insert()
-        return result
+    __policy_service_name__ = "iam"
+    __policy_name__ = "organization"
 
     def create(self, **kwargs):
         result = super().create(**kwargs)
@@ -89,6 +120,34 @@ class OrganizationController(controllers.BaseResourceController, EnforceMixin):
         ).insert()
         return result
 
+    def filter(self, filters):
+        pclass = iam_controllers.PolicyBasedWithoutProjectController
+        if self.enforce(c.PERMISSION_ORGANIZATION_READ_ALL):
+            return super(pclass, self).filter(filters)
+        return models.Organization.list_my()
+
+    def get(self, uuid, **kwargs):
+        pclass = iam_controllers.PolicyBasedWithoutProjectController
+        return super(pclass, self).get(uuid, **kwargs)
+
+    def update(self, uuid, **kwargs):
+        pclass = iam_controllers.PolicyBasedWithoutProjectController
+        org = self.get(uuid)
+        if org.are_i_owner() or self.enforce(
+            c.PERMISSION_ORGANIZATION_WRITE_ALL
+        ):
+            return super(pclass, self).update(uuid, **kwargs)
+        raise iam_e.CanNotUpdateOrganization(name=org.name)
+
+    def delete(self, uuid):
+        pclass = iam_controllers.PolicyBasedWithoutProjectController
+        org = self.get(uuid)
+        if self.enforce(c.PERMISSION_ORGANIZATION_DELETE_ALL):
+            return super(pclass, self).delete(uuid)
+        if org.are_i_owner():
+            return super().delete(uuid)
+        raise iam_e.CanNotDeleteOrganization(name=org.name)
+
 
 class OrganizationMemberController(
     controllers.BaseResourceController, EnforceMixin
@@ -97,18 +156,6 @@ class OrganizationMemberController(
         models.OrganizationMember,
         convert_underscore=False,
     )
-
-    # def _check_access_for_owner(self, owner):
-    #     current_user = models.User.my()
-    #     if owner != current_user:
-    #         self.enforce(
-    #             c.ORGANIZATION_CHANGE_OWNER,
-    #             do_raise=True,
-    #             exc=iam_e.CanNotSetOwner,
-    #         )
-
-    # def create(self, organization, user, role, **kwargs):
-    #     pass
 
 
 class ProjectController(controllers.BaseResourceController, EnforceMixin):
@@ -291,6 +338,10 @@ class ClientsController(controllers.BaseResourceController):
     @actions.get
     def introspect(self, resource):
         return contexts.get_context().iam_context.introspection_info()
+
+    @actions.get
+    def me(self, resource):
+        return resource.me().get_response_body()
 
 
 class WebController:
