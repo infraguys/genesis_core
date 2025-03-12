@@ -79,6 +79,15 @@ class OrganizationRole(str, enum.Enum):
 PERMISSION_USER_LISTING = rules.Rule.from_raw(
     "iam.user.list",
 )
+PERMISSION_USER_WRITE_ALL = rules.Rule.from_raw(
+    "iam.user.write_all",
+)
+PERMISSION_USER_DELETE_ALL = rules.Rule.from_raw(
+    "iam.user.delete_all",
+)
+PERMISSION_USER_DELETE = rules.Rule.from_raw(
+    "iam.user.delete",
+)
 
 
 # Organizations

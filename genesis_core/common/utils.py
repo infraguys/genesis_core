@@ -20,6 +20,7 @@ from importlib.metadata import entry_points
 
 from gcl_iam import algorithms
 from restalchemy.common import contexts
+from restalchemy.dm import filters as dm_filters
 
 from genesis_core.common import constants as c
 from genesis_core.user_api.iam import constants as iam_c
@@ -59,4 +60,20 @@ def get_context_storage(
                 "read_only": True,
             },
         }
+    )
+
+
+def remove_all_dm(dm_class, filters, session=None, **kwargs):
+    for dm in dm_class.objects.get_all(filters=filters, session=session):
+        dm.delete(session=session, **kwargs)
+
+
+def remove_nested_dm(
+    dm_class, parent_field_name, parent, session=None, **kwargs
+):
+    remove_all_dm(
+        dm_class,
+        filters={parent_field_name: dm_filters.EQ(parent)},
+        session=session,
+        **kwargs,
     )

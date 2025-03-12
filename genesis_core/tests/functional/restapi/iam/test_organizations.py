@@ -33,8 +33,11 @@ class TestOrganizations:
         with pytest.raises(bazooka_exc.BadRequestError):
             client.create_organization(name="TestOrganization")
 
-    def _create_organization(self, client, user):
-        org = client.create_organization(name="TestOrganization")
+    def _create_organization(self, client, user, info=None):
+        org = client.create_organization(
+            name="TestOrganization",
+            info=info or {},
+        )
         members = client.get_organization_members(
             uuid=org["uuid"],
             user=user.uuid,
@@ -45,10 +48,16 @@ class TestOrganizations:
         self, user_api_client, auth_user_admin
     ):
         client = user_api_client(auth_user_admin)
+        org_info = {"some": "info"}
 
-        org, members = self._create_organization(client, auth_user_admin)
+        org, members = self._create_organization(
+            client=client,
+            user=auth_user_admin,
+            info=org_info,
+        )
 
         assert org is not None
+        assert org["info"] == org_info
         assert len(members) == 1
         assert members[0]["role"] == c.OrganizationRole.OWNER.value
 
@@ -144,8 +153,8 @@ class TestOrganizations:
         org1 = admin_client.create_organization(name="TestOrganization1")
         org2 = test_user_client.create_organization(name="TestOrganization2")
 
-        org1_result = test_user_client.get_organizations(org1["uuid"])
-        org2_result = test_user_client.get_organizations(org2["uuid"])
+        org1_result = test_user_client.get_organization(org1["uuid"])
+        org2_result = test_user_client.get_organization(org2["uuid"])
 
         assert org1_result["uuid"] == org1["uuid"]
         assert org2_result["uuid"] == org2["uuid"]
@@ -162,7 +171,7 @@ class TestOrganizations:
         )
         org1 = test_user_client.create_organization(name="TestOrganization1")
 
-        org1_result = test_user_client.update_organizations(
+        org1_result = test_user_client.update_organization(
             uuid=org1["uuid"], name=new_name
         )
 
@@ -183,7 +192,7 @@ class TestOrganizations:
         org1 = admin_client.create_organization(name="TestOrganization1")
 
         with pytest.raises(bazooka_exc.ForbiddenError):
-            test_user_client.update_organizations(
+            test_user_client.update_organization(
                 uuid=org1["uuid"], name=new_name
             )
 
@@ -201,7 +210,7 @@ class TestOrganizations:
         )
         org1 = admin_client.create_organization(name="TestOrganization1")
 
-        org1_result = test_user_client.update_organizations(
+        org1_result = test_user_client.update_organization(
             uuid=org1["uuid"], name=new_name
         )
 
@@ -220,7 +229,7 @@ class TestOrganizations:
         org1 = test_user_client.create_organization(name="TestOrganization1")
 
         with pytest.raises(bazooka_exc.ForbiddenError):
-            test_user_client.delete_organizations(org1["uuid"])
+            test_user_client.delete_organization(org1["uuid"])
 
     def test_delete_my_organization_test1_auth_access(
         self, user_api_client, auth_test1_user
@@ -234,7 +243,7 @@ class TestOrganizations:
         )
         org1 = test_user_client.create_organization(name="TestOrganization1")
 
-        result = test_user_client.delete_organizations(org1["uuid"])
+        result = test_user_client.delete_organization(org1["uuid"])
 
         assert result is None
 
@@ -257,7 +266,7 @@ class TestOrganizations:
         )
 
         with pytest.raises(bazooka_exc.ForbiddenError):
-            test_user_client.delete_organizations(org1["uuid"])
+            test_user_client.delete_organization(org1["uuid"])
 
     def test_delete_member_organization_test1_auth_access(
         self, user_api_client, auth_user_admin, auth_test1_user
@@ -277,7 +286,7 @@ class TestOrganizations:
             role=c.OrganizationRole.MEMBER.value,
         )
 
-        result = test_user_client.delete_organizations(org1["uuid"])
+        result = test_user_client.delete_organization(org1["uuid"])
 
         assert result is None
 
@@ -294,6 +303,6 @@ class TestOrganizations:
         )
         org1 = admin_client.create_organization(name="TestOrganization1")
 
-        result = test_user_client.delete_organizations(org1["uuid"])
+        result = test_user_client.delete_organization(org1["uuid"])
 
         assert result is None

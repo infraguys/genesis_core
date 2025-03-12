@@ -143,6 +143,29 @@ def auth_test1_user(
 
 
 @pytest.fixture()
+def auth_test2_user(
+    user_api_client: iam_clients.GenesisCoreTestRESTClient,
+    auth_user_admin: iam_clients.GenesisCoreAuth,
+    default_client_uuid: str,
+    default_client_id: str,
+    default_client_secret: str,
+):
+    password = "test2"
+    client = user_api_client(auth_user_admin)
+    result = client.create_user(username="test2", password=password)
+
+    return iam_clients.GenesisCoreAuth(
+        username=result["username"],
+        password=password,
+        client_uuid=default_client_uuid,
+        client_id=default_client_id,
+        client_secret=default_client_secret,
+        uuid=result["uuid"],
+        email=result["email"],
+    )
+
+
+@pytest.fixture()
 def user_api_client(user_api):
 
     def build_client(

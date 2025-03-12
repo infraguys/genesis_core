@@ -33,6 +33,7 @@ from restalchemy.storage.sql import orm
 
 
 from genesis_core.common import constants as c
+from genesis_core.common import utils as u
 from genesis_core.user_api.iam import constants as iam_c
 from genesis_core.user_api.iam import exceptions as iam_exceptions
 
@@ -113,6 +114,10 @@ class ModelWithSecret(models.Model, models.CustomPropertiesMixin):
             global_salt=self._global_salt,
         )
 
+    def change_secret_safe(self, old_secret, new_secret):
+        self.validate_secret(old_secret)
+        self.secret = new_secret
+
 
 class ModelWithStatus(models.Model):
 
@@ -187,6 +192,11 @@ class User(
             filters={"uuid": ra_filters.EQ(token_info.user_uuid)}
         )
 
+    def delete(self, session=None, **kwargs):
+        u.remove_nested_dm(OrganizationMember, "user", self, session=session)
+        u.remove_nested_dm(RoleBinding, "user", self, session=session)
+        return super().delete(session=session, **kwargs)
+
 
 class Role(
     models.ModelWithUUID,
@@ -242,9 +252,12 @@ class Organization(
     models.ModelWithNameDesc,
     models.ModelWithTimestamp,
     ModelWithAlwaysActiveStatus,
-    orm.SQLStorableMixin,
+    orm.SQLStorableWithJSONFieldsMixin,
 ):
     __tablename__ = "iam_organizations"
+    __jsonfields__ = ["info"]
+
+    info = properties.property(types.Dict(), default=dict)
 
     @classmethod
     def list_my(cls):

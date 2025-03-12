@@ -52,9 +52,10 @@ class UserController(controllers.BaseResourceController, EnforceMixin):
         convert_underscore=False,
         hidden_fields=resources.HiddenFieldMap(
             get=["salt", "secret_hash", "secret", "otp_secret"],
-            create=["salt", "secret_hash"],
-            update=["salt", "secret_hash"],
+            create=["salt", "secret_hash", "otp_secret"],
+            update=["salt", "secret_hash", "secret", "otp_secret"],
             filter=["salt", "secret_hash", "secret", "otp_secret"],
+            action_post=["salt", "secret_hash", "secret", "otp_secret"],
         ),
         name_map={"secret": "password", "name": "username"},
     )
@@ -64,6 +65,39 @@ class UserController(controllers.BaseResourceController, EnforceMixin):
             c.PERMISSION_USER_LISTING, do_raise=True, exc=iam_e.CanNotListUsers
         )
         return super().filter(filters)
+
+    def update(self, uuid, **kwargs):
+        is_me = models.User.me().uuid == uuid
+        if self.enforce(c.PERMISSION_USER_WRITE_ALL) or is_me:
+            return super().update(uuid, **kwargs)
+        raise iam_e.CanNotUpdateUser(
+            uuid=uuid, rule=c.PERMISSION_USER_WRITE_ALL
+        )
+
+    def delete(self, uuid):
+        is_me = models.User.me().uuid == uuid
+        if self.enforce(c.PERMISSION_USER_DELETE_ALL) or (
+            is_me and self.enforce(c.PERMISSION_USER_DELETE)
+        ):
+            return super().delete(uuid)
+        raise iam_e.CanNotDeleteUser(
+            uuid=uuid,
+            rule1=c.PERMISSION_USER_DELETE_ALL,
+            rule2=c.PERMISSION_USER_DELETE,
+        )
+
+    @actions.post
+    def change_password(self, resource, old_password, new_password):
+        is_me = models.User.me() == resource
+        if self.enforce(c.PERMISSION_USER_WRITE_ALL) or is_me:
+            resource.change_secret_safe(
+                old_secret=old_password,
+                new_secret=new_password,
+            )
+            return resource
+        raise iam_e.CanNotUpdateUser(
+            uuid=resource.uuid, rule=c.PERMISSION_USER_WRITE_ALL
+        )
 
 
 class OrganizationController(
@@ -76,15 +110,6 @@ class OrganizationController(
     )
     __policy_service_name__ = "iam"
     __policy_name__ = "organization"
-
-    # def _assign_current_user_as_owner(self, organization):
-    #     result = models.OrganizationMember(
-    #         organization=organization,
-    #         user=models.User.me(),
-    #         role=c.OrganizationRole.OWNER.value,
-    #     )
-    #     result.insert()
-    #     return result
 
     def create(self, **kwargs):
         result = super().create(**kwargs)
@@ -131,18 +156,6 @@ class OrganizationMemberController(
         models.OrganizationMember,
         convert_underscore=False,
     )
-
-    # def _check_access_for_owner(self, owner):
-    #     current_user = models.User.my()
-    #     if owner != current_user:
-    #         self.enforce(
-    #             c.ORGANIZATION_CHANGE_OWNER,
-    #             do_raise=True,
-    #             exc=iam_e.CanNotSetOwner,
-    #         )
-
-    # def create(self, organization, user, role, **kwargs):
-    #     pass
 
 
 class ProjectController(controllers.BaseResourceController, EnforceMixin):

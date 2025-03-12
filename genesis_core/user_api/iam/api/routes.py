@@ -28,10 +28,18 @@ class WebRoute(routes.Route):
         )
 
 
+class ChangePasswordAction(routes.Action):
+    """Handler for .../users/<uuid>/actions/change_password/invoke endpoint"""
+
+    __controller__ = controllers.UserController
+
+
 class UserRoute(routes.Route):
     """Handler for /v1/iam/users/ endpoint"""
 
     __controller__ = controllers.UserController
+
+    change_password = routes.action(ChangePasswordAction, invoke=True)
 
 
 class OrganizationController(routes.Route):
