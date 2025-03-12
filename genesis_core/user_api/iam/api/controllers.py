@@ -339,6 +339,10 @@ class ClientsController(controllers.BaseResourceController):
     def introspect(self, resource):
         return contexts.get_context().iam_context.introspection_info()
 
+    @actions.get
+    def me(self, resource):
+        return resource.me().get_response_body()
+
 
 class WebController:
 

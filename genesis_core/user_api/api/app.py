@@ -33,7 +33,6 @@ from genesis_core import version
 
 skip_auth_endpoints = [
     iam_mw.EndpointComparator("/"),
-    iam_mw.EndpointComparator("/specifications/.*"),
     iam_mw.EndpointComparator("/v1/"),
     iam_mw.EndpointComparator("/v1/health/"),
     iam_mw.EndpointComparator("/v1/iam/"),

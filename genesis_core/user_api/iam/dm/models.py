@@ -615,7 +615,8 @@ class Token(
             token_info or contexts.get_context().iam_context.token_info
         )
         for token in Token.objects.get_all(
-            filters={"uuid": ra_filters.EQ(token_info.uuid)}
+            filters={"uuid": ra_filters.EQ(token_info.uuid)},
+            limit=1,
         ):
             return token
         raise iam_e.InvalidAuthTokenError()
@@ -635,6 +636,37 @@ class Token(
             project=self.project,
             permissions=[v.permission for v in values],
         )
+
+
+class MeInfo:
+
+    def __init__(self):
+        super().__init__()
+        self._user = self.get_user()
+
+    def get_user(self):
+        return User.me()
+
+    def get_response_body(self):
+        user = {
+            "uuid": str(self._user.uuid),
+            "first_name": self._user.first_name,
+            "last_name": self._user.last_name,
+            "email": self._user.email,
+        }
+
+        organizations = []
+        for organization in Organization.list_my():
+            organizations.append(organization.get_storable_snapshot())
+
+        project = Token.my().project
+        project_id = str(project.uuid) if project else None
+
+        return {
+            "user": user,
+            "organization": organizations,
+            "project_id": project_id,
+        }
 
 
 class IamClient(
@@ -681,7 +713,8 @@ class IamClient(
 
     def _get_project_by_uuid(self, user, str_uuid):
         for project in Project.objects.get_all(
-            filters={"uuid": ra_filters.EQ(str_uuid)}
+            filters={"uuid": ra_filters.EQ(str_uuid)},
+            limit=1,
         ):
             return project
 
@@ -752,3 +785,6 @@ class IamClient(
 
     def introspect(self):
         return Token.my().introspect()
+
+    def me(self):
+        return MeInfo()

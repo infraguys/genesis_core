@@ -29,6 +29,7 @@ from genesis_core.common import utils
 from genesis_core.node import constants as nc
 from genesis_core.node.dm import models as node_models
 from genesis_core.user_api.api import app as user_app
+from genesis_core.user_api.iam import constants as iam_c
 from genesis_core.tests.functional import utils as test_utils
 
 
@@ -162,6 +163,55 @@ def auth_test2_user(
         client_secret=default_client_secret,
         uuid=result["uuid"],
         email=result["email"],
+    )
+
+
+@pytest.fixture()
+def auth_test1_p1_user(
+    user_api_client: iam_clients.GenesisCoreTestRESTClient,
+    auth_user_admin: iam_clients.GenesisCoreAuth,
+    default_client_uuid: str,
+    default_client_id: str,
+    default_client_secret: str,
+):
+    password = "test1p1"
+    client = user_api_client(auth_user_admin)
+    user = client.create_user(username="test1p1", password=password)
+
+    auth = iam_clients.GenesisCoreAuth(
+        username=user["username"],
+        password=password,
+        client_uuid=default_client_uuid,
+        client_id=default_client_id,
+        client_secret=default_client_secret,
+        uuid=user["uuid"],
+        email=user["email"],
+        project_id=None,
+    )
+
+    client = client = user_api_client(
+        auth,
+        permissions=[
+            iam_c.PERMISSION_ORGANIZATION_CREATE,
+        ],
+    )
+
+    org = client.create_organization(name="OrganizationU1P1")
+    project = client.create_project(
+        uuid=str(sys_uuid.uuid4()),
+        organization_uuid=org["uuid"],
+        name="Project1",
+    )
+
+    return iam_clients.GenesisCoreAuth(
+        username=user["username"],
+        password=password,
+        client_uuid=default_client_uuid,
+        client_id=default_client_id,
+        client_secret=default_client_secret,
+        uuid=user["uuid"],
+        email=user["email"],
+        project_id=project["uuid"],
     )
 
 
