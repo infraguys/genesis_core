@@ -24,6 +24,7 @@ GC_PATH="/opt/genesis_core"
 GC_CFG_DIR=/etc/genesis_core
 GC_ART_DIR="$GC_PATH/artifacts"
 VENV_PATH="$GC_PATH/.venv"
+BOOTSTRAP_PATH="/var/lib/genesis/bootstrap/scripts"
 
 GC_PG_USER="genesis_core"
 GC_PG_PASS="genesis_core"
@@ -51,6 +52,8 @@ sudo -u postgres psql -c "CREATE DATABASE $GC_PG_USER OWNER $GC_PG_DB;"
 sudo mkdir -p $GC_CFG_DIR
 sudo cp "$GC_PATH/etc/genesis_core/genesis_core.conf" $GC_CFG_DIR/
 sudo cp "$GC_PATH/etc/genesis_core/logging.yaml" $GC_CFG_DIR/
+sudo cp "$GC_PATH/scripts/bootstrap.sh" $BOOTSTRAP_PATH/0100-gc-bootstrap.sh
+python3 -m uuid | sudo tee /var/lib/genesis/node-id
 
 mkdir -p "$VENV_PATH"
 python3 -m venv "$VENV_PATH"
@@ -67,6 +70,7 @@ deactivate
 sudo ln -sf "$VENV_PATH/bin/gc-user-api" "/usr/bin/gc-user-api"
 sudo ln -sf "$VENV_PATH/bin/gc-orch-api" "/usr/bin/gc-orch-api"
 sudo ln -sf "$VENV_PATH/bin/gc-gservice" "/usr/bin/gc-gservice"
+sudo ln -sf "$VENV_PATH/bin/gc-bootstrap" "/usr/bin/gc-bootstrap"
 
 # Install Systemd service files
 sudo cp "$GC_PATH/etc/systemd/gc-user-api.service" $SYSTEMD_SERVICE_DIR
