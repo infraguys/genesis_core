@@ -141,7 +141,7 @@ class NodeBuilderService(basic.BasicService):
         volumes: tp.Iterable[models.MachineVolume],
         reservations: tp.List[models.MachinePoolReservations],
     ) -> tp.Tuple[models.MachinePoolReservations]:
-        # TODO(akremenetsky): Volume implementation will be add a bit later
+        # TODO(akremenetsky): Volume implementation will be added a bit later
 
         # Check the existing reservations. Perhaps they were
         # reserved on previous iterations.
