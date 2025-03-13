@@ -67,7 +67,6 @@ class TestOrganizations(base.BaseIamResourceTest):
     ):
         client = user_api_client(
             auth_test1_user,
-            permissions=[c.PERMISSION_ORGANIZATION_CREATE],
         )
 
         org, members = self._create_organization(client, auth_test1_user)
@@ -75,14 +74,6 @@ class TestOrganizations(base.BaseIamResourceTest):
         assert org is not None
         assert len(members) == 1
         assert members[0]["role"] == c.OrganizationRole.OWNER.value
-
-    def test_create_organization_test1_auth_forbidden(
-        self, user_api_client, auth_test1_user
-    ):
-        client = user_api_client(auth_test1_user)
-
-        with pytest.raises(bazooka_exc.ForbiddenError):
-            client.create_organization(name="TestOrganization")
 
     def test_list_organizations_admin_auth_success(
         self, user_api_client, auth_user_admin
@@ -107,9 +98,7 @@ class TestOrganizations(base.BaseIamResourceTest):
         self, user_api_client, auth_user_admin, auth_test1_user
     ):
         admin_client = user_api_client(auth_user_admin)
-        test_user_client = user_api_client(
-            auth_test1_user, permissions=[c.PERMISSION_ORGANIZATION_CREATE]
-        )
+        test_user_client = user_api_client(auth_test1_user)
         admin_client.create_organization(name="TestOrganization1")
         admin_client.create_organization(name="TestOrganization2")
         test_user_client.create_organization(name="TestOrganization3")
@@ -127,7 +116,6 @@ class TestOrganizations(base.BaseIamResourceTest):
         test_user_client = user_api_client(
             auth_test1_user,
             permissions=[
-                c.PERMISSION_ORGANIZATION_CREATE,
                 c.PERMISSION_ORGANIZATION_READ_ALL,
             ],
         )
@@ -147,9 +135,6 @@ class TestOrganizations(base.BaseIamResourceTest):
         admin_client = user_api_client(auth_user_admin)
         test_user_client = user_api_client(
             auth_test1_user,
-            permissions=[
-                c.PERMISSION_ORGANIZATION_CREATE,
-            ],
         )
         org1 = admin_client.create_organization(name="TestOrganization1")
         org2 = test_user_client.create_organization(name="TestOrganization2")
@@ -166,9 +151,6 @@ class TestOrganizations(base.BaseIamResourceTest):
         new_name = "blablabla"
         test_user_client = user_api_client(
             auth_test1_user,
-            permissions=[
-                c.PERMISSION_ORGANIZATION_CREATE,
-            ],
         )
         org1 = test_user_client.create_organization(name="TestOrganization1")
 
@@ -186,9 +168,6 @@ class TestOrganizations(base.BaseIamResourceTest):
         admin_client = user_api_client(auth_user_admin)
         test_user_client = user_api_client(
             auth_test1_user,
-            permissions=[
-                c.PERMISSION_ORGANIZATION_CREATE,
-            ],
         )
         org1 = admin_client.create_organization(name="TestOrganization1")
 
@@ -205,7 +184,6 @@ class TestOrganizations(base.BaseIamResourceTest):
         test_user_client = user_api_client(
             auth_test1_user,
             permissions=[
-                c.PERMISSION_ORGANIZATION_CREATE,
                 c.PERMISSION_ORGANIZATION_WRITE_ALL,
             ],
         )
@@ -218,29 +196,11 @@ class TestOrganizations(base.BaseIamResourceTest):
         assert org1_result["uuid"] == org1["uuid"]
         assert org1_result["name"] == new_name
 
-    def test_delete_my_organization_test1_auth_forbidden(
-        self, user_api_client, auth_test1_user
-    ):
-        test_user_client = user_api_client(
-            auth_test1_user,
-            permissions=[
-                c.PERMISSION_ORGANIZATION_CREATE,
-            ],
-        )
-        org1 = test_user_client.create_organization(name="TestOrganization1")
-
-        with pytest.raises(bazooka_exc.ForbiddenError):
-            test_user_client.delete_organization(org1["uuid"])
-
     def test_delete_my_organization_test1_auth_access(
         self, user_api_client, auth_test1_user
     ):
         test_user_client = user_api_client(
             auth_test1_user,
-            permissions=[
-                c.PERMISSION_ORGANIZATION_CREATE,
-                c.PERMISSION_ORGANIZATION_DELETE,
-            ],
         )
         org1 = test_user_client.create_organization(name="TestOrganization1")
 
@@ -254,10 +214,6 @@ class TestOrganizations(base.BaseIamResourceTest):
         admin_client = user_api_client(auth_user_admin)
         test_user_client = user_api_client(
             auth_test1_user,
-            permissions=[
-                c.PERMISSION_ORGANIZATION_CREATE,
-                c.PERMISSION_ORGANIZATION_DELETE,
-            ],
         )
         org1 = admin_client.create_organization(name="TestOrganization1")
         admin_client.create_organization_member(
@@ -276,7 +232,6 @@ class TestOrganizations(base.BaseIamResourceTest):
         test_user_client = user_api_client(
             auth_test1_user,
             permissions=[
-                c.PERMISSION_ORGANIZATION_CREATE,
                 c.PERMISSION_ORGANIZATION_DELETE_ALL,
             ],
         )
@@ -298,7 +253,6 @@ class TestOrganizations(base.BaseIamResourceTest):
         test_user_client = user_api_client(
             auth_test1_user,
             permissions=[
-                c.PERMISSION_ORGANIZATION_CREATE,
                 c.PERMISSION_ORGANIZATION_DELETE_ALL,
             ],
         )

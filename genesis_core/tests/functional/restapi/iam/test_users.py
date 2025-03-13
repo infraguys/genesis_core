@@ -238,14 +238,6 @@ class TestUsers(base.BaseIamResourceTest):
 
         assert result is None
 
-    def test_delete_my_user_test1_auth_forbidden(
-        self, user_api_client, auth_test1_user
-    ):
-        client = user_api_client(auth_test1_user)
-
-        with pytest.raises(bazooka_exc.ForbiddenError):
-            client.delete_user(auth_test1_user.uuid)
-
     def test_delete_other_user_test1_auth_forbidden(
         self, user_api_client, auth_test1_user, auth_test2_user
     ):

@@ -29,9 +29,6 @@ class TestProjects(base.BaseIamResourceTest):
     ):
         client = user_api_client(
             auth_test1_user,
-            permissions=[
-                c.PERMISSION_ORGANIZATION_CREATE,
-            ],
         )
         org = client.create_organization(
             name="TestOrganization",

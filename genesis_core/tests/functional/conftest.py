@@ -191,9 +191,6 @@ def auth_test1_p1_user(
 
     client = client = user_api_client(
         auth,
-        permissions=[
-            iam_c.PERMISSION_ORGANIZATION_CREATE,
-        ],
     )
 
     org = client.create_organization(name="OrganizationU1P1")
