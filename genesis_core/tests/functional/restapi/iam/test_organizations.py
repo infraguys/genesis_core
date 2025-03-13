@@ -138,7 +138,7 @@ class TestOrganizations:
         orgs = test_user_client.list_organizations()
 
         assert isinstance(orgs, list)
-        assert len(orgs) == 5  # 2 for admin, 2 for test user and 1 default
+        assert len(orgs) == 6  # 2 for admin, 2 for test user and 2 default
 
     def test_get_any_organization_test1_auth_success(
         self, user_api_client, auth_user_admin, auth_test1_user
