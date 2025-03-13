@@ -42,3 +42,20 @@ GENESIS_CORE_ORGANIZATION_DESCRIPTION = (
     "The organization serves as the central platform for all services"
     " and elements developed by Genesis Corporation."
 )
+
+
+# Genesis Core Default Roles
+NEWCOMER_ROLE_UUID = "726f6c65-0000-0000-0000-000000000001"
+NEWCOMER_ROLE_NAME = "newcomer"
+NEWCOMER_ROLE_DESCRIPTION = (
+    "Default role for newly registered users. Provides basic system access "
+    "and onboarding capabilities."
+)
+
+OWNER_ROLE_UUID = "726f6c65-0000-0000-0000-000000000002"
+OWNER_ROLE_NAME = "owner"
+OWNER_ROLE_DESCRIPTION = (
+    "Project ownership role. Grants full administrative privileges "
+    "within a specific project. Automatically assigned during project "
+    "creation process."
+)
