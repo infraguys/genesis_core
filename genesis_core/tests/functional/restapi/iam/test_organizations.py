@@ -30,7 +30,7 @@ class TestOrganizations:
     ):
         client = user_api_noauth_client()
 
-        with pytest.raises(bazooka_exc.BadRequestError):
+        with pytest.raises(bazooka_exc.UnauthorizedError):
             client.create_organization(name="TestOrganization")
 
     def _create_organization(self, client, user, info=None):

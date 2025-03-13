@@ -14,6 +14,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from bazooka import exceptions as bazooka_exc
 import pytest
 
 from genesis_core.user_api.iam import constants as c
@@ -60,3 +61,10 @@ class TestClients:
         assert result["user"]["uuid"] == auth_test1_p1_user.uuid
         assert len(result["organization"]) == 1
         assert result["project_id"] == auth_test1_p1_user.project_id
+
+    def test_http_code_with_invalid_token(self, user_api_noauth_client):
+        client = user_api_noauth_client()
+        url = client.build_collection_uri(["iam/roles"])
+
+        with pytest.raises(bazooka_exc.UnauthorizedError):
+            client.get(url)
