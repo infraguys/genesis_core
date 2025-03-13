@@ -41,12 +41,6 @@ class AbstractPoolDriver(abc.ABC):
         """Delete the machine from data plane."""
 
     @abc.abstractmethod
-    def actualize_machine(
-        self, target_state: models.Machine, actual_state: models.Machine
-    ) -> None:
-        """Actualize the machine."""
-
-    @abc.abstractmethod
     def create_volume(
         self, volume: models.MachineVolume
     ) -> models.MachineVolume:
@@ -61,6 +55,18 @@ class AbstractPoolDriver(abc.ABC):
         self, machine: models.Machine
     ) -> tp.Iterable[models.MachineVolume]:
         """Return volume list from data plane."""
+
+    @abc.abstractmethod
+    def set_machine_cores(self, machine: models.Machine, cores: int) -> None:
+        """Set machine cores."""
+
+    @abc.abstractmethod
+    def set_machine_ram(self, machine: models.Machine, ram: int) -> None:
+        """Set machine ram."""
+
+    @abc.abstractmethod
+    def reset_machine(self, machine: models.Machine) -> None:
+        """Reset the machine."""
 
 
 class DummyPoolDriver(AbstractPoolDriver):
@@ -87,11 +93,6 @@ class DummyPoolDriver(AbstractPoolDriver):
     ) -> None:
         pass
 
-    def actualize_machine(
-        self, target_state: models.Machine, actual_state: models.Machine
-    ) -> None:
-        pass
-
     def create_volume(
         self, volume: models.MachineVolume
     ) -> models.MachineVolume:
@@ -107,3 +108,12 @@ class DummyPoolDriver(AbstractPoolDriver):
     ) -> tp.Iterable[models.MachineVolume]:
         """Return volume list from data plane."""
         return []
+
+    def set_machine_cores(self, machine: models.Machine, cores: int) -> None:
+        """Set machine cores."""
+
+    def set_machine_ram(self, machine: models.Machine, ram: int) -> None:
+        """Set machine ram."""
+
+    def reset_machine(self, machine: models.Machine) -> None:
+        """Reset the machine."""

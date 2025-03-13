@@ -114,7 +114,7 @@ class TestMachineAgentService:
         )
         volume.insert()
 
-        return machine
+        return machine, node
 
     def _schedule_node(
         self, node_uuid: str, machine: str | models.Machine
@@ -198,7 +198,7 @@ class TestMachineAgentService:
         client.post(url, json=machine_spec)
 
         # Schedule machine to the pool
-        machine_foo = self._schedule_machine(str(foo_machine_uuid), pool)
+        machine_foo, _ = self._schedule_machine(str(foo_machine_uuid), pool)
 
         # Prepare fake pool driver
         class FakePoolDriver(driver_base.DummyPoolDriver):
@@ -265,8 +265,8 @@ class TestMachineAgentService:
         client.post(url, json=machine_spec)
 
         # Schedule machine to the pool
-        machine_foo = self._schedule_machine(str(foo_machine_uuid), pool)
-        machine_bar = self._schedule_machine(str(bar_machine_uuid), pool)
+        machine_foo, _ = self._schedule_machine(str(foo_machine_uuid), pool)
+        machine_bar, _ = self._schedule_machine(str(bar_machine_uuid), pool)
 
         # Prepare fake pool driver
         class FakePoolDriver(driver_base.DummyPoolDriver):
@@ -379,7 +379,7 @@ class TestMachineAgentService:
         client.post(url, json=machine_spec)
 
         # Schedule machine to the pool
-        machine_foo = self._schedule_machine(str(foo_machine_uuid), pool)
+        machine_foo, _ = self._schedule_machine(str(foo_machine_uuid), pool)
 
         # Prepare fake pool driver
         class FakePoolDriver(driver_base.DummyPoolDriver):
@@ -439,7 +439,7 @@ class TestMachineAgentService:
         client.post(url, json=machine_spec)
 
         # Schedule machine to the pool
-        machine_foo = self._schedule_machine(str(foo_machine_uuid), pool)
+        machine_foo, _ = self._schedule_machine(str(foo_machine_uuid), pool)
 
         # Prepare fake pool driver
         class FakePoolDriver(driver_base.DummyPoolDriver):
@@ -469,3 +469,131 @@ class TestMachineAgentService:
         assert response.status_code == 200
         assert output["avail_cores"] == cores - 2
         assert output["avail_ram"] == ram - 2048
+
+    def test_update_machine_set_cores_ram(
+        self,
+        user_api_client: iam_clients.GenesisCoreTestRESTClient,
+        auth_user_admin: iam_clients.GenesisCoreAuth,
+        machine_factory: tp.Callable,
+        default_node: tp.Dict[str, tp.Any],
+        default_pool: tp.Dict[str, tp.Any],
+        default_machine_agent: tp.Dict[str, tp.Any],
+    ):
+        self._service._agent_uuid = sys_uuid.UUID(
+            default_machine_agent["uuid"]
+        )
+
+        # Schedule pool to the default machine agent
+        pool = self._schedule_pool(
+            default_pool["uuid"], default_machine_agent["uuid"]
+        )
+        pool.driver_spec = {"driver": "dummy"}
+        pool.update()
+
+        # Create machines
+        foo_machine_uuid = sys_uuid.uuid4()
+        machine_spec = machine_factory(
+            uuid=foo_machine_uuid,
+        )
+        client = user_api_client(auth_user_admin)
+        url = client.build_collection_uri(["machines"])
+        client.post(url, json=machine_spec)
+
+        # Schedule machine to the pool
+        machine_foo, node_foo = self._schedule_machine(
+            str(foo_machine_uuid), pool
+        )
+
+        node_foo.cores = 2
+        node_foo.ram = 4096
+        node_foo.update()
+
+        # Prepare fake pool driver
+        class FakePoolDriver(driver_base.DummyPoolDriver):
+            set_machine_cores_called: bool = False
+            set_machine_ram_called: bool = False
+
+            def __init__(self):
+                pass
+
+            def list_machines(self) -> tp.List[models.Machine]:
+                return [machine_foo]
+
+            def set_machine_cores(
+                self, machine: models.Machine, cores: int
+            ) -> None:
+                self.set_machine_cores_called = True
+                assert cores == 2
+
+            def set_machine_ram(
+                self, machine: models.Machine, ram: int
+            ) -> None:
+                self.set_machine_ram_called = True
+                assert ram == 4096
+
+        self._save_pool_driver(FakePoolDriver())
+
+        # Perform iterations
+        self._service._iteration()
+
+        assert self.pool_driver.set_machine_cores_called
+        assert self.pool_driver.set_machine_ram_called
+
+    def test_update_machine_image(
+        self,
+        user_api_client: iam_clients.GenesisCoreTestRESTClient,
+        auth_user_admin: iam_clients.GenesisCoreAuth,
+        machine_factory: tp.Callable,
+        default_node: tp.Dict[str, tp.Any],
+        default_pool: tp.Dict[str, tp.Any],
+        default_machine_agent: tp.Dict[str, tp.Any],
+    ):
+        self._service._agent_uuid = sys_uuid.UUID(
+            default_machine_agent["uuid"]
+        )
+
+        # Schedule pool to the default machine agent
+        pool = self._schedule_pool(
+            default_pool["uuid"], default_machine_agent["uuid"]
+        )
+        pool.driver_spec = {"driver": "dummy"}
+        pool.update()
+
+        # Create machines
+        foo_machine_uuid = sys_uuid.uuid4()
+        machine_spec = machine_factory(
+            uuid=foo_machine_uuid,
+            boot="hd0",
+        )
+        client = user_api_client(auth_user_admin)
+        url = client.build_collection_uri(["machines"])
+        client.post(url, json=machine_spec)
+
+        # Schedule machine to the pool
+        machine_foo, node_foo = self._schedule_machine(
+            str(foo_machine_uuid), pool
+        )
+
+        node_foo.image = "my-net-foo-image"
+        node_foo.update()
+
+        # Prepare fake pool driver
+        class FakePoolDriver(driver_base.DummyPoolDriver):
+            reset_machine_called: bool = False
+
+            def __init__(self):
+                pass
+
+            def list_machines(self) -> tp.List[models.Machine]:
+                return [machine_foo]
+
+            def reset_machine(self, machine: models.Machine) -> None:
+                assert machine.image is None
+                self.reset_machine_called = True
+
+        self._save_pool_driver(FakePoolDriver())
+
+        # Perform iterations
+        self._service._iteration()
+
+        assert self.pool_driver.reset_machine_called

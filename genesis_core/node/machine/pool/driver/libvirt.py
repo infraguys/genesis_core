@@ -369,19 +369,13 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
 
     def _domain2machine(self, domain: libvirt.virDomain) -> models.Machine:
 
-        # Determining the number of cores and amount of memory directly from
-        # domain is possible only in the `running` state. Otherwise take it
+        # Determine the number of cores and amount of memory directly
         # from the metadata.
-        if domain.isActive():
-            cores = domain.maxVcpus()
-            ram = domain.maxMemory() >> 10
-        else:
-            # Determine the number of cores and memory from XML metadata
-            domain_xml = minidom.parseString(domain.XMLDesc())
-            cores_xml = domain_xml.getElementsByTagName(META_CPU_TAG)[0]
-            cores = int(cores_xml.firstChild.nodeValue)
-            ram_xml = domain_xml.getElementsByTagName(META_MEM_TAG)[0]
-            ram = int(ram_xml.firstChild.nodeValue)
+        domain_xml = minidom.parseString(domain.XMLDesc())
+        cores_xml = domain_xml.getElementsByTagName(META_CPU_TAG)[0]
+        cores = int(cores_xml.firstChild.nodeValue)
+        ram_xml = domain_xml.getElementsByTagName(META_MEM_TAG)[0]
+        ram = int(ram_xml.firstChild.nodeValue)
 
         return models.Machine(
             uuid=sys_uuid.UUID(domain.UUIDString()),
@@ -564,17 +558,35 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
 
         LOG.debug("The domain %s has been destroyed", machine.uuid)
 
-    def actualize_machine(
-        self, target_state: models.Machine, actual_state: models.Machine
-    ) -> None:
-        # TODO(akremenetsky): Rework the simplest implementation
-        # The simplest actualization method is to delete and create the domain
-        # but don't recreate volumes. Actually it looks like non graceful shutdown
-        # for the domain and launch it again.
+    def set_machine_cores(self, machine: models.Machine, cores: int) -> None:
+        """Set machine cores."""
+        volumes = self.list_volumes(machine)
+        self.delete_machine(machine, delete_volumes=False)
 
-        if target_state.cores != actual_state.cores or not self._eq_memory(
-            target_state.ram, actual_state.ram
-        ):
-            volumes = self.list_volumes(actual_state)
-            self.delete_machine(actual_state, delete_volumes=False)
-            self.create_machine(target_state, volumes=volumes)
+        machine.cores = cores
+        self.create_machine(machine, volumes=volumes)
+        LOG.debug(
+            "The domain %s was updated with cores %s", machine.uuid, cores
+        )
+
+    def set_machine_ram(self, machine: models.Machine, ram: int) -> None:
+        """Set machine ram."""
+        volumes = self.list_volumes(machine)
+        self.delete_machine(machine, delete_volumes=False)
+
+        machine.ram = ram
+        self.create_machine(machine, volumes=volumes)
+        LOG.debug("The domain %s was updated with ram %s", machine.uuid, ram)
+
+    def reset_machine(self, machine: models.Machine) -> None:
+        """Reset the machine."""
+        with ctxlib.closing(self._connect()) as cn:
+            domain = cn.lookupByUUIDString(str(machine.uuid))
+
+            try:
+                domain.destroy()
+            except libvirt.libvirtError:
+                LOG.debug("The domain is not in the running state")
+
+            domain.create()
+            LOG.debug("The domain %s was reset", str(machine.uuid))
