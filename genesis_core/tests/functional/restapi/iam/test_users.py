@@ -17,10 +17,12 @@
 from bazooka import exceptions as bazooka_exc
 import pytest
 
+from genesis_core.common import constants as common_c
+from genesis_core.tests.functional.restapi.iam import base
 from genesis_core.user_api.iam import constants as c
 
 
-class TestUsers:
+class TestUsers(base.BaseIamResourceTest):
 
     USERS_ENDPOINT = "iam/users"
 
@@ -31,6 +33,37 @@ class TestUsers:
 
         assert user["password"] == "*******"
         assert user["username"] == "test"
+
+    def test_create_user_and_check_roles(
+        self, user_api_client, auth_test1_user
+    ):
+        client = user_api_client(auth_test1_user)
+
+        roles = client.get_user_roles(auth_test1_user.uuid)
+
+        assert self._has_role(roles, common_c.NEWCOMER_ROLE_UUID)
+
+    def test_get_roles_another_user_success(
+        self, user_api_client, auth_test1_user, auth_test2_user
+    ):
+        client = user_api_client(
+            auth_test1_user,
+            permissions=[
+                c.PERMISSION_USER_READ_ALL,
+            ],
+        )
+
+        roles = client.get_user_roles(auth_test2_user.uuid)
+
+        assert len(roles) > 0
+
+    def test_get_roles_another_user_forbidden(
+        self, user_api_client, auth_test1_user, auth_test2_user
+    ):
+        client = user_api_client(auth_test1_user)
+
+        with pytest.raises(bazooka_exc.ForbiddenError):
+            client.get_user_roles(auth_test2_user.uuid)
 
     def test_list_users_wo_auth_unauthorized(self, user_api_noauth_client):
         client = user_api_noauth_client()

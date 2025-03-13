@@ -60,6 +60,11 @@ class UserController(controllers.BaseResourceController, EnforceMixin):
         name_map={"secret": "password", "name": "username"},
     )
 
+    def create(self, **kwargs):
+        user = super().create(**kwargs)
+        user.make_newcomer()
+        return user
+
     def filter(self, filters):
         self.enforce(
             c.PERMISSION_USER_LISTING, do_raise=True, exc=iam_e.CanNotListUsers
@@ -97,6 +102,15 @@ class UserController(controllers.BaseResourceController, EnforceMixin):
             return resource
         raise iam_e.CanNotUpdateUser(
             uuid=resource.uuid, rule=c.PERMISSION_USER_WRITE_ALL
+        )
+
+    @actions.get
+    def get_my_roles(self, resource):
+        is_me = models.User.me() == resource
+        if self.enforce(c.PERMISSION_USER_READ_ALL) or is_me:
+            return resource.get_my_roles().get_response_body()
+        raise iam_e.CanNotReadUser(
+            uuid=resource.uuid, rule=c.PERMISSION_USER_READ_ALL
         )
 
 
@@ -163,6 +177,11 @@ class ProjectController(controllers.BaseResourceController, EnforceMixin):
         models.Project,
         convert_underscore=False,
     )
+
+    def create(self, **kwargs):
+        project = super().create(**kwargs)
+        project.add_owner(models.User.me())
+        return project
 
     # def _check_create_project_in_organization(self, organization):
     #     user = models.User.my()

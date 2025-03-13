@@ -75,6 +75,10 @@ class MigrationStep(migrations.AbstarctMigrationStep):
 
     def downgrade(self, session):
         delete_queries = [
+            "DELETE FROM iam_binding_roles WHERE"
+            f"  role = '{NEWCOMER_ROLE_UUID}';",
+            "DELETE FROM iam_binding_roles WHERE"
+            f"  role = '{OWNER_ROLE_UUID}';",
             f"DELETE FROM iam_roles WHERE uuid = '{NEWCOMER_ROLE_UUID}';",
             f"DELETE FROM iam_roles WHERE uuid = '{OWNER_ROLE_UUID}';",
         ]

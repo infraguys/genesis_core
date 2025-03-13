@@ -34,12 +34,19 @@ class ChangePasswordAction(routes.Action):
     __controller__ = controllers.UserController
 
 
+class GetMyRolesAction(routes.Action):
+    """Handler for .../users/<uuid>/actions/get_my_roles endpoint"""
+
+    __controller__ = controllers.UserController
+
+
 class UserRoute(routes.Route):
     """Handler for /v1/iam/users/ endpoint"""
 
     __controller__ = controllers.UserController
 
     change_password = routes.action(ChangePasswordAction, invoke=True)
+    get_my_roles = routes.action(GetMyRolesAction)
 
 
 class OrganizationController(routes.Route):
