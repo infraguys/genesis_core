@@ -33,3 +33,12 @@ DEFAULT_CLIENT_SECRET = "GenesisCoreSecret"
 DEFAULT_HS256_KEY = "secret"
 DEFAULT_ADMIN_USERNAME = "admin"
 DEFAULT_ADMIN_PASSWORD = "admin"
+
+
+# Genesis Core Organization and Project Information
+GENESIS_CORE_ORGANIZATION_ID = "11111111-1111-1111-1111-111111111111"
+GENESIS_CORE_ORGANIZATION_NAME = "Genesis Corporation"
+GENESIS_CORE_ORGANIZATION_DESCRIPTION = (
+    "The organization serves as the central platform for all services"
+    " and elements developed by Genesis Corporation."
+)
