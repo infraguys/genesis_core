@@ -53,8 +53,4 @@ class GeneralService(basic.BasicService):
     def _iteration(self):
         # Iterate all services
         for service in self._services:
-            service._iteration_number = self._iteration_number
-            try:
-                service._iteration()
-            except Exception:
-                LOG.exception("Error in service %s", service)
+            service._loop_iteration()
