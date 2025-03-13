@@ -25,7 +25,7 @@ class TestOrganizations:
     ORGS_ENDPOINT = "iam/organizations"
     ORGS_BINDINGS_ENDPOINT = "iam/organization_members"
 
-    def test_create_organization_wo_auth_bad_request(
+    def test_create_organization_wo_auth_unauthorized(
         self, user_api_noauth_client
     ):
         client = user_api_noauth_client()
