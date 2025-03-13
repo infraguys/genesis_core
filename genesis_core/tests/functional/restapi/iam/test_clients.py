@@ -17,10 +17,11 @@
 from bazooka import exceptions as bazooka_exc
 import pytest
 
+from genesis_core.tests.functional.restapi.iam import base
 from genesis_core.user_api.iam import constants as c
 
 
-class TestClients:
+class TestClients(base.BaseIamResourceTest):
 
     def test_me_wo_organization_success(
         self, user_api_client, auth_test1_user

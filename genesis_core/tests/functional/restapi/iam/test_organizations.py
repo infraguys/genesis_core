@@ -17,10 +17,11 @@
 from bazooka import exceptions as bazooka_exc
 import pytest
 
+from genesis_core.tests.functional.restapi.iam import base
 from genesis_core.user_api.iam import constants as c
 
 
-class TestOrganizations:
+class TestOrganizations(base.BaseIamResourceTest):
 
     ORGS_ENDPOINT = "iam/organizations"
     ORGS_BINDINGS_ENDPOINT = "iam/organization_members"

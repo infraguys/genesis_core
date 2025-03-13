@@ -139,6 +139,16 @@ class ModelWithAlwaysActiveStatus(models.Model):
     )
 
 
+class RolesInfo:
+
+    def __init__(self, roles):
+        super().__init__()
+        self._roles = roles
+
+    def get_response_body(self):
+        return [role.get_storable_snapshot() for role in self._roles]
+
+
 class User(
     models.ModelWithUUID,
     models.ModelWithNameDesc,
@@ -190,6 +200,27 @@ class User(
         )
         return User.objects.get_one(
             filters={"uuid": ra_filters.EQ(token_info.user_uuid)}
+        )
+
+    def make_newcomer(self):
+        role_newcomer = Role.objects.get_one(
+            filters={"uuid": ra_filters.EQ(c.NEWCOMER_ROLE_UUID)}
+        )
+        role_binding = RoleBinding(
+            user=self,
+            role=role_newcomer,
+        )
+        role_binding.save()
+        return role_binding
+
+    def get_my_roles(self):
+        return RolesInfo(
+            [
+                role_binding.role
+                for role_binding in RoleBinding.objects.get_all(
+                    filters={"user": ra_filters.EQ(self)}
+                )
+            ]
         )
 
     def delete(self, session=None, **kwargs):
@@ -336,6 +367,18 @@ class Project(
         required=True,
         prefetch=True,
     )
+
+    def add_owner(self, user):
+        role_owner = Role.objects.get_one(
+            filters={"uuid": ra_filters.EQ(c.OWNER_ROLE_UUID)}
+        )
+        role_binding = RoleBinding(
+            user=user,
+            role=role_owner,
+            project=self,
+        )
+        role_binding.save()
+        return role_binding
 
 
 class PermissionFastView(
