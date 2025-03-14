@@ -57,6 +57,16 @@ class MachineAgentStatus(str, enum.Enum):
     DISABLED = "DISABLED"
 
 
+class BuilderStatus(str, enum.Enum):
+    ACTIVE = "ACTIVE"
+    DISABLED = "DISABLED"
+
+
+class MachineBuildStatus(str, enum.Enum):
+    IN_BUILD = "IN_BUILD"
+    READY = "READY"
+
+
 class MachinePoolStatus(str, enum.Enum):
     ACTIVE = "ACTIVE"
     DISABLED = "DISABLED"

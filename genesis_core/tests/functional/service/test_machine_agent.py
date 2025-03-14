@@ -347,3 +347,125 @@ class TestMachineAgentService:
         assert {m.uuid for m in self.pool_driver.deleted_machines} == {
             machine_uuid
         }
+
+    def test_create_machine_in_build(
+        self,
+        user_api_client: iam_clients.GenesisCoreTestRESTClient,
+        auth_user_admin: iam_clients.GenesisCoreAuth,
+        machine_factory: tp.Callable,
+        default_node: tp.Dict[str, tp.Any],
+        default_pool: tp.Dict[str, tp.Any],
+        default_machine_agent: tp.Dict[str, tp.Any],
+    ):
+        self._service._agent_uuid = sys_uuid.UUID(
+            default_machine_agent["uuid"]
+        )
+
+        # Schedule pool to the default machine agent
+        pool = self._schedule_pool(
+            default_pool["uuid"], default_machine_agent["uuid"]
+        )
+        pool.driver_spec = {"driver": "dummy"}
+        pool.update()
+
+        # Create machines
+        foo_machine_uuid = sys_uuid.uuid4()
+        machine_spec = machine_factory(
+            uuid=foo_machine_uuid,
+            build_status=nc.MachineBuildStatus.IN_BUILD.value,
+        )
+        client = user_api_client(auth_user_admin)
+        url = client.build_collection_uri(["machines"])
+        client.post(url, json=machine_spec)
+
+        # Schedule machine to the pool
+        machine_foo = self._schedule_machine(str(foo_machine_uuid), pool)
+
+        # Prepare fake pool driver
+        class FakePoolDriver(driver_base.DummyPoolDriver):
+            create_machine_called = False
+            delete_machine_called = False
+
+            def __init__(self):
+                pass
+
+            def create_machine(
+                self, machine: models.Machine, volumes: tp.Iterable
+            ) -> None:
+                self.create_machine_called = True
+
+            def delete_machine(self, machine: models.Machine) -> None:
+                self.delete_machine_called = True
+
+        self._save_pool_driver(FakePoolDriver())
+
+        # Perform iteration
+        self._service._iteration()
+
+        assert not self.pool_driver.create_machine_called
+        assert not self.pool_driver.delete_machine_called
+
+    def test_actualize_pool(
+        self,
+        user_api_client: iam_clients.GenesisCoreTestRESTClient,
+        auth_user_admin: iam_clients.GenesisCoreAuth,
+        machine_factory: tp.Callable,
+        default_node: tp.Dict[str, tp.Any],
+        default_pool: tp.Dict[str, tp.Any],
+        default_machine_agent: tp.Dict[str, tp.Any],
+    ):
+        self._service._agent_uuid = sys_uuid.UUID(
+            default_machine_agent["uuid"]
+        )
+
+        # Schedule pool to the default machine agent
+        pool = self._schedule_pool(
+            default_pool["uuid"], default_machine_agent["uuid"]
+        )
+        pool.driver_spec = {"driver": "dummy"}
+        pool.update()
+        cores = pool.all_cores
+        ram = pool.all_ram
+
+        # Create machines
+        foo_machine_uuid = sys_uuid.uuid4()
+        machine_spec = machine_factory(
+            uuid=foo_machine_uuid,
+            cores=2,
+            ram=2048,
+        )
+        client = user_api_client(auth_user_admin)
+        url = client.build_collection_uri(["machines"])
+        client.post(url, json=machine_spec)
+
+        # Schedule machine to the pool
+        machine_foo = self._schedule_machine(str(foo_machine_uuid), pool)
+
+        # Prepare fake pool driver
+        class FakePoolDriver(driver_base.DummyPoolDriver):
+            def __init__(self):
+                pass
+
+            def list_machines(self) -> tp.List[models.Machine]:
+                return [machine_foo]
+
+            def create_machine(
+                self, machine: models.Machine, volumes: tp.Iterable
+            ) -> None:
+                pass
+
+            def delete_machine(self, machine: models.Machine) -> None:
+                pass
+
+        self._save_pool_driver(FakePoolDriver())
+
+        # Perform iterations
+        self._service._iteration()
+
+        url = client.build_resource_uri(["hypervisors", str(pool.uuid)])
+        response = client.get(url)
+        output = response.json()
+
+        assert response.status_code == 200
+        assert output["avail_cores"] == cores - 2
+        assert output["avail_ram"] == ram - 2048

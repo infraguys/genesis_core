@@ -19,6 +19,7 @@ import logging
 from gcl_looper.services import basic
 
 from genesis_core.node.scheduler import service as n_scheduler_service
+from genesis_core.node.builder import service as n_builder_service
 from genesis_core.node.machine import service as n_machine_service
 
 
@@ -35,11 +36,14 @@ class GeneralService(basic.BasicService):
         n_scheduler = n_scheduler_service.NodeSchedulerService(
             iter_min_period=1, iter_pause=0.1
         )
+        n_builder = n_builder_service.NodeBuilderService(
+            iter_min_period=1, iter_pause=0.1
+        )
         n_machine = n_machine_service.MachineAgentService(
             iter_min_period=1, iter_pause=0.1
         )
 
-        self._services = [n_scheduler, n_machine]
+        self._services = [n_scheduler, n_builder, n_machine]
 
     def _setup(self):
         LOG.info("Setup all services")
@@ -49,7 +53,4 @@ class GeneralService(basic.BasicService):
     def _iteration(self):
         # Iterate all services
         for service in self._services:
-            try:
-                service._iteration()
-            except Exception:
-                LOG.exception("Error in service %s", service)
+            service._loop_iteration()
