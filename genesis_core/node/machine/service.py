@@ -29,6 +29,7 @@ from gcl_looper.services import basic
 from genesis_core.node import constants as nc
 from genesis_core.common import utils
 from genesis_core.node.dm import models as models
+from genesis_core.node.machine.dm import models as machine_models
 from genesis_core.node.machine.pool.driver import exceptions as pool_exceptions
 from genesis_core.node.machine.pool.driver import base as pool_driver
 
@@ -51,7 +52,7 @@ class MachineAgentService(basic.BasicService):
     def _calculate_agent_uuid(self) -> sys_uuid.UUID:
         return sys_uuid.uuid5(utils.node_uuid(), DEF_MACHINE_AGENT_NAME)
 
-    def _is_building(self, machine: models.Machine) -> bool:
+    def _is_building(self, machine: machine_models.Machine) -> bool:
         return machine.build_status != nc.MachineBuildStatus.READY
 
     def _actualize_pool_state(
@@ -78,40 +79,35 @@ class MachineAgentService(basic.BasicService):
 
     def _get_pools(
         self, limit: int = nc.DEF_SQL_LIMIT
-    ) -> tp.Dict[sys_uuid.UUID, models.MachinePool]:
-        return {
-            p.uuid: p
-            for p in models.MachinePool.objects.get_all(
-                filters={
-                    "agent": dm_filters.EQ(str(self._agent_uuid)),
-                },
-                limit=limit,
-            )
-        }
+    ) -> tp.List[models.MachinePool]:
+        return models.MachinePool.objects.get_all(
+            filters={
+                "agent": dm_filters.EQ(str(self._agent_uuid)),
+            },
+            limit=limit,
+        )
 
     def _get_machines(
-        self, pools: tp.Dict[sys_uuid.UUID, models.MachinePool]
-    ) -> tp.Dict[models.MachinePool, tp.List[models.Machine]]:
-        machines: tp.List[models.Machine] = models.Machine.objects.get_all(
+        self, pools: tp.List[models.MachinePool]
+    ) -> tp.DefaultDict[models.MachinePool, tp.List[machine_models.Machine]]:
+        machines = machine_models.Machine.objects.get_all(
             filters={
-                "pool": dm_filters.In((str(p.uuid) for p in pools.values())),
+                "pool": dm_filters.In((str(p.uuid) for p in pools)),
             },
         )
         _map = defaultdict(list)
         for m in machines:
-            _map[pools[m.pool]].append(m)
+            _map[m.pool].append(m)
         return _map
 
     def _get_volumes(
-        self, machines: tp.Iterable[models.Machine]
-    ) -> tp.Dict[models.Machine, tp.List[models.MachineVolume]]:
+        self, machines: tp.Iterable[machine_models.Machine]
+    ) -> tp.Dict[machine_models.Machine, tp.List[models.MachineVolume]]:
         machines = tuple(machines)
+        node_uuids = tuple(str(m.node.uuid) for m in machines if m.node)
+
         volumes = models.MachineVolume.objects.get_all(
-            filters={
-                "node": dm_filters.In(
-                    (str(m.node) for m in machines if m.node)
-                ),
-            },
+            filters={"node": dm_filters.In(node_uuids)},
         )
         _raw_map = defaultdict(list)
         for v in volumes:
@@ -137,26 +133,68 @@ class MachineAgentService(basic.BasicService):
                 # Do nothing the volume is already created
                 pass
 
+    def _actualize_machine(
+        self,
+        driver: pool_driver.AbstractPoolDriver,
+        target_machine: machine_models.Machine,
+        actual_machine: models.Machine,
+    ) -> None:
+        # FIXME(akremenetsky): It's not obvious what to do in that case
+        # since it's not obvious which fields are target state and which actual.
+        # Rethink this moment when baremetal will be implemented
+        if target_machine.node is None:
+            return
+
+        if target_machine.node.cores != actual_machine.cores:
+            driver.set_machine_cores(actual_machine, target_machine.node.cores)
+            LOG.info("Actualized cores for machine %s", target_machine.uuid)
+
+        if target_machine.node.ram != actual_machine.ram:
+            driver.set_machine_ram(actual_machine, target_machine.node.ram)
+            LOG.info("Actualized ram for machine %s", target_machine.uuid)
+
+        # Actualize image only for flashed machines
+        if nc.BootAlternative[target_machine.boot].boot_from_hd:
+            if target_machine.node.image != target_machine.image:
+                target_machine.boot = nc.BootAlternative.network.value
+                target_machine.update()
+
+                # NOTE(akremenetsky): It's maybe a potential problem if the
+                # method throws an exception but this part should be moved
+                # into core agent so it's ok as a temporary solution.
+                driver.reset_machine(actual_machine)
+                LOG.info(
+                    "Started actualizing image for machine %s",
+                    target_machine.uuid,
+                )
+
     def _actualize_pool(
         self,
         pool: models.MachinePool,
-        target_machines: tp.List[models.Machine],
-        target_volumes: tp.DefaultDict[models.Machine, models.MachineVolume],
+        target_machines: tp.List[machine_models.Machine],
+        target_volumes: tp.Dict[machine_models.Machine, models.MachineVolume],
     ) -> None:
         if not pool.has_driver:
             LOG.debug("Pool %s has no driver, skipping", pool.uuid)
             return
 
+        target_machines = {m.uuid: m for m in target_machines}
+
         # Try to load the driver for this pool
         driver: pool_driver.AbstractPoolDriver = pool.load_driver()
 
         # Get all machines for this pool
-        actual_machines: tp.List[models.Machine] = driver.list_machines()
+        # NOTE(akremenetsky): Please note that target and actual machines have
+        # different types.
+        actual_machines: tp.Dict[sys_uuid.UUID, models.Machine] = {
+            m.uuid: m for m in driver.list_machines()
+        }
 
-        self._actualize_pool_state(pool, actual_machines)
+        self._actualize_pool_state(pool, actual_machines.values())
 
         # Delete any machines that are not in the target list
-        for machine in set(actual_machines) - set(target_machines):
+        for uuid in set(actual_machines.keys()) - set(target_machines.keys()):
+            machine = actual_machines[uuid]
             try:
                 driver.delete_machine(machine)
             except Exception:
@@ -167,7 +205,8 @@ class MachineAgentService(basic.BasicService):
                 )
 
         # Create any machines that are not in the actual list
-        for machine in set(target_machines) - set(actual_machines):
+        for uuid in set(target_machines.keys()) - set(actual_machines.keys()):
+            machine = target_machines[uuid]
             # Skip machines that are not ready. They are building and
             # will be ready a little bit later.
             if self._is_building(machine):
@@ -187,7 +226,9 @@ class MachineAgentService(basic.BasicService):
 
             # Everything is ready to create the machine
             try:
-                driver.create_machine(machine, target_volumes[machine])
+                driver.create_machine(
+                    machine.cast_to_base(), target_volumes[machine]
+                )
             except Exception:
                 LOG.exception(
                     "Unable to create machine %s in pool %s",
@@ -196,13 +237,9 @@ class MachineAgentService(basic.BasicService):
                 )
 
         # Actualize any machines that are in both lists
-        pending_actualization = (
-            (t, a)
-            for a in actual_machines
-            for t in target_machines
-            if a.uuid == t.uuid
-        )
-        for target_machine, actual_machine in pending_actualization:
+        for uuid in set(target_machines.keys()) & set(actual_machines.keys()):
+            target_machine = target_machines[uuid]
+            actual_machine = actual_machines[uuid]
             # Skip machines that are not ready. They are building and
             # will be ready a little bit later.
             if self._is_building(target_machine):
@@ -212,7 +249,8 @@ class MachineAgentService(basic.BasicService):
                 continue
 
             try:
-                driver.actualize_machine(target_machine, actual_machine)
+                # driver.actualize_machine(target_machine, actual_machine)
+                self._actualize_machine(driver, target_machine, actual_machine)
             except Exception:
                 LOG.exception(
                     "Unable to actualize machine %s in pool %s",
@@ -242,7 +280,7 @@ class MachineAgentService(basic.BasicService):
             volume_map = self._get_volumes(
                 itertools.chain(*machine_map.values())
             )
-            for pool in pools.values():
+            for pool in pools:
                 machines = machine_map.get(pool, [])
                 try:
                     self._actualize_pool(pool, machines, volume_map)

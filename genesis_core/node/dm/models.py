@@ -185,6 +185,11 @@ class Machine(
         default=nc.MachineBuildStatus.IN_BUILD.value,
     )
 
+    # Actual image of the machine
+    image = properties.property(
+        types.AllowNone(types.String(max_length=255)), default=None
+    )
+
 
 class Volume(ModelWithFullAsset, orm.SQLStorableMixin, models.SimpleViewMixin):
     __tablename__ = "node_volumes"

@@ -86,9 +86,17 @@ class BootAlternative(str, enum.Enum):
     network = "network"
 
     @property
+    def hd_prefix(self) -> str:
+        return "hd"
+
+    @property
+    def boot_from_hd(self) -> bool:
+        return self.value.startswith(self.hd_prefix)
+
+    @property
     def boot_type(self) -> BootType:
-        if self.value.startswith("hd"):
-            return "hd"
+        if self.boot_from_hd:
+            return self.hd_prefix
         elif self.value == "cdrom":
             return "cdrom"
         elif self.value == "network":

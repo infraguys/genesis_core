@@ -21,5 +21,11 @@ from genesis_core.node.dm import models
 
 
 class Machine(models.Machine):
-    node = relationships.relationship(models.Node)
-    pool = relationships.relationship(models.MachinePool)
+    node = relationships.relationship(models.Node, prefetch=True)
+    pool = relationships.relationship(models.MachinePool, prefetch=True)
+
+    def cast_to_base(self) -> models.Machine:
+        view = self.dump_to_simple_view(skip=("node", "pool"))
+        view["node"] = str(self.node.uuid)
+        view["pool"] = str(self.pool.uuid)
+        return models.Machine.restore_from_simple_view(**view)
