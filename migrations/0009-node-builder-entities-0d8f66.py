@@ -23,7 +23,7 @@ from genesis_core.node import constants as nc
 class MigrationStep(migrations.AbstarctMigrationStep):
 
     def __init__(self):
-        self._depends = ["0007-add-default-roles-73f4c4.py"]
+        self._depends = ["0008-add-iam-permissions-d81bba.py"]
 
     @property
     def migration_id(self):
