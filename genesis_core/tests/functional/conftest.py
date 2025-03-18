@@ -29,8 +29,9 @@ from genesis_core.common import utils
 from genesis_core.node import constants as nc
 from genesis_core.node.dm import models as node_models
 from genesis_core.user_api.api import app as user_app
-from genesis_core.user_api.iam import constants as iam_c
 from genesis_core.tests.functional import utils as test_utils
+
+from genesis_core.tests.functional.restapi.iam import clients
 
 
 FIRST_MIGRATION = "0000-root-d34de1.py"
@@ -107,13 +108,16 @@ def user_api(user_api_service: test_utils.RestServiceTestCase):
 def auth_user_admin(
     admin_username: str,
     admin_password: str,
+    user_api: test_utils.RestServiceTestCase,
     default_client_uuid: str,
     default_client_id: str,
     default_client_secret: str,
 ):
-    return iam_clients.GenesisCoreAuth(
+    return clients.GenesisCoreAuth(
         username=admin_username,
         password=admin_password,
+        endpoint=user_api.get_endpoint(),
+        version="v1",
         client_uuid=default_client_uuid,
         client_id=default_client_id,
         client_secret=default_client_secret,
@@ -124,6 +128,7 @@ def auth_user_admin(
 def auth_test1_user(
     user_api_client: iam_clients.GenesisCoreTestRESTClient,
     auth_user_admin: iam_clients.GenesisCoreAuth,
+    user_api: test_utils.RestServiceTestCase,
     default_client_uuid: str,
     default_client_id: str,
     default_client_secret: str,
@@ -132,9 +137,11 @@ def auth_test1_user(
     client = user_api_client(auth_user_admin)
     result = client.create_user(username="test1", password=password)
 
-    return iam_clients.GenesisCoreAuth(
+    return clients.GenesisCoreAuth(
         username=result["username"],
         password=password,
+        endpoint=user_api.get_endpoint(),
+        version="v1",
         client_uuid=default_client_uuid,
         client_id=default_client_id,
         client_secret=default_client_secret,
@@ -147,6 +154,7 @@ def auth_test1_user(
 def auth_test2_user(
     user_api_client: iam_clients.GenesisCoreTestRESTClient,
     auth_user_admin: iam_clients.GenesisCoreAuth,
+    user_api: test_utils.RestServiceTestCase,
     default_client_uuid: str,
     default_client_id: str,
     default_client_secret: str,
@@ -155,9 +163,11 @@ def auth_test2_user(
     client = user_api_client(auth_user_admin)
     result = client.create_user(username="test2", password=password)
 
-    return iam_clients.GenesisCoreAuth(
+    return clients.GenesisCoreAuth(
         username=result["username"],
         password=password,
+        endpoint=user_api.get_endpoint(),
+        version="v1",
         client_uuid=default_client_uuid,
         client_id=default_client_id,
         client_secret=default_client_secret,
@@ -170,6 +180,7 @@ def auth_test2_user(
 def auth_test1_p1_user(
     user_api_client: iam_clients.GenesisCoreTestRESTClient,
     auth_user_admin: iam_clients.GenesisCoreAuth,
+    user_api: test_utils.RestServiceTestCase,
     default_client_uuid: str,
     default_client_id: str,
     default_client_secret: str,
@@ -178,9 +189,11 @@ def auth_test1_p1_user(
     client = user_api_client(auth_user_admin)
     user = client.create_user(username="test1p1", password=password)
 
-    auth = iam_clients.GenesisCoreAuth(
+    auth = clients.GenesisCoreAuth(
         username=user["username"],
         password=password,
+        endpoint=user_api.get_endpoint(),
+        version="v1",
         client_uuid=default_client_uuid,
         client_id=default_client_id,
         client_secret=default_client_secret,
@@ -200,9 +213,11 @@ def auth_test1_p1_user(
         name="Project1",
     )
 
-    return iam_clients.GenesisCoreAuth(
+    return clients.GenesisCoreAuth(
         username=user["username"],
         password=password,
+        endpoint=user_api.get_endpoint(),
+        version="v1",
         client_uuid=default_client_uuid,
         client_id=default_client_id,
         client_secret=default_client_secret,
@@ -238,9 +253,27 @@ def user_api_client(user_api):
 
 
 @pytest.fixture()
-def user_api_noauth_client(user_api):
-    return lambda: iam_clients.GenesisCoreTestNoAuthRESTClient(
-        f"{user_api.get_endpoint()}v1/"
+def user_api_admin_client(user_api, auth_user_admin):
+    return lambda: clients.GenesisClient(
+        endpoint=user_api.get_endpoint(),
+        version="v1",
+        spec_client=clients.SpecificationClient(
+            endpoint=user_api.get_endpoint(),
+            auth=auth_user_admin,
+        ),
+        auth=auth_user_admin,
+    )
+
+
+@pytest.fixture()
+def user_api_noauth_client(user_api, auth_user_admin):
+    return lambda: clients.GenesisClient(
+        endpoint=user_api.get_endpoint(),
+        version="v1",
+        spec_client=clients.SpecificationClient(
+            endpoint=user_api.get_endpoint(),
+            auth=auth_user_admin,
+        ),
     )
 
 
