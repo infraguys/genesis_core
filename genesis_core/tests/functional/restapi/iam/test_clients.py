@@ -83,6 +83,41 @@ class TestClients(base.BaseIamResourceTest):
     def scope_test(self, request):
         return request.param[0]
 
+    def test_get_no_scoped_token_success(
+        self, user_api_client, auth_test1_user, hs256_algorithm
+    ):
+        client = user_api_client(auth_test1_user)
+        token_params = auth_test1_user.get_password_auth_params()
+
+        token_info = client.post(
+            url=auth_test1_user.get_token_url(endpoint=client.endpoint),
+            data=token_params,
+        ).json()
+
+        id_token = hs256_algorithm.decode(
+            token_info["id_token"], ignore_audience=True
+        )
+        assert token_info["scope"] == ""
+        assert id_token["project_id"] is None
+
+    def test_get_empty_scoped_token_success(
+        self, user_api_client, auth_test1_user, hs256_algorithm
+    ):
+        client = user_api_client(auth_test1_user)
+        token_params = auth_test1_user.get_password_auth_params()
+        token_params["scope"] = ""
+
+        token_info = client.post(
+            url=auth_test1_user.get_token_url(endpoint=client.endpoint),
+            data=token_params,
+        ).json()
+
+        id_token = hs256_algorithm.decode(
+            token_info["id_token"], ignore_audience=True
+        )
+        assert token_info["scope"] == ""
+        assert id_token["project_id"] is None
+
     def test_get_scoped_token_no_project_no_organization_success(
         self, user_api_client, auth_test1_user, hs256_algorithm, scope_test
     ):
@@ -167,6 +202,36 @@ class TestClients(base.BaseIamResourceTest):
         )
         assert token_info["scope"] == scope_test
         assert id_token["project_id"] == project["uuid"]
+
+    def test_refresh_token_wo_scope_success(
+        self, user_api_client, auth_test1_user, hs256_algorithm
+    ):
+        client = user_api_client(auth_test1_user)
+        token_params = auth_test1_user.get_password_auth_params()
+        token_params["scope"] = "test"
+        token_info = client.post(
+            url=auth_test1_user.get_token_url(endpoint=client.endpoint),
+            data=token_params,
+        ).json()
+
+        refreshed_token_info = client.post(
+            url=auth_test1_user.get_token_url(endpoint=client.endpoint),
+            data={
+                "grant_type": "refresh_token",
+                "refresh_token": token_info["refresh_token"],
+            },
+        ).json()
+
+        first_id_token = hs256_algorithm.decode(
+            token_info["id_token"], ignore_audience=True
+        )
+        second_id_token = hs256_algorithm.decode(
+            refreshed_token_info["id_token"], ignore_audience=True
+        )
+        assert token_info["scope"] == "test"
+        assert first_id_token["project_id"] is None
+        assert refreshed_token_info["scope"] == "test"
+        assert second_id_token["project_id"] is None
 
     def test_refresh_to_scoped_token_one_project_one_organization_success(
         self, user_api_client, auth_test1_user, hs256_algorithm, scope_test
