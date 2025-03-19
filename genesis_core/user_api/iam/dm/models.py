@@ -151,7 +151,7 @@ class RolesInfo:
 
 class User(
     models.ModelWithUUID,
-    models.ModelWithNameDesc,
+    models.ModelWithRequiredNameDesc,
     models.ModelWithTimestamp,
     ModelWithSecret,
     ModelWithAlwaysActiveStatus,
@@ -168,7 +168,15 @@ class User(
         types.String(min_length=1, max_length=128),
         required=True,
     )
+    surname = properties.property(
+        types.String(min_length=0, max_length=128),
+        default="",
+    )
 
+    phone = properties.property(
+        types.String(min_length=0, max_length=15),
+        default=None,
+    )
     email = properties.property(
         types.Email(max_length=128),
         required=True,
@@ -231,7 +239,7 @@ class User(
 
 class Role(
     models.ModelWithUUID,
-    models.ModelWithNameDesc,
+    models.ModelWithRequiredNameDesc,
     models.ModelWithTimestamp,
     ModelWithAlwaysActiveStatus,
     orm.SQLStorableMixin,
@@ -247,7 +255,7 @@ class Role(
 
 class Permission(
     models.ModelWithUUID,
-    models.ModelWithNameDesc,
+    models.ModelWithRequiredNameDesc,
     models.ModelWithTimestamp,
     ModelWithAlwaysActiveStatus,
     orm.SQLStorableMixin,
@@ -280,7 +288,7 @@ class PermissionBinding(
 
 class Organization(
     models.ModelWithUUID,
-    models.ModelWithNameDesc,
+    models.ModelWithRequiredNameDesc,
     models.ModelWithTimestamp,
     ModelWithAlwaysActiveStatus,
     orm.SQLStorableWithJSONFieldsMixin,
@@ -355,7 +363,7 @@ class OrganizationMember(
 
 class Project(
     models.ModelWithUUID,
-    models.ModelWithNameDesc,
+    models.ModelWithRequiredNameDesc,
     models.ModelWithTimestamp,
     ModelWithStatus,
     orm.SQLStorableMixin,
@@ -434,7 +442,7 @@ class RoleBinding(
 
 class Idp(
     models.ModelWithUUID,
-    models.ModelWithNameDesc,
+    models.ModelWithRequiredNameDesc,
     models.ModelWithTimestamp,
     ModelWithSecret,
     ModelWithAlwaysActiveStatus,
@@ -714,7 +722,7 @@ class MeInfo:
 
 class IamClient(
     models.ModelWithUUID,
-    models.ModelWithNameDesc,
+    models.ModelWithRequiredNameDesc,
     models.ModelWithTimestamp,
     ModelWithSecret,
     ModelWithAlwaysActiveStatus,
