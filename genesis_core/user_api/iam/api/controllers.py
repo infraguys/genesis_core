@@ -349,6 +349,7 @@ class ClientsController(controllers.BaseResourceController):
         elif grant_type == c.GRANT_TYPE_REFRESH_TOKEN:
             token = resource.get_token_by_refresh_token(
                 refresh_token=kwargs.get("refresh_token"),
+                scope=kwargs.get(c.PARAM_SCOPE, None),
             )
             return token.get_response_body()
         else:

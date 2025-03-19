@@ -310,6 +310,19 @@ class Organization(
 
         return [m.organization for m in member_bindings]
 
+    @classmethod
+    def get_default(cls, user=None):
+        for member in OrganizationMember.objects.get_all(
+            filters={
+                "role": ra_filters.EQ(iam_c.OrganizationRole.OWNER.value),
+                "user": ra_filters.EQ(user or User.me()),
+            },
+            limit=1,
+            order_by={"created_at": "asc"},
+        ):
+            return member.organization
+        return None
+
     def are_i_owner(self):
         user = User.me()
         for member in OrganizationMember.objects.get_all(
@@ -387,6 +400,23 @@ class Project(
         )
         role_binding.save()
         return role_binding
+
+    @classmethod
+    def get_default(cls, organization=None, user=None):
+        user = user or User.me()
+        org = organization or Organization.get_default(user=user)
+        for role_binding in RoleBinding.objects.get_all(
+            filters={
+                "user": ra_filters.EQ(user),
+            },
+            order_by={"created_at": "asc"},
+        ):
+            if (
+                role_binding.project
+                and role_binding.project.organization == org
+            ):
+                return role_binding.project
+        return None
 
 
 class PermissionFastView(
@@ -570,6 +600,12 @@ class Token(
         default=iam_c.PARAM_SCOPE_DEFAULT,
     )
 
+    def __init__(self, user=None, scope="", project=None, **kwargs):
+        user = user or User.me()
+        if project is None and scope:
+            project = self._get_project_by_scope(user, scope)
+        super().__init__(user=user, project=project, scope=scope, **kwargs)
+
     def _get_key_by_encryption_algorithm(self, algorithm):
         ctx = contexts.get_context()
         storage = ctx.context_storage
@@ -597,10 +633,37 @@ class Token(
         if not self.check_refresh_expiration():
             raise iam_e.InvalidAuthTokenError()
 
-    def refresh(self):
+    def _get_default_project(self, user):
+        return Project.get_default(user=user)
+
+    def _get_project_by_uuid(self, user, str_uuid):
+        for project in Project.objects.get_all(
+            filters={"uuid": ra_filters.EQ(str_uuid)},
+            limit=1,
+        ):
+            return project
+
+    def _get_project_by_scope(self, user, scope):
+        scope = scope.lower()
+        project = None
+        for piece in scope.split(" "):
+            if piece.startswith("project"):
+                project_info = piece.split(":", 1)
+                project = (
+                    self._get_project_by_uuid(user, project_info[1])
+                    if len(project_info) > 1 and project_info[1] != "default"
+                    else self._get_default_project(user)
+                )
+                break
+
+        return project
+
+    def refresh(self, scope=None):
         now = datetime.datetime.now(datetime.timezone.utc)
         new_expiration_at = now + Token.expiration_delta
         self.expiration_at = new_expiration_at
+        self.project = self._get_project_by_scope(self.user, scope)
+        self.scope = scope
         self.update()
 
     def get_response_body(self):
@@ -634,6 +697,7 @@ class Token(
             "sub": str(self.user.uuid),
             "email": self.user.email,
             "name": f" {self.user.first_name} {self.user.last_name}",
+            "project_id": str(self.project.uuid) if self.project else None,
         }
 
         id_token = algorithm.encode(id_token_info)
@@ -750,40 +814,6 @@ class IamClient(
         ):
             raise iam_e.CredentialsAreInvalidError()
 
-    def _get_default_project(self, user):
-        for rel in OrganizationMember.objects.get_all(
-            filters={
-                "user": ra_filters.EQ(user),
-            }
-        ):
-            for project in Project.objects.get_all(
-                filters={"organization": ra_filters.EQ(rel.organization)}
-            ):
-                return project
-        return None
-
-    def _get_project_by_uuid(self, user, str_uuid):
-        for project in Project.objects.get_all(
-            filters={"uuid": ra_filters.EQ(str_uuid)},
-            limit=1,
-        ):
-            return project
-
-    def _get_project_by_scope(self, user, scope):
-        scope = scope.lower()
-        project = None
-        for pice in scope.split(" "):
-            if pice.startswith("project"):
-                project_info = pice.split(":", 1)
-                project = (
-                    self._get_project_by_uuid(user, project_info[1])
-                    if len(project_info) > 1 and project_info[1] != "default"
-                    else self._get_default_project(user)
-                )
-                break
-
-        return project
-
     def get_token_by_password(
         self,
         username,
@@ -800,7 +830,6 @@ class IamClient(
             user.validate_secret(secret=password)
             token = Token(
                 user=user,
-                project=self._get_project_by_scope(user, scope),
                 scope=scope,
                 issuer=f"{root_endpoint}iam/clients/{self.uuid}",
                 audience=self.client_id,
@@ -811,7 +840,7 @@ class IamClient(
         else:
             raise iam_exceptions.UserNotFound(username=username)
 
-    def get_token_by_refresh_token(self, refresh_token):
+    def get_token_by_refresh_token(self, refresh_token, scope=None):
         context = contexts.get_context()
         storage = context.context_storage
         algorithm = storage.get(
@@ -829,7 +858,7 @@ class IamClient(
             }
         ):
             token.validate_refresh_expiration()
-            token.refresh()
+            token.refresh(scope=scope)
             return token
         else:
             raise iam_e.InvalidRefreshTokenError()
