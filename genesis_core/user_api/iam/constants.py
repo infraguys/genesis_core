@@ -36,7 +36,7 @@ PARAM_SCOPE = "scope"
 
 
 # Default Values
-PARAM_SCOPE_DEFAULT = "openid, project:default"
+PARAM_SCOPE_DEFAULT = ""
 
 
 # Algorithms

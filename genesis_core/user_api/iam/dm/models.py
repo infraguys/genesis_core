@@ -659,6 +659,7 @@ class Token(
         return project
 
     def refresh(self, scope=None):
+        scope = scope or self.scope
         now = datetime.datetime.now(datetime.timezone.utc)
         new_expiration_at = now + Token.expiration_delta
         self.expiration_at = new_expiration_at
