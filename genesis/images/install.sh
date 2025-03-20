@@ -34,11 +34,10 @@ SYSTEMD_SERVICE_DIR=/etc/systemd/system/
 
 # Install packages
 sudo apt update
-sudo apt install build-essential python3.12-dev python3.12-venv postgresql \
-    libev-dev libvirt-dev tftpd-hpa isc-dhcp-server -y
+sudo apt install postgresql libev-dev libvirt-dev \
+    tftpd-hpa isc-dhcp-server -y
 
 # Configure netboot
-sudo cp "$GC_ART_DIR/dhcpd.conf" /etc/dhcp/dhcpd.conf
 sudo mkdir -p /srv/tftp/bios
 sudo cp "$GC_ART_DIR/undionly.kpxe" /srv/tftp/bios/undionly.kpxe
 sudo cp "$GC_ART_DIR/initrd.img" /srv/tftp/bios/initrd.img
@@ -52,7 +51,8 @@ sudo -u postgres psql -c "CREATE DATABASE $GC_PG_USER OWNER $GC_PG_DB;"
 sudo mkdir -p $GC_CFG_DIR
 sudo cp "$GC_PATH/etc/genesis_core/genesis_core.conf" $GC_CFG_DIR/
 sudo cp "$GC_PATH/etc/genesis_core/logging.yaml" $GC_CFG_DIR/
-sudo cp "$GC_PATH/scripts/bootstrap.sh" $BOOTSTRAP_PATH/0100-gc-bootstrap.sh
+sudo cp "$GC_PATH/genesis/images/startup_cfg.yaml" $GC_CFG_DIR/
+sudo cp "$GC_PATH/genesis/images/bootstrap.sh" $BOOTSTRAP_PATH/0100-gc-bootstrap.sh
 python3 -m uuid | sudo tee /var/lib/genesis/node-id
 
 mkdir -p "$VENV_PATH"

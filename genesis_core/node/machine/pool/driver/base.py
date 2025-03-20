@@ -31,6 +31,7 @@ class AbstractPoolDriver(abc.ABC):
         self,
         machine: models.Machine,
         volumes: tp.Iterable[models.MachineVolume],
+        ports: tp.Iterable[models.Port],
     ) -> models.Machine:
         """Create a new machine."""
 
@@ -84,6 +85,7 @@ class DummyPoolDriver(AbstractPoolDriver):
         self,
         machine: models.Machine,
         volumes: tp.Iterable[models.MachineVolume],
+        ports: tp.Iterable[models.Port],
     ) -> models.Machine:
         """Create a machine."""
         return machine
