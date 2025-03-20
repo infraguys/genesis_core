@@ -396,3 +396,129 @@ class TestNetworkService:
         assert node.default_network["mac"]
         assert node.default_network["subnet"] == str(subnet.uuid)
         assert node.default_network["port"] == str(port_uuid)
+
+    @pytest.mark.usefixtures("user_api_client", "auth_user_admin")
+    def test_new_hw_node_without_machine(self):
+        node = self._add_node(node_type="HW")
+
+        extra = {"ip_range": netaddr.IPRange("10.0.0.100", "10.0.0.200")}
+        _, subnet = self._add_network(**extra)
+        port_uuid = None
+
+        class FakeDriver(driver_base.DummyNetworkDriver):
+            create_subnet_called = False
+            create_port_called = False
+
+            def __init__(self):
+                pass
+
+            def list_subnets(self) -> tp.Iterable[models.Subnet]:
+                return [subnet]
+
+            def create_subnet(self, subnet: models.Subnet) -> models.Subnet:
+                self.__class__.create_subnet_called = True
+
+            def create_port(self, port: models.Port) -> models.Port:
+                nonlocal port_uuid
+                self.__class__.create_port_called = True
+
+        self._save_network_driver(FakeDriver())
+
+        self._service._iteration()
+
+        assert not FakeDriver.create_subnet_called
+        assert not FakeDriver.create_port_called
+
+    @pytest.mark.usefixtures("user_api_client", "auth_user_admin")
+    def test_new_hw_node(
+        self,
+        machine_factory: tp.Callable,
+        pool_factory: tp.Callable,
+        node_factory: tp.Callable,
+        interface_factory: tp.Callable,
+    ):
+        # HW machine pool
+        hw_pool = pool_factory(machine_type="HW")
+        hw_pool = models.MachinePool.restore_from_simple_view(**hw_pool)
+        hw_pool.insert()
+
+        # HW machines
+        hw_machine = machine_factory(
+            machine_type="HW",
+            pool=hw_pool.uuid,
+            status="IDLE",
+            cores=4,
+            ram=2048,
+        )
+        hw_machine = models.Machine.restore_from_simple_view(**hw_machine)
+        hw_machine.insert()
+
+        # Interface
+        hw_interface = interface_factory(
+            machine=hw_machine.uuid,
+            name="eth0",
+            ipv4=netaddr.IPAddress("10.0.0.253"),
+            mask=netaddr.IPAddress("255.255.255.0"),
+        )
+        hw_interface = models.Interface.restore_from_simple_view(
+            **hw_interface
+        )
+        hw_interface.insert()
+
+        # HW node
+        node = node_factory(node_type="HW", cores=1, ram=1024)
+        node = models.Node.restore_from_simple_view(**node)
+        node.insert()
+
+        # Schedule machine to the node
+        hw_machine.node = node.uuid
+        hw_machine.update()
+
+        extra = {
+            "ip_range": netaddr.IPRange("10.0.0.100", "10.0.0.200"),
+            "ip_discovery_range": netaddr.IPRange("10.0.0.201", "10.0.0.254"),
+        }
+        _, subnet = self._add_network(**extra)
+        port_uuid = None
+
+        class FakeDriver(driver_base.DummyNetworkDriver):
+            create_subnet_called = False
+            create_port_called = False
+
+            def __init__(self):
+                pass
+
+            def list_subnets(self) -> tp.Iterable[models.Subnet]:
+                return [subnet]
+
+            def create_subnet(self, subnet: models.Subnet) -> models.Subnet:
+                self.__class__.create_subnet_called = True
+
+            def create_port(self, port: models.Port) -> models.Port:
+                nonlocal port_uuid
+
+                self.__class__.create_port_called = True
+                assert port.subnet == subnet.uuid
+                assert port.ipv4 == netaddr.IPAddress("10.0.0.100")
+                assert port.mask == netaddr.IPAddress("255.255.255.0")
+                port_uuid = port.uuid
+                return port
+
+        self._save_network_driver(FakeDriver())
+
+        self._service._iteration()
+
+        assert not FakeDriver.create_subnet_called
+        assert FakeDriver.create_port_called
+
+        # Check target ip
+        node: models.Node = models.Node.objects.get_one(
+            filters={
+                "uuid": dm_filters.EQ(str(node.uuid)),
+            },
+        )
+        assert node.default_network["ipv4"] == "10.0.0.100"
+        assert node.default_network["mask"] == "255.255.255.0"
+        assert node.default_network["mac"] == hw_interface.mac
+        assert node.default_network["subnet"] == str(subnet.uuid)
+        assert node.default_network["port"] == str(port_uuid)

@@ -36,18 +36,27 @@ class GeneralService(basic.BasicService):
         super().__init__(iter_min_period, iter_pause)
 
         # TODO(akremenetsky): Form a pipliene from the configuration
-        scheduler_filters = [
+        # and entry points
+        pool_filters = [
             available.CoresRamAvailableFilter(),
         ]
-        scheduler_weighters = [
+        pool_weighters = [
             relative.RelativeCoreRamWeighter(),
+        ]
+        machine_filters = [
+            available.HWCoresRamAvailableFilter(),
+        ]
+        machine_weighters = [
+            relative.SimpleMachineWeighter(),
         ]
 
         # The simplest way to enable the nested services
         # It will be reworked in the future
         n_scheduler = n_scheduler_service.NodeSchedulerService(
-            filters=scheduler_filters,
-            weighters=scheduler_weighters,
+            pool_filters=pool_filters,
+            pool_weighters=pool_weighters,
+            machine_filters=machine_filters,
+            machine_weighters=machine_weighters,
             iter_min_period=1,
             iter_pause=0.1,
         )
