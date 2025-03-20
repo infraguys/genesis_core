@@ -37,14 +37,18 @@ class NodeSchedulerService(basic.BasicService):
 
     def __init__(
         self,
-        filters: tp.List[base.MachinePoolAbstractFilter],
-        weighters: tp.List[base.MachinePoolAbstractWeighter],
+        pool_filters: tp.List[base.MachinePoolAbstractFilter],
+        pool_weighters: tp.List[base.MachinePoolAbstractWeighter],
+        machine_filters: tp.List[base.MachineAbstractFilter],
+        machine_weighters: tp.List[base.MachineAbstractWeighter],
         iter_min_period: int = 1,
         iter_pause: float = 0.1,
     ):
         super().__init__(iter_min_period, iter_pause)
-        self._filters = filters
-        self._weighters = weighters
+        self._pool_filters = pool_filters
+        self._pool_weighters = pool_weighters
+        self._machine_filters = machine_filters
+        self._machine_weighters = machine_weighters
 
     def _get_builders(
         self, limit: int = nc.DEF_SQL_LIMIT
@@ -84,6 +88,18 @@ class NodeSchedulerService(basic.BasicService):
         """Get all unscheduled machines."""
         return models.Machine.objects.get_all(
             filters={"pool": dm_filters.Is(None)},
+            limit=limit,
+        )
+
+    def _get_idle_machines(
+        self, limit: int = nc.DEF_SQL_LIMIT
+    ) -> tp.List[models.Machine]:
+        """Get available HW machines."""
+        return models.Machine.objects.get_all(
+            filters={
+                "node": dm_filters.Is(None),
+                "status": dm_filters.EQ(nc.MachineStatus.IDLE.value),
+            },
             limit=limit,
         )
 
@@ -143,17 +159,17 @@ class NodeSchedulerService(basic.BasicService):
 
         return volume
 
-    def _schedule_nodes(self) -> tp.List[models.Machine]:
+    def _schedule_vm_nodes(
+        self, unsheduled: tp.List[models.UnscheduledNode]
+    ) -> tp.List[models.Machine]:
         machines = []
-        unsheduled = self._get_unscheduled_nodes()
         if not unsheduled:
             LOG.debug("Nothing to schedule, no unscheduled nodes")
             return machines
 
-        # TODO(akremenetsky): Implement for HWs
         for node in unsheduled:
-
-            # TODO(akremenetsky): It's a builder work. Move to the builder service.
+            # TODO(akremenetsky): It's a builder work.
+            # Move to the builder service.
             if node.root_disk_size:
                 try:
                     volume = self._build_root_volume(node)
@@ -168,6 +184,92 @@ class NodeSchedulerService(basic.BasicService):
             machines.append(self._build_vm(node))
 
         return machines
+
+    def _schedule_nodes(self) -> tp.List[models.Machine]:
+        unscheduled = self._get_unscheduled_nodes()
+        idle_machines = self._get_idle_machines()
+
+        idle_hws = [
+            m for m in idle_machines if m.machine_type == nc.NodeType.HW.value
+        ]
+        idle_vms = [
+            m for m in idle_machines if m.machine_type == nc.NodeType.VM.value
+        ]
+        vms = []
+
+        for unscheduled_node in unscheduled:
+            node = unscheduled_node.node
+            if node.node_type == nc.NodeType.HW:
+                idle_machines = idle_hws
+            else:
+                idle_machines = idle_vms
+
+            # Filtering. We filter out unsuitable machines. For instance,
+            # machines that doesn't have enough cores or ram or some
+            # placement constraints.
+            for filter in self._machine_filters:
+                idle_machines = filter.filter(node, idle_machines)
+
+            # There are no available HW machines for this node
+            # This means we unable to proceed scheduling process
+            # for this node.
+            if not idle_machines and node.node_type == nc.NodeType.HW:
+                LOG.warning(
+                    "No HW machines found to schedule node %s",
+                    node.uuid,
+                )
+                if node.status != nc.NodeStatus.ERROR:
+                    node.status = nc.NodeStatus.ERROR.value
+                    node.description = "No suitable HW machines found"
+                    node.save()
+                continue
+
+            # There are no available VM machines for this node
+            # but it's not a problem. A virtual machine will be
+            # created later.
+            if not idle_machines and node.node_type == nc.NodeType.VM:
+                LOG.debug(
+                    "No idle VM machines found to schedule node %s",
+                    node.uuid,
+                )
+                vms.append(node)
+                continue
+
+            # Weighting. We weight machines and choose the best one.
+            # Accumulate weights from all weighters.
+            # So that the best pool has the highest weight
+            accumulated_weights = [0.0] * len(idle_machines)
+            for weighter in self._machine_weighters:
+                weights = weighter.weight(idle_machines)
+                accumulated_weights = [
+                    w0 + w1 for w0, w1 in zip(accumulated_weights, weights)
+                ]
+
+            # Choose the best machine, it means the one with the highest weight
+            index = accumulated_weights.index(max(accumulated_weights))
+            machine = idle_machines[index]
+
+            machine.node = node.uuid
+            machine.status = nc.MachineStatus.SCHEDULED.value
+            node.status = nc.NodeStatus.SCHEDULED.value
+            try:
+                node.save()
+                machine.save()
+                LOG.info(
+                    "The node %s scheduled to %s machine",
+                    node.uuid,
+                    machine.uuid,
+                )
+            except Exception:
+                LOG.exception("Error scheduling node %s", node.uuid)
+
+            # Actualize idle machines
+            if node.node_type == nc.NodeType.HW.value:
+                idle_hws.remove(machine)
+            else:
+                idle_vms.remove(machine)
+
+        return self._schedule_vm_nodes(vms)
 
     def _schedule_machines(
         self,
@@ -188,7 +290,7 @@ class NodeSchedulerService(basic.BasicService):
             # Filtering. We filter out unsuitable pools. For instance, pools
             # that doesn't have enough cores or ram or some placement
             # constraints.
-            for filter in self._filters:
+            for filter in self._pool_filters:
                 pools = filter.filter(machine, pools)
 
             if not pools:
@@ -203,7 +305,7 @@ class NodeSchedulerService(basic.BasicService):
             # Accumulate weights from all weighters
             # So that the best pool has the highest weight
             accumulated_weights = [0.0] * len(pools)
-            for weighter in self._weighters:
+            for weighter in self._pool_weighters:
                 weights = weighter.weight(pools)
                 accumulated_weights = [
                     w0 + w1 for w0, w1 in zip(accumulated_weights, weights)

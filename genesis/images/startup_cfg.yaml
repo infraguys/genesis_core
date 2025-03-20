@@ -1,4 +1,9 @@
 startup_entities:
+  machine_pools:
+    - uuid: "2bd17956-600b-4beb-8ddd-9fc4856262e6"
+      name: "default-hw-pool"
+      machine_type: HW
+      status: ACTIVE
   networks:
     - name: flat
       uuid: "1d4f64db-817a-4862-a588-c9e950823cc1"
@@ -10,6 +15,7 @@ startup_entities:
           uuid: "c910a7e1-61ae-4d56-bdd6-a59faa3cbda3"
           cidr: "10.20.0.0/22"
           ip_range: "10.20.0.20-10.20.0.200"
+          ip_discovery_range: "10.20.1.10-10.20.1.40"
           dns_servers: ["8.8.8.8"]
           routers:
             - to: "0.0.0.0/0"

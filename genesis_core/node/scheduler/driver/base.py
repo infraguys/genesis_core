@@ -45,3 +45,26 @@ class MachinePoolAbstractWeighter(abc.ABC):
         1 means the pool is the best for the node.
         0 means the pool is the worst for the node.
         """
+
+
+class MachineAbstractFilter(abc.ABC):
+
+    def filter(
+        self,
+        node: models.Node,
+        machines: tp.List[models.Machine],
+    ) -> tp.Iterable[models.Machine]:
+        """Filter out machines that are not suitable for the node."""
+
+
+class MachineAbstractWeighter(abc.ABC):
+    def weight(
+        self,
+        machines: tp.List[models.MachinePool],
+    ) -> tp.Iterable[float]:
+        """Assign weights to machines.
+
+        Every machine gets a weight from range [0, 1].
+        1 means the machine is the best for the node.
+        0 means the machine is the worst for the node.
+        """

@@ -99,6 +99,16 @@ def _apply_startup_db():
                 else:
                     LOG.info("Created port %s", port.uuid)
 
+    # Handle pools
+    for pool in startup_entities.get("machine_pools", []):
+        pool = models.MachinePool.restore_from_simple_view(**pool)
+        try:
+            pool.insert()
+        except ra_exceptions.ConflictRecords:
+            LOG.info("Machine pool %s already exists", pool.uuid)
+        else:
+            LOG.info("Created machine pool %s", pool.uuid)
+
 
 def main() -> None:
     # Parse config
