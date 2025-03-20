@@ -19,6 +19,7 @@ import uuid as sys_uuid
 from unittest import mock
 
 import pytest
+import netaddr
 from gcl_iam.tests.functional import clients as iam_clients
 from restalchemy.dm import filters as dm_filters
 
@@ -72,7 +73,10 @@ class TestMachineAgentService:
         return pool
 
     def _schedule_machine(
-        self, machine_uuid: str, pool: str | models.MachinePool
+        self,
+        machine_uuid: str,
+        pool: str | models.MachinePool,
+        subnet: models.Subnet | None = None,
     ) -> models.Machine:
         # Node
         node_uuid = sys_uuid.uuid4()
@@ -85,6 +89,19 @@ class TestMachineAgentService:
             project_id=c.SERVICE_PROJECT_ID,
         )
         node.insert()
+
+        # Port
+        if subnet is not None:
+            port = models.Port(
+                uuid=sys_uuid.uuid4(),
+                node=node_uuid,
+                subnet=subnet.uuid,
+                project_id=subnet.project_id,
+                ipv4=netaddr.IPAddress("10.0.0.1"),
+                netmask=netaddr.IPAddress("255.255.255.0"),
+                status=nc.PortStatus.ACTIVE.value,
+            )
+            port.insert()
 
         # Machine
         machine = models.Machine.objects.get_one(
@@ -170,7 +187,7 @@ class TestMachineAgentService:
         # should happen
         self._service._iteration()
 
-    def test_create_machine(
+    def test_create_machine_net_not_ready(
         self,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
@@ -204,13 +221,78 @@ class TestMachineAgentService:
         class FakePoolDriver(driver_base.DummyPoolDriver):
             create_machine_called = False
             delete_machine_called = False
+
+            def __init__(self):
+                pass
+
+            def create_machine(
+                self,
+                machine: models.Machine,
+                volumes: tp.Iterable,
+                ports: tp.Iterable,
+            ) -> None:
+                self.create_machine_called = True
+
+            def delete_machine(self, machine: models.Machine) -> None:
+                self.delete_machine_called = True
+
+        self._save_pool_driver(FakePoolDriver())
+
+        # Perform iteration
+        self._service._iteration()
+
+        assert not self.pool_driver.create_machine_called
+        assert not self.pool_driver.delete_machine_called
+
+    def test_create_machine(
+        self,
+        user_api_client: iam_clients.GenesisCoreTestRESTClient,
+        auth_user_admin: iam_clients.GenesisCoreAuth,
+        machine_factory: tp.Callable,
+        default_node: tp.Dict[str, tp.Any],
+        default_pool: tp.Dict[str, tp.Any],
+        default_machine_agent: tp.Dict[str, tp.Any],
+        default_subnet: models.Subnet,
+    ):
+        self._service._agent_uuid = sys_uuid.UUID(
+            default_machine_agent["uuid"]
+        )
+
+        # Schedule pool to the default machine agent
+        pool = self._schedule_pool(
+            default_pool["uuid"], default_machine_agent["uuid"]
+        )
+        pool.driver_spec = {"driver": "dummy"}
+        pool.update()
+
+        # Create machines
+        foo_machine_uuid = sys_uuid.uuid4()
+        machine_spec = machine_factory(uuid=foo_machine_uuid)
+        client = user_api_client(auth_user_admin)
+        url = client.build_collection_uri(["machines"])
+        client.post(url, json=machine_spec)
+
+        # Schedule machine to the pool
+        machine_foo, _ = self._schedule_machine(
+            str(foo_machine_uuid),
+            pool,
+            default_subnet,
+        )
+
+        # Prepare fake pool driver
+        class FakePoolDriver(driver_base.DummyPoolDriver):
+            create_machine_called = False
+            delete_machine_called = False
             created_machines = []
 
             def __init__(self):
                 pass
 
             def create_machine(
-                self, machine: models.Machine, volumes: tp.Iterable
+                self,
+                machine: models.Machine,
+                volumes: tp.Iterable,
+                ports: tp.Iterable,
             ) -> None:
                 self.create_machine_called = True
                 self.created_machines.append(machine)
@@ -240,6 +322,7 @@ class TestMachineAgentService:
         default_node: tp.Dict[str, tp.Any],
         default_pool: tp.Dict[str, tp.Any],
         default_machine_agent: tp.Dict[str, tp.Any],
+        default_subnet: models.Subnet,
     ):
         self._service._agent_uuid = sys_uuid.UUID(
             default_machine_agent["uuid"]
@@ -265,8 +348,12 @@ class TestMachineAgentService:
         client.post(url, json=machine_spec)
 
         # Schedule machine to the pool
-        machine_foo, _ = self._schedule_machine(str(foo_machine_uuid), pool)
-        machine_bar, _ = self._schedule_machine(str(bar_machine_uuid), pool)
+        machine_foo, _ = self._schedule_machine(
+            str(foo_machine_uuid), pool, default_subnet
+        )
+        machine_bar, _ = self._schedule_machine(
+            str(bar_machine_uuid), pool, default_subnet
+        )
 
         # Prepare fake pool driver
         class FakePoolDriver(driver_base.DummyPoolDriver):
@@ -278,7 +365,10 @@ class TestMachineAgentService:
                 pass
 
             def create_machine(
-                self, machine: models.Machine, volumes: tp.Iterable
+                self,
+                machine: models.Machine,
+                volumes: tp.Iterable,
+                ports: tp.Iterable,
             ) -> None:
                 self.create_machine_called = True
                 self.created_machines.append(machine)

@@ -20,8 +20,15 @@ from restalchemy.dm import relationships
 from genesis_core.node.dm import models
 
 
-class Machine(models.Machine, models.CastToBaseMixin):
-    __cast_filels__ = ("node", "pool")
+class Port(models.Port, models.CastToBaseMixin):
+    __cast_filels__ = ("node", "machine", "subnet")
 
+    subnet = relationships.relationship(models.Subnet, prefetch=True)
     node = relationships.relationship(models.Node, prefetch=True)
-    pool = relationships.relationship(models.MachinePool, prefetch=True)
+    machine = relationships.relationship(models.Machine, prefetch=True)
+
+
+class Subnet(models.Subnet, models.CastToBaseMixin):
+    __cast_filels__ = ("network",)
+
+    network = relationships.relationship(models.Network, prefetch=True)

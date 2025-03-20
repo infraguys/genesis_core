@@ -1,0 +1,15 @@
+startup_entities:
+  networks:
+    - name: flat
+      uuid: "1d4f64db-817a-4862-a588-c9e950823cc1"
+      driver_spec:
+        driver: flat_bridge
+        dhcp_cfg: /etc/dhcp/dhcpd.conf
+      subnets:
+        - name: flat-subnet
+          uuid: "c910a7e1-61ae-4d56-bdd6-a59faa3cbda3"
+          cidr: "10.20.0.0/22"
+          ip_range: "10.20.0.20-10.20.0.200"
+          dns_servers: ["8.8.8.8"]
+          routers: ["10.20.0.1"]
+          next_server: "10.20.0.2"
