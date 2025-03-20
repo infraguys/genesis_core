@@ -14,9 +14,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import unittest
+from genesis_core.common import exceptions
 
 
-class SimpleTest(unittest.TestCase):
-    def test_ok(self):
-        self.assertFalse(False)
+class CGNetException(exceptions.GCException):
+    __template__ = "An unknown network exception occurred."
+
+
+class CGNetNotSubnetFound(exceptions.GCException):
+    __template__ = "No subnets found on network {network}."

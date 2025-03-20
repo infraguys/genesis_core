@@ -13,15 +13,22 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from __future__ import annotations
 
-from restalchemy.dm import relationships
+import netaddr
+import uuid as sys_uuid
 
+import pytest
+
+from genesis_core.network import ipam
 from genesis_core.node.dm import models
+from genesis_core.common import constants as c
 
 
-class Machine(models.Machine, models.CastToBaseMixin):
-    __cast_filels__ = ("node", "pool")
-
-    node = relationships.relationship(models.Node, prefetch=True)
-    pool = relationships.relationship(models.MachinePool, prefetch=True)
+@pytest.fixture
+def empty_ipam() -> ipam.Ipam:
+    subnet = models.Subnet(
+        network=sys_uuid.uuid4(),
+        cidr=netaddr.IPNetwork("0.0.0.0/24"),
+        project_id=c.SERVICE_PROJECT_ID,
+    )
+    return ipam.Ipam({subnet: []})

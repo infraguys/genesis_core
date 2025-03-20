@@ -55,6 +55,9 @@ class MachineAgentService(basic.BasicService):
     def _is_building(self, machine: machine_models.Machine) -> bool:
         return machine.build_status != nc.MachineBuildStatus.READY
 
+    def _is_net_ready(self, ports: tp.List[models.Port]) -> bool:
+        return any(p.status == nc.PortStatus.ACTIVE for p in ports)
+
     def _actualize_pool_state(
         self,
         pool: models.MachinePool,
@@ -121,6 +124,29 @@ class MachineAgentService(basic.BasicService):
 
         return _map
 
+    def _get_ports(
+        self, machines: tp.Iterable[machine_models.Machine]
+    ) -> tp.Dict[machine_models.Machine, tp.List[models.Port]]:
+        # Ensure it's a finite, re-iterable collection
+        machines = tuple(machines)
+        node_map = {m.node.uuid: m for m in machines if m.node}
+
+        ports = models.Port.objects.get_all(
+            filters={
+                "node": dm_filters.In(tuple(str(n) for n in node_map.keys()))
+            },
+        )
+
+        _raw_map = defaultdict(list)
+        for p in ports:
+            _raw_map[node_map[p.node]].append(p)
+
+        # Ensure every machine in the input is represented in the output,
+        # even if it has no associated ports
+        _map = {m: _raw_map[m] for m in machines}
+
+        return _map
+
     def _create_volumes(
         self,
         driver: pool_driver.AbstractPoolDriver,
@@ -173,6 +199,7 @@ class MachineAgentService(basic.BasicService):
         pool: models.MachinePool,
         target_machines: tp.List[machine_models.Machine],
         target_volumes: tp.Dict[machine_models.Machine, models.MachineVolume],
+        target_ports: tp.Dict[machine_models.Machine, tp.List[models.Port]],
     ) -> None:
         if not pool.has_driver:
             LOG.debug("Pool %s has no driver, skipping", pool.uuid)
@@ -213,6 +240,18 @@ class MachineAgentService(basic.BasicService):
                 LOG.debug("Machine %s is not ready, skipping", machine.uuid)
                 continue
 
+            # FIXME(akremenetsky): Don't allow to launch VM without network.
+            # It may be changed in the future
+            # FIXME(akremenetsky): Should this check be here or in the builder?
+            if not target_ports[machine] or not self._is_net_ready(
+                target_ports[machine]
+            ):
+                LOG.debug(
+                    "Machine %s. The network it's not ready, skipping",
+                    machine.uuid,
+                )
+                continue
+
             # First create volumes for the machine
             try:
                 self._create_volumes(driver, target_volumes[machine])
@@ -227,7 +266,9 @@ class MachineAgentService(basic.BasicService):
             # Everything is ready to create the machine
             try:
                 driver.create_machine(
-                    machine.cast_to_base(), target_volumes[machine]
+                    machine.cast_to_base(),
+                    target_volumes[machine],
+                    target_ports[machine],
                 )
             except Exception:
                 LOG.exception(
@@ -280,10 +321,11 @@ class MachineAgentService(basic.BasicService):
             volume_map = self._get_volumes(
                 itertools.chain(*machine_map.values())
             )
+            port_map = self._get_ports(itertools.chain(*machine_map.values()))
             for pool in pools:
                 machines = machine_map.get(pool, [])
                 try:
-                    self._actualize_pool(pool, machines, volume_map)
+                    self._actualize_pool(pool, machines, volume_map, port_map)
                 except Exception:
                     LOG.exception(
                         "Unable to actualize pool %s with machines %s",

@@ -19,6 +19,7 @@ import typing as tp
 
 DEF_SQL_LIMIT = 300
 EP_MACHINE_POOL_DRIVERS = "gcn_machine_pool_driver"
+EP_NETWORK_DRIVERS = "gcn_network_driver"
 DEF_ROOT_DISK_SIZE = 15
 POLICY_SERVICE_NAME = "compute"
 
@@ -105,3 +106,10 @@ class BootAlternative(str, enum.Enum):
             return "network"
 
         raise ValueError(f"Invalid boot alternative: {self.value}")
+
+
+class PortStatus(str, enum.Enum):
+    NEW = "NEW"
+    IN_PROGRESS = "IN_PROGRESS"
+    ACTIVE = "ACTIVE"
+    ERROR = "ERROR"
