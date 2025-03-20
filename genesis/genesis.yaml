@@ -37,7 +37,7 @@ build:
         format: raw
         
         # OS profile for the image
-        profile: genesis_core
+        profile: genesis_base
 
         # Provisioning script
         script: images/install.sh

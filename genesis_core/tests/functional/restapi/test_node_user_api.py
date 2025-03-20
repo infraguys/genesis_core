@@ -14,9 +14,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import pytest
+import uuid as sys_uuid
 import typing as tp
 
+import pytest
 from bazooka import exceptions as bazooka_exc
 from gcl_iam.tests.functional import clients as iam_clients
 
@@ -373,3 +374,77 @@ class TestNodeUserApi:
 
         with pytest.raises(bazooka_exc.NotFoundError):
             client.get(url)
+
+    def test_newcomer_no_access(
+        self,
+        node_factory: tp.Callable,
+        user_api_client: iam_clients.GenesisCoreTestRESTClient,
+        auth_user_admin: iam_clients.GenesisCoreAuth,
+        auth_test1_user: iam_clients.GenesisCoreAuth,
+    ):
+        admin_client = user_api_client(auth_user_admin)
+
+        node = node_factory()
+        node_uuid = node["uuid"]
+        url = admin_client.build_collection_uri(["nodes"])
+        response = admin_client.post(url, json=node)
+
+        assert response.status_code == 201
+
+        client = user_api_client(auth_test1_user)
+
+        node = node_factory()
+        url = client.build_collection_uri(["nodes"])
+
+        with pytest.raises(bazooka_exc.ForbiddenError):
+            client.get(url)
+
+        with pytest.raises(bazooka_exc.ForbiddenError):
+            client.post(url, json=node)
+
+        url = client.build_resource_uri(["nodes", node_uuid])
+        with pytest.raises(bazooka_exc.ForbiddenError):
+            client.delete(url)
+
+        url = admin_client.build_collection_uri(["nodes"])
+        response = admin_client.get(url)
+
+        assert response.status_code == 200
+        assert len(response.json()) == 1
+
+    def test_owner_has_access(
+        self,
+        node_factory: tp.Callable,
+        user_api_client: iam_clients.GenesisCoreTestRESTClient,
+        auth_user_admin: iam_clients.GenesisCoreAuth,
+        auth_test1_p1_user: iam_clients.GenesisCoreAuth,
+    ):
+        admin_client = user_api_client(auth_user_admin)
+        admin_client.bind_role_to_user(
+            # Owner role
+            "726f6c65-0000-0000-0000-000000000002",
+            auth_test1_p1_user.uuid,
+            auth_test1_p1_user.project_id,
+        )
+
+        client = user_api_client(auth_test1_p1_user)
+        node = node_factory(
+            project_id=sys_uuid.UUID(auth_test1_p1_user.project_id)
+        )
+        node_uuid = node["uuid"]
+        url = client.build_collection_uri(["nodes"])
+        response = admin_client.post(url, json=node)
+
+        assert response.status_code == 201
+
+        url = client.build_collection_uri(["nodes"])
+        response = client.get(url)
+        assert response.status_code == 200
+
+        output = response.json()
+        assert len(output) == 1
+        assert self._node_cmp_shallow(node, output[0])
+
+        url = client.build_resource_uri(["nodes", node_uuid])
+        response = client.delete(url)
+        assert response.status_code == 204

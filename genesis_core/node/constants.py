@@ -20,6 +20,8 @@ import typing as tp
 DEF_SQL_LIMIT = 300
 EP_MACHINE_POOL_DRIVERS = "gcn_machine_pool_driver"
 DEF_ROOT_DISK_SIZE = 15
+POLICY_SERVICE_NAME = "compute"
+
 
 BootType = tp.Literal["hd", "network", "cdrom"]
 

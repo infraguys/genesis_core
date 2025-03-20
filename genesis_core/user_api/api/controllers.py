@@ -14,6 +14,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from gcl_iam import controllers as iam_controllers
 from restalchemy.api import controllers
 from restalchemy.api import resources
 
@@ -37,8 +38,13 @@ class HealthController(controllers.Controller):
 # Nodes
 
 
-class NodesController(controllers.BaseResourceController):
+class NodesController(
+    iam_controllers.PolicyBasedController,
+):
     """Controller for /v1/nodes/ endpoint"""
+
+    __policy_name__ = "node"
+    __policy_service_name__ = nc.POLICY_SERVICE_NAME
 
     __resource__ = resources.ResourceByRAModel(
         model_class=node_models.Node,
@@ -47,8 +53,13 @@ class NodesController(controllers.BaseResourceController):
     )
 
 
-class MachinesController(controllers.BaseResourceController):
+class MachinesController(
+    iam_controllers.PolicyBasedController,
+):
     """Controller for /v1/machines/ endpoint"""
+
+    __policy_name__ = "machine"
+    __policy_service_name__ = nc.POLICY_SERVICE_NAME
 
     __resource__ = resources.ResourceByRAModel(
         model_class=node_models.Machine,
@@ -57,8 +68,13 @@ class MachinesController(controllers.BaseResourceController):
     )
 
 
-class HypervisorsController(controllers.BaseResourceController):
+class HypervisorsController(
+    iam_controllers.PolicyBasedController,
+):
     """Controller for /v1/hypervisors/ endpoint"""
+
+    __policy_name__ = "hypervisor"
+    __policy_service_name__ = nc.POLICY_SERVICE_NAME
 
     __resource__ = resources.ResourceByRAModel(
         model_class=node_models.MachinePool,
@@ -76,8 +92,13 @@ class HypervisorsController(controllers.BaseResourceController):
         return hyper
 
 
-class MachineAgentController(controllers.BaseResourceController):
+class MachineAgentController(
+    iam_controllers.PolicyBasedController,
+):
     """Controller for /v1/machine_agents/ endpoint"""
+
+    __policy_name__ = "machine_agent"
+    __policy_service_name__ = nc.POLICY_SERVICE_NAME
 
     __resource__ = resources.ResourceByRAModel(
         model_class=node_models.MachineAgent,
