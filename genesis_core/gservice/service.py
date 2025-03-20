@@ -23,6 +23,7 @@ from genesis_core.node.scheduler.driver.weighter import relative
 from genesis_core.node.scheduler import service as n_scheduler_service
 from genesis_core.node.builder import service as n_builder_service
 from genesis_core.node.machine import service as n_machine_service
+from genesis_core.network import service as n_network_service
 
 
 LOG = logging.getLogger(__name__)
@@ -49,6 +50,9 @@ class GeneralService(basic.BasicService):
             iter_min_period=1,
             iter_pause=0.1,
         )
+        n_network = n_network_service.NetworkService(
+            iter_min_period=1, iter_pause=0.1
+        )
         n_builder = n_builder_service.NodeBuilderService(
             iter_min_period=1, iter_pause=0.1
         )
@@ -56,7 +60,7 @@ class GeneralService(basic.BasicService):
             iter_min_period=1, iter_pause=0.1
         )
 
-        self._services = [n_scheduler, n_builder, n_machine]
+        self._services = [n_scheduler, n_network, n_builder, n_machine]
 
     def _setup(self):
         LOG.info("Setup all services")
