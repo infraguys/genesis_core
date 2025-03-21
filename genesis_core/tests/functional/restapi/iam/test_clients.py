@@ -266,3 +266,18 @@ class TestClients(base.BaseIamResourceTest):
         assert first_id_token["project_id"] is None
         assert refreshed_token_info["scope"] == scope_test
         assert second_id_token["project_id"] == project["uuid"]
+
+    def test_garbage_refresh_token_with_scope_error(
+        self, user_api_client, auth_test1_user
+    ):
+        client = user_api_client(auth_test1_user)
+
+        with pytest.raises(bazooka_exc.BadRequestError):
+            client.post(
+                url=auth_test1_user.get_token_url(endpoint=client.endpoint),
+                data={
+                    "grant_type": "refresh_token",
+                    "refresh_token": "1234",  # garbage
+                    "scope": "project:859aaa4f-9fcb-4433-8bc0-a84232a1177f",
+                },
+            )
