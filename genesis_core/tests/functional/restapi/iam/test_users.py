@@ -250,3 +250,32 @@ class TestUsers(base.BaseIamResourceTest):
 
         with pytest.raises(bazooka_exc.ForbiddenError):
             client.delete_user(auth_test2_user.uuid)
+
+    def test_fields_in_me_info_success(
+        self,
+        user_api_client,
+        auth_test1_user,
+    ):
+        client = user_api_client(auth_test1_user)
+        user_has_only_fields = [
+            "uuid",
+            "name",
+            "description",
+            "created_at",
+            "updated_at",
+            "status",
+            "first_name",
+            "last_name",
+            "surname",
+            "phone",
+            "email",
+            "otp_enabled",
+        ]
+
+        result = client.get(
+            auth_test1_user.get_me_url(client.endpoint),
+        ).json()
+
+        for field in user_has_only_fields:
+            result["user"].pop(field)
+        assert result["user"] == {}
