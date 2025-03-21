@@ -552,8 +552,22 @@ class Token(
 ):
     __tablename__ = "iam_tokens"
 
-    expiration_delta = datetime.timedelta(minutes=15)
-    refresh_expiration_delta = datetime.timedelta(days=1)
+    @staticmethod
+    def get_default_expiration_delta():
+        return datetime.timedelta(minutes=60)
+
+    @staticmethod
+    def get_default_refresh_expiration_delta():
+        return datetime.timedelta(days=1)
+
+    expiration_delta = properties.property(
+        types.TimeDelta(),
+        default=get_default_expiration_delta,
+    )
+    refresh_expiration_delta = properties.property(
+        types.TimeDelta(),
+        default=get_default_refresh_expiration_delta,
+    )
 
     user = relationships.relationship(
         User,
@@ -567,17 +581,11 @@ class Token(
     )
     expiration_at = properties.property(
         types.UTCDateTimeZ(),
-        default=lambda: (
-            datetime.datetime.now(datetime.timezone.utc)
-            + Token.expiration_delta
-        ),
+        required=True,
     )
     refresh_expiration_at = properties.property(
         types.UTCDateTimeZ(),
-        default=lambda: (
-            datetime.datetime.now(datetime.timezone.utc)
-            + Token.refresh_expiration_delta
-        ),
+        required=True,
     )
     refresh_token_uuid = properties.property(
         types.UUID(),
@@ -602,6 +610,24 @@ class Token(
 
     def __init__(self, user=None, scope="", project=None, **kwargs):
         user = user or User.me()
+        now = datetime.datetime.now(datetime.timezone.utc)
+
+        if "expiration_at" not in kwargs:
+            expiration_delta = kwargs.get(
+                "expiration_delta",
+                self.get_default_expiration_delta(),
+            )
+
+            kwargs["expiration_at"] = now + expiration_delta
+
+        if "refresh_expiration_at" not in kwargs:
+            expiration_delta = kwargs.get(
+                "refresh_expiration_delta",
+                self.get_default_refresh_expiration_delta(),
+            )
+
+            kwargs["refresh_expiration_at"] = now + expiration_delta
+
         if project is None and scope:
             project = self._get_project_by_scope(user, scope)
         super().__init__(user=user, project=project, scope=scope, **kwargs)
@@ -661,7 +687,7 @@ class Token(
     def refresh(self, scope=None):
         scope = scope or self.scope
         now = datetime.datetime.now(datetime.timezone.utc)
-        new_expiration_at = now + Token.expiration_delta
+        new_expiration_at = now + self.expiration_delta
         self.expiration_at = new_expiration_at
         self.project = self._get_project_by_scope(self.user, scope)
         self.scope = scope
@@ -817,11 +843,23 @@ class IamClient(
         username,
         password,
         scope=iam_c.PARAM_SCOPE_DEFAULT,
+        ttl=None,
+        refresh_ttl=None,
         root_endpoint=(
             f"http://{c.DEFAULT_USER_API_HOST}:{c.DEFAULT_USER_API_PORT}/v1/"
         ),
         **kwargs,
     ):
+        expiration_delta = (
+            datetime.timedelta(seconds=float(ttl))
+            if ttl is not None
+            else Token.get_default_expiration_delta()
+        )
+        refresh_expiration_delta = (
+            datetime.timedelta(seconds=float(refresh_ttl))
+            if refresh_ttl is not None
+            else Token.get_default_refresh_expiration_delta()
+        )
         for user in User.objects.get_all(
             filters={"name": ra_filters.EQ(username)}
         ):
@@ -831,6 +869,8 @@ class IamClient(
                 scope=scope,
                 issuer=f"{root_endpoint}iam/clients/{self.uuid}",
                 audience=self.client_id,
+                expiration_delta=expiration_delta,
+                refresh_expiration_delta=refresh_expiration_delta,
                 **kwargs,
             )
             token.insert()

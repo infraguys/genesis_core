@@ -33,6 +33,8 @@ PARAM_CLIENT_SECRET = "client_secret"
 PARAM_USERNAME = "username"
 PARAM_PASSWORD = "password"
 PARAM_SCOPE = "scope"
+PARAM_TTL = "ttl"
+PARAM_REFRESH_TTL = "refresh_ttl"
 
 
 # Default Values
