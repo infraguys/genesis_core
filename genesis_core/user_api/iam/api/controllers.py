@@ -343,6 +343,8 @@ class ClientsController(controllers.BaseResourceController):
                 username=kwargs.get(c.PARAM_USERNAME),
                 password=kwargs.get(c.PARAM_PASSWORD),
                 scope=kwargs.get(c.PARAM_SCOPE, ""),
+                ttl=kwargs.get(c.PARAM_TTL, None),
+                refresh_ttl=kwargs.get(c.PARAM_REFRESH_TTL, None),
                 root_endpoint=resource.redirect_url,
             )
             return token.get_response_body()

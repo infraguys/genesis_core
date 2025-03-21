@@ -72,6 +72,19 @@ class TestClients(base.BaseIamResourceTest):
         with pytest.raises(bazooka_exc.UnauthorizedError):
             client.get(url)
 
+    def test_token_ttl_success(self, user_api_client, auth_test1_user):
+        client = user_api_client(auth_test1_user)
+        token_params = auth_test1_user.get_password_auth_params()
+        token_params["ttl"] = 1.0
+        token_params["refresh_ttl"] = 2.0
+
+        token_info = client.post(
+            url=auth_test1_user.get_token_url(endpoint=client.endpoint),
+            data=token_params,
+        ).json()
+
+        assert token_info["refresh_expires_in"] == 1
+
     @pytest.fixture(
         scope="function",
         params=[

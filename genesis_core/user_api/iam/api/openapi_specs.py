@@ -98,6 +98,8 @@ OA_SPEC_GET_TOKEN_KWARGS = dict(
                         "username": {"type": "string"},
                         "password": {"type": "string"},
                         "scope": {"type": "string"},
+                        "ttl": {"type": "number", "format": "float"},
+                        "refresh_ttl": {"type": "string", "format": "float"},
                     },
                 },
                 {
