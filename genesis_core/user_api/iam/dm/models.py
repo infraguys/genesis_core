@@ -764,12 +764,9 @@ class MeInfo:
         return User.me()
 
     def get_response_body(self):
-        user = {
-            "uuid": str(self._user.uuid),
-            "first_name": self._user.first_name,
-            "last_name": self._user.last_name,
-            "email": self._user.email,
-        }
+        user = self._user.get_storable_snapshot()
+        for drop_field in ["otp_secret", "salt", "secret_hash", "secret"]:
+            user.pop(drop_field, None)
 
         organizations = []
         for organization in Organization.list_my():
