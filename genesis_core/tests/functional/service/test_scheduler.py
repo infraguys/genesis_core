@@ -15,16 +15,30 @@
 #    under the License.
 
 import typing as tp
+import collections
+import uuid as sys_uuid
+
+from gcl_iam.tests.functional import clients as iam_clients
 
 from genesis_core.node.scheduler import service
 from genesis_core.node.dm import models
+from genesis_core.node.scheduler.driver.filters import available
+from genesis_core.node.scheduler.driver.weighter import relative
 
 
 class TestSchedulerService:
 
     def setup_method(self) -> None:
         # Run service
-        self._service = service.NodeSchedulerService()
+        scheduler_filters = [
+            available.CoresRamAvailableFilter(),
+        ]
+        scheduler_weighters = [
+            relative.RelativeCoreRamWeighter(),
+        ]
+        self._service = service.NodeSchedulerService(
+            filters=scheduler_filters, weighters=scheduler_weighters
+        )
 
     def teardown_method(self) -> None:
         pass
@@ -103,3 +117,125 @@ class TestSchedulerService:
         assert len(machines) == 2
         assert str(machines[0].pool) == default_pool["uuid"]
         assert str(machines[1].pool) == default_pool["uuid"]
+
+    def test_schedule_two_pools_single_iteration(
+        self,
+        default_machine_agent: tp.Dict[str, tp.Any],
+        builder_factory: tp.Callable,
+        pool_factory: tp.Callable,
+        node_factory: tp.Callable,
+        user_api_client: iam_clients.GenesisCoreTestRESTClient,
+        auth_user_admin: iam_clients.GenesisCoreAuth,
+    ):
+        client = user_api_client(auth_user_admin)
+
+        view = builder_factory()
+        builder = models.Builder.restore_from_simple_view(**view)
+        builder.insert()
+
+        uuid_foo = sys_uuid.uuid4()
+        foo_pool = pool_factory(uuid=uuid_foo)
+        url = client.build_collection_uri(["hypervisors"])
+        client.post(url, json=foo_pool)
+
+        uuid_bar = sys_uuid.uuid4()
+        bar_pool = pool_factory(uuid=uuid_bar)
+        url = client.build_collection_uri(["hypervisors"])
+        client.post(url, json=bar_pool)
+
+        view = node_factory()
+        node = models.Node.restore_from_simple_view(**view)
+        node.insert()
+
+        view = node_factory()
+        node = models.Node.restore_from_simple_view(**view)
+        node.insert()
+
+        view = node_factory()
+        node = models.Node.restore_from_simple_view(**view)
+        node.insert()
+
+        view = node_factory()
+        node = models.Node.restore_from_simple_view(**view)
+        node.insert()
+
+        self._service._iteration()
+
+        machines = models.Machine.objects.get_all()
+        pools = models.MachinePool.objects.get_all()
+
+        assert len(pools) == 2
+        assert len(machines) == 4
+        assert set(m.pool for m in machines) == {uuid_foo, uuid_bar}
+        assert collections.Counter(
+            str(m.pool) for m in machines
+        ) == collections.Counter(**{f"{uuid_foo}": 2, f"{uuid_bar}": 2})
+
+    def test_schedule_two_pools_different_iterations(
+        self,
+        default_machine_agent: tp.Dict[str, tp.Any],
+        builder_factory: tp.Callable,
+        pool_factory: tp.Callable,
+        node_factory: tp.Callable,
+        user_api_client: iam_clients.GenesisCoreTestRESTClient,
+        auth_user_admin: iam_clients.GenesisCoreAuth,
+    ):
+        client = user_api_client(auth_user_admin)
+
+        view = builder_factory()
+        builder = models.Builder.restore_from_simple_view(**view)
+        builder.insert()
+
+        uuid_foo = sys_uuid.uuid4()
+        foo_pool = pool_factory(uuid=uuid_foo)
+        url = client.build_collection_uri(["hypervisors"])
+        client.post(url, json=foo_pool)
+
+        uuid_bar = sys_uuid.uuid4()
+        bar_pool = pool_factory(uuid=uuid_bar)
+        url = client.build_collection_uri(["hypervisors"])
+        client.post(url, json=bar_pool)
+
+        view = node_factory()
+        node = models.Node.restore_from_simple_view(**view)
+        node.insert()
+
+        view = node_factory()
+        node = models.Node.restore_from_simple_view(**view)
+        node.insert()
+
+        self._service._iteration()
+
+        machines = models.Machine.objects.get_all()
+        pools = models.MachinePool.objects.get_all()
+
+        assert len(pools) == 2
+        assert len(machines) == 2
+        assert set(m.pool for m in machines) == {uuid_foo, uuid_bar}
+        assert collections.Counter(
+            str(m.pool) for m in machines
+        ) == collections.Counter(**{f"{uuid_foo}": 1, f"{uuid_bar}": 1})
+
+        view = node_factory()
+        node = models.Node.restore_from_simple_view(**view)
+        node.insert()
+
+        view = node_factory()
+        node = models.Node.restore_from_simple_view(**view)
+        node.insert()
+
+        view = builder_factory()
+        builder = models.Builder.restore_from_simple_view(**view)
+        builder.insert()
+
+        self._service._iteration()
+
+        machines = models.Machine.objects.get_all()
+        pools = models.MachinePool.objects.get_all()
+
+        assert len(pools) == 2
+        assert len(machines) == 4
+        assert set(m.pool for m in machines) == {uuid_foo, uuid_bar}
+        assert collections.Counter(
+            str(m.pool) for m in machines
+        ) == collections.Counter(**{f"{uuid_foo}": 2, f"{uuid_bar}": 2})

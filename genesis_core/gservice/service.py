@@ -18,6 +18,8 @@ import logging
 
 from gcl_looper.services import basic
 
+from genesis_core.node.scheduler.driver.filters import available
+from genesis_core.node.scheduler.driver.weighter import relative
 from genesis_core.node.scheduler import service as n_scheduler_service
 from genesis_core.node.builder import service as n_builder_service
 from genesis_core.node.machine import service as n_machine_service
@@ -31,10 +33,21 @@ class GeneralService(basic.BasicService):
     def __init__(self, iter_min_period=1, iter_pause=0.1):
         super().__init__(iter_min_period, iter_pause)
 
+        # TODO(akremenetsky): Form a pipliene from the configuration
+        scheduler_filters = [
+            available.CoresRamAvailableFilter(),
+        ]
+        scheduler_weighters = [
+            relative.RelativeCoreRamWeighter(),
+        ]
+
         # The simplest way to enable the nested services
         # It will be reworked in the future
         n_scheduler = n_scheduler_service.NodeSchedulerService(
-            iter_min_period=1, iter_pause=0.1
+            filters=scheduler_filters,
+            weighters=scheduler_weighters,
+            iter_min_period=1,
+            iter_pause=0.1,
         )
         n_builder = n_builder_service.NodeBuilderService(
             iter_min_period=1, iter_pause=0.1
