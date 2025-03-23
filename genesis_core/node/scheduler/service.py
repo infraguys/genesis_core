@@ -27,12 +27,24 @@ from gcl_looper.services import basic
 
 from genesis_core.node.dm import models
 from genesis_core.node import constants as nc
+from genesis_core.node.scheduler.driver import base
 
 LOG = logging.getLogger(__name__)
 BUILDER_REBALANCE_RATE = 100
 
 
 class NodeSchedulerService(basic.BasicService):
+
+    def __init__(
+        self,
+        filters: tp.List[base.MachinePoolAbstractFilter],
+        weighters: tp.List[base.MachinePoolAbstractWeighter],
+        iter_min_period: int = 1,
+        iter_pause: float = 0.1,
+    ):
+        super().__init__(iter_min_period, iter_pause)
+        self._filters = filters
+        self._weighters = weighters
 
     def _get_builders(
         self, limit: int = nc.DEF_SQL_LIMIT
@@ -139,8 +151,6 @@ class NodeSchedulerService(basic.BasicService):
             return machines
 
         # TODO(akremenetsky): Implement for HWs
-        # TODO(akremenetsky): Implement based on real pool resources
-        # The simplest implementation is to schedule to a random pool
         for node in unsheduled:
 
             # TODO(akremenetsky): It's a builder work. Move to the builder service.
@@ -175,9 +185,39 @@ class NodeSchedulerService(basic.BasicService):
             return
 
         for machine in machines:
-            # TODO(akremenetsky): Scheduling based on pipelines
-            # TODO(akremenetsky): Look at available resources
-            pool = random.choice(pools)
+            # Filtering. We filter out unsuitable pools. For instance, pools
+            # that doesn't have enough cores or ram or some placement
+            # constraints.
+            for filter in self._filters:
+                pools = filter.filter(machine, pools)
+
+            if not pools:
+                LOG.warning(
+                    "No pools found to schedule machine %s", machine.uuid
+                )
+                continue
+
+            # Weighting. We weight pools and choose the best one.
+            # For instance, most free pool is the best.
+
+            # Accumulate weights from all weighters
+            # So that the best pool has the highest weight
+            accumulated_weights = [0.0] * len(pools)
+            for weighter in self._weighters:
+                weights = weighter.weight(pools)
+                accumulated_weights = [
+                    w0 + w1 for w0, w1 in zip(accumulated_weights, weights)
+                ]
+
+            # Choose the best pool, it means the one with the highest weight
+            index = accumulated_weights.index(max(accumulated_weights))
+            pool = pools[index]
+            if not pool:
+                LOG.warning(
+                    "No pools found to schedule machine %s", machine.uuid
+                )
+                continue
+
             builder = random.choice(builders)
             machine.pool = pool.uuid
             machine.builder = builder.uuid
@@ -191,6 +231,12 @@ class NodeSchedulerService(basic.BasicService):
                 )
             except Exception:
                 LOG.exception("Error building machine %s", machine.uuid)
+
+            # Actualize pool after scheduling machine to it.
+            # We need consider the machine we just scheduled
+            # for next machines in this cycle
+            pool.avail_cores -= machine.cores
+            pool.avail_ram -= machine.ram
 
     def _schedule_pools(self) -> None:
         unsheduled = self._get_unscheduled_pools()
