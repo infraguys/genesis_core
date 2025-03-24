@@ -117,6 +117,7 @@ class ModelWithSecret(models.Model, models.CustomPropertiesMixin):
     def change_secret_safe(self, old_secret, new_secret):
         self.validate_secret(old_secret)
         self.secret = new_secret
+        self.save()
 
 
 class ModelWithStatus(models.Model):
