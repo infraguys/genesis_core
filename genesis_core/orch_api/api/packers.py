@@ -23,10 +23,10 @@ from genesis_core.orch_api.dm import models
 
 _from_net_template = """#!ipxe
 :kernel
-kernel tftp://{gc_host}/bios/vmlinuz showopts ip=dhcp net.ifnames=0 biosdevname=0 gc_base_url=http://{gc_host}:{gc_port} || goto kernel
+kernel {kernel} showopts ip=dhcp net.ifnames=0 biosdevname=0 gc_base_url=http://{gc_host}:{gc_port} || goto kernel
 
 :initrd
-initrd tftp://{gc_host}/bios/initrd.img || goto initrd
+initrd {initrd} || goto initrd
 boot
 """
 
@@ -45,7 +45,10 @@ class IPXEPacker(packers.JSONPacker):
 
         if boot == nc.BootAlternative.network:
             return _from_net_template.format(
-                gc_host=obj.gc_host, gc_port=obj.gc_port
+                gc_host=obj.gc_host,
+                gc_port=obj.gc_port,
+                kernel=obj.kernel,
+                initrd=obj.initrd,
             )
         elif boot.boot_type == "hd":
             return _from_hd_template.format(disk_number=boot.value[2])
