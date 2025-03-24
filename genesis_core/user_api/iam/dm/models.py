@@ -30,6 +30,7 @@ from restalchemy.dm import types
 from restalchemy.common import contexts
 from restalchemy.dm import filters as ra_filters
 from restalchemy.storage.sql import orm
+import pyotp
 
 
 from genesis_core.common import constants as c
@@ -231,6 +232,35 @@ class User(
                 )
             ]
         )
+
+    def enable_otp(self, password):
+        if self.otp_enabled:
+            raise iam_e.OTPAlreadyEnabledError()
+
+        self.validate_secret(password)
+        self.otp_secret = pyotp.random_base32()
+        self.save()
+
+    def activate_otp(self, code):
+        if self.otp_enabled:
+            raise iam_e.OTPAlreadyEnabledError()
+
+        if not self.otp_secret:
+            raise iam_e.OTPInvalidCodeError()
+
+        totp = pyotp.TOTP(self.otp_secret)
+
+        if not totp.verify(str(code)):
+            raise iam_e.OTPInvalidCodeError()
+
+        self.otp_enabled = True
+        self.save()
+
+    def disable_otp(self, password):
+        self.validate_secret(password)
+        self.otp_secret = ""
+        self.otp_enabled = False
+        self.save()
 
     def delete(self, session=None, **kwargs):
         u.remove_nested_dm(OrganizationMember, "user", self, session=session)
