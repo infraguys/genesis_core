@@ -259,12 +259,17 @@ class XMLLibvirtInstance(XMLLibvirtMixin):
         iface_type: NetworkType = "network",
         source: str | None = None,
         model: str = "virtio",
+        rom: str | None = None,
+        mtu: int = 1450,
     ) -> None:
         base_xml = "<interface type='{iface_type}'></interface>".format(
             iface_type=iface_type
         )
         document = minidom.parseString(base_xml)
         cls.document_set_tag(document, "model", type=model)
+        cls.document_set_tag(document, "mtu", size=str(mtu))
+        if rom is not None:
+            cls.document_set_tag(document, "rom", bar="on", file=rom)
 
         if iface_type == "bridge":
             if source is None:
@@ -311,9 +316,11 @@ class XMLLibvirtInstance(XMLLibvirtMixin):
         iface_type: NetworkType = "network",
         source: str | None = None,
         model: str = "virtio",
+        rom: str | None = None,
+        mtu: int = 1450,
     ) -> None:
         return self.domain_add_interface(
-            self._domain, iface_type, source, model=model
+            self._domain, iface_type, source, model=model, rom=rom, mtu=mtu
         )
 
 
@@ -324,6 +331,8 @@ class LibvirtPoolDriverSpec(tp.NamedTuple):
     connection_uri: str
     machine_prefix: str | None = None
     network_type: NetworkType = "network"
+    iface_rom_file: str | None = None
+    iface_mtu: int = 1450
 
 
 class LibvirtPoolDriver(base.AbstractPoolDriver):
@@ -429,10 +438,12 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
     ) -> tp.Iterable[models.MachineVolume]:
         with ctxlib.closing(self._connect()) as cn:
             storage_pool = cn.storagePoolLookupByName(self._spec.storage_pool)
-            volumes = [
-                self._vir_volume2machine_volume(v)
-                for v in storage_pool.listAllVolumes()
-            ]
+            volumes = []
+            for v in storage_pool.listAllVolumes():
+                try:
+                    volumes.append(self._vir_volume2machine_volume(v))
+                except Exception:
+                    LOG.warning("Failed to parse volume %s", v.name())
 
         result = [v for v in volumes if v.machine == machine.uuid]
         LOG.debug("Volumes: %s", result)
@@ -506,7 +517,10 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
 
         # Add the default network to the domain
         domain.add_interface(
-            iface_type=self._spec.network_type, source=self._spec.network
+            iface_type=self._spec.network_type,
+            source=self._spec.network,
+            rom=self._spec.iface_rom_file,
+            mtu=self._spec.iface_mtu,
         )
 
         # Add the volumes to the domain

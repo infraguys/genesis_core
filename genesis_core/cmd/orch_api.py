@@ -43,6 +43,26 @@ api_cli_opts = [
         default=1,
         help="How many http servers should be started",
     ),
+    cfg.StrOpt(
+        "gc_host",
+        default="10.20.0.2",
+        help="GC host",
+    ),
+    cfg.IntOpt(
+        "gc_port",
+        default=11011,
+        help="GC port",
+    ),
+    cfg.StrOpt(
+        "kernel",
+        default=None,
+        help="Endpoint for Linux kernel",
+    ),
+    cfg.StrOpt(
+        "initrd",
+        default=None,
+        help="Endpoint for Linux initrd",
+    ),
 ]
 
 

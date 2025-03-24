@@ -20,11 +20,16 @@ from urllib.parse import urljoin
 
 import pytest
 import requests
+from oslo_config import cfg
 
 from genesis_core.node.dm import models
 from genesis_core.tests.functional import utils as test_utils
 from genesis_core.tests.functional import conftest
 from genesis_core.orch_api.api import app as orch_app
+from genesis_core.cmd import orch_api as orch_api_cmd
+
+
+CONF = cfg.CONF
 
 
 class TestNodeOrchApi:
@@ -52,6 +57,8 @@ class TestNodeOrchApi:
     def test_netboots_default_net(
         self, orch_api: test_utils.RestServiceTestCase
     ):
+        CONF[orch_api_cmd.DOMAIN].gc_host = "10.20.0.2"
+
         uuid = sys_uuid.uuid4()
         url = urljoin(orch_api.base_url, f"boots/{str(uuid)}")
 
@@ -62,6 +69,7 @@ class TestNodeOrchApi:
         assert "initrd" in response.text
         assert "vmlinuz" in response.text
         assert "gc_base_url" in response.text
+        assert "tftp://10.20.0.2" in response.text
 
     def test_netboots_hd_boot(
         self,
@@ -69,6 +77,8 @@ class TestNodeOrchApi:
         default_pool: tp.Dict[str, tp.Any],
         orch_api: test_utils.RestServiceTestCase,
     ):
+        CONF[orch_api_cmd.DOMAIN].gc_host = "10.20.0.2"
+
         uuid = sys_uuid.uuid4()
         machine = machine_factory(
             boot="hd0",
@@ -91,3 +101,23 @@ class TestNodeOrchApi:
         assert "initrd" not in response.text
         assert "vmlinuz" not in response.text
         assert "0x80" in response.text
+
+    def test_netboots_default_net_custom_kernel_initrd(
+        self, orch_api: test_utils.RestServiceTestCase
+    ):
+        CONF[orch_api_cmd.DOMAIN].kernel = "https://kernel.org/vmlinuz"
+        CONF[orch_api_cmd.DOMAIN].initrd = "https://kernel.org/initrd.img"
+
+        uuid = sys_uuid.uuid4()
+        url = urljoin(orch_api.base_url, f"boots/{str(uuid)}")
+
+        response = requests.get(url)
+
+        assert response.status_code == 200
+        assert response.text.startswith("#!ipxe")
+        assert "initrd" in response.text
+        assert "vmlinuz" in response.text
+        assert "gc_base_url" in response.text
+        assert "tftp://" not in response.text
+        assert "https://kernel.org/vmlinuz" in response.text
+        assert "https://kernel.org/initrd.img" in response.text

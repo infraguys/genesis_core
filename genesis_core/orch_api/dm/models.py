@@ -19,33 +19,61 @@ from restalchemy.dm import types
 
 from genesis_core.node.dm import models as node_models
 
-# TODO(akremenetsky): Remove these default values
-# after support of multiple stands
-GC_HOST = "10.20.0.2"
-GC_PORT = 11011
+LOCAL_GC_HOST = "localhost"
+LOCAL_GC_PORT = 11011
 
 
 class Netboot(node_models.Netboot):
     __custom_properties__ = {
         "gc_host": types.String(max_length=255),
         "gc_port": types.Integer(),
+        "kernel": types.AllowNone(types.String(max_length=255)),
+        "initrd": types.AllowNone(types.String(max_length=255)),
     }
 
     def __init__(
-        self, gc_host: str = GC_HOST, gc_port: int = GC_PORT, *args, **kwargs
+        self,
+        gc_host: str = LOCAL_GC_HOST,
+        gc_port: int = LOCAL_GC_PORT,
+        kernel: str | None = None,
+        initrd: str | None = None,
+        *args,
+        **kwargs,
     ):
         super().__init__(*args, **kwargs)
-        self.gc_host = gc_host
-        self.gc_port = gc_port
+        self.set_netboot_params(gc_host, gc_port, kernel, initrd)
 
     @classmethod
     def restore_from_storage(
-        cls, gc_host: str = GC_HOST, gc_port: int = GC_PORT, **kwargs
+        cls,
+        gc_host: str = LOCAL_GC_HOST,
+        gc_port: int = LOCAL_GC_PORT,
+        kernel: str | None = None,
+        initrd: str | None = None,
+        **kwargs,
     ):
         obj = super().restore_from_storage(**kwargs)
-        obj.gc_host = gc_host
-        obj.gc_port = gc_port
+        obj.set_netboot_params(gc_host, gc_port, kernel, initrd)
         return obj
+
+    def set_netboot_params(
+        self,
+        gc_host: str,
+        gc_port: int,
+        kernel: str | None,
+        initrd: str | None,
+    ) -> None:
+        self.gc_host = gc_host
+        self.gc_port = gc_port
+
+        # Use tftp by default
+        if kernel is None:
+            kernel = f"tftp://{gc_host}/bios/vmlinuz"
+        if initrd is None:
+            initrd = f"tftp://{gc_host}/bios/initrd.img"
+
+        self.kernel = kernel
+        self.initrd = initrd
 
 
 class Node(node_models.Node):
