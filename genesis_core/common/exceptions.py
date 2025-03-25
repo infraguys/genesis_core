@@ -18,6 +18,7 @@ from izulu import root
 
 
 class GCException(root.Error):
+    __toggles__ = root.Toggles.DEFAULT ^ root.Toggles.FORBID_UNANNOTATED_FIELDS
     __template__ = "An unknown exception occurred."
 
 
