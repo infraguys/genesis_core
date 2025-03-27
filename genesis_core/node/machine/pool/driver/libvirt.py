@@ -259,12 +259,16 @@ class XMLLibvirtInstance(XMLLibvirtMixin):
         iface_type: NetworkType = "network",
         source: str | None = None,
         model: str = "virtio",
+        mac: str | None = None,
     ) -> None:
         base_xml = "<interface type='{iface_type}'></interface>".format(
             iface_type=iface_type
         )
         document = minidom.parseString(base_xml)
         cls.document_set_tag(document, "model", type=model)
+
+        mac_address = mac or models.Port.generate_mac()
+        cls.document_set_tag(document, "mac", address=mac_address)
 
         if iface_type == "bridge":
             if source is None:
@@ -311,9 +315,10 @@ class XMLLibvirtInstance(XMLLibvirtMixin):
         iface_type: NetworkType = "network",
         source: str | None = None,
         model: str = "virtio",
+        mac: str | None = None,
     ) -> None:
         return self.domain_add_interface(
-            self._domain, iface_type, source, model=model
+            self._domain, iface_type, source, model=model, mac=mac
         )
 
 
@@ -429,10 +434,13 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
     ) -> tp.Iterable[models.MachineVolume]:
         with ctxlib.closing(self._connect()) as cn:
             storage_pool = cn.storagePoolLookupByName(self._spec.storage_pool)
-            volumes = [
-                self._vir_volume2machine_volume(v)
-                for v in storage_pool.listAllVolumes()
-            ]
+
+            volumes = []
+            for v in storage_pool.listAllVolumes():
+                try:
+                    volumes.append(self._vir_volume2machine_volume(v))
+                except Exception:
+                    LOG.warning("Failed to parse volume %s", v.name())
 
         result = [v for v in volumes if v.machine == machine.uuid]
         LOG.debug("Volumes: %s", result)
@@ -493,6 +501,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         self,
         machine: models.Machine,
         volumes: tp.Iterable[models.MachineVolume],
+        ports: tp.Iterable[models.Port],
     ) -> models.Machine:
         """Create a new LibVirt domain."""
         domain = XMLLibvirtInstance(domain_template)
@@ -505,9 +514,14 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         domain.set_boot(nc.BootAlternative[machine.boot].boot_type)
 
         # Add the default network to the domain
-        domain.add_interface(
-            iface_type=self._spec.network_type, source=self._spec.network
-        )
+        for port in ports:
+            domain.add_interface(
+                mac=port.mac,
+                # TODO(akremenetsky): This parameter should be taken from
+                # the network
+                iface_type=self._spec.network_type,
+                source=self._spec.network,
+            )
 
         # Add the volumes to the domain
         for i, volume in enumerate(volumes):
