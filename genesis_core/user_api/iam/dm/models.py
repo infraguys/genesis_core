@@ -233,6 +233,12 @@ class User(
             ]
         )
 
+    def validate_otp(self, code):
+        if not self.otp_enabled:
+            raise iam_e.OTPNotEnabledError()
+        totp = pyotp.TOTP(self.otp_secret)
+        return totp.verify(str(code))
+
     def enable_otp(self, password):
         if self.otp_enabled:
             raise iam_e.OTPAlreadyEnabledError()
@@ -246,7 +252,7 @@ class User(
             raise iam_e.OTPAlreadyEnabledError()
 
         if not self.otp_secret:
-            raise iam_e.OTPInvalidCodeError()
+            raise iam_e.OTPNotEnabledError()
 
         totp = pyotp.TOTP(self.otp_secret)
 
@@ -794,7 +800,7 @@ class Token(
             return token
         raise iam_e.InvalidAuthTokenError()
 
-    def introspect(self, token_info=None):
+    def introspect(self, token_info=None, otp_code=None):
         user = User.me(token_info=token_info)
 
         values = PermissionFastView.objects.get_all(
@@ -804,10 +810,17 @@ class Token(
             }
         )
 
+        otp_verified = False
+        if otp_code is not None:
+            if not user.validate_otp(otp_code):
+                raise iam_e.OTPInvalidCodeError()
+            otp_verified = True
+
         return Introspection(
             user=self.user,
             project=self.project,
             permissions=[v.permission for v in values],
+            otp_verified=otp_verified,
         )
 
 
