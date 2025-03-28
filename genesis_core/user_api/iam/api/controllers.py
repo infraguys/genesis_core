@@ -17,6 +17,7 @@
 import errno
 from os import path as os_path
 import mimetypes
+from urllib import parse as urllib_parse
 
 from authlib.integrations import requests_client
 import jinja2
@@ -52,18 +53,49 @@ class UserController(controllers.BaseResourceController, EnforceMixin):
         models.User,
         convert_underscore=False,
         hidden_fields=resources.HiddenFieldMap(
-            get=["salt", "secret_hash", "secret", "otp_secret"],
-            create=["salt", "secret_hash", "otp_secret"],
-            update=["salt", "secret_hash", "secret", "otp_secret"],
-            filter=["salt", "secret_hash", "secret", "otp_secret"],
-            action_post=["salt", "secret_hash", "secret", "otp_secret"],
+            get=[
+                "salt",
+                "secret_hash",
+                "secret",
+                "otp_secret",
+                "confirmation_code",
+            ],
+            create=[
+                "salt",
+                "secret_hash",
+                "otp_secret",
+                "confirmation_code",
+            ],
+            update=[
+                "salt",
+                "secret_hash",
+                "secret",
+                "otp_secret",
+                "confirmation_code",
+            ],
+            filter=[
+                "salt",
+                "secret_hash",
+                "secret",
+                "otp_secret",
+                "confirmation_code",
+            ],
+            action_post=[
+                "salt",
+                "secret_hash",
+                "secret",
+                "otp_secret",
+                "confirmation_code",
+            ],
         ),
         name_map={"secret": "password", "name": "username"},
     )
 
     def create(self, **kwargs):
+        kwargs.pop("email_verified", None)
         user = super().create(**kwargs)
-        user.make_newcomer()
+        app_endpoint = self._get_app_endpoint()
+        user.send_confirmation_event(app_endpoint=app_endpoint)
         return user
 
     def filter(self, filters, **kwargs):
@@ -73,6 +105,7 @@ class UserController(controllers.BaseResourceController, EnforceMixin):
         return super().filter(filters, **kwargs)
 
     def update(self, uuid, **kwargs):
+        kwargs.pop("email_verified", None)
         is_me = models.User.me().uuid == uuid
         if self.enforce(c.PERMISSION_USER_WRITE_ALL) or is_me:
             return super().update(uuid, **kwargs)
@@ -151,6 +184,33 @@ class UserController(controllers.BaseResourceController, EnforceMixin):
         raise iam_e.CanNotUpdateUser(
             uuid=resource.uuid, rule=c.PERMISSION_USER_WRITE_ALL
         )
+
+    def _get_app_endpoint(self):
+        origin = self._req.headers.get("Origin")
+        result = self._req.host_url
+
+        if not origin:
+            return result
+
+        parsed_referer = urllib_parse.urlparse(origin)
+
+        if (
+            parsed_referer.scheme not in ("http", "https")
+            or not parsed_referer.netloc
+        ):
+            return result
+
+        return f"{parsed_referer.scheme}://{parsed_referer.netloc}"
+
+    @actions.post
+    def resend_email_confirmation(self, resource):
+        app_endpoint = self._get_app_endpoint()
+        resource.resend_confirmation_event(app_endpoint=app_endpoint)
+
+    @actions.post
+    def confirm_email(self, resource):
+        code = self._req.params.get("code", "")
+        resource.confirm_email_by_code(code)
 
     @actions.get
     def get_my_roles(self, resource):
