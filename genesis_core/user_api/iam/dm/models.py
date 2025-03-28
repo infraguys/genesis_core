@@ -20,6 +20,7 @@ import hashlib
 import secrets
 import uuid as sys_uuid
 
+import bazooka
 from gcl_iam import exceptions as iam_e
 from gcl_iam import tokens
 import jinja2
@@ -189,7 +190,14 @@ class User(
         ra_types.Email(max_length=128),
         required=True,
     )
-
+    email_verified = properties.property(
+        types.Boolean(),
+        default=False,
+    )
+    confirmation_code = properties.property(
+        types.AllowNone(types.UUID()),
+        default=sys_uuid.uuid4,
+    )
     otp_secret = properties.property(
         ra_types.String(max_length=128),
         default="",
@@ -280,6 +288,58 @@ class User(
         u.remove_nested_dm(OrganizationMember, "user", self, session=session)
         u.remove_nested_dm(RoleBinding, "user", self, session=session)
         return super().delete(session=session, **kwargs)
+
+    def send_confirmation_event(self, app_endpoint="http://localhost/"):
+        client = bazooka.Client(default_timeout=5)
+        header = {
+            "Authorization": "Bearer {}".format(
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzQ2"
+                "NzcwMTUsImlhdCI6MTc0MzE0MTAxNSwiYXV0aF90aW1lIjoxNzQzM"
+                "TQxMDE1LCJqdGkiOiJmYjMyYjZiYy0wMGMxLTQ2NTQtYjgwOS00MD"
+                "Q5ZWIyMWFhM2UiLCJpc3MiOiJodHRwOi8vMTAuMTMwLjAuMjoxMTA"
+                "xMC92MS9pYW0vY2xpZW50cy8wMDAwMDAwMC0wMDAwLTAwMDAtMDAw"
+                "MC0wMDAwMDAwMDAwMDAiLCJhdWQiOiJHZW5lc2lzQ29yZUNsaWVud"
+                "ElkIiwic3ViIjoiMTU3MDc5NzEtY2I2Yy00N2JhLWI0ZTUtNTc4YT"
+                "YyNGFhOGQ5IiwidHlwIjoiQmVhcmVyIn0.PyhXln32MaCxbqFdWmX"
+                "25zGFm_ZtAjAv7y8Y6C4-wI4"
+            ),
+            "Content-Type": "application/json",
+        }
+        client.post(
+            "http://10.130.0.99:8080//v1/events/",
+            headers=header,
+            json={
+                "project_id": "f96ae936-0a98-11f0-9cb1-047c160cda6f",
+                "exchange": {
+                    "kind": "User",
+                    "user_id": f"{self.uuid}",
+                },
+                "event_type": (
+                    "/v1/event_types/b963bcfe-0a99-11f0-916d-047c160cda6f"
+                ),
+                "event_params": {
+                    "first_name": f"{self.first_name}",
+                    "site_endpoint": f"{app_endpoint}",
+                    "user_uuid": f"{self.uuid}",
+                    "confirmation_code": f"{self.confirmation_code}",
+                },
+            },
+        )
+
+    def resend_confirmation_event(self, app_endpoint="http://localhost/"):
+        self.confirmation_code = sys_uuid.uuid4()
+        self.save()
+        self.send_confirmation_event(app_endpoint=app_endpoint)
+
+    def confirm_email(self):
+        self.email_verified = True
+        self.make_newcomer()
+        self.save()
+
+    def confirm_email_by_code(self, code):
+        if str(self.confirmation_code) == str(code):
+            return self.confirm_email()
+        raise iam_exceptions.CanNotConfirmUser(code=code)
 
 
 class Role(
@@ -842,8 +902,15 @@ class MeInfo:
         return User.me()
 
     def get_response_body(self):
+        skip_fields = [
+            "otp_secret",
+            "salt",
+            "secret_hash",
+            "secret",
+            "confirmation_code",
+        ]
         user = self._user.get_storable_snapshot()
-        for drop_field in ["otp_secret", "salt", "secret_hash", "secret"]:
+        for drop_field in skip_fields:
             user.pop(drop_field, None)
 
         organizations = []

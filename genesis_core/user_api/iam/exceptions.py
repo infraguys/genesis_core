@@ -48,6 +48,12 @@ class CanNotUpdateUser(exceptions.CommonForbiddenException, iam_exc.Forbidden):
     )
 
 
+class CanNotConfirmUser(
+    exceptions.CommonForbiddenException, iam_exc.Forbidden
+):
+    __template__ = "The code `{code}` is not valid. Please request a new code."
+
+
 class CanNotDeleteUser(exceptions.CommonForbiddenException, iam_exc.Forbidden):
     __template__ = (
         "The current user is not permitted to delete the user `{uuid}`."
