@@ -656,7 +656,7 @@ class Token(
         return now < self.expiration_at
 
     def validate_expiration(self):
-        if not self.check_refresh_expiration():
+        if not self.check_expiration():
             raise iam_e.InvalidAuthTokenError()
 
     def _get_default_project(self, user):
