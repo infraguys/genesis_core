@@ -40,6 +40,18 @@ class GetMyRolesAction(routes.Action):
     __controller__ = controllers.UserController
 
 
+class ResendEmailConfirmationAction(routes.Action):
+    """Handler for .../actions/resend_email_confirmation/invoke endpoint"""
+
+    __controller__ = controllers.UserController
+
+
+class ConfirmEmailAction(routes.Action):
+    """Handler for .../actions/confirm_email/invoke endpoint"""
+
+    __controller__ = controllers.UserController
+
+
 class UserRoute(routes.Route):
     """Handler for /v1/iam/users/ endpoint"""
 
@@ -47,6 +59,10 @@ class UserRoute(routes.Route):
 
     change_password = routes.action(ChangePasswordAction, invoke=True)
     get_my_roles = routes.action(GetMyRolesAction)
+    resend_email_confirmation = routes.action(
+        ResendEmailConfirmationAction, invoke=True
+    )
+    confirm_email = routes.action(ConfirmEmailAction, invoke=True)
 
 
 class OrganizationController(routes.Route):
