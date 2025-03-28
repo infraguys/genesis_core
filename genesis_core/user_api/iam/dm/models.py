@@ -191,11 +191,11 @@ class User(
         required=True,
     )
     email_verified = properties.property(
-        types.Boolean(),
+        ra_types.Boolean(),
         default=False,
     )
     confirmation_code = properties.property(
-        types.AllowNone(types.UUID()),
+        ra_types.AllowNone(ra_types.UUID()),
         default=sys_uuid.uuid4,
     )
     otp_secret = properties.property(
@@ -306,7 +306,7 @@ class User(
             "Content-Type": "application/json",
         }
         client.post(
-            "http://10.130.0.99:8080//v1/events/",
+            "http://10.130.0.108:8080/v1/events/",
             headers=header,
             json={
                 "project_id": "f96ae936-0a98-11f0-9cb1-047c160cda6f",

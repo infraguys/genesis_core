@@ -19,6 +19,7 @@ import sys
 
 from gcl_iam import algorithms
 from gcl_iam import constants as glc_iam_c
+from gcl_looper.services import hub
 from gcl_looper.services import bjoern_service
 from oslo_config import cfg
 from restalchemy.common import config_opts as ra_config_opts
@@ -45,7 +46,7 @@ api_cli_opts = [
     ),
     cfg.IntOpt(
         "workers",
-        default=1,
+        default=2,
         help="How many http servers should be started",
     ),
 ]
@@ -119,19 +120,28 @@ def main():
         CONF[DOMAIN].bind_port,
     )
 
-    service = bjoern_service.BjoernService(
-        wsgi_app=app.build_wsgi_application(
-            context_storage=context_storage,
-            token_algorithm=token_algorithm,
-        ),
-        host=CONF[DOMAIN].bind_host,
-        port=CONF[DOMAIN].bind_port,
-        bjoern_kwargs=dict(reuse_port=True),
-    )
+    serv_hub = hub.ProcessHubService()
 
-    service.start()
+    for _ in range(CONF[DOMAIN].workers):
+        service = bjoern_service.BjoernService(
+            wsgi_app=app.build_wsgi_application(
+                context_storage=context_storage,
+                token_algorithm=token_algorithm,
+            ),
+            host=CONF[DOMAIN].bind_host,
+            port=CONF[DOMAIN].bind_port,
+            bjoern_kwargs=dict(reuse_port=True),
+        )
 
-    log.info("Bye!!!")
+        service.add_setup(
+            lambda: engines.engine_factory.configure_postgresql_factory(
+                conf=CONF
+            )
+        )
+
+        serv_hub.add_service(service)
+
+    serv_hub.start()
 
 
 if __name__ == "__main__":
