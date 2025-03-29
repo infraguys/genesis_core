@@ -30,6 +30,7 @@ from restalchemy.dm import types
 from restalchemy.common import contexts
 from restalchemy.dm import filters as ra_filters
 from restalchemy.storage.sql import orm
+import pyotp
 
 
 from genesis_core.common import constants as c
@@ -231,6 +232,41 @@ class User(
                 )
             ]
         )
+
+    def validate_otp(self, code):
+        if not self.otp_enabled:
+            raise iam_e.OTPNotEnabledError()
+        totp = pyotp.TOTP(self.otp_secret)
+        return totp.verify(str(code))
+
+    def enable_otp(self, password):
+        if self.otp_enabled:
+            raise iam_e.OTPAlreadyEnabledError()
+
+        self.validate_secret(password)
+        self.otp_secret = pyotp.random_base32()
+        self.save()
+
+    def activate_otp(self, code):
+        if self.otp_enabled:
+            raise iam_e.OTPAlreadyEnabledError()
+
+        if not self.otp_secret:
+            raise iam_e.OTPNotEnabledError()
+
+        totp = pyotp.TOTP(self.otp_secret)
+
+        if not totp.verify(str(code)):
+            raise iam_e.OTPInvalidCodeError()
+
+        self.otp_enabled = True
+        self.save()
+
+    def disable_otp(self, password):
+        self.validate_secret(password)
+        self.otp_secret = ""
+        self.otp_enabled = False
+        self.save()
 
     def delete(self, session=None, **kwargs):
         u.remove_nested_dm(OrganizationMember, "user", self, session=session)
@@ -764,7 +800,7 @@ class Token(
             return token
         raise iam_e.InvalidAuthTokenError()
 
-    def introspect(self, token_info=None):
+    def introspect(self, token_info=None, otp_code=None):
         user = User.me(token_info=token_info)
 
         values = PermissionFastView.objects.get_all(
@@ -774,10 +810,17 @@ class Token(
             }
         )
 
+        otp_verified = False
+        if otp_code is not None:
+            if not user.validate_otp(otp_code):
+                raise iam_e.OTPInvalidCodeError()
+            otp_verified = True
+
         return Introspection(
             user=self.user,
             project=self.project,
             permissions=[v.permission for v in values],
+            otp_verified=otp_verified,
         )
 
 

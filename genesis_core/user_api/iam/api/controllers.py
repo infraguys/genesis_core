@@ -26,6 +26,7 @@ from restalchemy.api import controllers
 from restalchemy.api import resources
 from restalchemy.common import contexts
 from restalchemy.openapi import utils as oa_utils
+import pyotp
 
 from genesis_core.user_api.iam.api import openapi_specs as oa_specs
 from genesis_core.user_api.iam.clients import idp
@@ -100,6 +101,53 @@ class UserController(controllers.BaseResourceController, EnforceMixin):
                 new_secret=new_password,
             )
             return resource
+        raise iam_e.CanNotUpdateUser(
+            uuid=resource.uuid, rule=c.PERMISSION_USER_WRITE_ALL
+        )
+
+    @actions.post
+    def enable_otp(self, resource, password):
+        is_me = models.User.me() == resource
+        if self.enforce(c.PERMISSION_USER_WRITE_ALL) or is_me:
+            resource.enable_otp(
+                password=password,
+            )
+            # TODO: get better issuer name?
+            return {
+                "otp_uri": pyotp.totp.TOTP(
+                    resource.otp_secret
+                ).provisioning_uri(
+                    name=resource.email, issuer_name="Genesis IAM"
+                )
+            }
+
+        raise iam_e.CanNotUpdateUser(
+            uuid=resource.uuid, rule=c.PERMISSION_USER_WRITE_ALL
+        )
+
+    @actions.post
+    def activate_otp(self, resource, code):
+        is_me = models.User.me() == resource
+        if self.enforce(c.PERMISSION_USER_WRITE_ALL) or is_me:
+            resource.activate_otp(
+                code=code,
+            )
+            return resource
+
+        raise iam_e.CanNotUpdateUser(
+            uuid=resource.uuid, rule=c.PERMISSION_USER_WRITE_ALL
+        )
+
+    @actions.post
+    def disable_otp(self, resource, password):
+        # TODO: check token for OTP auth
+        is_me = models.User.me() == resource
+        if self.enforce(c.PERMISSION_USER_WRITE_ALL) or is_me:
+            resource.disable_otp(
+                password=password,
+            )
+            return resource
+
         raise iam_e.CanNotUpdateUser(
             uuid=resource.uuid, rule=c.PERMISSION_USER_WRITE_ALL
         )

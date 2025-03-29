@@ -21,7 +21,9 @@ from genesis_core.user_api.iam.dm import models
 
 class DirectDriver(iam_drivers.AbstractAuthDriver):
 
-    def get_introspection_info(self, token_info):
+    def get_introspection_info(self, token_info, otp_code=None):
         token = models.Token.my(token_info=token_info)
         token.validate_expiration()
-        return token.introspect(token_info=token_info).get_response_body()
+        return token.introspect(
+            token_info=token_info, otp_code=otp_code
+        ).get_response_body()

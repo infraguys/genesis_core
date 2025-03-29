@@ -34,6 +34,24 @@ class ChangePasswordAction(routes.Action):
     __controller__ = controllers.UserController
 
 
+class EnableOTPAction(routes.Action):
+    """Handler for .../users/<uuid>/actions/enable_otp/invoke endpoint"""
+
+    __controller__ = controllers.UserController
+
+
+class ActivateOTPAction(routes.Action):
+    """Handler for .../users/<uuid>/actions/activate_otp/invoke endpoint"""
+
+    __controller__ = controllers.UserController
+
+
+class DisableOTPAction(routes.Action):
+    """Handler for .../users/<uuid>/actions/disable_otp/invoke endpoint"""
+
+    __controller__ = controllers.UserController
+
+
 class GetMyRolesAction(routes.Action):
     """Handler for .../users/<uuid>/actions/get_my_roles endpoint"""
 
@@ -46,6 +64,9 @@ class UserRoute(routes.Route):
     __controller__ = controllers.UserController
 
     change_password = routes.action(ChangePasswordAction, invoke=True)
+    enable_otp = routes.action(EnableOTPAction, invoke=True)
+    activate_otp = routes.action(ActivateOTPAction, invoke=True)
+    disable_otp = routes.action(DisableOTPAction, invoke=True)
     get_my_roles = routes.action(GetMyRolesAction)
 
 
