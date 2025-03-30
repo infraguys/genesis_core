@@ -120,6 +120,10 @@ class ModelWithSecret(models.Model, models.CustomPropertiesMixin):
         self.secret = new_secret
         self.save()
 
+    def reset_secret(self, new_secret):
+        self.secret = new_secret
+        self.save()
+
 
 class ModelWithStatus(models.Model):
 
