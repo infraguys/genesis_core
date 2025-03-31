@@ -401,6 +401,7 @@ class ClientsController(controllers.BaseResourceController):
                 scope=kwargs.get(c.PARAM_SCOPE, ""),
                 ttl=kwargs.get(c.PARAM_TTL, None),
                 refresh_ttl=kwargs.get(c.PARAM_REFRESH_TTL, None),
+                otp_code=self._req.headers.get(c.HEADER_OTP_CODE, None),
                 root_endpoint=resource.redirect_url,
             )
             return token.get_response_body()

@@ -17,17 +17,9 @@
 from restalchemy.openapi import constants as oa_c
 
 
-OA_SPEC_GET_TOKEN_KWARGS = dict(
-    summary="Create token by password",
-    parameters=[
-        oa_c.build_openapi_parameter(
-            name="IamClientUuid",
-            openapi_type="string",
-            param_type="path",
-            required=True,
-        ),
-    ],
-    responses=oa_c.build_openapi_user_response(
+responses = {}
+responses.update(
+    oa_c.build_openapi_user_response(
         **{
             "type": "object",
             "required": [
@@ -73,7 +65,66 @@ OA_SPEC_GET_TOKEN_KWARGS = dict(
                 },
             },
         }
-    ),
+    )
+)
+responses.update(
+    oa_c.build_openapi_user_response(
+        code=401,
+        **{
+            "title": "Wrong OTP error",
+            "description": "The provided otp code is invalid",
+            "type": "object",
+            "required": [
+                "error",
+                "error_description",
+            ],
+            "properties": {
+                "type": "object",
+                "description": "Detail error map",
+                "required": [
+                    "code",
+                    "type",
+                    "message",
+                ],
+                "properties": {
+                    "error": {
+                        "type": "string",
+                        "description": "Error class name",
+                        "example": "OSError",
+                    },
+                    "error_description": {
+                        "type": "string",
+                        "description": "Error description",
+                        "example": "A human-readable explanation of problem",
+                    },
+                },
+            },
+            "example": {
+                "error": "invalid_client",
+                "error_description": "The provided otp code is invalid",
+            },
+        }
+    )
+)
+
+
+OA_SPEC_GET_TOKEN_KWARGS = dict(
+    summary="Create token by password",
+    parameters=[
+        oa_c.build_openapi_parameter(
+            name="IamClientUuid",
+            openapi_type="string",
+            param_type="path",
+            required=True,
+        ),
+        oa_c.build_openapi_parameter(
+            name="X-OTP",
+            openapi_type="string",
+            param_type="header",
+            required=False,
+        ),
+    ],
+    responses=responses,
     request_body=oa_c.build_openapi_req_body(
         description="",
         content_type="application/x-www-form-urlencoded",
