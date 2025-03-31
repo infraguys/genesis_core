@@ -236,6 +236,8 @@ class User(
     def validate_otp(self, code):
         if not self.otp_enabled:
             raise iam_e.OTPNotEnabledError()
+        if not code:
+            return False
         totp = pyotp.TOTP(self.otp_secret)
         return totp.verify(str(code))
 
@@ -889,6 +891,7 @@ class IamClient(
         scope=iam_c.PARAM_SCOPE_DEFAULT,
         ttl=None,
         refresh_ttl=None,
+        otp_code=None,
         root_endpoint=(
             f"http://{c.DEFAULT_USER_API_HOST}:{c.DEFAULT_USER_API_PORT}/v1/"
         ),
@@ -908,6 +911,9 @@ class IamClient(
             filters={"name": ra_filters.EQ(username)}
         ):
             user.validate_secret(secret=password)
+            if user.otp_enabled and not user.validate_otp(otp_code):
+                raise iam_e.OTPInvalidCodeError()
+
             token = Token(
                 user=user,
                 scope=scope,

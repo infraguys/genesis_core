@@ -31,6 +31,8 @@ PARAM_CLIENT_SECRET = "client_secret"
 HEADER_CLIENT_ID = "X-Client-Id"
 HEADER_CLIENT_SECRET = "X-Client-Secret"
 
+HEADER_OTP_CODE = "X-OTP"
+
 
 # user creds in request
 PARAM_USERNAME = "username"
