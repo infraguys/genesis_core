@@ -28,6 +28,9 @@ GRANT_TYPE_REFRESH_TOKEN = "refresh_token"
 PARAM_CLIENT_ID = "client_id"
 PARAM_CLIENT_SECRET = "client_secret"
 
+HEADER_CLIENT_ID = "X-Client-Id"
+HEADER_CLIENT_SECRET = "X-Client-Secret"
+
 
 # user creds in request
 PARAM_USERNAME = "username"
