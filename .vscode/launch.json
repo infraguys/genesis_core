@@ -28,6 +28,29 @@
             "args": ["--config-file", "etc/genesis_core/genesis_core.conf"],
             "console": "integratedTerminal",
             "justMyCode": false
+        }, {
+            "name": "Python Debugger: Apply Migrations",
+            "type": "debugpy",
+            "request": "launch",
+            "program": ".tox/develop/bin/ra-apply-migration",
+            "args": [
+                "--config-file", "etc/genesis_core/genesis_core.conf",
+                "-p", "migrations"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        }, {
+            "name": "Python Debugger: Rollback Migrations",
+            "type": "debugpy",
+            "request": "launch",
+            "program": ".tox/develop/bin/ra-rollback-migration",
+            "args": [
+                "--config-file", "etc/genesis_core/genesis_core.conf",
+                "-p", "migrations",
+                "-m", "root"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false
         }
 
     ]

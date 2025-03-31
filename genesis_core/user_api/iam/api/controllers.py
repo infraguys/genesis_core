@@ -383,9 +383,17 @@ class ClientsController(controllers.BaseResourceController):
     @actions.post
     def get_token(self, resource, grant_type, **kwargs):
         if grant_type == c.GRANT_TYPE_PASSWORD:
+            client_id = kwargs.get(
+                c.PARAM_CLIENT_ID,
+                self._req.headers.get(c.HEADER_CLIENT_ID, ""),
+            )
+            client_secret = kwargs.get(
+                c.PARAM_CLIENT_SECRET,
+                self._req.headers.get(c.HEADER_CLIENT_SECRET, ""),
+            )
             resource.validate_client_creds(
-                client_id=kwargs.get(c.PARAM_CLIENT_ID),
-                client_secret=kwargs.get(c.PARAM_CLIENT_SECRET),
+                client_id=client_id,
+                client_secret=client_secret,
             )
             token = resource.get_token_by_password(
                 username=kwargs.get(c.PARAM_USERNAME),
