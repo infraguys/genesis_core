@@ -21,6 +21,7 @@ import typing as tp
 import uuid as sys_uuid
 
 import pytest
+import netaddr
 from gcl_iam import algorithms
 from gcl_iam.tests.functional import clients as iam_clients
 
@@ -453,3 +454,37 @@ def default_node(
 
     url = client.build_resource_uri(["nodes", uuid])
     client.delete(url)
+
+
+@pytest.fixture
+def default_network(
+    user_api_client: iam_clients.GenesisCoreTestRESTClient,
+    auth_user_admin: iam_clients.GenesisCoreAuth,
+) -> node_models.Network:
+    uuid = sys_uuid.UUID("00000000-1112-0100-0000-000000000000")
+    network = node_models.Network(
+        uuid=uuid,
+        driver_spec={"driver": "dummy"},
+        project_id=c.SERVICE_PROJECT_ID,
+    )
+    network.insert()
+
+    return network
+
+
+@pytest.fixture
+def default_subnet(
+    default_network: node_models.Network,
+    user_api_client: iam_clients.GenesisCoreTestRESTClient,
+    auth_user_admin: iam_clients.GenesisCoreAuth,
+) -> node_models.Subnet:
+    uuid = sys_uuid.UUID("00000000-1112-0130-0000-000000000000")
+    subnet = node_models.Subnet(
+        uuid=uuid,
+        network=default_network.uuid,
+        cidr=netaddr.IPNetwork("10.0.0.0/24"),
+        project_id=c.SERVICE_PROJECT_ID,
+    )
+    subnet.insert()
+
+    return subnet

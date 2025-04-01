@@ -259,8 +259,9 @@ class XMLLibvirtInstance(XMLLibvirtMixin):
         iface_type: NetworkType = "network",
         source: str | None = None,
         model: str = "virtio",
-        rom: str | None = None,
         mtu: int = 1450,
+        mac: str | None = None,
+        rom: str | None = None,
     ) -> None:
         base_xml = "<interface type='{iface_type}'></interface>".format(
             iface_type=iface_type
@@ -270,6 +271,9 @@ class XMLLibvirtInstance(XMLLibvirtMixin):
         cls.document_set_tag(document, "mtu", size=str(mtu))
         if rom is not None:
             cls.document_set_tag(document, "rom", bar="on", file=rom)
+
+        mac_address = mac or models.Port.generate_mac()
+        cls.document_set_tag(document, "mac", address=mac_address)
 
         if iface_type == "bridge":
             if source is None:
@@ -316,11 +320,18 @@ class XMLLibvirtInstance(XMLLibvirtMixin):
         iface_type: NetworkType = "network",
         source: str | None = None,
         model: str = "virtio",
-        rom: str | None = None,
         mtu: int = 1450,
+        mac: str | None = None,
+        rom: str | None = None,
     ) -> None:
         return self.domain_add_interface(
-            self._domain, iface_type, source, model=model, rom=rom, mtu=mtu
+            self._domain,
+            iface_type,
+            source,
+            model=model,
+            rom=rom,
+            mtu=mtu,
+            mac=mac,
         )
 
 
@@ -504,6 +515,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         self,
         machine: models.Machine,
         volumes: tp.Iterable[models.MachineVolume],
+        ports: tp.Iterable[models.Port],
     ) -> models.Machine:
         """Create a new LibVirt domain."""
         domain = XMLLibvirtInstance(domain_template)
@@ -515,13 +527,16 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         domain.set_memory(machine.ram)
         domain.set_boot(nc.BootAlternative[machine.boot].boot_type)
 
-        # Add the default network to the domain
-        domain.add_interface(
-            iface_type=self._spec.network_type,
-            source=self._spec.network,
-            rom=self._spec.iface_rom_file,
-            mtu=self._spec.iface_mtu,
-        )
+        for port in ports:
+            domain.add_interface(
+                mac=port.mac,
+                rom=self._spec.iface_rom_file,
+                mtu=self._spec.iface_mtu,
+                # TODO(akremenetsky): This parameter should be taken from
+                # the network
+                iface_type=self._spec.network_type,
+                source=self._spec.network,
+            )
 
         # Add the volumes to the domain
         for i, volume in enumerate(volumes):
