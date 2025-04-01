@@ -26,7 +26,7 @@ import jinja2
 from restalchemy.dm import models
 from restalchemy.dm import properties
 from restalchemy.dm import relationships
-from restalchemy.dm import types
+from restalchemy.dm import types as ra_types
 from restalchemy.common import contexts
 from restalchemy.dm import filters as ra_filters
 from restalchemy.storage.sql import orm
@@ -36,22 +36,23 @@ import pyotp
 from genesis_core.common import constants as c
 from genesis_core.common import utils as u
 from genesis_core.user_api.iam import constants as iam_c
+from genesis_core.user_api.iam.dm import types
 from genesis_core.user_api.iam import exceptions as iam_exceptions
 
 
 class ModelWithSecret(models.Model, models.CustomPropertiesMixin):
 
     __custom_properties__ = {
-        "secret": types.String(min_length=5, max_length=128),
+        "secret": ra_types.String(min_length=5, max_length=128),
     }
 
     salt = properties.property(
-        types.String(min_length=24, max_length=24),
+        ra_types.String(min_length=24, max_length=24),
         required=False,
     )
 
     secret_hash = properties.property(
-        types.String(min_length=128, max_length=128),
+        ra_types.String(min_length=128, max_length=128),
         required=True,
     )
 
@@ -126,7 +127,7 @@ class ModelWithStatus(models.Model):
     STATUS = iam_c.Status
 
     status = properties.property(
-        types.Enum([s.value for s in iam_c.Status]),
+        ra_types.Enum([s.value for s in iam_c.Status]),
         default=STATUS.NEW.value,
     )
 
@@ -136,7 +137,7 @@ class ModelWithAlwaysActiveStatus(models.Model):
     STATUS = iam_c.AlwaysActiveStatus
 
     status = properties.property(
-        types.Enum([s.value for s in iam_c.AlwaysActiveStatus]),
+        ra_types.Enum([s.value for s in iam_c.AlwaysActiveStatus]),
         default=STATUS.ACTIVE.value,
     )
 
@@ -161,36 +162,41 @@ class User(
 ):
     __tablename__ = "iam_users"
 
+    name = properties.property(
+        types.Username(min_length=1, max_length=128),
+        required=True,
+    )
+
     first_name = properties.property(
-        types.String(min_length=1, max_length=128),
+        types.Name(min_length=1, max_length=128),
         required=True,
     )
 
     last_name = properties.property(
-        types.String(min_length=1, max_length=128),
+        types.Name(min_length=1, max_length=128),
         required=True,
     )
     surname = properties.property(
-        types.String(min_length=0, max_length=128),
+        types.Name(min_length=0, max_length=128),
         default="",
     )
 
     phone = properties.property(
-        types.String(min_length=0, max_length=15),
+        ra_types.String(min_length=0, max_length=15),
         default=None,
     )
     email = properties.property(
-        types.Email(max_length=128),
+        ra_types.Email(max_length=128),
         required=True,
     )
 
     otp_secret = properties.property(
-        types.String(max_length=128),
+        ra_types.String(max_length=128),
         default="",
     )
 
     otp_enabled = properties.property(
-        types.Boolean(),
+        ra_types.Boolean(),
         default=False,
     )
 
@@ -284,7 +290,7 @@ class Role(
     __tablename__ = "iam_roles"
 
     project_id = properties.property(
-        types.AllowNone(types.UUID()),
+        ra_types.AllowNone(ra_types.UUID()),
         default=None,
         read_only=True,
     )
@@ -308,7 +314,7 @@ class PermissionBinding(
     __tablename__ = "iam_binding_permissions"
 
     project_id = properties.property(
-        types.AllowNone(types.UUID()),
+        ra_types.AllowNone(ra_types.UUID()),
         default=None,
         read_only=True,
     )
@@ -333,7 +339,7 @@ class Organization(
     __tablename__ = "iam_organizations"
     __jsonfields__ = ["info"]
 
-    info = properties.property(types.Dict(), default=dict)
+    info = properties.property(ra_types.Dict(), default=dict)
 
     @classmethod
     def list_my(cls):
@@ -406,7 +412,7 @@ class OrganizationMember(
         required=True,
     )
     role = properties.property(
-        types.Enum([s.value for s in iam_c.OrganizationRole]),
+        ra_types.Enum([s.value for s in iam_c.OrganizationRole]),
         default=iam_c.OrganizationRole.MEMBER.value,
     )
 
@@ -518,25 +524,25 @@ class Idp(
     __tablename__ = "iam_idp"
 
     project_id = properties.property(
-        types.AllowNone(types.UUID()),
+        ra_types.AllowNone(ra_types.UUID()),
         default=None,
         read_only=True,
     )
     client_id = properties.property(
-        types.String(max_length=64),
+        ra_types.String(max_length=64),
         required=True,
     )
     scope = properties.property(
-        types.String(max_length=64),
+        ra_types.String(max_length=64),
         default="openid",
     )
     well_known_endpoint = properties.property(
-        types.String(max_length=256),
+        ra_types.String(max_length=256),
         required=True,
     )
 
     redirect_uri_template = properties.property(
-        types.String(max_length=256),
+        ra_types.String(max_length=256),
         default=(
             "{{ host_url }}/v1/iam/idp/"
             "{{ idp_uuid }}/actions/callback/invoke"
@@ -563,11 +569,11 @@ class Introspection(
         required=False,
     )
     otp_verified = properties.property(
-        types.Boolean(),
+        ra_types.Boolean(),
         default=False,
     )
     permissions = properties.property(
-        types.List(),
+        ra_types.List(),
         default=list,
     )
 
@@ -598,11 +604,11 @@ class Token(
         return datetime.timedelta(days=1)
 
     expiration_delta = properties.property(
-        types.TimeDelta(),
+        ra_types.TimeDelta(),
         default=get_default_expiration_delta,
     )
     refresh_expiration_delta = properties.property(
-        types.TimeDelta(),
+        ra_types.TimeDelta(),
         default=get_default_refresh_expiration_delta,
     )
 
@@ -617,31 +623,31 @@ class Token(
         required=False,
     )
     expiration_at = properties.property(
-        types.UTCDateTimeZ(),
+        ra_types.UTCDateTimeZ(),
         required=True,
     )
     refresh_expiration_at = properties.property(
-        types.UTCDateTimeZ(),
+        ra_types.UTCDateTimeZ(),
         required=True,
     )
     refresh_token_uuid = properties.property(
-        types.UUID(),
+        ra_types.UUID(),
         default=sys_uuid.uuid4,
     )
     issuer = properties.property(
-        types.String(max_length=256),
+        ra_types.String(max_length=256),
         required=False,
     )
     audience = properties.property(
-        types.String(max_length=64),
+        ra_types.String(max_length=64),
         default="account",
     )
     typ = properties.property(
-        types.String(max_length=64),
+        ra_types.String(max_length=64),
         default="Bearer",
     )
     scope = properties.property(
-        types.String(max_length=128),
+        ra_types.String(max_length=128),
         default=iam_c.PARAM_SCOPE_DEFAULT,
     )
 
@@ -863,16 +869,16 @@ class IamClient(
     __tablename__ = "iam_clients"
 
     project_id = properties.property(
-        types.AllowNone(types.UUID()),
+        ra_types.AllowNone(ra_types.UUID()),
         default=None,
         read_only=True,
     )
     client_id = properties.property(
-        types.String(max_length=64),
+        ra_types.String(max_length=64),
         required=True,
     )
     redirect_url = properties.property(
-        types.Url(),
+        ra_types.Url(),
         required=True,
     )
 

@@ -34,6 +34,18 @@ class TestUsers(base.BaseIamResourceTest):
         assert user["password"] == "*******"
         assert user["username"] == "test"
 
+    def test_create_user_400_error(self, user_api_noauth_client):
+        client = user_api_noauth_client()
+
+        with pytest.raises(bazooka_exc.BadRequestError):
+            client.create_user(username="", password="test")
+
+    def test_create_user_space_login_400_error(self, user_api_noauth_client):
+        client = user_api_noauth_client()
+
+        with pytest.raises(bazooka_exc.BadRequestError):
+            client.create_user(username=" ", password="test")
+
     def test_create_user_and_check_roles(
         self, user_api_client, auth_test1_user
     ):
@@ -123,7 +135,16 @@ class TestUsers(base.BaseIamResourceTest):
             username="testXXX",
         )
 
-        assert result["username"] == "testXXX"
+        assert result["username"] == "testxxx"
+
+    def test_update_my_user_400_error(self, user_api_client, auth_test1_user):
+        client = user_api_client(auth_test1_user)
+
+        with pytest.raises(bazooka_exc.BadRequestError):
+            client.update_user(
+                auth_test1_user.uuid,
+                first_name="",
+            )
 
     def test_update_other_user_test1_auth_forbidden(
         self, user_api_client, auth_test1_user, auth_test2_user
@@ -151,7 +172,7 @@ class TestUsers(base.BaseIamResourceTest):
             username="testXXX",
         )
 
-        assert result["username"] == "testXXX"
+        assert result["username"] == "testxxx"
 
     def test_update_my_user_update_password_test1_auth_bad_request(
         self, user_api_client, auth_test1_user

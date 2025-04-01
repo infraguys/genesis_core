@@ -17,6 +17,7 @@ from http import client as http_client
 
 from gcl_iam import middlewares
 from restalchemy.api.middlewares import errors as errors_mw
+from restalchemy.common import exceptions as ra_e
 
 from genesis_core.common import exceptions as common_exc
 
@@ -28,6 +29,9 @@ class ErrorsHandlerMiddleware(middlewares.ErrorsHandlerMiddleware):
     )
     forbidden_exc = middlewares.ErrorsHandlerMiddleware.forbidden_exc + (
         common_exc.CommonForbiddenException,
+    )
+    valid_exc = middlewares.ErrorsHandlerMiddleware.valid_exc + (
+        ra_e.TypeError,
     )
 
     def _construct_error_response(self, req, e):
