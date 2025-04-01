@@ -106,6 +106,13 @@ class UserController(controllers.BaseResourceController, EnforceMixin):
         )
 
     @actions.post
+    def reset_password(self, resource, new_password):
+        resource.reset_secret(
+            new_secret=new_password,
+        )
+        return resource
+
+    @actions.post
     def enable_otp(self, resource, password):
         is_me = models.User.me() == resource
         if self.enforce(c.PERMISSION_USER_WRITE_ALL) or is_me:

@@ -34,6 +34,12 @@ class ChangePasswordAction(routes.Action):
     __controller__ = controllers.UserController
 
 
+class ResetPasswordAction(routes.Action):
+    """Handler for .../users/<uuid>/actions/reset_password/invoke endpoint"""
+
+    __controller__ = controllers.UserController
+
+
 class EnableOTPAction(routes.Action):
     """Handler for .../users/<uuid>/actions/enable_otp/invoke endpoint"""
 
@@ -64,6 +70,7 @@ class UserRoute(routes.Route):
     __controller__ = controllers.UserController
 
     change_password = routes.action(ChangePasswordAction, invoke=True)
+    reset_password = routes.action(ResetPasswordAction, invoke=True)
     enable_otp = routes.action(EnableOTPAction, invoke=True)
     activate_otp = routes.action(ActivateOTPAction, invoke=True)
     disable_otp = routes.action(DisableOTPAction, invoke=True)
