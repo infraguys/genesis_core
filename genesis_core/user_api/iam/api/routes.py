@@ -58,6 +58,24 @@ class GetMyRolesAction(routes.Action):
     __controller__ = controllers.UserController
 
 
+class ResendEmailConfirmationAction(routes.Action):
+    """Handler for .../actions/resend_email_confirmation/invoke endpoint"""
+
+    __controller__ = controllers.UserController
+
+
+class ConfirmEmailAction(routes.Action):
+    """Handler for .../actions/confirm_email/invoke endpoint"""
+
+    __controller__ = controllers.UserController
+
+
+class ResetPasswordAction(routes.Action):
+    """Handler for .../actions/reset_password/invoke endpoint"""
+
+    __controller__ = controllers.UserController
+
+
 class UserRoute(routes.Route):
     """Handler for /v1/iam/users/ endpoint"""
 
@@ -68,6 +86,11 @@ class UserRoute(routes.Route):
     activate_otp = routes.action(ActivateOTPAction, invoke=True)
     disable_otp = routes.action(DisableOTPAction, invoke=True)
     get_my_roles = routes.action(GetMyRolesAction)
+    resend_email_confirmation = routes.action(
+        ResendEmailConfirmationAction, invoke=True
+    )
+    confirm_email = routes.action(ConfirmEmailAction, invoke=True)
+    reset_password = routes.action(ResetPasswordAction, invoke=True)
 
 
 class OrganizationController(routes.Route):
@@ -163,6 +186,12 @@ class MeAction(routes.Action):
     __controller__ = controllers.ClientsController
 
 
+class ResetPasswordEventAction(routes.Action):
+    """Handler for .../<uuid>/actions/reset_password/invoke endpoint"""
+
+    __controller__ = controllers.ClientsController
+
+
 class IamClientsRoute(routes.Route):
     """Handler for /v1/iam/clients/ endpoint"""
 
@@ -173,6 +202,7 @@ class IamClientsRoute(routes.Route):
     get_token = routes.action(GetTokenAction, invoke=True)
     introspect = routes.action(IntrospectAction)
     me = routes.action(MeAction)
+    reset_password = routes.action(ResetPasswordEventAction, invoke=True)
 
 
 class IamWebRoute(WebRoute):

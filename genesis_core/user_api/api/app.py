@@ -43,6 +43,11 @@ skip_auth_endpoints = [
         "/actions/get_token/invoke",
         methods=[ra_c.POST],
     ),
+    iam_mw.EndpointComparator(
+        f"/v1/iam/clients/({ra_types.UUID_RE_TEMPLATE})"
+        "/actions/reset_password/invoke",
+        methods=[ra_c.POST],
+    ),
 ]
 
 

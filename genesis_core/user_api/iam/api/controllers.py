@@ -17,6 +17,7 @@
 import errno
 from os import path as os_path
 import mimetypes
+from urllib import parse as urllib_parse
 
 from authlib.integrations import requests_client
 import jinja2
@@ -47,23 +48,72 @@ class IamController(controllers.RoutesListController):
     __TARGET_PATH__ = "/v1/iam/"
 
 
+def _get_app_endpoint(req):
+    origin = req.headers.get("Origin")
+    result = req.host_url
+
+    if not origin:
+        return result
+
+    parsed_referer = urllib_parse.urlparse(origin)
+
+    if (
+        parsed_referer.scheme not in ("http", "https")
+        or not parsed_referer.netloc
+    ):
+        return result
+
+    return f"{parsed_referer.scheme}://{parsed_referer.netloc}"
+
+
 class UserController(controllers.BaseResourceController, EnforceMixin):
     __resource__ = resources.ResourceByModelWithCustomProps(
         models.User,
         convert_underscore=False,
         hidden_fields=resources.HiddenFieldMap(
-            get=["salt", "secret_hash", "secret", "otp_secret"],
-            create=["salt", "secret_hash", "otp_secret"],
-            update=["salt", "secret_hash", "secret", "otp_secret"],
-            filter=["salt", "secret_hash", "secret", "otp_secret"],
-            action_post=["salt", "secret_hash", "secret", "otp_secret"],
+            get=[
+                "salt",
+                "secret_hash",
+                "secret",
+                "otp_secret",
+                "confirmation_code",
+            ],
+            create=[
+                "salt",
+                "secret_hash",
+                "otp_secret",
+                "confirmation_code",
+            ],
+            update=[
+                "salt",
+                "secret_hash",
+                "secret",
+                "otp_secret",
+                "confirmation_code",
+            ],
+            filter=[
+                "salt",
+                "secret_hash",
+                "secret",
+                "otp_secret",
+                "confirmation_code",
+            ],
+            action_post=[
+                "salt",
+                "secret_hash",
+                "secret",
+                "otp_secret",
+                "confirmation_code",
+            ],
         ),
         name_map={"secret": "password", "name": "username"},
     )
 
     def create(self, **kwargs):
+        kwargs.pop("email_verified", None)
         user = super().create(**kwargs)
-        user.make_newcomer()
+        app_endpoint = _get_app_endpoint(req=self._req)
+        user.send_confirmation_event(app_endpoint=app_endpoint)
         return user
 
     def filter(self, filters):
@@ -73,6 +123,7 @@ class UserController(controllers.BaseResourceController, EnforceMixin):
         return super().filter(filters)
 
     def update(self, uuid, **kwargs):
+        kwargs.pop("email_verified", None)
         is_me = models.User.me().uuid == uuid
         if self.enforce(c.PERMISSION_USER_WRITE_ALL) or is_me:
             return super().update(uuid, **kwargs)
@@ -150,6 +201,25 @@ class UserController(controllers.BaseResourceController, EnforceMixin):
 
         raise iam_e.CanNotUpdateUser(
             uuid=resource.uuid, rule=c.PERMISSION_USER_WRITE_ALL
+        )
+
+    @actions.post
+    def resend_email_confirmation(self, resource):
+        app_endpoint = _get_app_endpoint(req=self._req)
+        resource.resend_confirmation_event(app_endpoint=app_endpoint)
+
+    @actions.post
+    def confirm_email(self, resource, code=None):
+        code = code or self._req.params.get("code", "")
+        resource.confirm_email_by_code(code)
+
+    @actions.post
+    def reset_password(self, resource, new_password=None, code=None):
+        code = code or self._req.params.get("code")
+        new_secret = new_password or self._req.params.get("new_password")
+        resource.reset_secret_by_code(
+            new_secret=new_secret,
+            code=code,
         )
 
     @actions.get
@@ -421,6 +491,12 @@ class ClientsController(controllers.BaseResourceController):
     @actions.get
     def me(self, resource):
         return resource.me().get_response_body()
+
+    @actions.post
+    def reset_password(self, resource, email=None):
+        email = email or self._req.params.get("email")
+        app_endpoint = _get_app_endpoint(req=self._req)
+        resource.send_reset_password_event(email=email, app_endpoint=app_endpoint)
 
 
 class WebController:
