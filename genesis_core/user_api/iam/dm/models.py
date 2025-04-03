@@ -289,7 +289,7 @@ class User(
         u.remove_nested_dm(RoleBinding, "user", self, session=session)
         return super().delete(session=session, **kwargs)
 
-    def send_confirmation_event(self, app_endpoint="http://localhost/"):
+    def _send_event(self, event):
         client = bazooka.Client(default_timeout=5)
         header = {
             "Authorization": "Bearer {}".format(
@@ -308,7 +308,12 @@ class User(
         client.post(
             "http://10.130.0.108:8080/v1/events/",
             headers=header,
-            json={
+            json=event,
+        )
+
+    def send_confirmation_event(self, app_endpoint="http://localhost/"):
+        event = (
+            {
                 "project_id": "f96ae936-0a98-11f0-9cb1-047c160cda6f",
                 "exchange": {
                     "kind": "User",
@@ -325,6 +330,28 @@ class User(
                 },
             },
         )
+        self._send_event(event)
+
+    def send_reset_password_event(self, app_endpoint="http://localhost/"):
+        event = (
+            {
+                "project_id": "f96ae936-0a98-11f0-9cb1-047c160cda6f",
+                "exchange": {
+                    "kind": "User",
+                    "user_id": f"{self.uuid}",
+                },
+                "event_type": (
+                    "/v1/event_types/df5ac4b0-de7e-41d5-a0bc-6e26bf35594a"
+                ),
+                "event_params": {
+                    "first_name": f"{self.first_name}",
+                    "site_endpoint": f"{app_endpoint}",
+                    "user_uuid": f"{self.uuid}",
+                    "reset_token": f"{self.confirmation_code}",
+                },
+            },
+        )
+        self._send_event(event)
 
     def resend_confirmation_event(self, app_endpoint="http://localhost/"):
         self.confirmation_code = sys_uuid.uuid4()
@@ -333,12 +360,23 @@ class User(
 
     def confirm_email(self):
         self.email_verified = True
+        self.confirmation_code = sys_uuid.uuid4()
         self.make_newcomer()
         self.save()
 
     def confirm_email_by_code(self, code):
         if str(self.confirmation_code) == str(code):
             return self.confirm_email()
+        raise iam_exceptions.CanNotConfirmUser(code=code)
+
+    def reset_secret(self, new_secret):
+        self.secret = new_secret
+        self.confirmation_code = sys_uuid.uuid4()
+        self.save()
+
+    def reset_secret_by_code(self, new_secret, code):
+        if str(self.confirmation_code) == str(code):
+            return self.reset_secret(new_secret)
         raise iam_exceptions.CanNotConfirmUser(code=code)
 
 
@@ -1029,3 +1067,9 @@ class IamClient(
 
     def me(self):
         return MeInfo()
+
+    def send_reset_password_event(
+        self, email, app_endpoint="http://localhost/"
+    ):
+        user = User.objects.get_one(filters={"email": ra_filters.EQ(email)})
+        user.send_reset_password_event(app_endpoint=app_endpoint)

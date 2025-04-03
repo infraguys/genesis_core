@@ -48,6 +48,24 @@ class IamController(controllers.RoutesListController):
     __TARGET_PATH__ = "/v1/iam/"
 
 
+def _get_app_endpoint(req):
+    origin = req.headers.get("Origin")
+    result = req.host_url
+
+    if not origin:
+        return result
+
+    parsed_referer = urllib_parse.urlparse(origin)
+
+    if (
+        parsed_referer.scheme not in ("http", "https")
+        or not parsed_referer.netloc
+    ):
+        return result
+
+    return f"{parsed_referer.scheme}://{parsed_referer.netloc}"
+
+
 class UserController(controllers.BaseResourceController, EnforceMixin):
     __resource__ = resources.ResourceByModelWithCustomProps(
         models.User,
@@ -94,7 +112,7 @@ class UserController(controllers.BaseResourceController, EnforceMixin):
     def create(self, **kwargs):
         kwargs.pop("email_verified", None)
         user = super().create(**kwargs)
-        app_endpoint = self._get_app_endpoint()
+        app_endpoint = _get_app_endpoint(req=self._req)
         user.send_confirmation_event(app_endpoint=app_endpoint)
         return user
 
@@ -185,32 +203,24 @@ class UserController(controllers.BaseResourceController, EnforceMixin):
             uuid=resource.uuid, rule=c.PERMISSION_USER_WRITE_ALL
         )
 
-    def _get_app_endpoint(self):
-        origin = self._req.headers.get("Origin")
-        result = self._req.host_url
-
-        if not origin:
-            return result
-
-        parsed_referer = urllib_parse.urlparse(origin)
-
-        if (
-            parsed_referer.scheme not in ("http", "https")
-            or not parsed_referer.netloc
-        ):
-            return result
-
-        return f"{parsed_referer.scheme}://{parsed_referer.netloc}"
-
     @actions.post
     def resend_email_confirmation(self, resource):
-        app_endpoint = self._get_app_endpoint()
+        app_endpoint = _get_app_endpoint(req=self._req)
         resource.resend_confirmation_event(app_endpoint=app_endpoint)
 
     @actions.post
-    def confirm_email(self, resource):
-        code = self._req.params.get("code", "")
+    def confirm_email(self, resource, code=None):
+        code = code or self._req.params.get("code", "")
         resource.confirm_email_by_code(code)
+
+    @actions.post
+    def reset_password(self, resource, new_password=None, code=None):
+        code = code or self._req.params.get("code")
+        new_secret = new_password or self._req.params.get("new_password")
+        resource.reset_secret_by_code(
+            new_secret=new_secret,
+            code=code,
+        )
 
     @actions.get
     def get_my_roles(self, resource):
@@ -481,6 +491,12 @@ class ClientsController(controllers.BaseResourceController):
     @actions.get
     def me(self, resource):
         return resource.me().get_response_body()
+
+    @actions.post
+    def reset_password(self, resource, email=None):
+        email = email or self._req.params.get("email")
+        app_endpoint = _get_app_endpoint(req=self._req)
+        resource.send_reset_password_event(email=email, app_endpoint=app_endpoint)
 
 
 class WebController:
