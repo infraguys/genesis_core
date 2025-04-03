@@ -70,6 +70,12 @@ class ConfirmEmailAction(routes.Action):
     __controller__ = controllers.UserController
 
 
+class ResetPasswordAction(routes.Action):
+    """Handler for .../actions/reset_password/invoke endpoint"""
+
+    __controller__ = controllers.UserController
+
+
 class UserRoute(routes.Route):
     """Handler for /v1/iam/users/ endpoint"""
 
@@ -84,6 +90,7 @@ class UserRoute(routes.Route):
         ResendEmailConfirmationAction, invoke=True
     )
     confirm_email = routes.action(ConfirmEmailAction, invoke=True)
+    reset_password = routes.action(ResetPasswordAction, invoke=True)
 
 
 class OrganizationController(routes.Route):
@@ -179,6 +186,12 @@ class MeAction(routes.Action):
     __controller__ = controllers.ClientsController
 
 
+class ResetPasswordEventAction(routes.Action):
+    """Handler for .../<uuid>/actions/reset_password/invoke endpoint"""
+
+    __controller__ = controllers.ClientsController
+
+
 class IamClientsRoute(routes.Route):
     """Handler for /v1/iam/clients/ endpoint"""
 
@@ -189,6 +202,7 @@ class IamClientsRoute(routes.Route):
     get_token = routes.action(GetTokenAction, invoke=True)
     introspect = routes.action(IntrospectAction)
     me = routes.action(MeAction)
+    reset_password = routes.action(ResetPasswordEventAction, invoke=True)
 
 
 class IamWebRoute(WebRoute):
