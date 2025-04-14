@@ -325,9 +325,15 @@ class XMLLibvirtInstance(XMLLibvirtMixin):
         rom: str | None = None,
     ) -> None:
         return self.domain_add_interface(
-            self._domain, iface_type, source, model=model, rom=rom, mtu=mtu, mac=mac
+            self._domain,
+            iface_type,
+            source,
+            model=model,
+            rom=rom,
+            mtu=mtu,
+            mac=mac,
         )
-        
+
 
 class LibvirtPoolDriverSpec(tp.NamedTuple):
     driver: tp.Literal["libvirt"]

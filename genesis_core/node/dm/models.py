@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import random
+import datetime
 import typing as tp
 import netaddr
 import uuid as sys_uuid
@@ -144,7 +145,7 @@ class MachinePool(
 
     @property
     def has_driver(self) -> bool:
-        return self.driver_spec is not None
+        return bool(self.driver_spec)
 
     def load_driver(self) -> tp.Type["AbstractPoolDriver"]:
         """
@@ -392,6 +393,10 @@ class Subnet(
         types.Boolean(),
         default=True,
     )
+    ip_discovery_range = properties.property(
+        types.AllowNone(IPRange()),
+        default=None,
+    )
 
     dns_servers = properties.property(
         types.AllowNone(
@@ -445,6 +450,18 @@ class Subnet(
             netaddr.IPAddress(self.ip_range.last),
         )
 
+    @property
+    def ip_discovery_range_pair(
+        self,
+    ) -> tp.Tuple[netaddr.IPAddress, netaddr.IPAddress] | None:
+        if self.ip_discovery_range is None:
+            return None
+
+        return (
+            netaddr.IPAddress(self.ip_discovery_range.first),
+            netaddr.IPAddress(self.ip_discovery_range.last),
+        )
+
 
 class Port(ModelWithFullAsset, orm.SQLStorableMixin, models.SimpleViewMixin):
     __tablename__ = "compute_ports"
@@ -495,3 +512,25 @@ class NodeWithoutPorts(Node):
     @classmethod
     def get_nodes(cls):
         return cls.objects.get_all()
+
+
+class CoreAgent(
+    models.ModelWithUUID,
+    models.ModelWithNameDesc,
+    orm.SQLStorableMixin,
+    models.SimpleViewMixin,
+):
+    __tablename__ = "computes_core_agents"
+
+    payload_updated_at = properties.property(
+        types.UTCDateTimeZ(),
+        default=lambda: datetime.datetime(
+            1970, 1, 1, 0, 0, tzinfo=datetime.timezone.utc
+        ),
+    )
+
+    @property
+    def machine(self) -> Machine:
+        return Machine.objects.get_one(
+            filters={"uuid": dm_filters.EQ(str(self.uuid))}
+        )

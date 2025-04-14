@@ -14,6 +14,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import datetime
 import typing as tp
 import uuid as sys_uuid
 from urllib.parse import urljoin
@@ -121,3 +122,132 @@ class TestNodeOrchApi:
         assert "tftp://" not in response.text
         assert "https://kernel.org/vmlinuz" in response.text
         assert "https://kernel.org/initrd.img" in response.text
+
+    def test_simple_core_agent(
+        self,
+        machine_factory: tp.Callable,
+        default_pool: tp.Dict[str, tp.Any],
+        orch_api: test_utils.RestServiceTestCase,
+    ):
+        uuid = sys_uuid.uuid4()
+        machine = machine_factory(
+            boot="hd0",
+            uuid=uuid,
+            firmware_uuid=uuid,
+            pool=sys_uuid.UUID(default_pool["uuid"]),
+        )
+        pool = models.MachinePool.restore_from_simple_view(**default_pool)
+        pool.insert()
+
+        machine = models.Machine.restore_from_simple_view(**machine)
+        machine.insert()
+
+        agent = models.CoreAgent(uuid=machine.uuid)
+        agent.insert()
+
+        url = urljoin(orch_api.base_url, f"core_agents/{agent.uuid}")
+
+        response = requests.get(url)
+        output = response.json()
+
+        assert response.status_code == 200
+        assert output["uuid"] == str(agent.uuid)
+        assert (
+            output["payload_updated_at"][:10]
+            == str(agent.payload_updated_at)[:10]
+        )
+
+    def test_core_agent_get_payload(
+        self,
+        machine_factory: tp.Callable,
+        default_pool: tp.Dict[str, tp.Any],
+        orch_api: test_utils.RestServiceTestCase,
+    ):
+        uuid = sys_uuid.uuid4()
+        machine = machine_factory(
+            boot="hd0",
+            uuid=uuid,
+            firmware_uuid=uuid,
+            pool=sys_uuid.UUID(default_pool["uuid"]),
+        )
+        pool = models.MachinePool.restore_from_simple_view(**default_pool)
+        pool.insert()
+
+        machine = models.Machine.restore_from_simple_view(**machine)
+        machine.insert()
+
+        agent = models.CoreAgent(uuid=machine.uuid)
+        agent.insert()
+
+        url = urljoin(
+            orch_api.base_url, f"core_agents/{agent.uuid}/actions/get_payload"
+        )
+        data = {
+            "payload_updated_at": agent.payload_updated_at.isoformat(),
+        }
+
+        response = requests.get(url, json=data)
+        output = response.json()
+
+        assert response.status_code == 200
+        assert output["payload_hash"]
+        assert "machine" in output
+        assert (
+            output["payload_updated_at"]
+            != agent.payload_updated_at.isoformat()
+        )
+
+    def test_core_agent_payload_already_actual(
+        self,
+        machine_factory: tp.Callable,
+        default_pool: tp.Dict[str, tp.Any],
+        orch_api: test_utils.RestServiceTestCase,
+    ):
+        uuid = sys_uuid.uuid4()
+        machine = machine_factory(
+            boot="hd0",
+            uuid=uuid,
+            firmware_uuid=uuid,
+            pool=sys_uuid.UUID(default_pool["uuid"]),
+        )
+        pool = models.MachinePool.restore_from_simple_view(**default_pool)
+        pool.insert()
+
+        machine = models.Machine.restore_from_simple_view(**machine)
+        machine.insert()
+
+        agent = models.CoreAgent(uuid=machine.uuid)
+        agent.insert()
+
+        url = urljoin(
+            orch_api.base_url, f"core_agents/{agent.uuid}/actions/get_payload"
+        )
+        data = {
+            "payload_updated_at": agent.payload_updated_at.isoformat(),
+        }
+
+        response = requests.get(url, json=data)
+        output = response.json()
+
+        assert response.status_code == 200
+        assert "machine" in output
+        assert (
+            output["payload_updated_at"]
+            != agent.payload_updated_at.isoformat()
+        )
+
+        # The second call should return the same state
+        payload_updated_at = output["payload_updated_at"]
+        payload_hash = output["payload_hash"]
+        data = {
+            "payload_updated_at": payload_updated_at,
+            "payload_hash": payload_hash,
+        }
+
+        response = requests.get(url, json=data)
+        output = response.json()
+
+        assert response.status_code == 200
+        assert output["payload_updated_at"] == payload_updated_at
+        assert output["payload_hash"] == payload_hash
+        assert "machine" not in output

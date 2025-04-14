@@ -13,14 +13,17 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+import datetime
 
 from oslo_config import cfg
+from restalchemy.api import actions
 from restalchemy.api import controllers
 from restalchemy.api import resources
 from restalchemy.storage import exceptions as ra_storage_exceptions
 
+from genesis_core.node.dm import models
 from genesis_core.node import constants as nc
-from genesis_core.orch_api.dm import models as node_models
+from genesis_core.orch_api.dm import models as orch_models
 from genesis_core.orch_api.api import packers
 
 DOMAIN = "orch_api"
@@ -45,7 +48,7 @@ class NodesController(controllers.BaseResourceController):
     """Controller for /v1/nodes/ endpoint"""
 
     __resource__ = resources.ResourceByRAModel(
-        model_class=node_models.Node,
+        model_class=orch_models.Node,
         process_filters=True,
         convert_underscore=False,
     )
@@ -55,7 +58,7 @@ class MachinesController(controllers.BaseResourceController):
     """Controller for /v1/machines/ endpoint"""
 
     __resource__ = resources.ResourceByRAModel(
-        model_class=node_models.Machine,
+        model_class=orch_models.Machine,
         process_filters=True,
         convert_underscore=False,
     )
@@ -65,7 +68,7 @@ class NetBootController(controllers.BaseResourceController):
     """Controller for /v1/boots/ endpoint"""
 
     __resource__ = resources.ResourceByRAModel(
-        model_class=node_models.Netboot,
+        model_class=orch_models.Netboot,
         process_filters=True,
         convert_underscore=False,
     )
@@ -79,7 +82,7 @@ class NetBootController(controllers.BaseResourceController):
             # Generate a dummy netboot object for netboot
             # configuration. Network is default option
             # for such machines.
-            netboot = node_models.Netboot(
+            netboot = orch_models.Netboot(
                 uuid=uuid,
                 boot=nc.BootAlternative.network.value,
             )
@@ -93,3 +96,41 @@ class NetBootController(controllers.BaseResourceController):
         )
 
         return netboot, 200, {"Content-Type": "application/octet-stream"}
+
+
+class CoreAgentController(controllers.BaseResourceController):
+    """Controller for /v1/core_agents/ endpoint"""
+
+    __resource__ = resources.ResourceByRAModel(
+        model_class=orch_models.CoreAgent,
+        process_filters=True,
+        convert_underscore=False,
+    )
+
+    @actions.get
+    def get_payload(
+        self,
+        resource: orch_models.CoreAgent,
+        payload_hash: str = "",
+        payload_updated_at: str | None = None,
+    ):
+        if payload_updated_at is not None:
+            payload_updated_at = datetime.datetime.fromisoformat(
+                payload_updated_at
+            )
+
+        return resource.get_payload(
+            payload_updated_at=payload_updated_at,
+            payload_hash=payload_hash,
+        )
+
+    @actions.post
+    def register_payload(self, resource: orch_models.CoreAgent, **payload):
+
+        # Only machine is registered so far
+        machine = orch_models.Machine.from_agent_payload(payload)
+
+        # Autodiscover machine
+        machine.insert()
+
+        return resource.get_payload()

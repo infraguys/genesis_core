@@ -41,6 +41,12 @@ class IpamIpNotFound(net_exceptions.CGNetException):
     ip: netaddr.IPAddress
 
 
+class IpamIpRangeOverlap(net_exceptions.CGNetException):
+    __template__ = "Two ranges {ip_range_a} and {ip_range_b} are overlapped"
+    ip_range_a: netaddr.IPRange
+    ip_range_b: netaddr.IPRange
+
+
 class Ipam:
 
     def __init__(
@@ -79,6 +85,16 @@ class Ipam:
         ip_start, ip_end = subnet.cidr[0], subnet.cidr[-1]
         if subnet.ip_range_pair:
             ip_start, ip_end = subnet.ip_range_pair
+
+        # IP range and discovery range should not overlap
+        if subnet.ip_discovery_range and (
+            netaddr.IPSet(subnet.ip_discovery_range)
+            & netaddr.IPSet(subnet.ip_range)
+        ):
+            raise IpamIpRangeOverlap(
+                ip_range_a=subnet.ip_range,
+                ip_range_b=subnet.ip_discovery_range,
+            )
 
         pool = [(int(ip_start), int(ip_end))]
         for port in ports:

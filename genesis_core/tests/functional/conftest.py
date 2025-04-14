@@ -227,11 +227,12 @@ def user_api_client(user_api):
             auth,
         )
 
-        client.set_permissions_to_user(
-            user_uuid=auth.uuid,
-            permissions=permissions,
-            project_id=project_id,
-        )
+        if permissions:
+            client.set_permissions_to_user(
+                user_uuid=auth.uuid,
+                permissions=permissions,
+                project_id=project_id,
+            )
 
         return client
 
