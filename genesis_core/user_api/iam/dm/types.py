@@ -57,7 +57,7 @@ class Name(types.BaseCompiledRegExpType):
 
     def __init__(self, min_length=1, max_length=128):
         pattern = re.compile(
-            r"^(?![^-]*\d)(?!-)[\w`_.-]*(?<!-)$",
+            r"^(?![^-]*\d)(?!-)(?!\s)[\w`'_. -]*(?<!-)(?<!\s)$",
             flags=re.UNICODE,
         )
         super().__init__(pattern=pattern)
