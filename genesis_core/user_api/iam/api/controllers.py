@@ -66,11 +66,11 @@ class UserController(controllers.BaseResourceController, EnforceMixin):
         user.make_newcomer()
         return user
 
-    def filter(self, filters):
+    def filter(self, filters, **kwargs):
         self.enforce(
             c.PERMISSION_USER_LISTING, do_raise=True, exc=iam_e.CanNotListUsers
         )
-        return super().filter(filters)
+        return super().filter(filters, **kwargs)
 
     def update(self, uuid, **kwargs):
         is_me = models.User.me().uuid == uuid
@@ -182,10 +182,10 @@ class OrganizationController(
         ).insert()
         return result
 
-    def filter(self, filters):
+    def filter(self, filters, **kwargs):
         pclass = iam_controllers.PolicyBasedWithoutProjectController
         if self.enforce(c.PERMISSION_ORGANIZATION_READ_ALL):
-            return super(pclass, self).filter(filters)
+            return super(pclass, self).filter(filters, **kwargs)
         return models.Organization.list_my()
 
     def get(self, uuid, **kwargs):
