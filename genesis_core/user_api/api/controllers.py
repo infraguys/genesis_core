@@ -31,7 +31,7 @@ class ApiEndpointController(controllers.RoutesListController):
 class HealthController(controllers.Controller):
     """Controller for /v1/health/ endpoint"""
 
-    def filter(self, filters):
+    def filter(self, filters, **kwargs):
         return "OK"
 
 
