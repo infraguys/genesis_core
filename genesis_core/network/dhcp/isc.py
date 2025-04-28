@@ -16,7 +16,35 @@
 
 import typing as tp
 
+import netaddr
+
 from genesis_core.node.dm import models
+
+
+class StaticRoute(tp.NamedTuple):
+    to: netaddr.IPNetwork
+    via: netaddr.IPAddress
+
+    @property
+    def is_default(self) -> bool:
+        return self.to == netaddr.IPNetwork("0.0.0.0/0")
+
+    def to_rfc3442(self) -> str:
+        gw = str(self.via).replace(".", ",")
+
+        if self.is_default:
+            return f" 0, {gw},"
+
+        # Special mask format for rfc3442
+        # 10.130.4.0 -> 10,130,4,
+        mask = []
+        for d in reversed(str(self.to.ip).split(".")):
+            if not mask and d == "0":
+                continue
+            mask.append(d)
+
+        mask = ",".join(reversed(mask))
+        return f" {self.to.prefixlen}, {mask}, {gw},"
 
 
 DHCP_ISC_SVC_NAME = "isc-dhcp-server.service"
@@ -30,6 +58,8 @@ option mask-supplier false;
 max-lease-time 1209600;
 default-lease-time 1209600;
 log-facility local7;
+
+option rfc3442-classless-static-routes code 121 = array of integer 8;
 """
 
 
@@ -64,12 +94,33 @@ _host_template = """
 _subnet_template = """
 subnet {net_address} netmask {net_mask} {{
 	option domain-name-servers {dns_servers};
-	option routers {routers};
+	{routers}
 	{pool}
 	{hosts}
 	{netboot}
 }}
 """
+
+
+def rfc3442_static_routes(routes: tp.List[StaticRoute]) -> str:
+    if len(routes) == 0:
+        return ""
+
+    route_line = ""
+    rfc3442_route_line = "option rfc3442-classless-static-routes"
+
+    for route in routes:
+        if route.is_default:
+            continue
+        rfc3442_route_line += route.to_rfc3442()
+
+    # Only single route is supported as default
+    if default_route := next((r for r in routes if r.is_default), None):
+        route_line = f"option routers {str(default_route.via)};"
+        rfc3442_route_line += default_route.to_rfc3442()
+
+    rfc3442_route_line = rfc3442_route_line[:-1] + ";"
+    return f"{route_line}\n\t{rfc3442_route_line}\n"
 
 
 def dhcp_config(subnets: tp.Dict[models.Subnet, tp.List[models.Port]]) -> str:
@@ -97,13 +148,14 @@ def dhcp_config(subnets: tp.Dict[models.Subnet, tp.List[models.Port]]) -> str:
 
         netboot = _netboot_template.format(next_server=subnet.next_server)
         dns_servers = ",".join(subnet.dns_servers)
-        routers = ",".join(subnet.routers)
+
+        routes = [StaticRoute(**r) for r in subnet.routers]
 
         config += _subnet_template.format(
             net_address=str(subnet.cidr.network),
             net_mask=str(subnet.cidr.netmask),
             dns_servers=dns_servers,
-            routers=routers,
+            routers=rfc3442_static_routes(routes),
             pool=pool,
             hosts=hosts,
             netboot=netboot,
