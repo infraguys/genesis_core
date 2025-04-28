@@ -11,5 +11,7 @@ startup_entities:
           cidr: "10.20.0.0/22"
           ip_range: "10.20.0.20-10.20.0.200"
           dns_servers: ["8.8.8.8"]
-          routers: ["10.20.0.1"]
+          routers:
+            - to: "0.0.0.0/0"
+              via: "10.20.0.1"
           next_server: "10.20.0.2"

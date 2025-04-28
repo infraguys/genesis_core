@@ -401,7 +401,14 @@ class Subnet(
     )
     routers = properties.property(
         types.AllowNone(
-            types.TypedList(types.String(min_length=1, max_length=128))
+            types.TypedList(
+                types.SchemeDict(
+                    {
+                        "to": types_net.Network(),
+                        "via": types_net.IPAddress(),
+                    }
+                )
+            )
         ),
         default=lambda: [],
     )
