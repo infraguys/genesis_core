@@ -271,6 +271,7 @@ class Volume(ModelWithFullAsset, orm.SQLStorableMixin, models.SimpleViewMixin):
     label = properties.property(
         types.AllowNone(types.String(max_length=127)), default=None
     )
+    # TODO(g.melikov): DON'T USE! Should be dropped.
     device_type = properties.property(
         types.Enum([t.value for t in nc.VolumeType]),
         default=nc.VolumeType.QCOW2.value,

@@ -37,6 +37,21 @@ sudo apt update
 sudo apt install postgresql libev-dev libvirt-dev \
     tftpd-hpa isc-dhcp-server -y
 
+# Useful for all-in-one-vm tests
+# sudo apt install qemu-kvm libvirt-daemon-system zfsutils-linux \
+#     libvirt-daemon-driver-storage-zfs libvirt-clients -y
+#
+# # Add disk, create pool
+# zpool create zfspool /dev/vdX
+#
+# # Just separate dataset for libvirt
+# zfs create zfspool/disks
+#
+# # Add pool into libvirt
+# virsh pool-define-as --name zfspool --source-name zfspool/disks --type zfs
+# virsh pool-start zfspool
+
+
 # Configure netboot
 sudo mkdir -p /srv/tftp/bios
 sudo cp "$GC_ART_DIR/undionly.kpxe" /srv/tftp/bios/undionly.kpxe

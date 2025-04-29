@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 import typing as tp
 import uuid as sys_uuid
 from xml.dom import minidom
@@ -41,7 +42,16 @@ LOG = logging.getLogger(__name__)
 
 volume_template = """
 <volume>
-  <name>{name}.{format}</name>
+  <name>{name}</name>
+  <capacity>{size}</capacity>
+  <allocation>0</allocation>
+</volume>
+"""
+
+
+volume_template_with_format = """
+<volume>
+  <name>{name}</name>
   <capacity>{size}</capacity>
   <allocation>0</allocation>
   <target>
@@ -169,8 +179,20 @@ class XMLLibvirtVolume(XMLLibvirtMixin):
         return self._volume.toxml()
 
     @classmethod
-    def xml_from_base_template(cls, name: str, size: int, format: str) -> str:
-        return volume_template.format(name=name, size=size, format=format)
+    def xml_from_base_template(
+        cls, pool: libvirt.virStoragePool, name: str, size: int
+    ) -> str:
+        pool_type = (
+            minidom.parseString(pool.XMLDesc())
+            .firstChild.attributes["type"]
+            .value
+        )
+        if pool_type == "zfs":
+            return volume_template.format(name=name, size=size)
+
+        return volume_template_with_format.format(
+            name=f"{name}.qcow2", size=size, format="qcow2"
+        )
 
 
 class XMLLibvirtInstance(XMLLibvirtMixin):
@@ -237,13 +259,20 @@ class XMLLibvirtInstance(XMLLibvirtMixin):
         cls,
         domain: minidom.Document,
         image_path: str,
-        image_format: ImageFormatType = "qcow2",
         device: str = "vda",
         bus: str = "virtio",
     ) -> None:
-        base_xml = "<disk type='file' device='disk'></disk>"
-        document = minidom.parseString(base_xml)
-        cls.document_set_tag(document, "source", file=image_path)
+        if image_path.startswith("/dev/zvol/"):
+            base_xml = "<disk type='block' device='disk'></disk>"
+            image_format = "raw"
+            document = minidom.parseString(base_xml)
+            cls.document_set_tag(document, "source", dev=image_path)
+        else:
+            base_xml = "<disk type='file' device='disk'></disk>"
+            image_format = "qcow2"
+            document = minidom.parseString(base_xml)
+            cls.document_set_tag(document, "source", file=image_path)
+
         cls.document_set_tag(document, "target", dev=device, bus=bus)
         cls.document_set_tag(
             document, "driver", name="qemu", type=image_format
@@ -307,13 +336,10 @@ class XMLLibvirtInstance(XMLLibvirtMixin):
     def add_disk(
         self,
         image_path: str,
-        image_format: ImageFormatType = "qcow2",
         device: str = "vda",
         bus: str = "virtio",
     ) -> None:
-        return self.domain_add_disk(
-            self._domain, image_path, image_format, device, bus
-        )
+        return self.domain_add_disk(self._domain, image_path, device, bus)
 
     def add_interface(
         self,
@@ -467,7 +493,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
             storage_pool = cn.storagePoolLookupByName(self._spec.storage_pool)
             name = self._form_vir_volume_name(volume)
             volume_xml = XMLLibvirtVolume.xml_from_base_template(
-                name, volume.size << 30, "qcow2"
+                storage_pool, name, volume.size << 30
             )
             virt_volume = storage_pool.createXML(volume_xml)
 
@@ -484,8 +510,20 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
 
             for v in volumes:
                 if v.name().startswith(str(volume.uuid)):
-                    v.wipe()
-                    v.delete()
+                    try:
+                        v.wipe()
+                    except libvirt.libvirtError as e:
+                        # Some backends don't need wiping, for ex. ZFS
+                        if e.get_error_code() != 3:  # VIR_ERR_NO_SUPPORT
+                            raise
+                    for i in range(20):
+                        try:
+                            v.delete()
+                        except libvirt.libvirtError as e:
+                            # Volume may be busy, just wait a little bit
+                            time.sleep(0.05)
+                        else:
+                            break
                     LOG.debug("The volume %s has been deleted", v.name())
                     return
 
@@ -545,7 +583,6 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
 
             domain.add_disk(
                 image_path=volume.path,
-                image_format=volume.device_type.lower(),
                 device="vd" + chr(ord("a") + i),
                 bus="virtio",
             )
