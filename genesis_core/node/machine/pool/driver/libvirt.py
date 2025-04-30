@@ -275,7 +275,11 @@ class XMLLibvirtInstance(XMLLibvirtMixin):
 
         cls.document_set_tag(document, "target", dev=device, bus=bus)
         cls.document_set_tag(
-            document, "driver", name="qemu", type=image_format
+            document,
+            "driver",
+            name="qemu",
+            type=image_format,
+            discard="unmap",  # Support trimming of unused blocks
         )
 
         device_element = domain.getElementsByTagName("devices")[0]
