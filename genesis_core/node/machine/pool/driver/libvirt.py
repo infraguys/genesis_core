@@ -505,29 +505,28 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
 
     def delete_volume(self, volume: models.MachineVolume) -> None:
         with ctxlib.closing(self._connect()) as cn:
-            storage_pool = cn.storagePoolLookupByName(self._spec.storage_pool)
-            volumes = storage_pool.listAllVolumes()
+            try:
+                v = cn.storageVolLookupByPath(volume.path)
+            except libvirt.libvirtError as e:
+                LOG.exception("The volume %s has not been found:", volume.uuid)
+                return
 
-            for v in volumes:
-                if v.name().startswith(str(volume.uuid)):
-                    try:
-                        v.wipe()
-                    except libvirt.libvirtError as e:
-                        # Some backends don't need wiping, for ex. ZFS
-                        if e.get_error_code() != 3:  # VIR_ERR_NO_SUPPORT
-                            raise
-                    for i in range(20):
-                        try:
-                            v.delete()
-                        except libvirt.libvirtError as e:
-                            # Volume may be busy, just wait a little bit
-                            time.sleep(0.05)
-                        else:
-                            break
-                    LOG.debug("The volume %s has been deleted", v.name())
-                    return
-
-        LOG.debug("The volume %s has not been found", volume.uuid)
+            try:
+                v.wipe()
+            except libvirt.libvirtError as e:
+                # Some backends don't need wiping, for ex. ZFS
+                if e.get_error_code() != 3:  # VIR_ERR_NO_SUPPORT
+                    raise
+            for i in range(20):
+                try:
+                    v.delete()
+                except libvirt.libvirtError as e:
+                    # Volume may be busy, just wait a little bit
+                    time.sleep(0.05)
+                else:
+                    break
+            LOG.debug("The volume %s has been deleted", v.name())
+            return
 
     def list_machines(self) -> tp.List[models.Machine]:
         """Return machine list from data plane."""
