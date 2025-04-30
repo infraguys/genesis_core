@@ -517,10 +517,13 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
                 # Some backends don't need wiping, for ex. ZFS
                 if e.get_error_code() != 3:  # VIR_ERR_NO_SUPPORT
                     raise
-            for i in range(20):
+            max_iters = 20
+            for i in range(max_iters + 1):
                 try:
                     v.delete()
                 except libvirt.libvirtError as e:
+                    if i == max_iters:
+                        raise
                     # Volume may be busy, just wait a little bit
                     time.sleep(0.05)
                 else:
