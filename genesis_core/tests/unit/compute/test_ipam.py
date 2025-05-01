@@ -46,11 +46,13 @@ class TestIPAM:
         empty_ipam.occupy_ip(0, address_pool)
         assert address_pool == []
 
-    def test_occupy_not_in_pool(self, empty_ipam: ipam.Ipam):
-        address_pool = [(0, 10)]
-        with pytest.raises(ipam.IpamIpNotFound) as e:
-            empty_ipam.occupy_ip(20, address_pool)
-            assert e.ip == netaddr.IPAddress("0.0.0.20")
+    # Disable because of:
+    # https://github.com/infraguys/genesis_core/pull/52
+    # def test_occupy_not_in_pool(self, empty_ipam: ipam.Ipam):
+    #     address_pool = [(0, 10)]
+    #     with pytest.raises(ipam.IpamIpNotFound) as e:
+    #         empty_ipam.occupy_ip(20, address_pool)
+    #         assert e.ip == netaddr.IPAddress("0.0.0.20")
 
     def test_allocate_ip(self, empty_ipam: ipam.Ipam):
         subnet = list(empty_ipam._pool_map.keys())[0]

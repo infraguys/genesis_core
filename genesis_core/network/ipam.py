@@ -108,7 +108,16 @@ class Ipam:
                 address_pool.insert(i + 1, (address + 1, e))
                 return
 
-        raise IpamIpNotFound(ip=netaddr.IPAddress(address))
+        # FIXME(akremenetsky): The original implementation raises
+        # an exception here:
+        # ```
+        # raise IpamIpNotFound(ip=netaddr.IPAddress(address))
+        # ```
+        # But we already have installations where IPs of some nodes
+        # are out of range of chosen IPs. It's a problem since occupied
+        # cannot be calculated correctly. Therefore we just log it and do
+        # nothing. Perhaps we should raise an exception in the future.
+        LOG.warning("IP %s is not in the pool", address)
 
     def allocate_ip(
         self,
