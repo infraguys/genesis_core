@@ -4,3 +4,14 @@
 # Welcome to genesis_core
 
 My project description
+
+## How to install 
+
+**Fedora linux**
+
+```bash
+sudo dnf install gcc libev-devel libvirt-devel
+
+tox -e develop
+source .tox/develop/bin/activate
+```

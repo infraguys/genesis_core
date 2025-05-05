@@ -291,6 +291,7 @@ class TestUsers(base.BaseIamResourceTest):
             "phone",
             "email",
             "otp_enabled",
+            "email_verified",
         ]
 
         result = client.get(

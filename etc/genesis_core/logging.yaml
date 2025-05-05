@@ -25,6 +25,7 @@ loggers:
   genesis_core: {}
   bjoern: {}
   gcl_looper: {}
+  gcl_sdk: {}
   restalchemy: {}
   psycopg: {}
 

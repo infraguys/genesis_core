@@ -24,13 +24,13 @@ import pytest
 import netaddr
 from gcl_iam import algorithms
 from gcl_iam.tests.functional import clients as iam_clients
+from gcl_sdk.events import clients as sdk_clients
 
 from genesis_core.common import constants as c
 from genesis_core.common import utils
 from genesis_core.node import constants as nc
 from genesis_core.node.dm import models as node_models
 from genesis_core.user_api.api import app as user_app
-from genesis_core.user_api.iam import constants as iam_c
 from genesis_core.tests.functional import utils as test_utils
 
 
@@ -50,6 +50,7 @@ def context_storage(
     return utils.get_context_storage(
         global_salt=os.getenv("GLOBAL_SALT", c.DEFAULT_GLOBAL_SALT),
         token_algorithm=hs256_algorithm,
+        events_client=sdk_clients.DummyEventClient(),
     )
 
 
@@ -132,6 +133,7 @@ def auth_test1_user(
     password = "test1"
     client = user_api_client(auth_user_admin)
     result = client.create_user(username="test1", password=password)
+    client.confirm_email(result["uuid"])
 
     return iam_clients.GenesisCoreAuth(
         username=result["username"],
@@ -155,6 +157,7 @@ def auth_test2_user(
     password = "test2"
     client = user_api_client(auth_user_admin)
     result = client.create_user(username="test2", password=password)
+    client.confirm_email(result["uuid"])
 
     return iam_clients.GenesisCoreAuth(
         username=result["username"],
@@ -178,6 +181,7 @@ def auth_test1_p1_user(
     password = "test1p1"
     client = user_api_client(auth_user_admin)
     user = client.create_user(username="test1p1", password=password)
+    client.confirm_email(user_uuid=user["uuid"])
 
     auth = iam_clients.GenesisCoreAuth(
         username=user["username"],

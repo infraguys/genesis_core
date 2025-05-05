@@ -1,0 +1,3 @@
+EventTypeMapping:
+    IamUserRegistration: b963bcfe-0a99-11f0-916d-047c160cda6f  # genesis_core/events/constants.py:IAM_USER_REGISTRATION_EVENT
+    ResetPassword: "df5ac4b0-de7e-41d5-a0bc-6e26bf35594a"

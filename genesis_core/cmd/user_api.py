@@ -21,6 +21,9 @@ from gcl_iam import algorithms
 from gcl_iam import constants as glc_iam_c
 from gcl_looper.services import hub
 from gcl_looper.services import bjoern_service
+from gcl_sdk.events import clients as sdk_clients
+from gcl_sdk.events import opts as sdk_opts
+from gcl_sdk import migrations as sdk_migrations
 from oslo_config import cfg
 from restalchemy.common import config_opts as ra_config_opts
 from restalchemy.storage.sql import engines
@@ -86,6 +89,7 @@ CONF.register_cli_opts(
     iam_c.DOMAIN_IAM_TOKEN_HS256,
 )
 ra_config_opts.register_posgresql_db_opts(CONF)
+sdk_opts.register_event_opts(CONF)
 
 
 def get_token_encryption_algorithm(conf=CONF):
@@ -106,12 +110,15 @@ def main():
     infra_log.configure()
     log = logging.getLogger(__name__)
 
+    sdk_migrations.apply_migrations(CONF)
+
     engines.engine_factory.configure_postgresql_factory(CONF)
 
     token_algorithm = get_token_encryption_algorithm(CONF)
     context_storage = utils.get_context_storage(
         global_salt=CONF[DOMAIN_IAM].global_salt,
         token_algorithm=token_algorithm,
+        events_client=sdk_clients.build_client(CONF),
     )
 
     log.info(
@@ -141,7 +148,10 @@ def main():
 
         serv_hub.add_service(service)
 
-    serv_hub.start()
+    if CONF[DOMAIN].workers > 1:
+        serv_hub.start()
+    else:
+        service.start()
 
 
 if __name__ == "__main__":

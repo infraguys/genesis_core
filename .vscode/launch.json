@@ -9,15 +9,16 @@
             "type": "debugpy",
             "request": "launch",
             "program": ".tox/develop/bin/gc-user-api",
-            "args": ["--config-file", "etc/genesis_core/genesis_core.conf"],
+            "args": ["--config-file", "etc/genesis_core/genesis_core.conf", "--config-dir", "etc/genesis_core/genesis_core.d/"],
             "console": "integratedTerminal",
-            "justMyCode": false
+            "justMyCode": false,
+            "subProcess": true
         }, {
             "name": "Python Debugger: Orch API",
             "type": "debugpy",
             "request": "launch",
             "program": ".tox/develop/bin/gc-orch-api",
-            "args": ["--config-file", "etc/genesis_core/genesis_core.conf"],
+            "args": ["--config-file", "etc/genesis_core/genesis_core.conf", "--config-dir", "etc/genesis_core/genesis_core.d/"],
             "console": "integratedTerminal",
             "justMyCode": false
         }, {
@@ -25,7 +26,7 @@
             "type": "debugpy",
             "request": "launch",
             "program": ".tox/develop/bin/gc-gservice",
-            "args": ["--config-file", "etc/genesis_core/genesis_core.conf"],
+            "args": ["--config-file", "etc/genesis_core/genesis_core.conf", "--config-dir", "etc/genesis_core/genesis_core.d/"],
             "console": "integratedTerminal",
             "justMyCode": false
         }, {
@@ -35,6 +36,7 @@
             "program": ".tox/develop/bin/ra-apply-migration",
             "args": [
                 "--config-file", "etc/genesis_core/genesis_core.conf",
+                "--config-dir", "etc/genesis_core/genesis_core.d/",
                 "-p", "migrations"
             ],
             "console": "integratedTerminal",
@@ -46,12 +48,12 @@
             "program": ".tox/develop/bin/ra-rollback-migration",
             "args": [
                 "--config-file", "etc/genesis_core/genesis_core.conf",
+                "--config-dir", "etc/genesis_core/genesis_core.d/",
                 "-p", "migrations",
                 "-m", "root"
             ],
             "console": "integratedTerminal",
             "justMyCode": false
         }
-
     ]
 }

@@ -113,7 +113,7 @@ class UserController(controllers.BaseResourceController, EnforceMixin):
         kwargs.pop("email_verified", None)
         user = super().create(**kwargs)
         app_endpoint = _get_app_endpoint(req=self._req)
-        user.send_confirmation_event(app_endpoint=app_endpoint)
+        user.resend_confirmation_event(app_endpoint=app_endpoint)
         return user
 
     def filter(self, filters, **kwargs):
@@ -207,11 +207,16 @@ class UserController(controllers.BaseResourceController, EnforceMixin):
     def resend_email_confirmation(self, resource):
         app_endpoint = _get_app_endpoint(req=self._req)
         resource.resend_confirmation_event(app_endpoint=app_endpoint)
+        return resource
 
     @actions.post
     def confirm_email(self, resource, code=None):
+        if self.enforce(c.PERMISSION_USER_WRITE_ALL):
+            resource.confirm_email()
+            return resource
         code = code or self._req.params.get("code", "")
         resource.confirm_email_by_code(code)
+        return resource
 
     @actions.post
     def reset_password(self, resource, new_password=None, code=None):
@@ -221,6 +226,7 @@ class UserController(controllers.BaseResourceController, EnforceMixin):
             new_secret=new_secret,
             code=code,
         )
+        return resource
 
     @actions.get
     def get_my_roles(self, resource):
@@ -496,7 +502,9 @@ class ClientsController(controllers.BaseResourceController):
     def reset_password(self, resource, email=None):
         email = email or self._req.params.get("email")
         app_endpoint = _get_app_endpoint(req=self._req)
-        resource.send_reset_password_event(email=email, app_endpoint=app_endpoint)
+        resource.send_reset_password_event(
+            email=email, app_endpoint=app_endpoint
+        )
 
 
 class WebController:

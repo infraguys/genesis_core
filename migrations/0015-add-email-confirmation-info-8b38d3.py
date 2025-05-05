@@ -20,7 +20,7 @@ from restalchemy.storage.sql import migrations
 class MigrationStep(migrations.AbstarctMigrationStep):
 
     def __init__(self):
-        self._depends = ["0013-add-ttl-to-token-2b8e3e.py"]
+        self._depends = ["0014-network-ipam-067981.py"]
 
     @property
     def migration_id(self):

@@ -14,12 +14,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from bazooka import exceptions as bazooka_exc
-import pytest
 
 from genesis_core.common import constants as common_c
 from genesis_core.tests.functional.restapi.iam import base
-from genesis_core.user_api.iam import constants as c
 
 
 class TestProjects(base.BaseIamResourceTest):
