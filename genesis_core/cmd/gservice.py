@@ -17,6 +17,7 @@
 import logging
 import sys
 
+from gcl_sdk.events import opts as sdk_opts
 from oslo_config import cfg
 from restalchemy.common import config_opts as ra_config_opts
 from restalchemy.storage.sql import engines
@@ -30,6 +31,7 @@ DOMAIN = "gservice"
 
 CONF = cfg.CONF
 ra_config_opts.register_posgresql_db_opts(CONF)
+sdk_opts.register_event_opts(CONF)
 
 
 def main():

@@ -20,7 +20,6 @@ from bazooka import exceptions as bazooka_exc
 import pytest
 
 from genesis_core.tests.functional.restapi.iam import base
-from genesis_core.user_api.iam import constants as c
 
 
 TEST_PROJECT_ID = str(sys_uuid.uuid4())

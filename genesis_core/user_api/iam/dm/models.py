@@ -20,7 +20,6 @@ import hashlib
 import secrets
 import uuid as sys_uuid
 
-import bazooka
 from gcl_iam import exceptions as iam_e
 from gcl_iam import tokens
 import jinja2
@@ -36,6 +35,7 @@ import pyotp
 
 from genesis_core.common import constants as c
 from genesis_core.common import utils as u
+from genesis_core.events import payloads as event_payloads
 from genesis_core.user_api.iam import constants as iam_c
 from genesis_core.user_api.iam.dm import types
 from genesis_core.user_api.iam import exceptions as iam_exceptions
@@ -289,80 +289,51 @@ class User(
         u.remove_nested_dm(RoleBinding, "user", self, session=session)
         return super().delete(session=session, **kwargs)
 
-    def _send_event(self, event):
-        client = bazooka.Client(default_timeout=5)
-        header = {
-            "Authorization": "Bearer {}".format(
-                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzQ2"
-                "NzcwMTUsImlhdCI6MTc0MzE0MTAxNSwiYXV0aF90aW1lIjoxNzQzM"
-                "TQxMDE1LCJqdGkiOiJmYjMyYjZiYy0wMGMxLTQ2NTQtYjgwOS00MD"
-                "Q5ZWIyMWFhM2UiLCJpc3MiOiJodHRwOi8vMTAuMTMwLjAuMjoxMTA"
-                "xMC92MS9pYW0vY2xpZW50cy8wMDAwMDAwMC0wMDAwLTAwMDAtMDAw"
-                "MC0wMDAwMDAwMDAwMDAiLCJhdWQiOiJHZW5lc2lzQ29yZUNsaWVud"
-                "ElkIiwic3ViIjoiMTU3MDc5NzEtY2I2Yy00N2JhLWI0ZTUtNTc4YT"
-                "YyNGFhOGQ5IiwidHlwIjoiQmVhcmVyIn0.PyhXln32MaCxbqFdWmX"
-                "25zGFm_ZtAjAv7y8Y6C4-wI4"
-            ),
-            "Content-Type": "application/json",
-        }
-        client.post(
-            "http://10.130.0.108:8080/v1/events/",
-            headers=header,
-            json=event,
+    def send_registration_event(self, app_endpoint="http://localhost/"):
+        ctx = contexts.get_context()
+        event_client = ctx.context_storage.get(iam_c.STORAGE_KEY_EVENTS_CLIENT)
+
+        registration_event_payload = event_payloads.RegistrationEventPayload(
+            site_endpoint=app_endpoint,
+            confirmation_code=self.confirmation_code,
         )
 
-    def send_confirmation_event(self, app_endpoint="http://localhost/"):
-        event = (
-            {
-                "project_id": "f96ae936-0a98-11f0-9cb1-047c160cda6f",
-                "exchange": {
-                    "kind": "User",
-                    "user_id": f"{self.uuid}",
-                },
-                "event_type": (
-                    "/v1/event_types/b963bcfe-0a99-11f0-916d-047c160cda6f"
-                ),
-                "event_params": {
-                    "first_name": f"{self.first_name}",
-                    "site_endpoint": f"{app_endpoint}",
-                    "user_uuid": f"{self.uuid}",
-                    "confirmation_code": f"{self.confirmation_code}",
-                },
-            },
+        event_client.send_event(
+            event=event_client.build_user_event(
+                context=ctx,
+                user=self,
+                payload=registration_event_payload,
+            ),
         )
-        self._send_event(event)
 
     def send_reset_password_event(self, app_endpoint="http://localhost/"):
-        event = (
-            {
-                "project_id": "f96ae936-0a98-11f0-9cb1-047c160cda6f",
-                "exchange": {
-                    "kind": "User",
-                    "user_id": f"{self.uuid}",
-                },
-                "event_type": (
-                    "/v1/event_types/df5ac4b0-de7e-41d5-a0bc-6e26bf35594a"
-                ),
-                "event_params": {
-                    "first_name": f"{self.first_name}",
-                    "site_endpoint": f"{app_endpoint}",
-                    "user_uuid": f"{self.uuid}",
-                    "reset_token": f"{self.confirmation_code}",
-                },
-            },
+        ctx = contexts.get_context()
+        event_client = ctx.context_storage.get(iam_c.STORAGE_KEY_EVENTS_CLIENT)
+
+        registration_event_payload = event_payloads.ResetPasswordEventPayload(
+            site_endpoint=app_endpoint,
+            reset_code=self.confirmation_code,
         )
-        self._send_event(event)
+
+        event_client.send_event(
+            event=event_client.build_user_event(
+                context=ctx,
+                user=self,
+                payload=registration_event_payload,
+            ),
+        )
 
     def resend_confirmation_event(self, app_endpoint="http://localhost/"):
         self.confirmation_code = sys_uuid.uuid4()
         self.save()
-        self.send_confirmation_event(app_endpoint=app_endpoint)
+        self.send_registration_event(app_endpoint=app_endpoint)
 
     def confirm_email(self):
         self.email_verified = True
         self.confirmation_code = sys_uuid.uuid4()
         self.make_newcomer()
         self.save()
+        return self
 
     def confirm_email_by_code(self, code):
         if str(self.confirmation_code) == str(code):

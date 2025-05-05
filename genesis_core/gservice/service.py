@@ -17,6 +17,7 @@
 import logging
 
 from gcl_looper.services import basic
+from gcl_sdk.events.services import senders
 
 from genesis_core.node.scheduler.driver.filters import available
 from genesis_core.node.scheduler.driver.weighter import relative
@@ -59,8 +60,15 @@ class GeneralService(basic.BasicService):
         n_machine = n_machine_service.MachineAgentService(
             iter_min_period=1, iter_pause=0.1
         )
+        event_sender = senders.EventSenderService.build_from_config()
 
-        self._services = [n_scheduler, n_network, n_builder, n_machine]
+        self._services = [
+            n_scheduler,
+            n_network,
+            n_builder,
+            n_machine,
+            event_sender,
+        ]
 
     def _setup(self):
         LOG.info("Setup all services")

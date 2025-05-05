@@ -37,6 +37,11 @@ skip_auth_endpoints = [
     iam_mw.EndpointComparator("/v1/health/"),
     iam_mw.EndpointComparator("/v1/iam/"),
     iam_mw.EndpointComparator("/v1/iam/users/", methods=[ra_c.POST]),
+    iam_mw.EndpointComparator(
+        f"/v1/iam/users/({ra_types.UUID_RE_TEMPLATE})"
+        "/actions/reset_password/invoke",
+        methods=[ra_c.POST],
+    ),
     iam_mw.EndpointComparator("/v1/iam/clients/"),
     iam_mw.EndpointComparator(
         f"/v1/iam/clients/({ra_types.UUID_RE_TEMPLATE})"

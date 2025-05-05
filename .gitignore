@@ -38,6 +38,7 @@ AUTHORS
 ChangeLog
 cover/
 version.txt
+etc/genesis_core/genesis_core.d/*.conf
 
 # OS
 .DS_Store

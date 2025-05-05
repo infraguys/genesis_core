@@ -19,6 +19,7 @@ import uuid as sys_uuid
 from importlib.metadata import entry_points
 
 from gcl_iam import algorithms
+from gcl_sdk.events import clients as sdk_clients
 from restalchemy.common import contexts
 from restalchemy.dm import filters as dm_filters
 
@@ -48,6 +49,7 @@ def load_group_from_entry_point(group: str) -> tp.Any:
 def get_context_storage(
     global_salt: str,
     token_algorithm: algorithms.AbstractAlgorithm,
+    events_client: sdk_clients.AbstractEventClient,
 ) -> contexts.Storage:
     return contexts.Storage(
         data={
@@ -57,6 +59,10 @@ def get_context_storage(
             },
             iam_c.STORAGE_KEY_IAM_TOKEN_ENCRYPTION_ALGORITHM: {
                 "value": token_algorithm,
+                "read_only": True,
+            },
+            iam_c.STORAGE_KEY_EVENTS_CLIENT: {
+                "value": events_client,
                 "read_only": True,
             },
         }
