@@ -30,14 +30,23 @@ class TestSchedulerService:
 
     def setup_method(self) -> None:
         # Run service
-        scheduler_filters = [
+        pool_filters = [
             available.CoresRamAvailableFilter(),
         ]
-        scheduler_weighters = [
+        pool_weighters = [
             relative.RelativeCoreRamWeighter(),
         ]
+        machine_filters = [
+            available.HWCoresRamAvailableFilter(),
+        ]
+        machine_weighters = [
+            relative.SimpleMachineWeighter(),
+        ]
         self._service = service.NodeSchedulerService(
-            filters=scheduler_filters, weighters=scheduler_weighters
+            pool_filters=pool_filters,
+            pool_weighters=pool_weighters,
+            machine_filters=machine_filters,
+            machine_weighters=machine_weighters,
         )
 
     def teardown_method(self) -> None:
@@ -239,3 +248,165 @@ class TestSchedulerService:
         assert collections.Counter(
             str(m.pool) for m in machines
         ) == collections.Counter(**{f"{uuid_foo}": 2, f"{uuid_bar}": 2})
+
+    def test_schedule_hw_node(
+        self,
+        default_pool: tp.Dict[str, tp.Any],
+        default_machine_agent: tp.Dict[str, tp.Any],
+        builder_factory: tp.Callable,
+        machine_factory: tp.Callable,
+        pool_factory: tp.Callable,
+        node_factory: tp.Callable,
+    ):
+        builder = builder_factory()
+        builder = models.Builder.restore_from_simple_view(**builder)
+        builder.insert()
+
+        # HW machine pool
+        hw_pool = pool_factory(machine_type="HW")
+        hw_pool = models.MachinePool.restore_from_simple_view(**hw_pool)
+        hw_pool.insert()
+
+        # HW machine
+        hw_machine = machine_factory(
+            machine_type="HW",
+            pool=hw_pool.uuid,
+            status="IDLE",
+            cores=2,
+            ram=4096,
+        )
+        hw_machine = models.Machine.restore_from_simple_view(**hw_machine)
+        hw_machine.insert()
+
+        # HW node
+        node = node_factory(node_type="HW")
+        node = models.Node.restore_from_simple_view(**node)
+        node.insert()
+
+        self._service._iteration()
+        machines = models.Machine.objects.get_all()
+        nodes = models.Node.objects.get_all()
+
+        assert len(machines) == 1
+        assert len(nodes) == 1
+        assert machines[0].node == node.uuid
+        assert machines[0].status == "SCHEDULED"
+        assert nodes[0].status == "SCHEDULED"
+
+    def test_schedule_hw_node_filtered_out_all(
+        self,
+        default_pool: tp.Dict[str, tp.Any],
+        default_machine_agent: tp.Dict[str, tp.Any],
+        builder_factory: tp.Callable,
+        machine_factory: tp.Callable,
+        pool_factory: tp.Callable,
+        node_factory: tp.Callable,
+    ):
+        builder = builder_factory()
+        builder = models.Builder.restore_from_simple_view(**builder)
+        builder.insert()
+
+        # HW machine pool
+        hw_pool = pool_factory(machine_type="HW")
+        hw_pool = models.MachinePool.restore_from_simple_view(**hw_pool)
+        hw_pool.insert()
+
+        # HW machine
+        hw_machine = machine_factory(
+            machine_type="HW",
+            pool=hw_pool.uuid,
+            status="IDLE",
+            cores=2,
+            ram=512,
+        )
+        hw_machine = models.Machine.restore_from_simple_view(**hw_machine)
+        hw_machine.insert()
+
+        # HW node
+        node = node_factory(node_type="HW", ram=1024)
+        node = models.Node.restore_from_simple_view(**node)
+        node.insert()
+
+        self._service._iteration()
+        machines = models.Machine.objects.get_all()
+        nodes = models.Node.objects.get_all()
+
+        assert len(machines) == 1
+        assert len(nodes) == 1
+        assert machines[0].node is None
+        assert machines[0].status == "IDLE"
+        assert nodes[0].status == "ERROR"
+        assert nodes[0].description == "No suitable HW machines found"
+
+    def test_schedule_hw_node_simple_weighter(
+        self,
+        default_pool: tp.Dict[str, tp.Any],
+        default_machine_agent: tp.Dict[str, tp.Any],
+        builder_factory: tp.Callable,
+        machine_factory: tp.Callable,
+        pool_factory: tp.Callable,
+        node_factory: tp.Callable,
+    ):
+        builder = builder_factory()
+        builder = models.Builder.restore_from_simple_view(**builder)
+        builder.insert()
+
+        # HW machine pool
+        hw_pool = pool_factory(machine_type="HW")
+        hw_pool = models.MachinePool.restore_from_simple_view(**hw_pool)
+        hw_pool.insert()
+
+        # HW machines
+        hw_machine = machine_factory(
+            machine_type="HW",
+            pool=hw_pool.uuid,
+            status="IDLE",
+            cores=4,
+            ram=2048,
+        )
+        hw_machine = models.Machine.restore_from_simple_view(**hw_machine)
+        hw_machine.insert()
+
+        hw_machine = machine_factory(
+            machine_type="HW",
+            pool=hw_pool.uuid,
+            status="IDLE",
+            cores=6,
+            ram=4096,
+        )
+        hw_machine = models.Machine.restore_from_simple_view(**hw_machine)
+        hw_machine.insert()
+
+        hw_machine = machine_factory(
+            machine_type="HW",
+            pool=hw_pool.uuid,
+            status="IDLE",
+            cores=1,
+            ram=2048,
+        )
+        hw_machine = models.Machine.restore_from_simple_view(**hw_machine)
+        hw_machine.insert()
+
+        # HW node
+        node = node_factory(node_type="HW", cores=1, ram=1024)
+        node = models.Node.restore_from_simple_view(**node)
+        node.insert()
+
+        self._service._iteration()
+        machines = models.Machine.objects.get_all()
+        nodes = models.Node.objects.get_all()
+
+        assert len(machines) == 3
+        assert len(nodes) == 1
+
+        for machine in machines:
+            if machine.uuid == hw_machine.uuid:
+                break
+        else:
+            raise AssertionError("Machine not found")
+
+        assert machine.node == node.uuid
+        assert machine.cores == 1
+        assert machine.ram == 2048
+        assert machine.status == "SCHEDULED"
+        assert nodes[0].status == "SCHEDULED"
