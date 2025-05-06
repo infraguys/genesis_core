@@ -34,9 +34,9 @@ class MigrationStep(migrations.AbstarctMigrationStep):
         sql_expressions = [
             """
             ALTER TABLE "iam_users"
-                ADD COLUMN "email_verified" BOOLEAN NOT NULL
+                ADD IF NOT EXISTS "email_verified" BOOLEAN NOT NULL
                     DEFAULT FALSE,
-                ADD COLUMN "confirmation_code" UUID NULL
+                ADD IF NOT EXISTS "confirmation_code" UUID NULL
                     DEFAULT NULL;
             """,
         ]
