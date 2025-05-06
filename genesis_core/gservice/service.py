@@ -25,6 +25,7 @@ from genesis_core.node.scheduler import service as n_scheduler_service
 from genesis_core.node.builder import service as n_builder_service
 from genesis_core.node.machine import service as n_machine_service
 from genesis_core.network import service as n_network_service
+from genesis_core.config import service as config_service
 
 
 LOG = logging.getLogger(__name__)
@@ -69,6 +70,7 @@ class GeneralService(basic.BasicService):
         n_machine = n_machine_service.MachineAgentService(
             iter_min_period=1, iter_pause=0.1
         )
+        cfg_service = config_service.ConfigService()
         event_sender = senders.EventSenderService.build_from_config()
 
         self._services = [
@@ -76,6 +78,7 @@ class GeneralService(basic.BasicService):
             n_network,
             n_builder,
             n_machine,
+            cfg_service,
             event_sender,
         ]
 
