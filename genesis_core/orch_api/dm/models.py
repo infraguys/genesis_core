@@ -15,6 +15,7 @@
 #    under the License.
 from __future__ import annotations
 
+import copy
 import json
 import hashlib
 import datetime
@@ -22,12 +23,16 @@ import typing as tp
 import uuid as sys_uuid
 
 from restalchemy.dm import types
+from restalchemy.dm import properties
 from restalchemy.dm import relationships
 from restalchemy.storage.sql import engines
 from restalchemy.dm import filters as dm_filters
 from restalchemy.common import exceptions as ra_common_exc
 
 from genesis_core.node.dm import models
+from genesis_core.config.dm import models as cm
+from genesis_core.common import constants as c
+from genesis_core.orch_api import utils as orch_utils
 
 LOCAL_GC_HOST = "localhost"
 LOCAL_GC_PORT = 11011
@@ -94,9 +99,13 @@ class Node(models.Node):
         ports = models.Port.objects.get_all(
             filters={"node": dm_filters.EQ(str(uuid))}
         )
+        renders = Render.objects.get_all(
+            filters={"node": dm_filters.EQ(str(uuid))}
+        )
         return {
             "node": node.dump_to_simple_view(),
             "ports": [p.dump_to_simple_view() for p in ports],
+            "renders": [r.to_agent_payload() for r in renders],
         }
 
 
@@ -126,49 +135,71 @@ class Interface(models.Interface):
         return interfaces
 
 
+class OrchRenderModel(cm.Render):
+    config = properties.property(types.UUID(), required=True)
+
+
+class Render(cm.Render):
+
+    def to_agent_payload(self) -> tp.Dict[str, tp.Any]:
+        return {
+            "uuid": str(self.uuid),
+            "content": self.content,
+            "path": self.config.path,
+            "mode": self.config.mode,
+            "owner": self.config.owner,
+            "group": self.config.group,
+            "on_change": self.config.on_change.dump_to_simple_view(),
+        }
+
+    @classmethod
+    def render_payload_hash(
+        cls,
+        render: tp.Dict[str, tp.Any],
+        hash_method: tp.Callable[[str], str] = hashlib.sha256,
+    ) -> str:
+        """Calculate render hash using dedicated fields."""
+        m = hash_method()
+        m.update(render["content"].encode("utf-8"))
+
+        content = render.pop("content")
+
+        m.update(
+            json.dumps(render, separators=(",", ":"), sort_keys=True).encode()
+        )
+
+        render["content"] = content
+        return m.hexdigest()
+
+
 class CoreAgent(models.CoreAgent):
 
     machine = relationships.relationship(Machine, prefetch=True)
 
     @classmethod
-    def calculate_payload_hash(cls, payload: tp.Dict[str, tp.Any]) -> str:
+    def calculate_payload_hash(
+        cls,
+        payload: tp.Dict[str, tp.Any],
+        hash_method: tp.Callable[[str], str] = hashlib.sha256,
+    ) -> str:
         """Calculate payload hash using dedicated fields."""
-        m = hashlib.sha256()
-        data = {}
+        payload = copy.deepcopy(payload)
 
-        # Base payload object
-        if machine := payload.get("machine"):
-            data = {
-                "machine": {
-                    "image": machine["image"],
-                    "node": machine.get("node"),
-                }
-            }
-
-        if node := payload.get("node"):
-            data["node"] = {
-                "cores": node["cores"],
-                "ram": node["ram"],
-                "node_type": node["node_type"],
-                "image": node["image"],
-            }
-
-        if interfaces := payload.get("interfaces"):
-            data["interfaces"] = [
-                {
-                    "mac": iface["mac"],
-                    "ipv4": iface["ipv4"],
-                    "mask": iface["mask"],
-                }
-                for iface in interfaces
+        if renders := payload.get("renders"):
+            # The reason why it's used 'double' hash is optimization on
+            # the agent side. For the agent it's easier to calculate hash
+            # per render and then calculate common hash. So do the same here.
+            payload["renders"] = [
+                Render.render_payload_hash(r, hash_method) for r in renders
             ]
 
-        m.update(json.dumps(data, separators=(",", ":")).encode("utf-8"))
-        return m.hexdigest()
+        return orch_utils.calculate_payload_hash(payload, hash_method)
 
     def _get_payload(self) -> tp.Dict[str, tp.Any]:
         state = {
-            "payload_updated_at": self.payload_updated_at.isoformat(),
+            "payload_updated_at": self.payload_updated_at.strftime(
+                c.DEFAULT_DATETIME_FORMAT
+            ),
             "machine": self.machine.dump_to_simple_view(),
         }
 
@@ -186,7 +217,9 @@ class CoreAgent(models.CoreAgent):
 
     def _get_short_payload(self, payload_hash: str) -> tp.Dict[str, tp.Any]:
         state = {
-            "payload_updated_at": self.payload_updated_at.isoformat(),
+            "payload_updated_at": self.payload_updated_at.strftime(
+                c.DEFAULT_DATETIME_FORMAT
+            ),
             "payload_hash": payload_hash,
         }
 
@@ -207,7 +240,9 @@ class CoreAgent(models.CoreAgent):
         # The agent and system states are different.
         # Firstly get the state then update the payload_updated_at.
         state = self._get_payload()
-        state["payload_updated_at"] = latest_updated_at.isoformat()
+        state["payload_updated_at"] = latest_updated_at.strftime(
+            c.DEFAULT_DATETIME_FORMAT
+        )
         self.payload_updated_at = latest_updated_at
         self.update()
 
@@ -222,6 +257,8 @@ class CoreAgent(models.CoreAgent):
             "    SELECT MAX(updated_at) FROM machines WHERE node = %s "
             "    UNION ALL "
             "    SELECT MAX(updated_at) FROM compute_ports WHERE node = %s "
+            "    UNION ALL "
+            "    SELECT MAX(updated_at) FROM config_renders WHERE node = %s "
             ");"
         )
         machine_expression = (
@@ -240,7 +277,7 @@ class CoreAgent(models.CoreAgent):
             params = [str(self.uuid)] * 2
         else:
             expression = payload_expression
-            params = [str(self.machine.node)] * 3
+            params = [str(self.machine.node)] * 4
 
         engine = engines.engine_factory.get_engine()
         with engine.session_manager() as session:

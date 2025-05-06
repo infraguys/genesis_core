@@ -76,7 +76,7 @@ class MigrationStep(migrations.AbstarctMigrationStep):
             """,
             """
             CREATE UNIQUE INDEX IF NOT EXISTS compute_net_interfaces_mac_machine_id_idx
-                ON compute_ports (mac, machine);
+                ON compute_net_interfaces (mac, machine);
             """,
             # Views
             """

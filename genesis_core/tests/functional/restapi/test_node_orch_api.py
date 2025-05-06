@@ -24,6 +24,7 @@ import requests
 from oslo_config import cfg
 
 from genesis_core.node.dm import models
+from genesis_core.config.dm import models as config_models
 from genesis_core.common import constants as c
 from genesis_core.tests.functional import utils as test_utils
 from genesis_core.tests.functional import conftest
@@ -184,7 +185,9 @@ class TestNodeOrchApi:
             orch_api.base_url, f"core_agents/{agent.uuid}/actions/get_payload"
         )
         data = {
-            "payload_updated_at": agent.payload_updated_at.isoformat(),
+            "payload_updated_at": agent.payload_updated_at.strftime(
+                c.DEFAULT_DATETIME_FORMAT
+            ),
         }
 
         response = requests.get(url, json=data)
@@ -193,10 +196,9 @@ class TestNodeOrchApi:
         assert response.status_code == 200
         assert output["payload_hash"]
         assert "machine" in output
-        assert (
-            output["payload_updated_at"]
-            != agent.payload_updated_at.isoformat()
-        )
+        assert output[
+            "payload_updated_at"
+        ] != agent.payload_updated_at.strftime(c.DEFAULT_DATETIME_FORMAT)
 
     def test_core_agent_payload_already_actual(
         self,
@@ -224,7 +226,9 @@ class TestNodeOrchApi:
             orch_api.base_url, f"core_agents/{agent.uuid}/actions/get_payload"
         )
         data = {
-            "payload_updated_at": agent.payload_updated_at.isoformat(),
+            "payload_updated_at": agent.payload_updated_at.strftime(
+                c.DEFAULT_DATETIME_FORMAT
+            ),
         }
 
         response = requests.get(url, json=data)
@@ -232,10 +236,9 @@ class TestNodeOrchApi:
 
         assert response.status_code == 200
         assert "machine" in output
-        assert (
-            output["payload_updated_at"]
-            != agent.payload_updated_at.isoformat()
-        )
+        assert output[
+            "payload_updated_at"
+        ] != agent.payload_updated_at.strftime(c.DEFAULT_DATETIME_FORMAT)
 
         # The second call should return the same state
         payload_updated_at = output["payload_updated_at"]
@@ -252,6 +255,64 @@ class TestNodeOrchApi:
         assert output["payload_updated_at"] == payload_updated_at
         assert output["payload_hash"] == payload_hash
         assert "machine" not in output
+
+    def test_core_agent_get_payload_with_config(
+        self,
+        machine_factory: tp.Callable,
+        node_factory: tp.Callable,
+        config_factory: tp.Callable,
+        default_pool: tp.Dict[str, tp.Any],
+        orch_api: test_utils.RestServiceTestCase,
+    ):
+        pool = models.MachinePool.restore_from_simple_view(**default_pool)
+        pool.insert()
+
+        node_uuid = sys_uuid.uuid4()
+        node = node_factory(uuid=node_uuid)
+        node = models.Node.restore_from_simple_view(**node)
+        node.insert()
+
+        config = config_factory(target_node=node_uuid)
+        config = config_models.Config.restore_from_simple_view(**config)
+        config.insert()
+        render = config.render(node_uuid)
+        render.status = "ACTIVE"
+        render.insert()
+
+        machine = machine_factory(
+            boot="hd0",
+            node=node_uuid,
+            pool=sys_uuid.UUID(default_pool["uuid"]),
+        )
+
+        machine = models.Machine.restore_from_simple_view(**machine)
+        machine.insert()
+
+        agent = models.CoreAgent(uuid=machine.uuid, machine=machine.uuid)
+        agent.insert()
+
+        url = urljoin(
+            orch_api.base_url, f"core_agents/{agent.uuid}/actions/get_payload"
+        )
+        data = {
+            "payload_updated_at": agent.payload_updated_at.strftime(
+                c.DEFAULT_DATETIME_FORMAT
+            ),
+        }
+
+        response = requests.get(url, json=data)
+        output = response.json()
+
+        assert response.status_code == 200
+        assert output["payload_hash"]
+        assert "machine" in output
+
+        assert len(output["renders"]) == 1
+
+        output_render = output["renders"][0]
+        assert output_render["uuid"] == str(render.uuid)
+        assert output_render["content"] == str(render.content)
+        assert output_render["path"] == config.path
 
     def test_core_agent_register_payload(
         self,
