@@ -20,13 +20,13 @@ from restalchemy.dm import relationships
 from genesis_core.node.dm import models
 
 
-class Subnet(models.Subnet, models.CastToBaseMixin):
+class Subnet(models.Subnet, models.cm.CastToBaseMixin):
     __cast_filels__ = ("network",)
 
     network = relationships.relationship(models.Network, prefetch=True)
 
 
-class Port(models.Port, models.CastToBaseMixin):
+class Port(models.Port, models.cm.CastToBaseMixin):
     __cast_filels__ = ("node", "machine", "subnet")
 
     subnet = relationships.relationship(Subnet, prefetch=True)
