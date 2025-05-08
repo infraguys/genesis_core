@@ -532,6 +532,23 @@ class Project(
                 return role_binding.project
         return None
 
+    @classmethod
+    def list_my(cls, filters=None):
+        user = User.me()
+        filters = filters or {}
+        filters.update({"user": ra_filters.EQ(user)})
+        role_bindings = RoleBinding.objects.get_all(
+            filters=filters,
+            order_by={"created_at": "asc"},
+        )
+        return [
+            binding.project for binding in role_bindings if binding.project
+        ]
+
+    def delete(self, session=None):
+        u.remove_nested_dm(RoleBinding, "project", self, session=session)
+        return super().delete(session=session)
+
 
 class PermissionFastView(
     models.ModelWithUUID,
@@ -571,10 +588,12 @@ class RoleBinding(
 
     project = relationships.relationship(
         Project,
+        prefetch=True,
         default=None,
     )
     user = relationships.relationship(
         User,
+        prefetch=True,
         required=True,
     )
     role = relationships.relationship(

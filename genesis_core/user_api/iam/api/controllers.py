@@ -26,6 +26,7 @@ from restalchemy.api import actions
 from restalchemy.api import controllers
 from restalchemy.api import resources
 from restalchemy.common import contexts
+from restalchemy.dm import filters as ra_filters
 from restalchemy.openapi import utils as oa_utils
 import pyotp
 
@@ -41,6 +42,10 @@ class EnforceMixin:
     def enforce(self, rule, do_raise=False, exc=None):
         iam = contexts.get_context().iam_context
         return iam.enforcer.enforce(rule, do_raise, exc)
+
+    def get_project_id(self, context):
+        introspection_info = context.iam_context.get_introspection_info()
+        return introspection_info.project_id
 
 
 class IamController(controllers.RoutesListController):
@@ -307,29 +312,60 @@ class ProjectController(controllers.BaseResourceController, EnforceMixin):
         project.add_owner(models.User.me())
         return project
 
-    # def _check_create_project_in_organization(self, organization):
-    #     user = models.User.my()
-    #     if organization.owner != user:
-    #         raise iam_e.CanNotCreateProjectInOrganization(
-    #             name=organization.name,
-    #         )
+    def filter(self, filters, order_by=None):
+        if self.enforce(c.PERMISSION_PROJECT_LIST_ALL):
+            return super().filter(filters=filters, order_by=order_by)
+        return models.Project.list_my()
 
-    # def _check_iam_organization_owner(self, organization):
-    #     user = models.User.my()
+    def get(self, uuid, **kwargs):
+        project = super().get(uuid, **kwargs)
+        if self.enforce(c.PERMISSION_PROJECT_READ_ALL):
+            return project
+        filters = {"project": ra_filters.EQ(project)}
+        for _ in models.Project.list_my(filters=filters):
+            return project
+        raise iam_e.CanNotReadProject(
+            uuid=project.uuid,
+            rule=c.PERMISSION_PROJECT_READ_ALL,
+        )
 
-    # def create(self, organization, **kwargs):
-    #     self._check_create_project_in_organization(organization)
-    #     return super().create(organization=organization, **kwargs)
+    def update(self, uuid, **kwargs):
+        project = self.get(uuid)
+        filters = {"project": ra_filters.EQ(project)}
+        for _ in models.Project.list_my(filters=filters):
+            return super().update(uuid, **kwargs)
+        if self.enforce(c.PERMISSION_PROJECT_WRITE_ALL):
+            return super().update(uuid, **kwargs)
+        raise iam_e.CanNotUpdateProject(
+            name=project.name,
+            rule=c.PERMISSION_PROJECT_WRITE_ALL,
+        )
 
-    # def get(self, uuid, **kwargs):
-    #     return super().get(uuid=uuid, **kwargs)
+    def delete(self, uuid):
+        project = self.get(uuid)
+        filters = {"project": ra_filters.EQ(project)}
+        for _ in models.Project.list_my(filters=filters):
+            return super().delete(uuid)
+        if self.enforce(c.PERMISSION_PROJECT_DELETE_ALL):
+            return super().delete(uuid)
+        raise iam_e.CanNotDeleteProject(
+            name=project.name,
+            rule=c.PERMISSION_PROJECT_WRITE_ALL,
+        )
 
 
-class RoleController(controllers.BaseResourceController, EnforceMixin):
+class RoleController(
+    controllers.BaseResourceController,
+    EnforceMixin,
+):
     __resource__ = resources.ResourceByRAModel(
         models.Role,
         convert_underscore=False,
     )
+
+    # def create(self, **kwargs):
+    #     role = super().create(**kwargs)
+    #     return role
 
 
 class RoleBindingController(controllers.BaseResourceController, EnforceMixin):

@@ -117,3 +117,18 @@ PERMISSION_ORGANIZATION_DELETE = rules.Rule.from_raw(
 PERMISSION_ORGANIZATION_DELETE_ALL = rules.Rule.from_raw(
     "iam.organization.delete_all",
 )
+
+
+# Projects
+PERMISSION_PROJECT_LIST_ALL = rules.Rule.from_raw(
+    "iam.project.list_all",
+)
+PERMISSION_PROJECT_READ_ALL = rules.Rule.from_raw(
+    "iam.project.read_all",
+)
+PERMISSION_PROJECT_WRITE_ALL = rules.Rule.from_raw(
+    "iam.project.write_all",
+)
+PERMISSION_PROJECT_DELETE_ALL = rules.Rule.from_raw(
+    "iam.project.delete_all",
+)
