@@ -69,6 +69,15 @@ class CanNotReadUser(exceptions.CommonForbiddenException, iam_exc.Forbidden):
     )
 
 
+class CanNotReadProject(
+    exceptions.CommonForbiddenException, iam_exc.Forbidden
+):
+    __template__ = (
+        "The current user is not permitted to read the project `{uuid}`."
+        " This action requires the `{rule}`, which has not been granted."
+    )
+
+
 class CanNotUpdateOrganization(
     exceptions.CommonForbiddenException,
     iam_exc.Forbidden,
