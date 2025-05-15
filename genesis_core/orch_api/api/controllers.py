@@ -79,6 +79,16 @@ class InterfacesController(controllers.BaseNestedResourceController):
     __pr_name__ = "machine"
 
 
+class RendersController(controllers.BaseResourceController):
+    """Controller for /v1/renders/ endpoint"""
+
+    __resource__ = resources.ResourceByRAModel(
+        model_class=orch_models.Render,
+        process_filters=True,
+        convert_underscore=False,
+    )
+
+
 class NetBootController(controllers.BaseResourceController):
     """Controller for /v1/boots/ endpoint"""
 

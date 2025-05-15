@@ -28,6 +28,7 @@ from restalchemy.dm import filters as dm_filters
 from restalchemy.common import exceptions as ra_common_exc
 
 from genesis_core.node.dm import models
+from genesis_core.config.dm import models as cm
 
 LOCAL_GC_HOST = "localhost"
 LOCAL_GC_PORT = 11011
@@ -94,9 +95,13 @@ class Node(models.Node):
         ports = models.Port.objects.get_all(
             filters={"node": dm_filters.EQ(str(uuid))}
         )
+        renders = Render.objects.get_all(
+            filters={"node": dm_filters.EQ(str(uuid))}
+        )
         return {
             "node": node.dump_to_simple_view(),
             "ports": [p.dump_to_simple_view() for p in ports],
+            "renders": [r.to_agent_payload() for r in renders],
         }
 
 
@@ -126,14 +131,51 @@ class Interface(models.Interface):
         return interfaces
 
 
+class Render(cm.Render):
+
+    def to_agent_payload(self) -> tp.Dict[str, tp.Any]:
+        return {
+            "uuid": str(self.uuid),
+            "content": self.content,
+            "path": self.config.path,
+            "mode": self.config.mode,
+            "owner": self.config.owner,
+            "group": self.config.group,
+            "on_change": self.config.on_change.dump_to_simple_view(),
+        }
+
+    @classmethod
+    def render_payload_hash(
+        cls,
+        render: tp.Dict[str, tp.Any],
+        hash_method: tp.Callable[[str], str] = hashlib.sha256,
+    ) -> str:
+        """Calculate render hash using dedicated fields."""
+        m = hash_method()
+        m.update(render["content"].encode("utf-8"))
+
+        content = render.pop("content")
+
+        m.update(
+            json.dumps(render, separators=(",", ":"), sort_keys=True).encode()
+        )
+
+        render["content"] = content
+        return m.hexdigest()
+
+
 class CoreAgent(models.CoreAgent):
 
     machine = relationships.relationship(Machine, prefetch=True)
 
     @classmethod
-    def calculate_payload_hash(cls, payload: tp.Dict[str, tp.Any]) -> str:
+    def calculate_payload_hash(
+        cls,
+        payload: tp.Dict[str, tp.Any],
+        hash_method: tp.Callable[[str], str] = hashlib.sha256,
+    ) -> str:
         """Calculate payload hash using dedicated fields."""
-        m = hashlib.sha256()
+        m = hash_method()
         data = {}
 
         # Base payload object
@@ -153,6 +195,14 @@ class CoreAgent(models.CoreAgent):
                 "image": node["image"],
             }
 
+        if renders := payload.get("renders"):
+            # The reason why it's used 'double' hash is optimization on
+            # the agent side. For the agent it's easier to calculate hash
+            # per render and then calculate common hash. So do the same here.
+            data["renders"] = [
+                Render.render_payload_hash(r, hash_method) for r in renders
+            ]
+
         if interfaces := payload.get("interfaces"):
             data["interfaces"] = [
                 {
@@ -163,7 +213,11 @@ class CoreAgent(models.CoreAgent):
                 for iface in interfaces
             ]
 
-        m.update(json.dumps(data, separators=(",", ":")).encode("utf-8"))
+        m.update(
+            json.dumps(data, separators=(",", ":"), sort_keys=True).encode(
+                "utf-8"
+            )
+        )
         return m.hexdigest()
 
     def _get_payload(self) -> tp.Dict[str, tp.Any]:
@@ -222,6 +276,8 @@ class CoreAgent(models.CoreAgent):
             "    SELECT MAX(updated_at) FROM machines WHERE node = %s "
             "    UNION ALL "
             "    SELECT MAX(updated_at) FROM compute_ports WHERE node = %s "
+            "    UNION ALL "
+            "    SELECT MAX(updated_at) FROM config_renders WHERE node = %s "
             ");"
         )
         machine_expression = (
@@ -240,7 +296,7 @@ class CoreAgent(models.CoreAgent):
             params = [str(self.uuid)] * 2
         else:
             expression = payload_expression
-            params = [str(self.machine.node)] * 3
+            params = [str(self.machine.node)] * 4
 
         engine = engines.engine_factory.get_engine()
         with engine.session_manager() as session:

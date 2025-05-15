@@ -53,6 +53,12 @@ class MachineRoute(routes.Route):
     interfaces = routes.route(InterfacesRoute, resource_route=True)
 
 
+class RenderRoute(routes.Route):
+    """Handler for /v1/renders/ endpoint"""
+
+    __controller__ = controllers.RendersController
+
+
 class CoreAgentGetPayloadAction(routes.Action):
     """Handler for /v1/core_agents/<uuid>/actions/get_payload endpoint"""
 
@@ -85,5 +91,6 @@ class ApiEndpointRoute(routes.Route):
     health = routes.route(HealthRoute)
     boots = routes.route(NetbootRoute)
     nodes = routes.route(NodeRoute)
+    renders = routes.route(RenderRoute)
     machines = routes.route(MachineRoute)
     core_agents = routes.route(CoreAgentRoute)
