@@ -134,6 +134,19 @@ PERMISSION_PROJECT_DELETE_ALL = rules.Rule.from_raw(
 )
 
 
+# Permissions
+PERMISSION_PERMISSION_CREATE = rules.Rule.from_raw(
+    "iam.permission.create",
+)
+PERMISSION_PERMISSION_READ = rules.Rule.from_raw(
+    "iam.permission.read",
+)
+PERMISSION_PERMISSION_UPDATE = rules.Rule.from_raw(
+    "iam.permission.update",
+)
+PERMISSION_PERMISSION_DELETE = rules.Rule.from_raw(
+    "iam.permission.delete",
+)
 # Roles
 PERMISSION_ROLE_CREATE = rules.Rule.from_raw(
     "iam.role.create",
