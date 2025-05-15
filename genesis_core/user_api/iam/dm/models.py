@@ -536,14 +536,17 @@ class Project(
     def list_my(cls, filters=None):
         user = User.me()
         filters = filters or {}
-        filters.update({"user": ra_filters.EQ(user)})
+        filters.update(
+            {
+                "user": ra_filters.EQ(user),
+                "project": ra_filters.IsNot(None),
+            }
+        )
         role_bindings = RoleBinding.objects.get_all(
             filters=filters,
             order_by={"created_at": "asc"},
         )
-        return [
-            binding.project for binding in role_bindings if binding.project
-        ]
+        return [binding.project for binding in role_bindings]
 
     def delete(self, session=None):
         u.remove_nested_dm(RoleBinding, "project", self, session=session)

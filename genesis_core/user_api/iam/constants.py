@@ -172,7 +172,7 @@ PERMISSION_ROLE_READ = rules.Rule.from_raw(
     "iam.role.read",
 )
 PERMISSION_ROLE_UPDATE = rules.Rule.from_raw(
-    "iam.role.write",
+    "iam.role.update",
 )
 PERMISSION_ROLE_DELETE = rules.Rule.from_raw(
     "iam.role.delete",

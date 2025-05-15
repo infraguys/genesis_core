@@ -43,10 +43,6 @@ class EnforceMixin:
         iam = contexts.get_context().iam_context
         return iam.enforcer.enforce(rule, do_raise, exc)
 
-    def get_project_id(self, context):
-        introspection_info = context.iam_context.get_introspection_info()
-        return introspection_info.project_id
-
 
 class IamController(controllers.RoutesListController):
 
@@ -319,10 +315,10 @@ class ProjectController(controllers.BaseResourceController, EnforceMixin):
 
     def get(self, uuid, **kwargs):
         project = super().get(uuid, **kwargs)
-        if self.enforce(c.PERMISSION_PROJECT_READ_ALL):
-            return project
         filters = {"project": ra_filters.EQ(project)}
         for _ in models.Project.list_my(filters=filters):
+            return project
+        if self.enforce(c.PERMISSION_PROJECT_READ_ALL):
             return project
         raise iam_e.CanNotReadProject(
             uuid=project.uuid,
