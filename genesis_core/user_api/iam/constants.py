@@ -192,3 +192,18 @@ PERMISSION_ROLE_BINDING_UPDATE = rules.Rule.from_raw(
 PERMISSION_ROLE_BINDING_DELETE = rules.Rule.from_raw(
     "iam.role_binding.delete",
 )
+
+
+# Iam Clients
+PERMISSION_IAM_CLIENT_CREATE = rules.Rule.from_raw(
+    "iam.iam_client.create",
+)
+PERMISSION_IAM_CLIENT_READ_ALL = rules.Rule.from_raw(
+    "iam.iam_client.read_all",
+)
+PERMISSION_IAM_CLIENT_UPDATE = rules.Rule.from_raw(
+    "iam.iam_client.update",
+)
+PERMISSION_IAM_CLIENT_DELETE = rules.Rule.from_raw(
+    "iam.iam_client.delete",
+)

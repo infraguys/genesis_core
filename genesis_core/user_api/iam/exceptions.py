@@ -129,3 +129,42 @@ class CanNotCreateProjectInOrganization(
         " organization `{name}`. Only the owner of the organization may"
         " create projects."
     )
+
+
+class CanNotCreateIamClient(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = (
+        "The current user is not permitted to create a IAM client `{name}`."
+        " This action requires the `{rule}`, which has not been granted."
+    )
+
+
+class CanNotListIamClients(
+    exceptions.CommonForbiddenException, iam_exc.Forbidden
+):
+    __template__ = (
+        "The current user is not permitted to list IAM clients."
+        " This action requires the `{rule}`, which has not been granted."
+    )
+
+
+class CanNotUpdateIamClient(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = (
+        "The current user is not permitted to update IAM client `{uuid}`."
+        " This action requires the `{rule}`, which has not been granted."
+    )
+
+
+class CanNotDeleteIamClient(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = (
+        "The current user is not permitted to delete IAM client `{uuid}`."
+        " This action requires the `{rule}`, which has not been granted."
+    )
