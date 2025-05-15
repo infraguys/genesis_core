@@ -366,11 +366,16 @@ class RoleController(
     __policy_name__ = "role"
 
 
-class RoleBindingController(controllers.BaseResourceController, EnforceMixin):
+class RoleBindingController(
+    iam_controllers.PolicyBasedWithoutProjectController,
+):
     __resource__ = resources.ResourceByRAModel(
         models.RoleBinding,
         convert_underscore=False,
     )
+
+    __policy_service_name__ = "iam"
+    __policy_name__ = "role_binding"
 
 
 class PermissionController(controllers.BaseResourceController, EnforceMixin):

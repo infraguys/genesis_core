@@ -147,3 +147,18 @@ PERMISSION_ROLE_UPDATE = rules.Rule.from_raw(
 PERMISSION_ROLE_DELETE = rules.Rule.from_raw(
     "iam.role.delete",
 )
+
+
+# Role bindings
+PERMISSION_ROLE_BINDING_CREATE = rules.Rule.from_raw(
+    "iam.role_binding.create",
+)
+PERMISSION_ROLE_BINDING_READ = rules.Rule.from_raw(
+    "iam.role_binding.read",
+)
+PERMISSION_ROLE_BINDING_UPDATE = rules.Rule.from_raw(
+    "iam.role_binding.update",
+)
+PERMISSION_ROLE_BINDING_DELETE = rules.Rule.from_raw(
+    "iam.role_binding.delete",
+)
