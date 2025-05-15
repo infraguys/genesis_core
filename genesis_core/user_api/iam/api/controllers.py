@@ -355,17 +355,15 @@ class ProjectController(controllers.BaseResourceController, EnforceMixin):
 
 
 class RoleController(
-    controllers.BaseResourceController,
-    EnforceMixin,
+    iam_controllers.PolicyBasedWithoutProjectController,
 ):
     __resource__ = resources.ResourceByRAModel(
         models.Role,
         convert_underscore=False,
     )
 
-    # def create(self, **kwargs):
-    #     role = super().create(**kwargs)
-    #     return role
+    __policy_service_name__ = "iam"
+    __policy_name__ = "role"
 
 
 class RoleBindingController(controllers.BaseResourceController, EnforceMixin):

@@ -132,3 +132,18 @@ PERMISSION_PROJECT_WRITE_ALL = rules.Rule.from_raw(
 PERMISSION_PROJECT_DELETE_ALL = rules.Rule.from_raw(
     "iam.project.delete_all",
 )
+
+
+# Roles
+PERMISSION_ROLE_CREATE = rules.Rule.from_raw(
+    "iam.role.create",
+)
+PERMISSION_ROLE_READ = rules.Rule.from_raw(
+    "iam.role.read",
+)
+PERMISSION_ROLE_UPDATE = rules.Rule.from_raw(
+    "iam.role.write",
+)
+PERMISSION_ROLE_DELETE = rules.Rule.from_raw(
+    "iam.role.delete",
+)
