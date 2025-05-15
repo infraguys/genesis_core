@@ -66,6 +66,7 @@ sudo -u postgres psql -c "CREATE DATABASE $GC_PG_USER OWNER $GC_PG_DB;"
 sudo mkdir -p $GC_CFG_DIR
 sudo cp "$GC_PATH/etc/genesis_core/genesis_core.conf" $GC_CFG_DIR/
 sudo cp "$GC_PATH/etc/genesis_core/logging.yaml" $GC_CFG_DIR/
+sudo cp "$GC_PATH/etc/genesis_core/event_type_mapping.yaml" $GC_CFG_DIR/
 sudo cp "$GC_PATH/genesis/images/startup_cfg.yaml" $GC_CFG_DIR/
 sudo cp "$GC_PATH/genesis/images/bootstrap.sh" $BOOTSTRAP_PATH/0100-gc-bootstrap.sh
 python3 -m uuid | sudo tee /var/lib/genesis/node-id
