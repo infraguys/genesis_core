@@ -402,7 +402,7 @@ class PermissionBindingController(
     __policy_name__ = "permission_binding"
 
 
-class IdpController(controllers.BaseResourceController):
+class IdpController(iam_controllers.PolicyBasedWithoutProjectController):
     __resource__ = resources.ResourceByRAModel(
         models.Idp,
         convert_underscore=False,
