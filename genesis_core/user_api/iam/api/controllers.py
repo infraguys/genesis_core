@@ -391,12 +391,15 @@ class PermissionController(
 
 
 class PermissionBindingController(
-    controllers.BaseResourceController, EnforceMixin
+    iam_controllers.PolicyBasedWithoutProjectController,
 ):
     __resource__ = resources.ResourceByRAModel(
         models.PermissionBinding,
         convert_underscore=False,
     )
+
+    __policy_service_name__ = "iam"
+    __policy_name__ = "permission_binding"
 
 
 class IdpController(controllers.BaseResourceController):
