@@ -202,7 +202,7 @@ def auth_test1_p1_user(
     project = client.create_project(
         uuid=str(sys_uuid.uuid4()),
         organization_uuid=org["uuid"],
-        name="Project1",
+        name="ProjectU1P1",
     )
 
     return iam_clients.GenesisCoreAuth(
@@ -218,7 +218,54 @@ def auth_test1_p1_user(
 
 
 @pytest.fixture()
-def user_api_client(user_api):
+def auth_test2_p1_user(
+    user_api_client: iam_clients.GenesisCoreTestRESTClient,
+    auth_user_admin: iam_clients.GenesisCoreAuth,
+    default_client_uuid: str,
+    default_client_id: str,
+    default_client_secret: str,
+):
+    password = "test2p1"
+    client = user_api_client(auth_user_admin)
+    user = client.create_user(username="test2p1", password=password)
+    client.confirm_email(user_uuid=user["uuid"])
+
+    auth = iam_clients.GenesisCoreAuth(
+        username=user["username"],
+        password=password,
+        client_uuid=default_client_uuid,
+        client_id=default_client_id,
+        client_secret=default_client_secret,
+        uuid=user["uuid"],
+        email=user["email"],
+        project_id=None,
+    )
+
+    client = client = user_api_client(
+        auth,
+    )
+
+    org = client.create_organization(name="OrganizationU2P1")
+    project = client.create_project(
+        uuid=str(sys_uuid.uuid4()),
+        organization_uuid=org["uuid"],
+        name="ProjectU2P1",
+    )
+
+    return iam_clients.GenesisCoreAuth(
+        username=user["username"],
+        password=password,
+        client_uuid=default_client_uuid,
+        client_id=default_client_id,
+        client_secret=default_client_secret,
+        uuid=user["uuid"],
+        email=user["email"],
+        project_id=project["uuid"],
+    )
+
+
+@pytest.fixture()
+def user_api_client(user_api, auth_user_admin):
 
     def build_client(
         auth: iam_clients.GenesisCoreAuth,
@@ -230,8 +277,12 @@ def user_api_client(user_api):
             f"{user_api.get_endpoint()}v1/",
             auth,
         )
+        admin_client = iam_clients.GenesisCoreTestRESTClient(
+            f"{user_api.get_endpoint()}v1/",
+            auth_user_admin,
+        )
 
-        client.set_permissions_to_user(
+        admin_client.set_permissions_to_user(
             user_uuid=auth.uuid,
             permissions=permissions,
             project_id=project_id,

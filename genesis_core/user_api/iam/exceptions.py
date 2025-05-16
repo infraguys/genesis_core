@@ -69,6 +69,37 @@ class CanNotReadUser(exceptions.CommonForbiddenException, iam_exc.Forbidden):
     )
 
 
+class CanNotReadProject(
+    exceptions.CommonForbiddenException, iam_exc.Forbidden
+):
+    __template__ = (
+        "The current user is not permitted to read the project `{uuid}`."
+        " This action requires the `{rule}`, which has not been granted."
+    )
+
+
+class CanNotUpdateProject(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = (
+        "The current user is not permitted to update the project"
+        " `{name}`. This action requires the `{rule}`, which has not"
+        " been granted."
+    )
+
+
+class CanNotDeleteProject(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = (
+        "The current user is not permitted to delete the project"
+        " `{name}`. This action requires the `{rule}`, which has not"
+        " been granted."
+    )
+
+
 class CanNotUpdateOrganization(
     exceptions.CommonForbiddenException,
     iam_exc.Forbidden,
@@ -97,4 +128,43 @@ class CanNotCreateProjectInOrganization(
         "The current user is not permitted to create a project in the"
         " organization `{name}`. Only the owner of the organization may"
         " create projects."
+    )
+
+
+class CanNotCreateIamClient(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = (
+        "The current user is not permitted to create a IAM client `{name}`."
+        " This action requires the `{rule}`, which has not been granted."
+    )
+
+
+class CanNotListIamClients(
+    exceptions.CommonForbiddenException, iam_exc.Forbidden
+):
+    __template__ = (
+        "The current user is not permitted to list IAM clients."
+        " This action requires the `{rule}`, which has not been granted."
+    )
+
+
+class CanNotUpdateIamClient(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = (
+        "The current user is not permitted to update IAM client `{uuid}`."
+        " This action requires the `{rule}`, which has not been granted."
+    )
+
+
+class CanNotDeleteIamClient(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = (
+        "The current user is not permitted to delete IAM client `{uuid}`."
+        " This action requires the `{rule}`, which has not been granted."
     )

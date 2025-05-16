@@ -27,6 +27,110 @@ TEST_PROJECT_ID = str(sys_uuid.uuid4())
 
 class TestClients(base.BaseIamResourceTest):
 
+    def test_create_iam_client_by_admin(
+        self, user_api_client, auth_user_admin
+    ):
+        client = user_api_client(auth_user_admin)
+        iam_client_name = "test_client[admin-user]"
+
+        iam_client = client.create_iam_client(
+            name=iam_client_name,
+            client_id="client_id",
+            secret="12345678",
+            redirect_url="http://127.0.0.1/",
+        )
+
+        assert iam_client["name"] == iam_client_name
+
+    def test_create_iam_client_by_user1(
+        self, user_api_client, auth_test1_user
+    ):
+        client = user_api_client(auth_test1_user)
+        iam_client_name = "test_client[admin-user]"
+
+        with pytest.raises(bazooka_exc.ForbiddenError):
+            client.create_iam_client(
+                name=iam_client_name,
+                client_id="client_id",
+                secret="12345678",
+                redirect_url="http://127.0.0.1/",
+            )
+
+    def test_list_iam_clients_by_admin(self, user_api_client, auth_user_admin):
+        client = user_api_client(auth_user_admin)
+
+        iam_clients = client.list_iam_clients()
+
+        assert len(iam_clients) > 0
+
+    def test_list_iam_clients_by_user(self, user_api_client, auth_test1_user):
+        client = user_api_client(auth_test1_user)
+
+        with pytest.raises(bazooka_exc.ForbiddenError):
+            client.list_iam_clients()
+
+    def test_get_iam_clients_by_admin(self, user_api_client, auth_user_admin):
+        client = user_api_client(auth_user_admin)
+        iam_client_uuid = "00000000-0000-0000-0000-000000000000"
+
+        iam_client = client.get_iam_client(uuid=iam_client_uuid)
+
+        assert iam_client["uuid"] == iam_client_uuid
+
+    def test_get_iam_clients_by_user(self, user_api_client, auth_test1_user):
+        client = user_api_client(auth_test1_user)
+        iam_client_uuid = "00000000-0000-0000-0000-000000000000"
+
+        iam_client = client.get_iam_client(uuid=iam_client_uuid)
+
+        assert iam_client["uuid"] == iam_client_uuid
+
+    def test_update_iam_clients_by_admin(
+        self, user_api_client, auth_user_admin
+    ):
+        client = user_api_client(auth_user_admin)
+        iam_client_uuid = "00000000-0000-0000-0000-000000000000"
+        new_name = "new_name"
+
+        result = client.update_iam_client(
+            uuid=iam_client_uuid,
+            name=new_name,
+        )
+
+        assert result["name"] == new_name
+
+    def test_update_iam_clients_by_user(
+        self, user_api_client, auth_test1_user
+    ):
+        client = user_api_client(auth_test1_user)
+        iam_client_uuid = "00000000-0000-0000-0000-000000000000"
+        new_name = "new_name"
+
+        with pytest.raises(bazooka_exc.ForbiddenError):
+            client.update_iam_client(
+                uuid=iam_client_uuid,
+                name=new_name,
+            )
+
+    def test_delete_iam_clients_by_admin(
+        self, user_api_client, auth_user_admin
+    ):
+        client = user_api_client(auth_user_admin)
+        iam_client_uuid = "00000000-0000-0000-0000-000000000000"
+
+        iam_client = client.delete_iam_client(uuid=iam_client_uuid)
+
+        assert iam_client is None
+
+    def test_delete_iam_clients_by_user(
+        self, user_api_client, auth_test1_user
+    ):
+        client = user_api_client(auth_test1_user)
+        iam_client_uuid = "00000000-0000-0000-0000-000000000000"
+
+        with pytest.raises(bazooka_exc.ForbiddenError):
+            client.delete_iam_client(uuid=iam_client_uuid)
+
     def test_me_wo_organization_success(
         self, user_api_client, auth_test1_user
     ):
