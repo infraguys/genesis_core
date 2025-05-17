@@ -231,11 +231,12 @@ def user_api_client(user_api):
             auth,
         )
 
-        client.set_permissions_to_user(
-            user_uuid=auth.uuid,
-            permissions=permissions,
-            project_id=project_id,
-        )
+        if permissions:
+            client.set_permissions_to_user(
+                user_uuid=auth.uuid,
+                permissions=permissions,
+                project_id=project_id,
+            )
 
         return client
 
@@ -314,7 +315,9 @@ def pool_factory():
         **kwargs,
     ) -> tp.Dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
-        driver_spec = driver_spec or {"driver": "libvirt"}
+        driver_spec = (
+            {"driver": "libvirt"} if driver_spec is None else driver_spec
+        )
         pool = node_models.MachinePool(
             uuid=uuid,
             agent=agent,
@@ -379,6 +382,25 @@ def builder_factory() -> tp.Callable:
             **kwargs,
         )
         view = builder.dump_to_simple_view()
+        return view
+
+    return factory
+
+
+@pytest.fixture
+def interface_factory() -> tp.Callable:
+    def factory(
+        uuid: sys_uuid.UUID | None = None,
+        mac: str | None = None,
+        **kwargs,
+    ) -> tp.Dict[str, tp.Any]:
+        uuid = uuid or sys_uuid.uuid4()
+        interface = node_models.Interface(
+            uuid=uuid,
+            mac=mac or node_models.Port.generate_mac(),
+            **kwargs,
+        )
+        view = interface.dump_to_simple_view()
         return view
 
     return factory
