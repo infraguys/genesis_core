@@ -117,3 +117,93 @@ PERMISSION_ORGANIZATION_DELETE = rules.Rule.from_raw(
 PERMISSION_ORGANIZATION_DELETE_ALL = rules.Rule.from_raw(
     "iam.organization.delete_all",
 )
+
+
+# Projects
+PERMISSION_PROJECT_LIST_ALL = rules.Rule.from_raw(
+    "iam.project.list_all",
+)
+PERMISSION_PROJECT_READ_ALL = rules.Rule.from_raw(
+    "iam.project.read_all",
+)
+PERMISSION_PROJECT_WRITE_ALL = rules.Rule.from_raw(
+    "iam.project.write_all",
+)
+PERMISSION_PROJECT_DELETE_ALL = rules.Rule.from_raw(
+    "iam.project.delete_all",
+)
+
+
+# Permissions
+PERMISSION_PERMISSION_CREATE = rules.Rule.from_raw(
+    "iam.permission.create",
+)
+PERMISSION_PERMISSION_READ = rules.Rule.from_raw(
+    "iam.permission.read",
+)
+PERMISSION_PERMISSION_UPDATE = rules.Rule.from_raw(
+    "iam.permission.update",
+)
+PERMISSION_PERMISSION_DELETE = rules.Rule.from_raw(
+    "iam.permission.delete",
+)
+
+
+# Permission bindings
+PERMISSION_PERMISSION_BINDING_CREATE = rules.Rule.from_raw(
+    "iam.permission_binding.create",
+)
+PERMISSION_PERMISSION_BINDING_READ = rules.Rule.from_raw(
+    "iam.permission_binding.read",
+)
+PERMISSION_PERMISSION_BINDING_UPDATE = rules.Rule.from_raw(
+    "iam.permission_binding.update",
+)
+PERMISSION_PERMISSION_BINDING_DELETE = rules.Rule.from_raw(
+    "iam.permission_binding.delete",
+)
+
+
+# Roles
+PERMISSION_ROLE_CREATE = rules.Rule.from_raw(
+    "iam.role.create",
+)
+PERMISSION_ROLE_READ = rules.Rule.from_raw(
+    "iam.role.read",
+)
+PERMISSION_ROLE_UPDATE = rules.Rule.from_raw(
+    "iam.role.update",
+)
+PERMISSION_ROLE_DELETE = rules.Rule.from_raw(
+    "iam.role.delete",
+)
+
+
+# Role bindings
+PERMISSION_ROLE_BINDING_CREATE = rules.Rule.from_raw(
+    "iam.role_binding.create",
+)
+PERMISSION_ROLE_BINDING_READ = rules.Rule.from_raw(
+    "iam.role_binding.read",
+)
+PERMISSION_ROLE_BINDING_UPDATE = rules.Rule.from_raw(
+    "iam.role_binding.update",
+)
+PERMISSION_ROLE_BINDING_DELETE = rules.Rule.from_raw(
+    "iam.role_binding.delete",
+)
+
+
+# Iam Clients
+PERMISSION_IAM_CLIENT_CREATE = rules.Rule.from_raw(
+    "iam.iam_client.create",
+)
+PERMISSION_IAM_CLIENT_READ_ALL = rules.Rule.from_raw(
+    "iam.iam_client.read_all",
+)
+PERMISSION_IAM_CLIENT_UPDATE = rules.Rule.from_raw(
+    "iam.iam_client.update",
+)
+PERMISSION_IAM_CLIENT_DELETE = rules.Rule.from_raw(
+    "iam.iam_client.delete",
+)

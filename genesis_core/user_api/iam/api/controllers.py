@@ -26,6 +26,7 @@ from restalchemy.api import actions
 from restalchemy.api import controllers
 from restalchemy.api import resources
 from restalchemy.common import contexts
+from restalchemy.dm import filters as ra_filters
 from restalchemy.openapi import utils as oa_utils
 import pyotp
 
@@ -307,55 +308,97 @@ class ProjectController(controllers.BaseResourceController, EnforceMixin):
         project.add_owner(models.User.me())
         return project
 
-    # def _check_create_project_in_organization(self, organization):
-    #     user = models.User.my()
-    #     if organization.owner != user:
-    #         raise iam_e.CanNotCreateProjectInOrganization(
-    #             name=organization.name,
-    #         )
+    def filter(self, filters, order_by=None):
+        if self.enforce(c.PERMISSION_PROJECT_LIST_ALL):
+            return super().filter(filters=filters, order_by=order_by)
+        return models.Project.list_my()
 
-    # def _check_iam_organization_owner(self, organization):
-    #     user = models.User.my()
+    def get(self, uuid, **kwargs):
+        project = super().get(uuid, **kwargs)
+        filters = {"project": ra_filters.EQ(project)}
+        for _ in models.Project.list_my(filters=filters):
+            return project
+        if self.enforce(c.PERMISSION_PROJECT_READ_ALL):
+            return project
+        raise iam_e.CanNotReadProject(
+            uuid=project.uuid,
+            rule=c.PERMISSION_PROJECT_READ_ALL,
+        )
 
-    # def create(self, organization, **kwargs):
-    #     self._check_create_project_in_organization(organization)
-    #     return super().create(organization=organization, **kwargs)
+    def update(self, uuid, **kwargs):
+        project = self.get(uuid)
+        filters = {"project": ra_filters.EQ(project)}
+        for _ in models.Project.list_my(filters=filters):
+            return super().update(uuid, **kwargs)
+        if self.enforce(c.PERMISSION_PROJECT_WRITE_ALL):
+            return super().update(uuid, **kwargs)
+        raise iam_e.CanNotUpdateProject(
+            name=project.name,
+            rule=c.PERMISSION_PROJECT_WRITE_ALL,
+        )
 
-    # def get(self, uuid, **kwargs):
-    #     return super().get(uuid=uuid, **kwargs)
+    def delete(self, uuid):
+        project = self.get(uuid)
+        filters = {"project": ra_filters.EQ(project)}
+        for _ in models.Project.list_my(filters=filters):
+            return super().delete(uuid)
+        if self.enforce(c.PERMISSION_PROJECT_DELETE_ALL):
+            return super().delete(uuid)
+        raise iam_e.CanNotDeleteProject(
+            name=project.name,
+            rule=c.PERMISSION_PROJECT_WRITE_ALL,
+        )
 
 
-class RoleController(controllers.BaseResourceController, EnforceMixin):
+class RoleController(
+    iam_controllers.PolicyBasedWithoutProjectController,
+):
     __resource__ = resources.ResourceByRAModel(
         models.Role,
         convert_underscore=False,
     )
 
+    __policy_service_name__ = "iam"
+    __policy_name__ = "role"
 
-class RoleBindingController(controllers.BaseResourceController, EnforceMixin):
+
+class RoleBindingController(
+    iam_controllers.PolicyBasedWithoutProjectController,
+):
     __resource__ = resources.ResourceByRAModel(
         models.RoleBinding,
         convert_underscore=False,
     )
 
+    __policy_service_name__ = "iam"
+    __policy_name__ = "role_binding"
 
-class PermissionController(controllers.BaseResourceController, EnforceMixin):
+
+class PermissionController(
+    iam_controllers.PolicyBasedWithoutProjectController,
+):
     __resource__ = resources.ResourceByRAModel(
         models.Permission,
         convert_underscore=False,
     )
 
+    __policy_service_name__ = "iam"
+    __policy_name__ = "permission"
+
 
 class PermissionBindingController(
-    controllers.BaseResourceController, EnforceMixin
+    iam_controllers.PolicyBasedWithoutProjectController,
 ):
     __resource__ = resources.ResourceByRAModel(
         models.PermissionBinding,
         convert_underscore=False,
     )
 
+    __policy_service_name__ = "iam"
+    __policy_name__ = "permission_binding"
 
-class IdpController(controllers.BaseResourceController):
+
+class IdpController(iam_controllers.PolicyBasedWithoutProjectController):
     __resource__ = resources.ResourceByRAModel(
         models.Idp,
         convert_underscore=False,
@@ -410,7 +453,7 @@ class IdpController(controllers.BaseResourceController):
         return token
 
 
-class ClientsController(controllers.BaseResourceController):
+class ClientsController(controllers.BaseResourceController, EnforceMixin):
     __resource__ = resources.ResourceByModelWithCustomProps(
         models.IamClient,
         convert_underscore=False,
@@ -421,6 +464,37 @@ class ClientsController(controllers.BaseResourceController):
             filter=["salt", "secret_hash", "secret"],
         ),
     )
+
+    def create(self, **kwargs):
+        if self.enforce(c.PERMISSION_IAM_CLIENT_CREATE):
+            return super().create(**kwargs)
+        raise iam_e.CanNotCreateIamClient(
+            name=kwargs["name"],
+            rule=c.PERMISSION_IAM_CLIENT_CREATE,
+        )
+
+    def filter(self, filters, **kwargs):
+        if self.enforce(c.PERMISSION_IAM_CLIENT_READ_ALL):
+            return super().filter(filters, **kwargs)
+        raise iam_e.CanNotListIamClients(
+            rule=c.PERMISSION_IAM_CLIENT_READ_ALL,
+        )
+
+    def update(self, uuid, **kwargs):
+        if self.enforce(c.PERMISSION_IAM_CLIENT_UPDATE):
+            return super().update(uuid, **kwargs)
+        raise iam_e.CanNotUpdateIamClient(
+            uuid=uuid,
+            rule=c.PERMISSION_IAM_CLIENT_UPDATE,
+        )
+
+    def delete(self, uuid):
+        if self.enforce(c.PERMISSION_IAM_CLIENT_DELETE):
+            return super().delete(uuid)
+        raise iam_e.CanNotDeleteIamClient(
+            uuid=uuid,
+            rule=c.PERMISSION_IAM_CLIENT_DELETE,
+        )
 
     @actions.get
     def auth(self, resource, **kwargs):
@@ -433,27 +507,7 @@ class ClientsController(controllers.BaseResourceController):
 
     @actions.post
     def login(self, resource, user, password, **kwargs):
-        # TODO(efrolov): rework this method. Is NOT working now
         raise NotImplementedError()
-
-        # u = models.User.objects.get_one(filters={"name": user})
-        # u.check_password(password)
-
-        # redirect_uri = kwargs.get("redirect_uri", None)
-        # if redirect_uri is not None:
-        #     url = (
-        #         redirect_uri
-        #         + f"?state={kwargs['state']}"
-        #         + "&session_state=96836906-d039-47e9-a321-f860d5224cb6"
-        #         + "&code=cd3f2e5d-8ca5-4083-9344-2f8a4ea01f80.96836906"
-        #         + "-d039-47e9-a321-f860d5224cb6.f5606e57-dfc9-4721-918"
-        #         + "e-656182bb2f13"
-        #         + "&iss=http%3A%2F%2Flocalhost%3A11010%2Fv1/%2FGenesis"
-        #     )
-
-        #     return None, 307, [("Location", url)]
-
-        # return kwargs
 
     @oa_utils.extend_schema(**oa_specs.OA_SPEC_GET_TOKEN_KWARGS)
     @actions.post
