@@ -67,7 +67,9 @@ def _get_app_endpoint(req):
     return f"{parsed_referer.scheme}://{parsed_referer.netloc}"
 
 
-class UserController(controllers.BaseResourceController, EnforceMixin):
+class UserController(
+    controllers.BaseResourceControllerPaginated, EnforceMixin
+):
     __resource__ = resources.ResourceByModelWithCustomProps(
         models.User,
         convert_underscore=False,
@@ -241,6 +243,7 @@ class UserController(controllers.BaseResourceController, EnforceMixin):
 
 class OrganizationController(
     iam_controllers.PolicyBasedWithoutProjectController,
+    controllers.BaseResourceControllerPaginated,
     EnforceMixin,
 ):
     __resource__ = resources.ResourceByRAModel(
@@ -289,7 +292,7 @@ class OrganizationController(
 
 
 class OrganizationMemberController(
-    controllers.BaseResourceController, EnforceMixin
+    controllers.BaseResourceControllerPaginated, EnforceMixin
 ):
     __resource__ = resources.ResourceByRAModel(
         models.OrganizationMember,
@@ -297,7 +300,9 @@ class OrganizationMemberController(
     )
 
 
-class ProjectController(controllers.BaseResourceController, EnforceMixin):
+class ProjectController(
+    controllers.BaseResourceControllerPaginated, EnforceMixin
+):
     __resource__ = resources.ResourceByRAModel(
         models.Project,
         convert_underscore=False,
@@ -352,6 +357,7 @@ class ProjectController(controllers.BaseResourceController, EnforceMixin):
 
 class RoleController(
     iam_controllers.PolicyBasedWithoutProjectController,
+    controllers.BaseResourceControllerPaginated,
 ):
     __resource__ = resources.ResourceByRAModel(
         models.Role,
@@ -364,6 +370,7 @@ class RoleController(
 
 class RoleBindingController(
     iam_controllers.PolicyBasedWithoutProjectController,
+    controllers.BaseResourceControllerPaginated,
 ):
     __resource__ = resources.ResourceByRAModel(
         models.RoleBinding,
@@ -376,6 +383,7 @@ class RoleBindingController(
 
 class PermissionController(
     iam_controllers.PolicyBasedWithoutProjectController,
+    controllers.BaseResourceControllerPaginated,
 ):
     __resource__ = resources.ResourceByRAModel(
         models.Permission,
@@ -388,6 +396,7 @@ class PermissionController(
 
 class PermissionBindingController(
     iam_controllers.PolicyBasedWithoutProjectController,
+    controllers.BaseResourceControllerPaginated,
 ):
     __resource__ = resources.ResourceByRAModel(
         models.PermissionBinding,
@@ -398,7 +407,10 @@ class PermissionBindingController(
     __policy_name__ = "permission_binding"
 
 
-class IdpController(iam_controllers.PolicyBasedWithoutProjectController):
+class IdpController(
+    iam_controllers.PolicyBasedWithoutProjectController,
+    controllers.BaseResourceControllerPaginated,
+):
     __resource__ = resources.ResourceByRAModel(
         models.Idp,
         convert_underscore=False,
@@ -453,7 +465,9 @@ class IdpController(iam_controllers.PolicyBasedWithoutProjectController):
         return token
 
 
-class ClientsController(controllers.BaseResourceController, EnforceMixin):
+class ClientsController(
+    controllers.BaseResourceControllerPaginated, EnforceMixin
+):
     __resource__ = resources.ResourceByModelWithCustomProps(
         models.IamClient,
         convert_underscore=False,

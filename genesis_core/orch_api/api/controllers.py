@@ -41,7 +41,7 @@ class HealthController(controllers.Controller):
         return "OK"
 
 
-class NodesController(controllers.BaseResourceController):
+class NodesController(controllers.BaseResourceControllerPaginated):
     """Controller for /v1/nodes/ endpoint"""
 
     __resource__ = resources.ResourceByRAModel(
@@ -51,7 +51,7 @@ class NodesController(controllers.BaseResourceController):
     )
 
 
-class MachinesController(controllers.BaseResourceController):
+class MachinesController(controllers.BaseResourceControllerPaginated):
     """Controller for /v1/machines/ endpoint"""
 
     __resource__ = resources.ResourceByRAModel(
@@ -61,7 +61,7 @@ class MachinesController(controllers.BaseResourceController):
     )
 
 
-class NetBootController(controllers.BaseResourceController):
+class NetBootController(controllers.BaseResourceControllerPaginated):
     """Controller for /v1/boots/ endpoint"""
 
     __resource__ = resources.ResourceByRAModel(
