@@ -79,24 +79,15 @@ responses.update(
                 "error_description",
             ],
             "properties": {
-                "type": "object",
-                "description": "Detail error map",
-                "required": [
-                    "code",
-                    "type",
-                    "message",
-                ],
-                "properties": {
-                    "error": {
-                        "type": "string",
-                        "description": "Error class name",
-                        "example": "OSError",
-                    },
-                    "error_description": {
-                        "type": "string",
-                        "description": "Error description",
-                        "example": "A human-readable explanation of problem",
-                    },
+                "error": {
+                    "type": "string",
+                    "description": "Error class name",
+                    "example": "OSError",
+                },
+                "error_description": {
+                    "type": "string",
+                    "description": "Error description",
+                    "example": "A human-readable explanation of problem",
                 },
             },
             "example": {
