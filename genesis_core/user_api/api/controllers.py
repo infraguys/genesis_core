@@ -40,6 +40,7 @@ class HealthController(controllers.Controller):
 
 class NodesController(
     iam_controllers.PolicyBasedController,
+    controllers.BaseResourceControllerPaginated,
 ):
     """Controller for /v1/nodes/ endpoint"""
 
@@ -55,6 +56,7 @@ class NodesController(
 
 class MachinesController(
     iam_controllers.PolicyBasedController,
+    controllers.BaseResourceControllerPaginated,
 ):
     """Controller for /v1/machines/ endpoint"""
 
@@ -70,6 +72,7 @@ class MachinesController(
 
 class HypervisorsController(
     iam_controllers.PolicyBasedController,
+    controllers.BaseResourceControllerPaginated,
 ):
     """Controller for /v1/hypervisors/ endpoint"""
 
@@ -94,6 +97,7 @@ class HypervisorsController(
 
 class MachineAgentController(
     iam_controllers.PolicyBasedController,
+    controllers.BaseResourceControllerPaginated,
 ):
     """Controller for /v1/machine_agents/ endpoint"""
 
