@@ -21,7 +21,7 @@ from genesis_core.node.dm import models
 
 
 class Machine(models.Machine, models.CastToBaseMixin):
-    __cast_filels__ = ("node", "pool")
+    __cast_fields__ = ("node", "pool")
 
     node = relationships.relationship(models.Node, prefetch=True)
     pool = relationships.relationship(models.MachinePool, prefetch=True)

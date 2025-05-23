@@ -39,10 +39,41 @@ class NodeRoute(routes.Route):
     __controller__ = controllers.NodesController
 
 
+class InterfacesRoute(routes.Route):
+    """Handler for /v1/machines/<id>/interfaces/ endpoint"""
+
+    __controller__ = controllers.InterfacesController
+
+
 class MachineRoute(routes.Route):
     """Handler for /v1/machines/ endpoint"""
 
     __controller__ = controllers.MachinesController
+
+    interfaces = routes.route(InterfacesRoute, resource_route=True)
+
+
+class CoreAgentGetPayloadAction(routes.Action):
+    """Handler for /v1/core_agents/<uuid>/actions/get_payload endpoint"""
+
+    __controller__ = controllers.CoreAgentController
+
+
+class CoreAgentRegisterPayloadAction(routes.Action):
+    """Handler for /v1/core_agents/<uuid>/actions/register_payload/invoke endpoint"""
+
+    __controller__ = controllers.CoreAgentController
+
+
+class CoreAgentRoute(routes.Route):
+    """Handler for /v1/core_agents/ endpoint"""
+
+    __controller__ = controllers.CoreAgentController
+
+    get_payload = routes.action(CoreAgentGetPayloadAction)
+    register_payload = routes.action(
+        CoreAgentRegisterPayloadAction, invoke=True
+    )
 
 
 class ApiEndpointRoute(routes.Route):
@@ -55,3 +86,4 @@ class ApiEndpointRoute(routes.Route):
     boots = routes.route(NetbootRoute)
     nodes = routes.route(NodeRoute)
     machines = routes.route(MachineRoute)
+    core_agents = routes.route(CoreAgentRoute)
