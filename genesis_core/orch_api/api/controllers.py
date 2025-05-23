@@ -25,6 +25,7 @@ from restalchemy.dm import filters as dm_filters
 from restalchemy.storage import exceptions as ra_storage_exceptions
 
 from genesis_core.node.dm import models
+from genesis_core.common import constants as c
 from genesis_core.node import constants as nc
 from genesis_core.orch_api.dm import models as orch_models
 from genesis_core.orch_api.api import packers
@@ -79,7 +80,17 @@ class InterfacesController(controllers.BaseNestedResourceController):
     __pr_name__ = "machine"
 
 
-class NetBootController(controllers.BaseResourceControllerPaginated):
+class RendersController(controllers.BaseResourceController):
+    """Controller for /v1/renders/ endpoint"""
+
+    __resource__ = resources.ResourceByRAModel(
+        model_class=orch_models.OrchRenderModel,
+        process_filters=True,
+        convert_underscore=False,
+    )
+
+
+class NetBootController(controllers.BaseResourceController):
     """Controller for /v1/boots/ endpoint"""
 
     __resource__ = resources.ResourceByRAModel(
@@ -130,8 +141,12 @@ class CoreAgentController(controllers.BaseResourceController):
         payload_updated_at: str | None = None,
     ):
         if payload_updated_at is not None:
-            payload_updated_at = datetime.datetime.fromisoformat(
-                payload_updated_at
+            payload_updated_at = datetime.datetime.strptime(
+                payload_updated_at,
+                c.DEFAULT_DATETIME_FORMAT,
+            )
+            payload_updated_at = payload_updated_at.replace(
+                tzinfo=datetime.timezone.utc
             )
 
         return resource.get_payload(

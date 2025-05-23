@@ -18,15 +18,16 @@ from __future__ import annotations
 from restalchemy.dm import relationships
 
 from genesis_core.node.dm import models
+from genesis_core.common.dm import models as cm
 
 
-class Subnet(models.Subnet, models.CastToBaseMixin):
+class Subnet(models.Subnet, cm.CastToBaseMixin):
     __cast_fields__ = ("network",)
 
     network = relationships.relationship(models.Network, prefetch=True)
 
 
-class Port(models.Port, models.CastToBaseMixin):
+class Port(models.Port, cm.CastToBaseMixin):
     __cast_fields__ = ("node", "machine", "subnet")
 
     subnet = relationships.relationship(Subnet, prefetch=True)

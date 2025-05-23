@@ -1,0 +1,12 @@
+[Unit]
+Description=Genesis Core Agent Service
+After=network-online.target
+
+[Service]
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=5
+ExecStart=gc-agent --config-file /etc/genesis_core_agent/genesis_core_agent.conf
+
+[Install]
+WantedBy=multi-user.target
