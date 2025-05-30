@@ -13,16 +13,38 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from __future__ import annotations
 
-from restalchemy.dm import relationships
+import enum
+import typing as tp
 
-from genesis_core.node.dm import models
-from genesis_core.common.dm import models as cm
+DEFAULT_SQL_LIMIT = 100
 
 
-class Machine(models.Machine, cm.CastToBaseMixin):
-    __cast_fields__ = ("node", "pool")
+class ConfigStatus(str, enum.Enum):
+    NEW = "NEW"
+    IN_PROGRESS = "IN_PROGRESS"
+    ACTIVE = "ACTIVE"
+    ERROR = "ERROR"
 
-    node = relationships.relationship(models.Node, prefetch=True)
-    pool = relationships.relationship(models.MachinePool, prefetch=True)
+
+class FilePermission(enum.Flag):
+    R = 4
+    W = 2
+    X = 1
+
+    ALL = R | W | X
+
+    @classmethod
+    def combinations(cls) -> tp.Tuple[int]:
+        return tuple(range(8))
+
+
+FileMode = enum.Enum(
+    "FileMode",
+    [
+        (f"o{u}{g}{o}", f"0{u}{g}{o}")
+        for u in FilePermission.combinations()
+        for g in FilePermission.combinations()
+        for o in FilePermission.combinations()
+    ],
+)

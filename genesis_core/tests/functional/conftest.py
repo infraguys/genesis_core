@@ -32,6 +32,8 @@ from genesis_core.node import constants as nc
 from genesis_core.node.dm import models as node_models
 from genesis_core.user_api.api import app as user_app
 from genesis_core.tests.functional import utils as test_utils
+from genesis_core.config.dm import models as conf_models
+from genesis_core.config import constants as cc
 
 
 FIRST_MIGRATION = "0000-root-d34de1.py"
@@ -365,7 +367,9 @@ def pool_factory():
         **kwargs,
     ) -> tp.Dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
-        driver_spec = driver_spec or {"driver": "libvirt"}
+        driver_spec = (
+            {"driver": "libvirt"} if driver_spec is None else driver_spec
+        )
         pool = node_models.MachinePool(
             uuid=uuid,
             agent=agent,
@@ -417,6 +421,44 @@ def machine_factory(default_pool: tp.Dict[str, tp.Any]):
 
 
 @pytest.fixture
+def config_factory():
+    def factory(
+        target_node: sys_uuid.UUID,
+        uuid: sys_uuid.UUID | None = None,
+        name: str = "config",
+        path: str = "/etc/genesis-configs/config.conf",
+        content_body: str = "test",
+        on_change_cmd: str | None = None,
+        project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
+        status: str = cc.ConfigStatus.NEW.value,
+        **kwargs,
+    ) -> tp.Dict[str, tp.Any]:
+        uuid = uuid or sys_uuid.uuid4()
+        target = conf_models.NodeTarget.from_node(target_node)
+        body = conf_models.TextBodyConfig.from_text(content_body)
+        if on_change_cmd is None:
+            on_change = conf_models.OnChangeNoAction()
+        else:
+            on_change = conf_models.OnChangeShell.from_command(on_change_cmd)
+
+        config = conf_models.Config(
+            uuid=uuid,
+            name=name,
+            path=path,
+            target=target,
+            body=body,
+            on_change=on_change,
+            project_id=project_id,
+            status=status,
+            **kwargs,
+        )
+        view = config.dump_to_simple_view()
+        return view
+
+    return factory
+
+
+@pytest.fixture
 def builder_factory() -> tp.Callable:
     def factory(
         uuid: sys_uuid.UUID | None = None,
@@ -430,6 +472,25 @@ def builder_factory() -> tp.Callable:
             **kwargs,
         )
         view = builder.dump_to_simple_view()
+        return view
+
+    return factory
+
+
+@pytest.fixture
+def interface_factory() -> tp.Callable:
+    def factory(
+        uuid: sys_uuid.UUID | None = None,
+        mac: str | None = None,
+        **kwargs,
+    ) -> tp.Dict[str, tp.Any]:
+        uuid = uuid or sys_uuid.uuid4()
+        interface = node_models.Interface(
+            uuid=uuid,
+            mac=mac or node_models.Port.generate_mac(),
+            **kwargs,
+        )
+        view = interface.dump_to_simple_view()
         return view
 
     return factory

@@ -35,8 +35,35 @@ TARGET_IP_KEY = "target_ipv4"
 
 class NetworkService(basic.BasicService):
 
-    def _get_new_nodes(self) -> tp.List[models.NodeWithoutPorts]:
-        return models.NodeWithoutPorts.get_nodes()
+    def _get_new_vm_nodes(self) -> tp.List[models.NodeWithoutPorts]:
+        return models.NodeWithoutPorts.get_vm_nodes()
+
+    def _get_new_hw_ports(
+        self, subnets: tp.Iterable[net_models.Subnet]
+    ) -> tp.List[net_models.Port]:
+        ports = []
+        nodes = net_models.HWNodeWithoutPorts.get_nodes()
+
+        if not nodes:
+            return ports
+
+        # Prepare ports for HW nodes.
+        # Need to detect the corresponding subnets
+        for node in nodes:
+            for subnet in subnets:
+                if node.iface.ipv4 in subnet.cidr:
+                    # Create ports for HW nodes
+                    port = net_models.Port(
+                        subnet=subnet,
+                        mac=node.iface.mac,
+                        project_id=subnet.project_id,
+                        node=node.node,
+                        machine=node.machine,
+                        mask=subnet.cidr.netmask,
+                    )
+                    ports.append(port)
+
+        return ports
 
     def _get_subnet_map(
         self,
@@ -274,12 +301,13 @@ class NetworkService(basic.BasicService):
         ipam = None
 
         with contexts.Context().session_manager():
-            new_nodes = self._get_new_nodes()
+            new_vm_nodes = self._get_new_vm_nodes()
             subnet_map = self._get_subnet_map()
+            new_hw_ports = self._get_new_hw_ports(subnet_map.keys())
             network_map = self._build_network_map(subnet_map)
 
             # There are new nodes. Allocate ports to them.
-            for node in new_nodes:
+            for node in new_vm_nodes:
                 # Initialize ipam if needed
                 if ipam is None:
                     ipam = net_ipam.Ipam(subnet_map)
@@ -297,6 +325,20 @@ class NetworkService(basic.BasicService):
                     ipam.deallocate_ip(port.subnet, port.ipv4)
                     LOG.exception(
                         "Error allocating port for node %s", node.uuid
+                    )
+
+            # There are new HW ports. Allocate IPs to them.
+            for port in new_hw_ports:
+                # Initialize ipam if needed
+                if ipam is None:
+                    ipam = net_ipam.Ipam(subnet_map)
+                try:
+                    port.ipv4 = ipam.allocate_ip(port.subnet)
+                    port.insert()
+                    subnet_map[port.subnet].append(port)
+                except Exception:
+                    LOG.exception(
+                        "Error allocating IP for machine %s", port.machine
                     )
 
             # Actualize ports and subnets on the data plane

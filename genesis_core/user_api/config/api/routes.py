@@ -13,16 +13,22 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from __future__ import annotations
 
-from restalchemy.dm import relationships
+from restalchemy.api import routes
 
-from genesis_core.node.dm import models
-from genesis_core.common.dm import models as cm
+from genesis_core.user_api.config.api import controllers
 
 
-class Machine(models.Machine, cm.CastToBaseMixin):
-    __cast_fields__ = ("node", "pool")
+class ConfigsRoute(routes.Route):
+    """Handler for /v1/config/configs/ endpoint"""
 
-    node = relationships.relationship(models.Node, prefetch=True)
-    pool = relationships.relationship(models.MachinePool, prefetch=True)
+    __controller__ = controllers.ConfigsController
+
+
+class ConfigRoute(routes.Route):
+    """Handler for /v1/config/ endpoint"""
+
+    __allow_methods__ = [routes.FILTER]
+    __controller__ = controllers.ConfigController
+
+    configs = routes.route(ConfigsRoute)
