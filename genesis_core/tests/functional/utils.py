@@ -44,6 +44,8 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
     def teardown_class(cls):
         cls.drop_all_views()
         cls.drop_all_tables(cascade=True)
+        # Hack for psycopg to finish fast, otherwise we'll need to wait for GC
+        cls.engine.__del__()
         cls.destroy_engine()
 
     @staticmethod
