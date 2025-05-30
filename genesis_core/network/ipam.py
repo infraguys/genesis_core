@@ -100,7 +100,10 @@ class Ipam:
         for port in ports:
             if port.ipv4 is not None:
                 # Exclude IPs from the discovery range
-                if port.ipv4 in subnet.ip_discovery_range:
+                if (
+                    subnet.ip_discovery_range
+                    and port.ipv4 in subnet.ip_discovery_range
+                ):
                     continue
 
                 ip = int(netaddr.IPAddress(port.ipv4))

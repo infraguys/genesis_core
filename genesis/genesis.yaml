@@ -28,6 +28,12 @@ build:
       # Local path
       http:
         src: http://repository.genesis-core.tech:8081/seed_os/latest/vmlinuz
+    
+    # Take SDK from a local path for development purposes.
+    - dst: /opt/gcl_sdk
+      optional: true
+      path:
+        env: LOCAL_GENESIS_SDK_PATH
   
   # List of elements in the project
   elements:
@@ -46,4 +52,3 @@ build:
         override:
           disk_size: "6G"
       # manifest: manifests/genesis-core.yaml
-

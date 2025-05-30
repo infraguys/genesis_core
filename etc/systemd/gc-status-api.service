@@ -1,0 +1,14 @@
+[Unit]
+Description=Genesis Core Status API
+After=network-online.target
+
+[Service]
+TimeoutStopSec=5
+Restart=on-failure
+RestartSec=5s
+KillSignal=SIGINT
+ExecStartPre=/bin/sleep 2
+ExecStart=gc-status-api --config-file /etc/genesis_core/genesis_core.conf
+
+[Install]
+WantedBy=multi-user.target

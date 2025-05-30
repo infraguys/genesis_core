@@ -20,6 +20,7 @@ from importlib.metadata import entry_points
 
 from gcl_iam import algorithms
 from gcl_sdk.events import clients as sdk_clients
+from gcl_sdk.agents.universal import utils as sdk_utils
 from restalchemy.common import contexts
 from restalchemy.dm import filters as dm_filters
 
@@ -28,8 +29,7 @@ from genesis_core.user_api.iam import constants as iam_c
 
 
 def node_uuid(path: str = c.NODE_UUID_PATH) -> sys_uuid.UUID:
-    with open(path, "r") as f:
-        return sys_uuid.UUID(f.read().strip())
+    return sdk_utils.node_uuid(node_path=path)
 
 
 def load_from_entry_point(group: str, name: str) -> tp.Any:

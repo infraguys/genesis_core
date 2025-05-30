@@ -13,8 +13,5 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-import os
 
-
-WORK_DIR = "/var/lib/genesis/core-agent/"
-PAYLOAD_PATH = os.path.join(WORK_DIR, "payload.json")
+API_VERSION_v1 = "v1"

@@ -23,7 +23,7 @@ from oslo_config import cfg
 from restalchemy.common import config_opts as ra_config_opts
 from restalchemy.storage.sql import engines
 
-from genesis_core.orch_api.api import app
+from genesis_core.status_api.api import app
 from genesis_core.common import config
 from genesis_core.common import log as infra_log
 
@@ -36,7 +36,7 @@ api_cli_opts = [
     ),
     cfg.IntOpt(
         "bind-port",
-        default=11011,
+        default=11012,
         help="The port to bind to",
     ),
     cfg.IntOpt(
@@ -44,30 +44,10 @@ api_cli_opts = [
         default=1,
         help="How many http servers should be started",
     ),
-    cfg.StrOpt(
-        "gc_host",
-        default="10.20.0.2",
-        help="GC host",
-    ),
-    cfg.IntOpt(
-        "gc_port",
-        default=11011,
-        help="GC port",
-    ),
-    cfg.StrOpt(
-        "kernel",
-        default=None,
-        help="Endpoint for Linux kernel",
-    ),
-    cfg.StrOpt(
-        "initrd",
-        default=None,
-        help="Endpoint for Linux initrd",
-    ),
 ]
 
 
-DOMAIN = "orch_api"
+DOMAIN = "status_api"
 
 CONF = cfg.CONF
 CONF.register_cli_opts(api_cli_opts, DOMAIN)
@@ -81,6 +61,14 @@ def main():
     # Configure logging
     infra_log.configure()
     log = logging.getLogger(__name__)
+
+    engines.engine_factory.configure_postgresql_factory(CONF)
+
+    log.info(
+        "Start service on %s:%s",
+        CONF[DOMAIN].bind_host,
+        CONF[DOMAIN].bind_port,
+    )
 
     serv_hub = hub.ProcessHubService()
 

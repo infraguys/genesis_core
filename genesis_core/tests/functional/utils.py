@@ -23,6 +23,8 @@ from urllib import parse
 from restalchemy.storage.sql import migrations
 from restalchemy.tests.functional import db_utils as ra_db_utils
 from restalchemy.tests.functional.restapi.ra_based.microservice import service
+from gcl_sdk import migrations as sdk_migrations
+from gcl_sdk.tests.functional import conftest as sdk_conftest
 
 
 ENDPOINT_TEMPLATE = "http://127.0.0.1:%s/"
@@ -56,6 +58,39 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
             migrations_path=migrations_path
         )
         return migration_engine
+
+    @classmethod
+    def apply_migrations(
+        cls,
+        migration_path: str,
+        first_migration: str,
+        last_migration: str | None = None,
+    ) -> migrations.MigrationEngine:
+
+        migrations = cls.get_migration_engine(migrations_path=migration_path)
+        migrations.rollback_migration(first_migration)
+
+        last_migration = last_migration or migrations.get_latest_migration()
+        migrations.apply_migration(last_migration)
+        return migrations
+
+    def apply_all_migrations(self) -> None:
+
+        # SDK migrations
+        self._sdk_migration = self.apply_migrations(
+            migration_path=sdk_migrations.__path__[0],
+            first_migration=sdk_conftest.FIRST_MIGRATION,
+        )
+
+        # Service migrations
+        self._migration = self.apply_migrations(
+            migration_path=os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "../../../migrations",
+            ),
+            first_migration=self.__FIRST_MIGRATION__,
+            last_migration=self.__LAST_MIGRATION__,
+        )
 
     @property
     def base_url(self) -> str:
@@ -129,13 +164,7 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
 
     def setup_method(self) -> None:
         # Apply migrations
-        self._migrations = self.get_migration_engine()
-        self._migrations.rollback_migration(self.__FIRST_MIGRATION__)
-
-        last_migration = (
-            self.__LAST_MIGRATION__ or self._migrations.get_latest_migration()
-        )
-        self._migrations.apply_migration(last_migration)
+        self.apply_all_migrations()
 
         # Run service
         self.service_port = self.find_free_port()
@@ -149,5 +178,5 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
         self._service.stop()
 
         # Rollback migrations
-        self._migrations = self.get_migration_engine()
-        self._migrations.rollback_migration(self.__FIRST_MIGRATION__)
+        self._migration.rollback_migration(self.__FIRST_MIGRATION__)
+        self._sdk_migration.rollback_migration(sdk_conftest.FIRST_MIGRATION)
