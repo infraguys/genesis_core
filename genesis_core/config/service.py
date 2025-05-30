@@ -15,9 +15,11 @@
 #    under the License.
 from __future__ import annotations
 
+import json
 import logging
 import datetime
 import itertools
+import hashlib
 import collections
 import typing as tp
 
@@ -25,6 +27,7 @@ from restalchemy.common import contexts
 from restalchemy.dm import filters as dm_filters
 from restalchemy.storage import exceptions as ra_exceptions
 from gcl_looper.services import basic
+from gcl_sdk.agents.universal.dm import models as agent_models
 
 from genesis_core.node.dm import models as node_models
 from genesis_core.config.dm import models
@@ -107,6 +110,37 @@ class ConfigService(basic.BasicService):
                 LOG.debug("Render %s created", render.uuid)
             except ra_exceptions.ConflictRecords:
                 LOG.warning("Render %s already exists", render.uuid)
+
+            # ONLY FOR TEST PURPOSES
+            value = {
+                "content": render.content,
+                "owner": render.config.owner,
+                "group": render.config.group,
+                "mode": render.config.mode,
+                "on_change": render.config.on_change.dump_to_simple_view(),
+            }
+            m = hashlib.sha256()
+            m.update(
+                json.dumps(
+                    value, separators=(",", ":"), sort_keys=True
+                ).encode("utf-8")
+            )
+            render.save()
+            agent = agent_models.UniversalAgent.objects.get_one(
+                filters={
+                    "uuid": dm_filters.EQ(str(node.uuid)),
+                }
+            )
+
+            resource = agent_models.TargetResource(
+                uuid=render.uuid,
+                kind="render",
+                hash=m.hexdigest(),
+                value=value,
+                agent=agent,
+            )
+            resource.insert()
+            # END
 
         config.status = cc.ConfigStatus.IN_PROGRESS.value
         config.save()
