@@ -48,8 +48,8 @@ jobs:
         uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install tox
-        run: sudo apt update && sudo apt install --yes tox libev-dev libvirt-dev
+      - name: Install dependencies
+        run: sudo apt update && sudo apt install --yes tox libev-dev libvirt-dev pdns-server pdns-backend-pgsql
       - name: Unit tests
         run: |
           tox -e ${{ matrix.python-version }}

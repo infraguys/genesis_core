@@ -114,3 +114,14 @@ sudo cp "$GC_PATH/etc/systemd/genesis-universal-scheduler.service" $SYSTEMD_SERV
 sudo systemctl enable gc-user-api gc-orch-api gc-status-api gc-gservice \
     genesis-universal-agent \
     genesis-universal-scheduler
+
+
+# Prepare DNSaaS
+
+# Install packages
+sudo apt install pdns-backend-pgsql pdns-server -y
+
+sudo rm /etc/powerdns/pdns.d/bind.conf
+sudo cp "$GC_PATH/etc/powerdns/genesis.conf" /etc/powerdns/pdns.d/genesis.conf
+
+sudo systemctl enable pdns
