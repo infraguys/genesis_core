@@ -95,3 +95,14 @@ sudo cp "$GC_PATH/etc/systemd/gc-gservice.service" $SYSTEMD_SERVICE_DIR
 
 # Enable genesis core services
 sudo systemctl enable gc-user-api gc-orch-api gc-gservice
+
+
+# Prepare DNSaaS
+
+# Install packages
+sudo apt install pdns-backend-pgsql pdns-server -y
+
+sudo rm /etc/powerdns/pdns.d/bind.conf
+sudo cp "$GC_PATH/etc/powerdns/genesis.conf" /etc/powerdns/pdns.d/genesis.conf
+
+sudo systemctl enable pdns
