@@ -25,6 +25,8 @@ from restalchemy.dm import types
 from restalchemy.dm import types_dynamic
 from restalchemy.storage.sql import orm
 
+from gcl_sdk.agents.universal.dm import models as ua_models
+
 from genesis_core.common.dm import models as cm
 from genesis_core.node.dm import models as nm
 from genesis_core.config import constants as cc
@@ -131,7 +133,7 @@ class OnChangeShell(types_dynamic.AbstractKindModel, models.SimpleViewMixin):
 class Config(
     cm.ModelWithFullAsset,
     orm.SQLStorableMixin,
-    models.SimpleViewMixin,
+    ua_models.TargetResourceMixin,
 ):
     __tablename__ = "config_configs"
 
@@ -182,7 +184,7 @@ class Config(
     def target_owners(self) -> tp.List[sys_uuid.UUID]:
         return self.target.owners()
 
-    def render(self, node: sys_uuid.UUID) -> Render:
+    def render(self, node: sys_uuid.UUID) -> ua_models.TargetResource:
         # FIXME(akremenetsky): The `node` parameter will
         # be used in the future for node sets to make a
         # particular rendering for each node.
@@ -190,27 +192,94 @@ class Config(
         content = self.body.render()
         render_uuid = sys_uuid.uuid5(node, self.path)
 
-        return Render(
+        config_view = self.dump_to_simple_view(skip=("uuid",))
+        render = Render.restore_from_simple_view(
             uuid=render_uuid,
-            config=self,
-            node=node,
             content=content,
+            **{
+                k: v
+                for k, v in config_view.items()
+                if k in Render.properties.properties
+            },
         )
+
+        resource = render.to_ua_resource("render", master=self.uuid)
+        resource.calculate_hash()
+        return resource
 
 
 class Render(
     models.ModelWithUUID,
-    models.ModelWithTimestamp,
-    orm.SQLStorableMixin,
-    models.SimpleViewMixin,
+    ua_models.TargetResourceMixin,
 ):
-    __tablename__ = "config_renders"
-
-    config = relationships.relationship(Config, prefetch=True)
-
-    node = properties.property(types.AllowNone(types.UUID()), default=None)
-    status = properties.property(
-        types.Enum([s.value for s in cc.ConfigStatus]),
-        default=cc.ConfigStatus.NEW.value,
-    )
     content = properties.property(types.String(), required=True)
+    path = properties.property(
+        types.String(min_length=1, max_length=512),
+        required=True,
+    )
+    mode = properties.property(types.String(max_length=4), default="0644")
+    owner = properties.property(
+        types.String(max_length=128),
+        default="root",
+    )
+    group = properties.property(
+        types.String(max_length=128),
+        default="root",
+    )
+    on_change = properties.property(
+        types_dynamic.KindModelSelectorType(
+            types_dynamic.KindModelType(OnChangeNoAction),
+            types_dynamic.KindModelType(OnChangeShell),
+        ),
+        default=OnChangeNoAction,
+    )
+
+
+class NewConfigs(models.ModelWithUUID, orm.SQLStorableMixin):
+    __tablename__ = "config_new_configs"
+
+    config = relationships.relationship(
+        Config,
+        prefetch=True,
+        required=True,
+    )
+
+
+class UpdatedConfigs(models.ModelWithUUID, orm.SQLStorableMixin):
+    __tablename__ = "config_updated_configs"
+
+    config = relationships.relationship(
+        Config,
+        prefetch=True,
+        required=True,
+    )
+    resource = relationships.relationship(
+        ua_models.TargetResource,
+        prefetch=True,
+        required=True,
+    )
+
+
+class DeletedConfigs(models.ModelWithUUID, orm.SQLStorableMixin):
+    __tablename__ = "config_deleted_configs"
+
+    resource = relationships.relationship(
+        ua_models.TargetResource,
+        prefetch=True,
+        required=True,
+    )
+
+
+class OutdatedRenders(models.ModelWithUUID, orm.SQLStorableMixin):
+    __tablename__ = "config_outdated_renders"
+
+    target_render = relationships.relationship(
+        ua_models.TargetResource,
+        prefetch=True,
+        required=True,
+    )
+    actual_render = relationships.relationship(
+        ua_models.Resource,
+        prefetch=True,
+        required=True,
+    )

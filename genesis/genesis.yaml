@@ -28,6 +28,10 @@ build:
       # Local path
       http:
         src: http://repository.genesis-core.tech:8081/seed_os/latest/vmlinuz
+    - dst: /opt/gcl_sdk
+      optional: false
+      path:
+        env: LOCAL_GENESIS_SDK_PATH
   
   # List of elements in the project
   elements:

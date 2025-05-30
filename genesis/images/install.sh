@@ -78,6 +78,12 @@ pip install pip --upgrade
 pip install -r "$GC_PATH"/requirements.txt
 pip install -e "$GC_PATH"
 
+# Hack to install custom SDK
+pip uninstall -y gcl_sdk
+pip install -e "/opt/gcl_sdk"
+ra-apply-migration --config-dir "$GC_PATH/etc/genesis_core/" --path "/opt/gcl_sdk/gcl_sdk/migrations"
+
+
 # Apply migrations
 ra-apply-migration --config-dir "$GC_PATH/etc/genesis_core/" --path "$GC_PATH/migrations"
 deactivate
