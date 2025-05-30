@@ -532,24 +532,6 @@ class HWNodeWithoutPorts(models.ModelWithUUID, orm.SQLStorableMixin):
         return cls.objects.get_all()
 
 
-class CoreAgent(
-    models.ModelWithUUID,
-    models.ModelWithNameDesc,
-    orm.SQLStorableMixin,
-    models.SimpleViewMixin,
-):
-    __tablename__ = "compute_core_agents"
-
-    payload_updated_at = properties.property(
-        types.UTCDateTimeZ(),
-        default=lambda: datetime.datetime(
-            1970, 1, 1, 0, 0, tzinfo=datetime.timezone.utc
-        ),
-    )
-
-    machine = properties.property(types.AllowNone(types.UUID()), default=None)
-
-
 class Interface(
     models.ModelWithUUID,
     models.ModelWithNameDesc,

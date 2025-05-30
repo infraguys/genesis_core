@@ -22,7 +22,7 @@ loggers:
     level: WARNING
     propagate: False
 
-  genesis_core: {}
+  genesis_universal_agent: {}
   bjoern: {}
   gcl_looper: {}
   gcl_sdk: {}

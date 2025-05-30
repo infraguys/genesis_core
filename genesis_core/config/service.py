@@ -17,14 +17,15 @@ from __future__ import annotations
 
 import logging
 import datetime
-import itertools
 import collections
 import typing as tp
+import uuid as sys_uuid
 
 from restalchemy.common import contexts
 from restalchemy.dm import filters as dm_filters
 from restalchemy.storage import exceptions as ra_exceptions
 from gcl_looper.services import basic
+from gcl_sdk.agents.universal.dm import models as ua_models
 
 from genesis_core.node.dm import models as node_models
 from genesis_core.config.dm import models
@@ -32,52 +33,76 @@ from genesis_core.config import constants as cc
 
 
 LOG = logging.getLogger(__name__)
+CONFIG_CAPABILITY_RESOURCE = "config"
+RENDER_CAPABILITY_RESOURCE = "render"
 ORPHAN_CFG_ITERATION_FREQUENCY = 10
 DEF_OUTDATE_MIN_PERIOD = datetime.timedelta(minutes=10)
 
 
 class ConfigService(basic.BasicService):
 
-    def _get_configs(
+    def _get_new_configs(
         self,
-        statuses: tp.Iterable[cc.ConfigStatus],
         limit: int = cc.DEFAULT_SQL_LIMIT,
-    ) -> tp.DefaultDict[cc.ConfigStatus, tp.List[models.Config]]:
-        """Returns all by status."""
-        if len(statuses) == 0:
-            return collections.defaultdict(list)
+    ) -> list[models.Config]:
+        return models.Config.get_new_configs(limit=limit)
 
-        configs = models.Config.objects.get_all(
-            filters={
-                "status": dm_filters.In(status.value for status in statuses),
-            },
+    def _get_changed_configs(
+        self,
+        limit: int = cc.DEFAULT_SQL_LIMIT,
+    ) -> list[models.Config]:
+        return models.Config.get_updated_configs(limit=limit)
+
+    def _get_deleted_configs(
+        self,
+        limit: int = cc.DEFAULT_SQL_LIMIT,
+    ) -> list[ua_models.TargetResource]:
+        return models.Config.get_deleted_config_renders(limit=limit)
+
+    def _get_outdated_renders(
+        self,
+        limit: int = cc.DEFAULT_SQL_LIMIT,
+    ) -> dict[
+        sys_uuid.UUID,
+        list[tuple[ua_models.TargetResource, ua_models.Resource]],
+    ]:
+        renders = ua_models.OutdatedResource.objects.get_all(
+            filters={"kind": dm_filters.EQ(RENDER_CAPABILITY_RESOURCE)},
             limit=limit,
         )
-        config_map = collections.defaultdict(list)
-        for config in configs:
-            config_map[cc.ConfigStatus[config.status]].append(config)
-
-        return config_map
-
-    def _get_renders(
-        self, configs: tp.Collection[models.Config]
-    ) -> tp.DefaultDict[models.Config, tp.List[models.Render]]:
-        renders = models.Render.objects.get_all(
-            filters={
-                "config": dm_filters.In(configs),
-            }
-        )
-
         render_map = collections.defaultdict(list)
         for render in renders:
-            render_map[render.config].append(render)
+            # Updated resource aren't outdated
+            if (
+                render.target_resource.updated_at
+                > render.actual_resource.updated_at
+            ):
+                continue
+
+            render_map[render.target_resource.master].append(
+                (render.target_resource, render.actual_resource)
+            )
 
         return render_map
+
+    def _get_outdated_configs(
+        self, config_uuids: tp.Collection[sys_uuid.UUID]
+    ) -> list[tuple[models.Config, ua_models.TargetResource]]:
+        configs = models.Config.objects.get_all(
+            filters={"uuid": dm_filters.In(str(cfg) for cfg in config_uuids)},
+            order_by={"uuid": "asc"},
+        )
+        resources = ua_models.TargetResource.objects.get_all(
+            filters={"uuid": dm_filters.In(str(cfg) for cfg in config_uuids)},
+            order_by={"uuid": "asc"},
+        )
+
+        return list(zip(configs, resources))
 
     def _actualize_new_config(
         self,
         config: models.Config,
-        target_nodes: tp.List[node_models.Node],
+        target_nodes: list[node_models.Node],
     ) -> None:
         # Validate the owners exist
         # FIXME(akremenetsky): Only nodes as owners are supported for now.
@@ -97,31 +122,40 @@ class ConfigService(basic.BasicService):
         if len(target_nodes) == 0:
             return
 
+        config_resource = config.to_ua_resource(CONFIG_CAPABILITY_RESOURCE)
+        config_resource.insert()
+
         # Make renders for this config
         for node in target_nodes:
             render = config.render(node=node.uuid)
 
+            # Hack for scheduler
+            render.agent = node.uuid
+
             # It's possible that the render already exists so just skip it
             try:
                 render.insert()
-                LOG.debug("Render %s created", render.uuid)
+
             except ra_exceptions.ConflictRecords:
                 LOG.warning("Render %s already exists", render.uuid)
 
         config.status = cc.ConfigStatus.IN_PROGRESS.value
         config.save()
 
-    def _actualize_new_configs(self, configs: tp.List[models.Config]) -> None:
+        # TODO(akremenetsky): Improve this snippet in the future
+        config_resource.tracked_at = config.updated_at
+        config_resource.status = config.status
+        config_resource.update()
+        LOG.debug("Config resource %s created", config_resource.uuid)
+
+    def _actualize_new_configs(
+        self, configs: list[models.Config] | None = None
+    ) -> None:
+        """Actualize new configs."""
+        configs = configs or self._get_new_configs()
+
         if len(configs) == 0:
             return
-
-        # Remove all outdate renders for these configs
-        renders = self._get_renders(configs)
-        for render in itertools.chain.from_iterable(renders.values()):
-            # It's ok if this operation fails. Make the code simple and
-            # don't handle this failure, just try next iteration.
-            render.delete()
-            LOG.debug("Outdated render %s deleted", render.uuid)
 
         # Collect all target nodes
         target_nodes = set()
@@ -148,30 +182,95 @@ class ConfigService(basic.BasicService):
             except Exception:
                 LOG.exception("Error actualizing config %s", config.uuid)
 
-    def _actualize_in_progress_configs(
-        self, configs: tp.List[models.Config]
-    ) -> None:
-        if len(configs) == 0:
+    def _actualize_changed_configs(self) -> None:
+        """Actualize configs changed by user."""
+        changed_configs = self._get_changed_configs()
+
+        if len(changed_configs) == 0:
             return
 
-        render_map_by_config = self._get_renders(configs)
+        # The simplest implementation. Update through recreation.
+        config_resources = ua_models.TargetResource.objects.get_all(
+            filters={
+                "uuid": dm_filters.In(str(uc.uuid) for uc in changed_configs),
+                "kind": dm_filters.EQ(CONFIG_CAPABILITY_RESOURCE),
+            }
+        )
 
-        for config, renders in render_map_by_config.items():
-            if renders and all(
-                r.status == cc.ConfigStatus.ACTIVE for r in renders
-            ):
-                try:
-                    config.status = cc.ConfigStatus.ACTIVE.value
-                    config.save()
-                    LOG.info("Config %s become active", config.uuid)
-                except Exception:
-                    LOG.exception("Error saving config %s", config.uuid)
-            # Undesirable behavior if there are no renders for a config.
-            # Log this moment as an error so far.
-            # NOTE(akremenetsky): Actually it's possible for node set.
-            # But we don't have node sets so far.
-            elif not renders:
-                LOG.error("No renders found for config %s", config.uuid)
+        for cfg in config_resources:
+            cfg.delete()
+            LOG.debug("Outdated config resource %s deleted", cfg.uuid)
+
+        # Now they are new configs
+        self._actualize_new_configs(changed_configs)
+
+    def _actualize_outdated_config(
+        self,
+        config: models.Config,
+        config_resource: ua_models.TargetResource,
+        renders: list[tuple[ua_models.TargetResource, ua_models.Resource]],
+    ) -> None:
+        """Actualize outdated config."""
+        if len(renders) == 0:
+            return
+
+        # Update target renders with actual information from the DP.
+        for target_render, actual_render in renders:
+            target_render.full_hash = actual_render.full_hash
+            target_render.status = actual_render.status
+            target_render.update()
+            LOG.debug("Outdated render %s actualized", target_render.uuid)
+
+        # Actualize status if needed.
+        status = None
+        if all(r.status == cc.ConfigStatus.ACTIVE for r, _ in renders):
+            status = cc.ConfigStatus.ACTIVE.value
+        elif any(r.status == cc.ConfigStatus.NEW for r, _ in renders):
+            status = cc.ConfigStatus.NEW.value
+        elif any(r.status == cc.ConfigStatus.IN_PROGRESS for r, _ in renders):
+            status = cc.ConfigStatus.IN_PROGRESS.value
+
+        if status is not None and config.status != status:
+            config.status = status
+            config.update()
+            config_resource.tracked_at = config.updated_at
+            config_resource.update()
+
+    def _actualize_outdated_configs(self) -> None:
+        """Actualize outdated configs.
+
+        It means some changes occurred in the system and the configs
+        are outdated now. For instance, their status is incorrect.
+        """
+        render_map = self._get_outdated_renders()
+
+        if len(render_map) == 0:
+            return
+
+        configs = self._get_outdated_configs(tuple(render_map.keys()))
+
+        for config, config_resource in configs:
+            renders = render_map[config.uuid]
+            try:
+                self._actualize_outdated_config(
+                    config, config_resource, renders
+                )
+            except Exception:
+                LOG.exception("Error actualizing config %s", config.uuid)
+
+    def _actualize_deleted_configs(self) -> None:
+        """Actualize configs deleted by user."""
+        deleted_configs = self._get_deleted_configs()
+
+        if len(deleted_configs) == 0:
+            return
+
+        for config in deleted_configs:
+            try:
+                config.delete()
+                LOG.debug("Outdated resource %s deleted", config.uuid)
+            except Exception:
+                LOG.exception("Error deleting resource %s", config.uuid)
 
     def _handle_orphan_configs(
         self, outdate_min_period: datetime.timedelta = DEF_OUTDATE_MIN_PERIOD
@@ -218,19 +317,31 @@ class ConfigService(basic.BasicService):
 
     def _iteration(self) -> None:
         with contexts.Context().session_manager():
-            config_map_by_status = self._get_configs(
-                statuses=[cc.ConfigStatus.NEW, cc.ConfigStatus.IN_PROGRESS]
-            )
-            new_configs = config_map_by_status[cc.ConfigStatus.NEW]
-            in_progress_configs = config_map_by_status[
-                cc.ConfigStatus.IN_PROGRESS
-            ]
+            try:
+                self._actualize_new_configs()
+            except Exception:
+                LOG.exception("Error actualizing new configs")
 
-            self._actualize_new_configs(new_configs)
-            self._actualize_in_progress_configs(in_progress_configs)
+            try:
+                self._actualize_changed_configs()
+            except Exception:
+                LOG.exception("Error actualizing changed configs")
+
+            try:
+                self._actualize_outdated_configs()
+            except Exception:
+                LOG.exception("Error actualizing outdated configs")
+
+            try:
+                self._actualize_deleted_configs()
+            except Exception:
+                LOG.exception("Error actualizing deleted configs")
 
             # NOTE(akremenetsky): Current data model implementation takes some
             # advantage but there are some disadvantages as well. One of them
             # a config isn't deleted if the corresponding node(s) is deleted.
             # So we need to detect such cases and clear orphan configs.
-            self._handle_orphan_configs()
+
+            # TODO(akremenetsky): Let's start without this feature so far.
+            # It's not critical but we need to add this later.
+            # self._handle_orphan_configs()

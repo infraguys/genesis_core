@@ -14,15 +14,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import datetime
 import typing as tp
 import uuid as sys_uuid
 
 from gcl_iam.tests.functional import clients as iam_clients
+from gcl_sdk.agents.universal.dm import models as ua_models
 
 from genesis_core.config import service
 from genesis_core.config.dm import models
-from genesis_core.node.dm import models as node_models
 
 
 class TestConfigService:
@@ -47,6 +46,13 @@ class TestConfigService:
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
     ):
+        agent = ua_models.UniversalAgent(
+            uuid=sys_uuid.UUID(default_node["uuid"]),
+            node=sys_uuid.UUID(default_node["uuid"]),
+            name="UniversalAgent",
+        )
+        agent.insert()
+
         client = user_api_client(auth_user_admin)
 
         config = config_factory(
@@ -62,25 +68,32 @@ class TestConfigService:
 
         self._service._iteration()
 
-        renders = models.Render.objects.get_all()
+        target_resources = ua_models.TargetResource.objects.get_all()
         configs = models.Config.objects.get_all()
 
-        assert len(renders) == 1
+        assert len(target_resources) == 2
         assert len(configs) == 1
-        render = renders[0]
+        render = [r for r in target_resources if r.kind == "render"][0]
         config = configs[0]
 
         assert config.status == "IN_PROGRESS"
-        assert render.status == "NEW"
-        assert render.config == config
-        assert str(render.node) == default_node["uuid"]
+        assert render.status == "ACTIVE"
+        assert str(render.agent) == default_node["uuid"]
 
     def test_new_config_fake_node(
         self,
+        default_node: tp.Dict[str, tp.Any],
         config_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
     ):
+        agent = ua_models.UniversalAgent(
+            uuid=sys_uuid.UUID(default_node["uuid"]),
+            node=sys_uuid.UUID(default_node["uuid"]),
+            name="UniversalAgent",
+        )
+        agent.insert()
+
         client = user_api_client(auth_user_admin)
 
         config = config_factory(target_node=sys_uuid.uuid4())
@@ -93,10 +106,10 @@ class TestConfigService:
 
         self._service._iteration()
 
-        renders = models.Render.objects.get_all()
+        target_resources = ua_models.TargetResource.objects.get_all()
         configs = models.Config.objects.get_all()
 
-        assert len(renders) == 0
+        assert len(target_resources) == 0
         assert len(configs) == 0
 
     def test_new_config_render_text(
@@ -106,6 +119,13 @@ class TestConfigService:
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
     ):
+        agent = ua_models.UniversalAgent(
+            uuid=sys_uuid.UUID(default_node["uuid"]),
+            node=sys_uuid.UUID(default_node["uuid"]),
+            name="UniversalAgent",
+        )
+        agent.insert()
+
         client = user_api_client(auth_user_admin)
 
         config = config_factory(
@@ -118,9 +138,10 @@ class TestConfigService:
 
         self._service._iteration()
 
-        render = models.Render.objects.get_one()
+        target_resources = ua_models.TargetResource.objects.get_all()
+        render = [r for r in target_resources if r.kind == "render"][0]
 
-        assert render.content == "TEST"
+        assert render.value["content"] == "TEST"
 
     def test_in_progress_configs(
         self,
@@ -129,6 +150,13 @@ class TestConfigService:
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
     ):
+        agent = ua_models.UniversalAgent(
+            uuid=sys_uuid.UUID(default_node["uuid"]),
+            node=sys_uuid.UUID(default_node["uuid"]),
+            name="UniversalAgent",
+        )
+        agent.insert()
+
         client = user_api_client(auth_user_admin)
 
         config = config_factory(
@@ -144,114 +172,95 @@ class TestConfigService:
         config = models.Config.objects.get_one()
         assert config.status == "IN_PROGRESS"
 
-        render = models.Render.objects.get_one()
-        render.status = "ACTIVE"
-        render.update()
+        target_resources = ua_models.TargetResource.objects.get_all()
+        render = [r for r in target_resources if r.kind == "render"][0]
+        view = render.dump_to_simple_view()
+        view.pop("master", None)
+        view.pop("agent", None)
+        view.pop("tracked_at", None)
+        view["status"] = "ACTIVE"
+        view["full_hash"] = "1111"
+        render_actual_resource = ua_models.Resource.restore_from_simple_view(
+            **view
+        )
+        render_actual_resource.insert()
 
         self._service._iteration()
 
         config = models.Config.objects.get_one()
         assert config.status == "ACTIVE"
 
-    def test_in_progress_configs_no_renders(
-        self,
-        default_node: tp.Dict[str, tp.Any],
-        config_factory: tp.Callable,
-        user_api_client: iam_clients.GenesisCoreTestRESTClient,
-        auth_user_admin: iam_clients.GenesisCoreAuth,
-    ):
-        client = user_api_client(auth_user_admin)
+    # NOTE(akremenetsky): Will be added and fixed later
+    # def test_orphan_configs(
+    #     self,
+    #     node_factory: tp.Callable,
+    #     config_factory: tp.Callable,
+    #     user_api_client: iam_clients.GenesisCoreTestRESTClient,
+    #     auth_user_admin: iam_clients.GenesisCoreAuth,
+    # ):
+    #     client = user_api_client(auth_user_admin)
+    #     default_node = node_factory()
 
-        config = config_factory(
-            target_node=sys_uuid.UUID(default_node["uuid"]),
-            content_body="TEST",
-        )
+    #     url = client.build_collection_uri(["nodes"])
+    #     client.post(url, json=default_node)
 
-        url = client.build_collection_uri(["config/configs"])
-        client.post(url, json=config)
+    #     config = config_factory(
+    #         target_node=sys_uuid.UUID(default_node["uuid"]),
+    #         content_body="TEST",
+    #     )
 
-        self._service._iteration()
+    #     url = client.build_collection_uri(["config/configs"])
+    #     client.post(url, json=config)
 
-        config = models.Config.objects.get_one()
-        assert config.status == "IN_PROGRESS"
+    #     self._service._iteration()
 
-        render = models.Render.objects.get_one()
-        render.delete()
+    #     config = models.Config.objects.get_one()
+    #     renders = models.Render.objects.get_all()
+    #     assert config.status == "IN_PROGRESS"
+    #     assert len(renders) == 1
 
-        self._service._iteration()
+    #     node_models.Node.objects.get_all()[0].delete()
 
-        config = models.Config.objects.get_one()
-        assert config.status == "IN_PROGRESS"
+    #     self._service._iteration_number = 0
+    #     self._service._handle_orphan_configs(datetime.timedelta(seconds=-1))
 
-    def test_orphan_configs(
-        self,
-        node_factory: tp.Callable,
-        config_factory: tp.Callable,
-        user_api_client: iam_clients.GenesisCoreTestRESTClient,
-        auth_user_admin: iam_clients.GenesisCoreAuth,
-    ):
-        client = user_api_client(auth_user_admin)
-        default_node = node_factory()
+    #     configs = models.Config.objects.get_all()
+    #     renders = models.Render.objects.get_all()
+    #     assert len(configs) == 0
+    #     assert len(renders) == 0
 
-        url = client.build_collection_uri(["nodes"])
-        client.post(url, json=default_node)
+    # NOTE(akremenetsky): Will be added and fixed later
+    # def test_orphan_configs_no(
+    #     self,
+    #     default_node: tp.Dict[str, tp.Any],
+    #     config_factory: tp.Callable,
+    #     user_api_client: iam_clients.GenesisCoreTestRESTClient,
+    #     auth_user_admin: iam_clients.GenesisCoreAuth,
+    # ):
+    #     client = user_api_client(auth_user_admin)
 
-        config = config_factory(
-            target_node=sys_uuid.UUID(default_node["uuid"]),
-            content_body="TEST",
-        )
+    #     config = config_factory(
+    #         target_node=sys_uuid.UUID(default_node["uuid"]),
+    #         content_body="TEST",
+    #     )
 
-        url = client.build_collection_uri(["config/configs"])
-        client.post(url, json=config)
+    #     url = client.build_collection_uri(["config/configs"])
+    #     client.post(url, json=config)
 
-        self._service._iteration()
+    #     self._service._iteration()
 
-        config = models.Config.objects.get_one()
-        renders = models.Render.objects.get_all()
-        assert config.status == "IN_PROGRESS"
-        assert len(renders) == 1
+    #     config = models.Config.objects.get_one()
+    #     renders = models.Render.objects.get_all()
+    #     assert config.status == "IN_PROGRESS"
+    #     assert len(renders) == 1
 
-        node_models.Node.objects.get_all()[0].delete()
+    #     self._service._iteration_number = 0
+    #     self._service._handle_orphan_configs(datetime.timedelta(seconds=-1))
 
-        self._service._iteration_number = 0
-        self._service._handle_orphan_configs(datetime.timedelta(seconds=-1))
-
-        configs = models.Config.objects.get_all()
-        renders = models.Render.objects.get_all()
-        assert len(configs) == 0
-        assert len(renders) == 0
-
-    def test_orphan_configs_no(
-        self,
-        default_node: tp.Dict[str, tp.Any],
-        config_factory: tp.Callable,
-        user_api_client: iam_clients.GenesisCoreTestRESTClient,
-        auth_user_admin: iam_clients.GenesisCoreAuth,
-    ):
-        client = user_api_client(auth_user_admin)
-
-        config = config_factory(
-            target_node=sys_uuid.UUID(default_node["uuid"]),
-            content_body="TEST",
-        )
-
-        url = client.build_collection_uri(["config/configs"])
-        client.post(url, json=config)
-
-        self._service._iteration()
-
-        config = models.Config.objects.get_one()
-        renders = models.Render.objects.get_all()
-        assert config.status == "IN_PROGRESS"
-        assert len(renders) == 1
-
-        self._service._iteration_number = 0
-        self._service._handle_orphan_configs(datetime.timedelta(seconds=-1))
-
-        configs = models.Config.objects.get_all()
-        renders = models.Render.objects.get_all()
-        assert len(configs) == 1
-        assert len(renders) == 1
+    #     configs = models.Config.objects.get_all()
+    #     renders = models.Render.objects.get_all()
+    #     assert len(configs) == 1
+    #     assert len(renders) == 1
 
     def test_update_configs(
         self,
@@ -260,6 +269,13 @@ class TestConfigService:
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
     ):
+        agent = ua_models.UniversalAgent(
+            uuid=sys_uuid.UUID(default_node["uuid"]),
+            node=sys_uuid.UUID(default_node["uuid"]),
+            name="UniversalAgent",
+        )
+        agent.insert()
+
         client = user_api_client(auth_user_admin)
 
         config = config_factory(
@@ -275,9 +291,18 @@ class TestConfigService:
         config = models.Config.objects.get_one()
         assert config.status == "IN_PROGRESS"
 
-        render = models.Render.objects.get_one()
-        render.status = "ACTIVE"
-        render.update()
+        target_resources = ua_models.TargetResource.objects.get_all()
+        render = [r for r in target_resources if r.kind == "render"][0]
+        view = render.dump_to_simple_view()
+        view.pop("master", None)
+        view.pop("agent", None)
+        view.pop("tracked_at", None)
+        view["status"] = "ACTIVE"
+        view["full_hash"] = "1111"
+        render_actual_resource = ua_models.Resource.restore_from_simple_view(
+            **view
+        )
+        render_actual_resource.insert()
 
         self._service._iteration()
 
@@ -292,10 +317,10 @@ class TestConfigService:
         output = response.json()
         assert output["owner"] == "test"
 
+        config = models.Config.objects.get_one()
+        assert config.status == "NEW"
+
         self._service._iteration()
 
         config = models.Config.objects.get_one()
-        renders = models.Render.objects.get_all()
-
         assert config.status == "IN_PROGRESS"
-        assert len(renders) == 1

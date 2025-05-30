@@ -32,6 +32,9 @@ GC_PG_DB="genesis_core"
 
 SYSTEMD_SERVICE_DIR=/etc/systemd/system/
 
+DEV_SDK_PATH="/opt/gcl_sdk"
+SDK_DEV_MODE=$([ -d "$DEV_SDK_PATH" ] && echo "true" || echo "false")
+
 # Install packages
 sudo apt update
 sudo apt install postgresql libev-dev libvirt-dev \
@@ -69,7 +72,6 @@ sudo cp "$GC_PATH/etc/genesis_core/logging.yaml" $GC_CFG_DIR/
 sudo cp "$GC_PATH/etc/genesis_core/event_type_mapping.yaml" $GC_CFG_DIR/
 sudo cp "$GC_PATH/genesis/images/startup_cfg.yaml" $GC_CFG_DIR/
 sudo cp "$GC_PATH/genesis/images/bootstrap.sh" $BOOTSTRAP_PATH/0100-gc-bootstrap.sh
-python3 -m uuid | sudo tee /var/lib/genesis/node-id
 
 mkdir -p "$VENV_PATH"
 python3 -m venv "$VENV_PATH"
@@ -78,6 +80,15 @@ pip install pip --upgrade
 pip install -r "$GC_PATH"/requirements.txt
 pip install -e "$GC_PATH"
 
+# In the dev mode the gcl_sdk package is installed from the local machine
+if [[ "$SDK_DEV_MODE" == "true" ]]; then
+    pip uninstall -y gcl_sdk
+    pip install -e "$DEV_SDK_PATH"
+fi
+
+# Configuration for universal agent
+sudo cp -r "$GC_PATH/etc/genesis_universal_agent" /etc/
+
 # Apply migrations
 ra-apply-migration --config-dir "$GC_PATH/etc/genesis_core/" --path "$GC_PATH/migrations"
 deactivate
@@ -85,13 +96,21 @@ deactivate
 # Create links to venv
 sudo ln -sf "$VENV_PATH/bin/gc-user-api" "/usr/bin/gc-user-api"
 sudo ln -sf "$VENV_PATH/bin/gc-orch-api" "/usr/bin/gc-orch-api"
+sudo ln -sf "$VENV_PATH/bin/gc-status-api" "/usr/bin/gc-status-api"
 sudo ln -sf "$VENV_PATH/bin/gc-gservice" "/usr/bin/gc-gservice"
 sudo ln -sf "$VENV_PATH/bin/gc-bootstrap" "/usr/bin/gc-bootstrap"
+sudo ln -sf "$VENV_PATH/bin/genesis-universal-agent" "/usr/bin/genesis-universal-agent"
+sudo ln -sf "$VENV_PATH/bin/genesis-universal-scheduler" "/usr/bin/genesis-universal-scheduler"
 
 # Install Systemd service files
 sudo cp "$GC_PATH/etc/systemd/gc-user-api.service" $SYSTEMD_SERVICE_DIR
 sudo cp "$GC_PATH/etc/systemd/gc-orch-api.service" $SYSTEMD_SERVICE_DIR
+sudo cp "$GC_PATH/etc/systemd/gc-status-api.service" $SYSTEMD_SERVICE_DIR
 sudo cp "$GC_PATH/etc/systemd/gc-gservice.service" $SYSTEMD_SERVICE_DIR
+sudo cp "$GC_PATH/etc/systemd/genesis-universal-agent.service" $SYSTEMD_SERVICE_DIR
+sudo cp "$GC_PATH/etc/systemd/genesis-universal-scheduler.service" $SYSTEMD_SERVICE_DIR
 
 # Enable genesis core services
-sudo systemctl enable gc-user-api gc-orch-api gc-gservice
+sudo systemctl enable gc-user-api gc-orch-api gc-status-api gc-gservice \
+    genesis-universal-agent \
+    genesis-universal-scheduler

@@ -1,0 +1,12 @@
+[Unit]
+Description=Genesis Universal Agent Service
+After=network-online.target
+
+[Service]
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=5
+ExecStart=genesis-universal-agent --config-file /etc/genesis_universal_agent/genesis_universal_agent.conf
+
+[Install]
+WantedBy=multi-user.target
