@@ -1,0 +1,367 @@
+Name: core
+Description: Core element.
+SchemaVersion: 1
+Version: "0.0.1"
+
+Requirements: []
+
+Resources:
+
+  $core.endpoints:
+    managment:
+      kind: internal_client
+      #endpoint: http://localhost:11010/v1/
+
+
+  $core.compute.nodes:
+    bootstrap:
+      name: bootstrap
+      root_disk_size: 20
+      cores: 1
+      ram: 1024
+      iamge: http://192.168.100.31:8081/genesis-base.raw
+
+
+  $core.element.services:
+      migrations:
+        name: Genesis Core Migrations
+        description: Genesis Core Migrations service
+        target:
+          kind: node
+          node: $core.compute.nodes.$bootstrap:uuid
+        controller:
+          kind: systemd
+          service:
+            kind: oneshot
+            exec_start: ra-apply-migration --config-file /etc/genesis_core/genesis_core.conf --path /opt/genesis_core/migrations/
+
+      user_api:
+        name: Genesis Core User Api
+        description: Genesis Core User API service
+        target:
+          kind: node
+          node: $core.compute.nodes.$bootstrap:uuid
+        controller:
+          kind: systemd
+          service:
+            kind: daemon
+            exec_start: gc-user-api --config-file /etc/genesis_core/genesis_core.conf
+        depends_on:
+          - $core.element.services.$migrations:get_uri()
+      
+      orch_api:
+        name: Genesis Core Orch Api
+        description: Genesis Core Orch API service
+        target:
+          kind: node
+          node: $core.compute.nodes.$bootstrap:uuid
+        controller:
+          kind: systemd
+          service:
+            kind: daemon
+            exec_start: gc-orch-api --config-file /etc/genesis_core/genesis_core.conf
+        depends_on:
+          - $core.element.services.$migrations:get_uri()
+        
+      core_agent:
+        name: Genesis Core Agent
+        description: Genesis Core Agent
+        target:
+          kind: node
+          node: $core.compute.nodes.$bootstrap:uuid
+        controller:
+          kind: systemd
+          service:
+            kind: daemon
+            exec_start: gc-gservice --config-file /etc/genesis_core/genesis_core.conf
+        depends_on:
+          - $core.element.services.$migrations:get_uri()
+
+
+  $core.iam.users:
+    admin:
+      uuid: "00000000-0000-0000-0000-000000000000"
+      username: "admin"
+      description: "System administrator"
+      first_name: "Admin"
+      last_name: "User"
+      surname: ""
+      email: "admin@example.com"
+
+
+  $core.iam.organizations:
+    admin:
+      uuid: "00000000-0000-0000-0000-000000000000"
+      name: "admin"
+      description: "Admin Organization"
+    genesis_corporation:
+      uuid: "11111111-1111-1111-1111-111111111111"
+      name: "Genesis Corporation"
+      description": "The organization serves as the central platform for all services and elements developed by Genesis Corporation."
+
+
+  $core.iam.organization_members:
+    admin:
+      uuid: "210a146e-0ddd-4021-85cd-51760d9b0cbd"
+      organization: "$core.iam.organizations.$admin:get_uri()" 
+      user: "$core.iam.users.$admin:get_uri()"
+      role: "OWNER"
+  
+
+  $core.iam.projects:
+    admin:
+      uuid: "00000000-0000-0000-0000-000000000000"
+      name: "admin"
+      description: "Admin Project"
+      organization: $core.iam.organizations.$admin:get_uri()
+    iam_core:
+      uuid: "c938820c-ab9c-56e4-919c-acd0e881996f"
+      name: "iam-core"
+      description: "Identity and Access Management Core Project"
+      organization: $core.iam.organizations.$genesis_corporation:get_uri()
+    compute:
+      uuid: "46f57877-f477-5916-bcd1-718d34cf3414"
+      name: "compute-core"
+      description: "Comptue and Baremetal Core Project"
+      organization: "$core.iam.organizations.$genesis_corporation:get_uri()"
+  
+
+  $core.iam.permissions:
+    admin:
+      uuid: "00000000-0000-0000-0000-000000000000"
+      name: "*.*.*"
+      description: "Allow All"
+
+    iam_user_list:
+      uuid: "a8a7eea2-7514-53ac-a408-8b1235352310"
+      name: "iam.user.list"
+      description: "Allows listing users in the system"
+    iam_user_read_all:
+      uuid: "f64bbebd-c389-53b1-bed2-c725dc7dd1e8"
+      name: "iam.user.read_all"
+      description: "Allows reading all user profiles"
+    iam_user_write_all:
+      uuid: "880c3129-34ee-5fae-ab1f-6c8412333d49"
+      name: "iam.user.write_all"
+      description: "Allows modifying any user`s data"
+    iam_user_delete_all:
+      uuid: "e25b27ac-85c1-50c9-b0a9-696048649c28"
+      name: "iam.user.delete_all"
+      description: "Allows deleting any user account"
+    iam_user_delete:
+      uuid: "bccfb7f4-9775-535b-8967-1d42c5d213f9"
+      name: "iam.user.delete"
+      description: "Allows users to delete their own account"
+
+    iam_organization_create:
+      uuid: "51330c56-c241-520f-8b83-234a0ab7ba1d"
+      name: "iam.organization.create"
+      description: "Allows creating new organizations"
+    iam_organization_read_all:
+      uuid: "c228157c-7923-59bf-8177-ab12c1e6f9c7"
+      name: "iam.organization.read_all"
+      description: "Allows viewing all organization details"
+    iam_organization_write_all:
+      uuid: "87c5691b-3f77-50eb-853b-abb0b4ff4a82"
+      name: "iam.organization.write_all"
+      description: "Allows modifying any organization`s data"
+    iam_organization_delete:
+      uuid: "eea5828b-f702-5286-80b5-8afcc75cee71"
+      name: "iam.organization.delete"
+      description: "Allows deleting own organization"
+    iam_organization_delete_all:
+      uuid: "28da4c50-4487-5514-8131-dd898a7e0abd"
+      name: "iam.organization.delete_all"
+      description: "Allows deleting any organization"
+
+    iam_project_list_all:
+      uuid: "eb8f0274-61eb-52ed-b054-18cd08b4ec99"
+      name: "iam.project.list_all"
+      description: "Allows listing projects in the system"
+    iam_project_read_all:
+      uuid: "626d4b57-3cc7-56d6-bf30-7c2ada04d6b0"
+      name: "iam.project.read_all"
+      description: "Allows reading all project details"
+    iam_project_write_all:
+      uuid: "c6c21054-6d17-5d67-b981-0ce0ef20e4e2"
+      name: "iam.project.write_all"
+      description: "Allows modifying any project`s data"
+    iam_project_delete_all:
+      uuid: "654071ab-12af-52c0-8391-ebbb582a0423"
+      name: "iam.project.delete_all"
+      description: "Allows deleting any project"
+
+    iam_permission_create:
+      uuid: "d9727cf5-6857-55dc-8030-d13693cc15df"
+      name: "iam.permission.create"
+      description: "Allows creating new permissions"
+    iam_permission_read:
+      uuid: "98938bd5-b26b-5733-931b-471504c27c1c"
+      name: "iam.permission.read"
+      description: "Allows reading permissions"
+    iam_permission_update:
+      uuid: "9c540d33-dfd1-565c-82b4-3099ff277c6c"
+      name: "iam.permission.update"
+      description: "Allows updating existing permissions"
+    iam_permission_delete:
+      uuid: "03ca3f7f-9ef9-5169-a147-85fa0ff6a28d"
+      name: "iam.permission.delete"
+      description: "Allows deleting permissions"
+
+    iam_permission_binding_create:
+      uuid: "9c60333d-ab15-504c-af52-095a752237e2"
+      name: "iam.permission_binding.create"
+      description: "Allows creating permission bindings"
+    iam_permission_binding_read:
+      uuid: "e56faea9-9c58-5ab2-b508-6f467117c9f9"
+      name: "iam.permission_binding.read"
+      description: "Allows reading permission bindings"
+    iam_permission_binding_update:
+      uuid: "f4c9feb1-a5fc-5a92-b75b-eb47821514e2"
+      name: "iam.permission_binding.update"
+      description: "Allows updating permission bindings"
+    iam_permission_binding_delete:
+      uuid: "81a119f2-3d32-5ab9-908b-f9b63a9cc8e6"
+      name: "iam.permission_binding.delete"
+      description: "Allows deleting permission bindings"
+
+    iam_role_create:
+      uuid: "5d3e126d-85be-5efb-9200-b7655db64fb4"
+      name: "iam.role.create"
+      description: "Allows creating new roles"
+    iam_role_read:
+      uuid: "4737a4f2-dd9e-584c-9cb2-3927364481db"
+      name: "iam.role.read"
+      description: "Allows reading roles"
+    iam_role_write:
+      uuid: "b9d6d6ee-8310-58a2-a25f-ca972a7e009f"
+      name: "iam.role.write"
+      description: "Allows updating existing roles"
+    iam_role_delete:
+      uuid: "131ccaac-c6e5-5dfe-8ec2-4eeca913c938"
+      name: "iam.role.delete"
+      description: "Allows deleting roles"
+
+    iam_role_binding_create:
+      uuid: "4c6a94fc-e18f-5d0e-8ada-daaf5d470dd2"
+      name: "iam.role_binding.create"
+      description: "Allows creating role bindings"
+    iam_role_binding_read:
+      uuid: "ff96b360-0f40-5aa4-9396-5de7aba31cb1"
+      name: "iam.role_binding.read"
+      description: "Allows reading role bindings"
+    iam_role_binding_update:
+      uuid: "91f74ad1-1359-5b5e-b4ff-62a580caa746"
+      name: "iam.role_binding.update"
+      description: "Allows updating role bindings"
+    iam_role_binding_delete:
+      uuid: "d72c8adf-737b-5bbe-a026-61834dc309b6"
+      name: "iam.role_binding.delete"
+      description: "Allows deleting role bindings"
+
+    iam_client_create:
+      uuid: "29eeff9b-d316-590d-916a-766238fd669d"
+      name: "iam.iam_client.create"
+      description: "Allows creating IAM clients"
+    iam_client_read_all:
+      uuid: "4435daf0-0d20-5a00-adc8-90fd9a298147"
+      name: "iam.iam_client.read_all"
+      description: "Allows reading all IAM clients"
+    iam_client_update:
+      uuid: "6d891b35-d0d9-5327-8b85-aa7a191b69c7"
+      name: "iam.iam_client.update"
+      description: "Allows updating IAM clients"
+    iam_client_delete:
+      uuid: "9da293c0-1ba8-548a-a490-287d0266b507"
+      name: "iam.iam_client.delete"
+      description: "Allows deleting IAM clients"
+
+    compute_node_read:
+      uuid: "62dc01b3-f556-5ba3-bcd6-709c52d7418c"
+      name: "compute.node.read"
+      description: "List and read own nodes"
+    compute_node_create:
+      uuid: "086988df-a84b-5c42-8f3a-1fd3d0dd3878"
+      name: "compute.node.create"
+      description: "Create own nodes"
+    compute_node_update:
+      uuid: "44b6c954-867f-558b-9dba-b8c7baf9df38"
+      name: "compute.node.update"
+      description: "Update own nodes"
+    compute_node_delete:
+      uuid: "31eff665-2e96-5202-873a-a2f3c812a281"
+      name: "compute.node.delete"
+      description: "Delete own nodes"
+
+
+  $core.iam.roles:
+    admin:
+      uuid: "00000000-0000-0000-0000-000000000000"
+      name: "admin"
+      description: "Admin Role"
+    newcomer:
+      uuid: "726f6c65-0000-0000-0000-000000000001"
+      name: "newcomer"
+      description: "Default role for newly registered users. Provides basic system access and onboarding capabilities."
+    owner:
+      uuid: "726f6c65-0000-0000-0000-000000000002"
+      name: "owner"
+      description: "Project ownership role. Grants full administrative privileges within a specific project. Automatically assigned during project creation process."
+
+
+  $core.iam.permission_bindings:
+    admin:
+      uuid: "00000000-0000-0000-0000-000000000000"
+      role: "$core.iam.roles.$admin:get_uri()"
+      permission: "$core.iam.permissions.$admin:get_uri()"
+    newcomer_iam_user_delete:
+      uuid: "82870529-2614-49ef-b583-7f2100d13c50"
+      project_id: "$core.iam.projects.$iam_core:uuid"
+      role: "$core.iam.roles.$newcomer:get_uri()"
+      permission: "$core.iam.permissions.$iam_user_delete:get_uri()"
+    newcomer_iam_organization_create:
+      uuid: "1f7d5e14-6f66-4bfe-a825-c669c8409021"
+      project_id: "$core.iam.projects.$iam_core:uuid"
+      role: "$core.iam.roles.$newcomer:get_uri()"
+      permission: "$core.iam.permissions.$iam_organization_create:get_uri()"
+    newcomer_iam_organization_delete:
+      uuid: "4e68d259-9c70-48b9-be23-55961b332338"
+      project_id: "$core.iam.projects.$iam_core:uuid"
+      role: "$core.iam.roles.$newcomer:get_uri()"
+      permission: "$core.iam.permissions.$iam_organization_delete:get_uri()"
+    owner_compute_node_read:
+      uuid: "82f1a5a6-f03b-4503-8aa8-dd59fed64097"
+      project_id: "$core.iam.projects.$compute:uuid"
+      role: "$core.iam.roles.$owner:get_uri()"
+      permission: "$core.iam.permissions.$compute_node_read:get_uri()"
+    owner_compute_node_create:
+      uuid: "b916340d-db13-4cd3-90ea-a410bcb99270"
+      project_id: "$core.iam.projects.$compute:uuid"
+      role: "$core.iam.roles.$owner:get_uri()"
+      permission: "$core.iam.permissions.$compute_node_create:get_uri()"
+    owner_compute_node_update:
+      uuid: "5fa0e254-f7ff-4652-8d4a-70b6e54fcabf"
+      project_id: "$core.iam.projects.$compute:uuid"
+      role: "$core.iam.roles.$owner:get_uri()"
+      permission: "$core.iam.permissions.$compute_node_update:get_uri()"
+    owner_compute_node_delete:
+      uuid: "a500cddf-0431-4766-ad01-f09d0ee39d57"
+      project_id: "$core.iam.projects.$compute:uuid"
+      role: "$core.iam.roles.$owner:get_uri()"
+      permission: "$core.iam.permissions.$compute_node_delete:get_uri()"
+
+
+  $core.iam.role_bindings:
+    admin:
+      uuid: "00000000-0000-0000-0000-000000000000"
+      user: "$core.iam.users.$admin:get_uri()"
+      role: "$core.iam.roles.$admin:get_uri()"
+
+
+  $core.iam.clients:
+    genesis_core:
+      uuid: "00000000-0000-0000-0000-000000000000"
+      name: "GenesisCoreClient"
+      description: "Genesis Core OIDC Client"
+      client_id: "GenesisCoreClientId"
+      redirect_url: "http://127.0.0.1:11010/v1/"
