@@ -130,10 +130,11 @@ def dhcp_config(subnets: tp.Dict[models.Subnet, tp.List[models.Port]]) -> str:
 
     # Build every subnet
     for subnet, ports in subnets.items():
-
-        # TODO(akremenetsky): Add pool when auto-discovery is enabled
-        # for baremetal discovery
-        pool = ""
+        start_ip, end_ip = subnet.ip_discovery_range_pair
+        pool = _auto_discovery_pool_template.format(
+            start_ip=str(start_ip),
+            end_ip=str(end_ip),
+        )
 
         hosts = ""
         for port in ports:

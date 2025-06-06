@@ -64,3 +64,30 @@ class RelativeCoreRamWeighter(base.MachinePoolAbstractWeighter):
             return (1 / len(pools) for _ in pools)
 
         return (1.0 - u / sum(usages) for u in usages)
+
+
+class SimpleMachineWeighter(base.MachineAbstractWeighter):
+
+    def _ratio(self, machine: models.Machine) -> int:
+        """Some empirical formula to calculate the ratio of the machine."""
+        # 1 cpu == 8192 Mb ram
+        return machine.cores * 8192 + machine.ram
+
+    def weight(
+        self,
+        machines: tp.List[models.MachinePool],
+    ) -> tp.Iterable[float]:
+        """Assign weights to machines.
+
+        Every machine gets a weight from range [0, 1].
+        1 means the machine is the best for the node.
+        0 means the machine is the worst for the node.
+        """
+        if not machines:
+            return tuple()
+
+        ratios = tuple(self._ratio(m) for m in machines)
+
+        # Normalize ratios
+        sum_ratios = sum(ratios)
+        return (1.0 - r / sum_ratios for r in ratios)

@@ -19,6 +19,7 @@ import uuid as sys_uuid
 
 GLOBAL_SERVICE_NAME = "genesis_core"
 SERVICE_PROJECT_ID = sys_uuid.UUID("00000000-0000-0000-0000-000000000000")
+DEFAULT_DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
 
 WORK_DIR = "/var/lib/genesis"
 NODE_UUID_PATH = os.path.join(WORK_DIR, "node-id")
