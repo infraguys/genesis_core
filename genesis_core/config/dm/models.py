@@ -19,11 +19,12 @@ import typing as tp
 import uuid as sys_uuid
 
 from restalchemy.dm import models
+from restalchemy.dm import filters as dm_filters
 from restalchemy.dm import properties
-from restalchemy.dm import relationships
 from restalchemy.dm import types
 from restalchemy.dm import types_dynamic
 from restalchemy.storage.sql import orm
+from restalchemy.storage.sql import engines
 
 from gcl_sdk.agents.universal.dm import models as ua_models
 
@@ -207,6 +208,85 @@ class Config(
         resource.calculate_hash()
         return resource
 
+    @classmethod
+    def get_new_configs(
+        cls, limit: int = cc.DEFAULT_SQL_LIMIT
+    ) -> list["Config"]:
+        expression = (
+            "SELECT "
+            "    config_configs.uuid as uuid "
+            "FROM config_configs LEFT JOIN ua_target_resources ON "
+            "    config_configs.uuid = ua_target_resources.uuid "
+            "WHERE ua_target_resources.uuid is NULL "
+            "LIMIT %s;"
+        )
+        params = (limit,)
+
+        engine = engines.engine_factory.get_engine()
+        with engine.session_manager() as session:
+            curs = session.execute(expression, params)
+            response = curs.fetchall()
+
+        if not response:
+            return []
+
+        return cls.objects.get_all(
+            filters={"uuid": dm_filters.In(str(r["uuid"]) for r in response)},
+        )
+
+    @classmethod
+    def get_updated_configs(
+        cls, limit: int = cc.DEFAULT_SQL_LIMIT
+    ) -> list["Config"]:
+        expression = (
+            "SELECT "
+            "    config_configs.uuid as uuid "
+            "FROM config_configs INNER JOIN ua_target_resources ON  "
+            "    config_configs.uuid = ua_target_resources.uuid "
+            "WHERE config_configs.updated_at != ua_target_resources.tracked_at "
+            "LIMIT %s;"
+        )
+        params = (limit,)
+
+        engine = engines.engine_factory.get_engine()
+        with engine.session_manager() as session:
+            curs = session.execute(expression, params)
+            response = curs.fetchall()
+
+        if not response:
+            return []
+
+        return cls.objects.get_all(
+            filters={"uuid": dm_filters.In(str(r["uuid"]) for r in response)},
+        )
+
+    @classmethod
+    def get_deleted_config_renders(
+        cls, limit: int = cc.DEFAULT_SQL_LIMIT
+    ) -> list[ua_models.TargetResource]:
+        expression = (
+            "SELECT "
+            "    ua_target_resources.uuid as uuid "
+            "FROM ua_target_resources LEFT JOIN config_configs ON  "
+            "    ua_target_resources.uuid = config_configs.uuid  "
+            "WHERE ua_target_resources.kind = 'config' "
+            "    AND config_configs.uuid is NULL "
+            "LIMIT %s;"
+        )
+        params = (limit,)
+
+        engine = engines.engine_factory.get_engine()
+        with engine.session_manager() as session:
+            curs = session.execute(expression, params)
+            response = curs.fetchall()
+
+        if not response:
+            return []
+
+        return ua_models.TargetResource.objects.get_all(
+            filters={"uuid": dm_filters.In(str(r["uuid"]) for r in response)},
+        )
+
 
 class Render(
     models.ModelWithUUID,
@@ -232,54 +312,4 @@ class Render(
             types_dynamic.KindModelType(OnChangeShell),
         ),
         default=OnChangeNoAction,
-    )
-
-
-class NewConfigs(models.ModelWithUUID, orm.SQLStorableMixin):
-    __tablename__ = "config_new_configs"
-
-    config = relationships.relationship(
-        Config,
-        prefetch=True,
-        required=True,
-    )
-
-
-class UpdatedConfigs(models.ModelWithUUID, orm.SQLStorableMixin):
-    __tablename__ = "config_updated_configs"
-
-    config = relationships.relationship(
-        Config,
-        prefetch=True,
-        required=True,
-    )
-    resource = relationships.relationship(
-        ua_models.TargetResource,
-        prefetch=True,
-        required=True,
-    )
-
-
-class DeletedConfigs(models.ModelWithUUID, orm.SQLStorableMixin):
-    __tablename__ = "config_deleted_configs"
-
-    resource = relationships.relationship(
-        ua_models.TargetResource,
-        prefetch=True,
-        required=True,
-    )
-
-
-class OutdatedRenders(models.ModelWithUUID, orm.SQLStorableMixin):
-    __tablename__ = "config_outdated_renders"
-
-    target_render = relationships.relationship(
-        ua_models.TargetResource,
-        prefetch=True,
-        required=True,
-    )
-    actual_render = relationships.relationship(
-        ua_models.Resource,
-        prefetch=True,
-        required=True,
     )

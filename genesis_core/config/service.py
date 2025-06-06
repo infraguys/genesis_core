@@ -34,6 +34,7 @@ from genesis_core.config import constants as cc
 
 LOG = logging.getLogger(__name__)
 CONFIG_CAPABILITY_RESOURCE = "config"
+RENDER_CAPABILITY_RESOURCE = "render"
 ORPHAN_CFG_ITERATION_FREQUENCY = 10
 DEF_OUTDATE_MIN_PERIOD = datetime.timedelta(minutes=10)
 
@@ -44,21 +45,19 @@ class ConfigService(basic.BasicService):
         self,
         limit: int = cc.DEFAULT_SQL_LIMIT,
     ) -> list[models.Config]:
-        configs = models.NewConfigs.objects.get_all(limit=limit)
-        return [cfg.config for cfg in configs]
+        return models.Config.get_new_configs(limit=limit)
 
     def _get_changed_configs(
         self,
         limit: int = cc.DEFAULT_SQL_LIMIT,
-    ) -> list[models.UpdatedConfigs]:
-        return models.UpdatedConfigs.objects.get_all(limit=limit)
+    ) -> list[models.Config]:
+        return models.Config.get_updated_configs(limit=limit)
 
     def _get_deleted_configs(
         self,
         limit: int = cc.DEFAULT_SQL_LIMIT,
     ) -> list[ua_models.TargetResource]:
-        configs = models.DeletedConfigs.objects.get_all(limit=limit)
-        return [cfg.resource for cfg in configs]
+        return models.Config.get_deleted_config_renders(limit=limit)
 
     def _get_outdated_renders(
         self,
@@ -67,11 +66,14 @@ class ConfigService(basic.BasicService):
         sys_uuid.UUID,
         list[tuple[ua_models.TargetResource, ua_models.Resource]],
     ]:
-        renders = models.OutdatedRenders.objects.get_all(limit=limit)
+        renders = ua_models.OutdatedResource.objects.get_all(
+            filters={"kind": dm_filters.EQ(RENDER_CAPABILITY_RESOURCE)},
+            limit=limit,
+        )
         render_map = collections.defaultdict(list)
         for render in renders:
-            render_map[render.target_render.master].append(
-                (render.target_render, render.actual_render)
+            render_map[render.target_resource.master].append(
+                (render.target_resource, render.actual_resource)
             )
 
         return render_map
@@ -183,9 +185,7 @@ class ConfigService(basic.BasicService):
         # The simplest implementation. Update through recreation.
         config_resources = ua_models.TargetResource.objects.get_all(
             filters={
-                "uuid": dm_filters.In(
-                    str(uc.config.uuid) for uc in changed_configs
-                ),
+                "uuid": dm_filters.In(str(uc.uuid) for uc in changed_configs),
                 "kind": dm_filters.EQ(CONFIG_CAPABILITY_RESOURCE),
             }
         )
@@ -195,7 +195,7 @@ class ConfigService(basic.BasicService):
             LOG.debug("Outdated config resource %s deleted", cfg.uuid)
 
         # Now they are new configs
-        self._actualize_new_configs(tuple(uc.config for uc in changed_configs))
+        self._actualize_new_configs(changed_configs)
 
     def _actualize_outdated_config(
         self,
