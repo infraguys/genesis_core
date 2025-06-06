@@ -17,6 +17,7 @@
 from restalchemy.api import routes
 
 from genesis_core.user_api.api import controllers
+from genesis_core.user_api.em.api import routes as em_routes
 from genesis_core.user_api.iam.api import routes as iam_routes
 from genesis_core.user_api.config.api import routes as config_routes
 
@@ -61,6 +62,7 @@ class ApiEndpointRoute(routes.Route):
 
     health = routes.route(HealthRoute)
     iam = routes.route(iam_routes.IamRoute)
+    em = routes.route(em_routes.ElementManagerRoute)
     config = routes.route(config_routes.ConfigRoute)
     nodes = routes.route(NodeRoute)
     machines = routes.route(MachineRoute)
