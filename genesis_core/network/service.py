@@ -273,7 +273,7 @@ class NetworkService(basic.BasicService):
             raise ValueError("No suitable subnet found for node %s", node.uuid)
 
         target_ip = None
-        if TARGET_IP_KEY in node.default_network:
+        if node.default_network.get(TARGET_IP_KEY):
             target_ip = netaddr.IPAddress(node.default_network[TARGET_IP_KEY])
 
         ip = ipam.allocate_ip(subnet, target_ip)

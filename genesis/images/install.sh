@@ -82,6 +82,10 @@ pip install -e "$GC_PATH"
 pip uninstall -y gcl_sdk
 pip install -e "/opt/gcl_sdk"
 
+# Install universal agent
+sudo cp -r "$GC_PATH/etc/genesis_universal_agent" /etc/
+sudo ln -sf "/opt/gcl_sdk/.venv/bin/genesis-universal-agent" "/usr/bin/genesis-universal-agent"
+
 # Apply migrations
 ra-apply-migration --config-dir "$GC_PATH/etc/genesis_core/" --path "$GC_PATH/migrations"
 deactivate
@@ -91,11 +95,13 @@ sudo ln -sf "$VENV_PATH/bin/gc-user-api" "/usr/bin/gc-user-api"
 sudo ln -sf "$VENV_PATH/bin/gc-orch-api" "/usr/bin/gc-orch-api"
 sudo ln -sf "$VENV_PATH/bin/gc-gservice" "/usr/bin/gc-gservice"
 sudo ln -sf "$VENV_PATH/bin/gc-bootstrap" "/usr/bin/gc-bootstrap"
+sudo ln -sf "$VENV_PATH/bin/genesis-universal-agent" "/usr/bin/genesis-universal-agent"
 
 # Install Systemd service files
 sudo cp "$GC_PATH/etc/systemd/gc-user-api.service" $SYSTEMD_SERVICE_DIR
 sudo cp "$GC_PATH/etc/systemd/gc-orch-api.service" $SYSTEMD_SERVICE_DIR
 sudo cp "$GC_PATH/etc/systemd/gc-gservice.service" $SYSTEMD_SERVICE_DIR
+sudo cp "$GC_PATH/etc/systemd/genesis-universal-agent.service" $SYSTEMD_SERVICE_DIR
 
 # Enable genesis core services
-sudo systemctl enable gc-user-api gc-orch-api gc-gservice
+sudo systemctl enable gc-user-api gc-orch-api gc-gservice genesis-universal-agent

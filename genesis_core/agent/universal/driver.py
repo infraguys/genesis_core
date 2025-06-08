@@ -1,0 +1,65 @@
+#    Copyright 2025 Genesis Corporation.
+#
+#    All Rights Reserved.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+from __future__ import annotations
+
+import logging
+
+import bazooka
+
+from gcl_sdk.agents.universal.driver import direct
+from gcl_sdk.agents.universal.clients.http import base
+from gcl_sdk.agents.universal.clients.backend import rest as back
+from gcl_sdk.agents.universal.storage import fs
+
+
+LOG = logging.getLogger(__name__)
+
+AGENT_WORK_DIR = "/var/lib/genesis/universal_agent/"
+
+
+class CoreCapabilityDriver(direct.DirectAgentDriver):
+    """Core capability driver for interacting with Genesis Core."""
+
+    __collection_map__ = {
+        "em_node": "/v1/nodes/",
+        "em_config": "/v1/config/configs/",
+    }
+
+    def __init__(
+        self,
+        username: str,
+        password: str,
+        user_api_base_url: str,
+    ):
+        http = bazooka.Client()
+        auth = base.CoreIamAuthenticator(
+            user_api_base_url, username, password, http_client=http
+        )
+
+        rest_client = base.CollectionBaseClient(
+            http_client=http, base_url=user_api_base_url, auth=auth
+        )
+
+        storage = fs.FileAgentStorage(AGENT_WORK_DIR)
+        rest_client = back.RestApiBackendClient(
+            rest_client, self.__collection_map__
+        )
+
+        super().__init__(storage=storage, client=rest_client)
+
+    def get_capabilities(self) -> list[str]:
+        """Returns a list of capabilities supported by the driver."""
+        return list(self.__collection_map__.keys())
