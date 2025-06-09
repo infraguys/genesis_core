@@ -93,6 +93,7 @@ deactivate
 # Create links to venv
 sudo ln -sf "$VENV_PATH/bin/gc-user-api" "/usr/bin/gc-user-api"
 sudo ln -sf "$VENV_PATH/bin/gc-orch-api" "/usr/bin/gc-orch-api"
+sudo ln -sf "$VENV_PATH/bin/gc-status-api" "/usr/bin/gc-status-api"
 sudo ln -sf "$VENV_PATH/bin/gc-gservice" "/usr/bin/gc-gservice"
 sudo ln -sf "$VENV_PATH/bin/gc-bootstrap" "/usr/bin/gc-bootstrap"
 sudo ln -sf "$VENV_PATH/bin/genesis-universal-agent" "/usr/bin/genesis-universal-agent"
@@ -100,8 +101,10 @@ sudo ln -sf "$VENV_PATH/bin/genesis-universal-agent" "/usr/bin/genesis-universal
 # Install Systemd service files
 sudo cp "$GC_PATH/etc/systemd/gc-user-api.service" $SYSTEMD_SERVICE_DIR
 sudo cp "$GC_PATH/etc/systemd/gc-orch-api.service" $SYSTEMD_SERVICE_DIR
+sudo cp "$GC_PATH/etc/systemd/gc-status-api.service" $SYSTEMD_SERVICE_DIR
 sudo cp "$GC_PATH/etc/systemd/gc-gservice.service" $SYSTEMD_SERVICE_DIR
 sudo cp "$GC_PATH/etc/systemd/genesis-universal-agent.service" $SYSTEMD_SERVICE_DIR
 
 # Enable genesis core services
-sudo systemctl enable gc-user-api gc-orch-api gc-gservice genesis-universal-agent
+sudo systemctl enable gc-user-api gc-orch-api gc-status-api \
+    gc-gservice genesis-universal-agent

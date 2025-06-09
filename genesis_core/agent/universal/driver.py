@@ -19,7 +19,7 @@ import logging
 
 import bazooka
 
-from gcl_sdk.agents.universal.driver import direct
+from gcl_sdk.agents.universal.drivers import direct
 from gcl_sdk.agents.universal.clients.http import base
 from gcl_sdk.agents.universal.clients.backend import rest as back
 from gcl_sdk.agents.universal.storage import fs
@@ -42,6 +42,7 @@ class CoreCapabilityDriver(direct.DirectAgentDriver):
         self,
         username: str,
         password: str,
+        project_id: str,
         user_api_base_url: str,
     ):
         http = bazooka.Client()
@@ -54,8 +55,8 @@ class CoreCapabilityDriver(direct.DirectAgentDriver):
         )
 
         storage = fs.FileAgentStorage(AGENT_WORK_DIR)
-        rest_client = back.RestApiBackendClient(
-            rest_client, self.__collection_map__
+        rest_client = back.GCRestApiBackendClient(
+            rest_client, self.__collection_map__, project_id
         )
 
         super().__init__(storage=storage, client=rest_client)
