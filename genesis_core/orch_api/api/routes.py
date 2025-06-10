@@ -16,6 +16,7 @@
 
 from restalchemy.api import routes
 
+from gcl_sdk.agents.universal.orch_api import routes as orch_routes
 from genesis_core.orch_api.api import controllers
 
 
@@ -55,3 +56,4 @@ class ApiEndpointRoute(routes.Route):
     boots = routes.route(NetbootRoute)
     nodes = routes.route(NodeRoute)
     machines = routes.route(MachineRoute)
+    agents = routes.route(orch_routes.UniversalAgentsRoute)
