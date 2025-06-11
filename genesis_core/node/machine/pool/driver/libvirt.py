@@ -15,7 +15,6 @@
 #    under the License.
 from __future__ import annotations
 
-import json
 import logging
 import time
 import typing as tp
@@ -24,11 +23,13 @@ from xml.dom import minidom
 import contextlib as ctxlib
 
 import libvirt
+import netaddr
 
 from genesis_core.node.dm import models
 from genesis_core.common import constants as c
 from genesis_core.node import constants as nc
 from genesis_core.node.machine.pool.driver import base
+from genesis_core.node.machine.pool.driver import exceptions as pool_exc
 
 ImageFormatType = tp.Literal["raw", "qcow2"]
 NetworkType = tp.Literal["bridge", "network"]
@@ -474,6 +475,38 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
             project_id=c.SERVICE_PROJECT_ID,
         )
 
+    def _list_interfaces(self, machine: models.Machine) -> list[models.Port]:
+        """List all interfaces of the machine."""
+        # TODO(akremenetsky): The `Port` model is used to represent
+        # an interface. We need more appropriate model.
+        ports = []
+
+        with ctxlib.closing(self._connect()) as cn:
+            domain = cn.lookupByUUIDString(str(machine.uuid))
+            domain_xml = minidom.parseString(domain.XMLDesc())
+
+            for iface in domain_xml.getElementsByTagName("interface"):
+                mac_tags = iface.getElementsByTagName("mac")
+                if len(mac_tags) != 1 or not mac_tags[0].getAttribute(
+                    "address"
+                ):
+                    LOG.error("Unable to detect MAC address for %s", iface)
+                    continue
+
+                mac = mac_tags[0].getAttribute("address")
+                ports.append(
+                    models.Port(
+                        uuid=sys_uuid.UUID(
+                            "00000000-0000-0000-0000-000000000000"
+                        ),
+                        machine=machine.uuid,
+                        mac=mac,
+                        project_id=c.SERVICE_PROJECT_ID,
+                    )
+                )
+
+        return ports
+
     def list_volumes(
         self, machine: models.Machine
     ) -> tp.Iterable[models.MachineVolume]:
@@ -490,6 +523,40 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         LOG.debug("Volumes: %s", result)
         return result
 
+    def get_volume(
+        self, machine: sys_uuid.UUID, uuid: sys_uuid.UUID
+    ) -> models.MachineVolume:
+        target_volume = models.MachineVolume(
+            uuid=uuid,
+            machine=machine,
+            # These fields don't make sense in this case, just placeholders
+            size=1,
+            node=sys_uuid.uuid4(),
+            project_id=c.SERVICE_PROJECT_ID,
+        )
+        name = self._form_vir_volume_name(target_volume)
+
+        """Get the machine volume by uuid."""
+        with ctxlib.closing(self._connect()) as cn:
+            storage_pool = cn.storagePoolLookupByName(self._spec.storage_pool)
+
+            # We don't know which format is used for the volume so we try them all
+            for fmt in tp.get_args(ImageFormatType):
+                name_with_format = f"{name}.{fmt}"
+                try:
+                    volume = storage_pool.storageVolLookupByName(
+                        name_with_format
+                    )
+                    break
+                except libvirt.libvirtError as e:
+                    if e.get_error_code() == libvirt.VIR_ERR_NO_STORAGE_VOL:
+                        continue
+                    raise
+            else:
+                raise pool_exc.VolumeNotFoundError(volume=uuid)
+
+        return self._vir_volume2machine_volume(volume)
+
     def create_volume(
         self, volume: models.MachineVolume
     ) -> models.MachineVolume:
@@ -499,7 +566,13 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
             volume_xml = XMLLibvirtVolume.xml_from_base_template(
                 storage_pool, name, volume.size << 30
             )
-            virt_volume = storage_pool.createXML(volume_xml)
+
+            try:
+                virt_volume = storage_pool.createXML(volume_xml)
+            except libvirt.libvirtError as e:
+                if e.get_error_code() == libvirt.VIR_ERR_STORAGE_VOL_EXIST:
+                    raise pool_exc.VolumeAlreadyExistsError(volume=volume.uuid)
+                raise
 
         # TODO(akremenetsky): We shouldn't change the original object
         volume.path = virt_volume.path()
@@ -632,22 +705,24 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
 
     def set_machine_cores(self, machine: models.Machine, cores: int) -> None:
         """Set machine cores."""
+        ports = self._list_interfaces(machine)
         volumes = self.list_volumes(machine)
         self.delete_machine(machine, delete_volumes=False)
 
         machine.cores = cores
-        self.create_machine(machine, volumes=volumes)
+        self.create_machine(machine, volumes=volumes, ports=ports)
         LOG.debug(
             "The domain %s was updated with cores %s", machine.uuid, cores
         )
 
     def set_machine_ram(self, machine: models.Machine, ram: int) -> None:
         """Set machine ram."""
+        ports = self._list_interfaces(machine)
         volumes = self.list_volumes(machine)
         self.delete_machine(machine, delete_volumes=False)
 
         machine.ram = ram
-        self.create_machine(machine, volumes=volumes)
+        self.create_machine(machine, volumes=volumes, ports=ports)
         LOG.debug("The domain %s was updated with ram %s", machine.uuid, ram)
 
     def reset_machine(self, machine: models.Machine) -> None:

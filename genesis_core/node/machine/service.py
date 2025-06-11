@@ -156,8 +156,8 @@ class MachineAgentService(basic.BasicService):
             try:
                 driver.create_volume(v)
             except pool_exceptions.VolumeAlreadyExistsError:
-                # Do nothing the volume is already created
-                pass
+                # Copy the necessary fields
+                v.path = driver.get_volume(v.machine, v.uuid).path
 
     def _actualize_machine(
         self,
@@ -220,7 +220,7 @@ class MachineAgentService(basic.BasicService):
         self._actualize_pool_state(pool, actual_machines.values())
 
         # Delete any machines that are not in the target list
-        for uuid in set(actual_machines.keys()) - set(target_machines.keys()):
+        for uuid in actual_machines.keys() - target_machines.keys():
             machine = actual_machines[uuid]
             try:
                 driver.delete_machine(machine)
@@ -232,7 +232,7 @@ class MachineAgentService(basic.BasicService):
                 )
 
         # Create any machines that are not in the actual list
-        for uuid in set(target_machines.keys()) - set(actual_machines.keys()):
+        for uuid in target_machines.keys() - actual_machines.keys():
             machine = target_machines[uuid]
             # Skip machines that are not ready. They are building and
             # will be ready a little bit later.
@@ -278,7 +278,7 @@ class MachineAgentService(basic.BasicService):
                 )
 
         # Actualize any machines that are in both lists
-        for uuid in set(target_machines.keys()) & set(actual_machines.keys()):
+        for uuid in target_machines.keys() & actual_machines.keys():
             target_machine = target_machines[uuid]
             actual_machine = actual_machines[uuid]
             # Skip machines that are not ready. They are building and
