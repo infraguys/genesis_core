@@ -33,22 +33,21 @@ AGENT_WORK_DIR = "/var/lib/genesis/universal_agent/"
 class CoreCapabilityDriver(direct.DirectAgentDriver):
     """Core capability driver for interacting with Genesis Core."""
 
-    __collection_map__ = {
-        "em_node": "/v1/nodes/",
-        "em_config": "/v1/config/configs/",
-    }
-
     def __init__(
         self,
         username: str,
         password: str,
         project_id: str,
         user_api_base_url: str,
+        **collection_map,
     ):
         http = bazooka.Client()
         auth = base.CoreIamAuthenticator(
             user_api_base_url, username, password, http_client=http
         )
+        self._collection_map = {
+            k: v.strip() for k, v in collection_map.items()
+        }
 
         rest_client = base.CollectionBaseClient(
             http_client=http, base_url=user_api_base_url, auth=auth
@@ -56,11 +55,11 @@ class CoreCapabilityDriver(direct.DirectAgentDriver):
 
         storage = fs.FileAgentStorage(AGENT_WORK_DIR)
         rest_client = back.GCRestApiBackendClient(
-            rest_client, self.__collection_map__, project_id
+            rest_client, collection_map, project_id
         )
 
         super().__init__(storage=storage, client=rest_client)
 
     def get_capabilities(self) -> list[str]:
         """Returns a list of capabilities supported by the driver."""
-        return list(self.__collection_map__.keys())
+        return list(self._collection_map.keys())
