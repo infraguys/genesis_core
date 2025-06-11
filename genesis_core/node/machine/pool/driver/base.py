@@ -15,6 +15,7 @@
 #    under the License.
 
 import abc
+import uuid as sys_uuid
 import typing as tp
 
 from genesis_core.node.dm import models
@@ -56,6 +57,10 @@ class AbstractPoolDriver(abc.ABC):
         self, machine: models.Machine
     ) -> tp.Iterable[models.MachineVolume]:
         """Return volume list from data plane."""
+
+    @abc.abstractmethod
+    def get_volume(self, uuid: sys_uuid.UUID) -> models.MachineVolume:
+        """Get the machine volume by uuid."""
 
     @abc.abstractmethod
     def set_machine_cores(self, machine: models.Machine, cores: int) -> None:
@@ -110,6 +115,9 @@ class DummyPoolDriver(AbstractPoolDriver):
     ) -> tp.Iterable[models.MachineVolume]:
         """Return volume list from data plane."""
         return []
+
+    def get_volume(self, uuid: sys_uuid.UUID) -> models.MachineVolume:
+        """Get the machine volume by uuid."""
 
     def set_machine_cores(self, machine: models.Machine, cores: int) -> None:
         """Set machine cores."""
