@@ -19,10 +19,11 @@ import logging
 
 import bazooka
 
+from gcl_sdk.clients.http import base
 from gcl_sdk.agents.universal.drivers import direct
-from gcl_sdk.agents.universal.clients.http import base
-from gcl_sdk.agents.universal.clients.backend import rest as back
 from gcl_sdk.agents.universal.storage import fs
+
+from genesis_core.agent.universal.clients import rest as back
 
 
 LOG = logging.getLogger(__name__)
