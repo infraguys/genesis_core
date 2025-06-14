@@ -33,3 +33,17 @@ class CoresRamAvailableFilter(base.MachinePoolAbstractFilter):
             for p in pools
             if p.avail_cores >= machine.cores and p.avail_ram >= machine.ram
         )
+
+
+class HWCoresRamAvailableFilter(base.MachineAbstractFilter):
+
+    def filter(
+        self,
+        node: models.Node,
+        machines: tp.Iterable[models.Machine],
+    ) -> tp.Iterable[models.Machine]:
+        """Filter out machines that are not suitable for the node."""
+
+        return tuple(
+            m for m in machines if m.cores >= node.cores and m.ram >= node.ram
+        )

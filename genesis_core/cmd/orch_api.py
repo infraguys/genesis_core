@@ -18,6 +18,7 @@ import logging
 import sys
 
 from gcl_looper.services import bjoern_service
+from gcl_looper.services import hub
 from oslo_config import cfg
 from restalchemy.common import config_opts as ra_config_opts
 from restalchemy.storage.sql import engines
@@ -81,22 +82,28 @@ def main():
     infra_log.configure()
     log = logging.getLogger(__name__)
 
-    engines.engine_factory.configure_postgresql_factory(CONF)
+    serv_hub = hub.ProcessHubService()
 
-    log.info(
-        "Start service on %s:%s",
-        CONF[DOMAIN].bind_host,
-        CONF[DOMAIN].bind_port,
-    )
+    for _ in range(CONF[DOMAIN].workers):
+        service = bjoern_service.BjoernService(
+            wsgi_app=app.build_wsgi_application(),
+            host=CONF[DOMAIN].bind_host,
+            port=CONF[DOMAIN].bind_port,
+            bjoern_kwargs=dict(reuse_port=True),
+        )
 
-    service = bjoern_service.BjoernService(
-        wsgi_app=app.build_wsgi_application(),
-        host=CONF[DOMAIN].bind_host,
-        port=CONF[DOMAIN].bind_port,
-        bjoern_kwargs=dict(reuse_port=True),
-    )
+        service.add_setup(
+            lambda: engines.engine_factory.configure_postgresql_factory(
+                conf=CONF
+            )
+        )
 
-    service.start()
+        serv_hub.add_service(service)
+
+    if CONF[DOMAIN].workers > 1:
+        serv_hub.start()
+    else:
+        service.start()
 
     log.info("Bye!!!")
 
