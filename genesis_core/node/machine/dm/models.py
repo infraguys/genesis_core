@@ -18,10 +18,11 @@ from __future__ import annotations
 from restalchemy.dm import relationships
 
 from genesis_core.node.dm import models
+from genesis_core.common.dm import models as cm
 
 
-class Machine(models.Machine, models.CastToBaseMixin):
-    __cast_filels__ = ("node", "pool")
+class Machine(models.Machine, cm.CastToBaseMixin):
+    __cast_fields__ = ("node", "pool")
 
     node = relationships.relationship(models.Node, prefetch=True)
     pool = relationships.relationship(models.MachinePool, prefetch=True)

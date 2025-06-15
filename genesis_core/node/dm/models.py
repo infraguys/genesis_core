@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import random
+import datetime
 import typing as tp
 import netaddr
 import uuid as sys_uuid
@@ -23,6 +24,7 @@ import uuid as sys_uuid
 import netaddr
 from restalchemy.dm import models
 from restalchemy.dm import properties
+from restalchemy.dm import relationships
 from restalchemy.dm import types
 from restalchemy.dm import types_network as types_net
 from restalchemy.dm import filters as dm_filters
@@ -30,45 +32,8 @@ from restalchemy.storage.sql import orm
 
 from genesis_core.node import constants as nc
 from genesis_core.common import utils
-
-
-class ModelWithFullAsset(
-    models.ModelWithUUID,
-    models.ModelWithTimestamp,
-    models.ModelWithProject,
-    models.ModelWithNameDesc,
-):
-    pass
-
-
-class CastToBaseMixin:
-    __cast_filels__ = None
-
-    def cast_to_base(self) -> models.SimpleViewMixin:
-        # Convert to simple view without relations
-        fields = self.__cast_filels__ or tuple(
-            self.properties.properties.keys()
-        )
-        view = self.dump_to_simple_view(skip=fields)
-
-        # Translate relations into uuid
-        for relation in fields:
-            value = getattr(self, relation)
-            if value is not None:
-                view[relation] = value.uuid
-
-        # Find base class
-        base_class = None
-        for base in self.__class__.__bases__:
-            if base != CastToBaseMixin:
-                base_class = base
-                break
-        else:
-            raise RuntimeError(
-                f"Failed to find base class for {self.__class__}"
-            )
-
-        return base_class.restore_from_simple_view(**view)
+from genesis_core.common import system
+from genesis_core.common.dm import models as cm
 
 
 class IPRange(types.BaseType):
@@ -144,7 +109,23 @@ class MachinePool(
 
     @property
     def has_driver(self) -> bool:
-        return self.driver_spec is not None
+        return bool(self.driver_spec)
+
+    @classmethod
+    def default_hw_pool(cls) -> "MachinePool" | None:
+        """Get the default pool for HW machines if exists.
+
+        The method returns the default pool if only a pool
+        with required parameters exists and there are not
+        other pools with similar parameters.
+        """
+        return cls.objects.get_one_or_none(
+            filters={
+                "machine_type": dm_filters.EQ(nc.NodeType.HW.value),
+                "driver_spec": dm_filters.EQ("{}"),
+                "status": dm_filters.EQ(nc.MachinePoolStatus.ACTIVE.value),
+            },
+        )
 
     def load_driver(self) -> tp.Type["AbstractPoolDriver"]:
         """
@@ -182,7 +163,7 @@ class MachinePool(
 
 
 class Node(
-    ModelWithFullAsset,
+    cm.ModelWithFullAsset,
     orm.SQLStorableWithJSONFieldsMixin,
     models.SimpleViewMixin,
 ):
@@ -221,7 +202,7 @@ class Node(
 
 
 class Machine(
-    ModelWithFullAsset, orm.SQLStorableMixin, models.SimpleViewMixin
+    cm.ModelWithFullAsset, orm.SQLStorableMixin, models.SimpleViewMixin
 ):
     __tablename__ = "machines"
 
@@ -262,7 +243,9 @@ class Machine(
     )
 
 
-class Volume(ModelWithFullAsset, orm.SQLStorableMixin, models.SimpleViewMixin):
+class Volume(
+    cm.ModelWithFullAsset, orm.SQLStorableMixin, models.SimpleViewMixin
+):
     __tablename__ = "node_volumes"
 
     node = properties.property(types.AllowNone(types.UUID()))
@@ -291,8 +274,14 @@ class MachineVolume(Volume):
     machine = properties.property(types.AllowNone(types.UUID()))
 
 
-class UnscheduledNode(Node):
+class UnscheduledNode(models.ModelWithUUID, orm.SQLStorableMixin):
     __tablename__ = "unscheduled_nodes"
+
+    node = relationships.relationship(
+        Node,
+        prefetch=True,
+        required=True,
+    )
 
 
 class Netboot(
@@ -341,7 +330,7 @@ class MachinePoolReservations(
 
 
 class Network(
-    ModelWithFullAsset,
+    cm.ModelWithFullAsset,
     orm.SQLStorableWithJSONFieldsMixin,
     models.SimpleViewMixin,
 ):
@@ -372,7 +361,7 @@ class Network(
 
 
 class Subnet(
-    ModelWithFullAsset,
+    cm.ModelWithFullAsset,
     orm.SQLStorableWithJSONFieldsMixin,
     models.SimpleViewMixin,
 ):
@@ -392,6 +381,10 @@ class Subnet(
     dhcp = properties.property(
         types.Boolean(),
         default=True,
+    )
+    ip_discovery_range = properties.property(
+        types.AllowNone(IPRange()),
+        default=None,
     )
 
     dns_servers = properties.property(
@@ -453,8 +446,22 @@ class Subnet(
             netaddr.IPAddress(self.ip_range.last),
         )
 
+    @property
+    def ip_discovery_range_pair(
+        self,
+    ) -> tp.Tuple[netaddr.IPAddress, netaddr.IPAddress] | None:
+        if self.ip_discovery_range is None:
+            return None
 
-class Port(ModelWithFullAsset, orm.SQLStorableMixin, models.SimpleViewMixin):
+        return (
+            netaddr.IPAddress(self.ip_discovery_range.first),
+            netaddr.IPAddress(self.ip_discovery_range.last),
+        )
+
+
+class Port(
+    cm.ModelWithFullAsset, orm.SQLStorableMixin, models.SimpleViewMixin
+):
     __tablename__ = "compute_ports"
 
     subnet = properties.property(types.UUID())
@@ -503,3 +510,69 @@ class NodeWithoutPorts(Node):
     @classmethod
     def get_nodes(cls):
         return cls.objects.get_all()
+
+    @classmethod
+    def get_vm_nodes(cls):
+        return cls.objects.get_all(
+            filters={
+                "node_type": dm_filters.EQ(nc.NodeType.VM.value),
+            }
+        )
+
+
+class HWNodeWithoutPorts(models.ModelWithUUID, orm.SQLStorableMixin):
+    __tablename__ = "compute_hw_nodes_without_ports"
+
+    machine = properties.property(types.UUID())
+    node = properties.property(types.UUID())
+    iface = properties.property(types.UUID())
+
+    @classmethod
+    def get_nodes(cls):
+        return cls.objects.get_all()
+
+
+class Interface(
+    models.ModelWithUUID,
+    models.ModelWithNameDesc,
+    models.ModelWithTimestamp,
+    models.SimpleViewMixin,
+    orm.SQLStorableMixin,
+):
+    __tablename__ = "compute_net_interfaces"
+
+    machine = properties.property(types.UUID())
+    mac = properties.property(types.Mac(), required=True)
+    ipv4 = properties.property(
+        types.AllowNone(types_net.IPAddress()), default=None
+    )
+    mask = properties.property(
+        types.AllowNone(types_net.IPAddress()),
+        default=None,
+    )
+    mtu = properties.property(
+        types.Integer(min_value=1, max_value=65536), default=1500
+    )
+
+    @classmethod
+    def from_system(cls) -> tp.List["Interface"]:
+        ifaces = []
+        system_uuid = system.system_uuid()
+        for iface in system.get_ifaces():
+            # TODO(akremenetsky): Support multiple IPv4 addresses for
+            # an interface
+            uuid = sys_uuid.uuid5(system_uuid, iface["mac"])
+            ipv4 = next(iter(iface["ipv4_addresses"]), None)
+            mask = next(iter(iface["masks"]), None)
+            ifaces.append(
+                cls(
+                    uuid=uuid,
+                    name=iface["name"],
+                    mac=iface["mac"],
+                    ipv4=ipv4,
+                    mask=mask,
+                    mtu=iface["mtu"],
+                )
+            )
+
+        return ifaces

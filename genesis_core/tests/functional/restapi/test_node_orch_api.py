@@ -19,10 +19,13 @@ import uuid as sys_uuid
 from urllib.parse import urljoin
 
 import pytest
+import netaddr
 import requests
 from oslo_config import cfg
 
 from genesis_core.node.dm import models
+from genesis_core.config.dm import models as config_models
+from genesis_core.common import constants as c
 from genesis_core.tests.functional import utils as test_utils
 from genesis_core.tests.functional import conftest
 from genesis_core.orch_api.api import app as orch_app
