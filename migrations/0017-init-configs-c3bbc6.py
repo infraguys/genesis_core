@@ -25,7 +25,7 @@ class MigrationStep(migrations.AbstarctMigrationStep):
 
     @property
     def migration_id(self):
-        return "4b802612-3c27-4174-8133-be26a0a05fdb"
+        return "c3bbc6b2-bc9a-4436-9496-515b3b701220"
 
     @property
     def is_manual(self):
@@ -34,24 +34,6 @@ class MigrationStep(migrations.AbstarctMigrationStep):
     def upgrade(self, session):
         sql_expressions = [
             # TABLES
-            """
-            CREATE TABLE IF NOT EXISTS compute_core_agents (
-                uuid UUID NOT NULL PRIMARY KEY,
-                name varchar(255) NOT NULL,
-                description varchar(255) NOT NULL,
-                node UUID references nodes(uuid) ON DELETE SET NULL,
-                machine UUID references machines(uuid) ON DELETE CASCADE NULL DEFAULT NULL,
-                payload_updated_at timestamp NOT NULL
-            );
-            """,
-            """
-            CREATE INDEX IF NOT EXISTS compute_core_agents_node_id_idx
-                ON compute_core_agents (node);
-            """,
-            """
-            CREATE INDEX IF NOT EXISTS compute_core_agents_machine_id_idx
-                ON compute_core_agents (machine);
-            """,
             """
             ALTER TABLE compute_subnets 
                 ADD IF NOT EXISTS ip_discovery_range varchar(31) NULL DEFAULT NULL;
@@ -77,6 +59,41 @@ class MigrationStep(migrations.AbstarctMigrationStep):
             """
             CREATE UNIQUE INDEX IF NOT EXISTS compute_net_interfaces_mac_machine_id_idx
                 ON compute_net_interfaces (mac, machine);
+            """,
+            """
+            DROP TYPE IF EXISTS enum_config_status;
+            CREATE TYPE "enum_config_status" AS ENUM (
+                'NEW',
+                'IN_PROGRESS',
+                'ACTIVE',
+                'ERROR'
+            );
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS config_configs (
+                "uuid" UUID NOT NULL PRIMARY KEY,
+                "name" varchar(255) NOT NULL,
+                "description" varchar(255) NOT NULL,
+                "project_id" UUID NOT NULL,
+                "status" enum_config_status NOT NULL DEFAULT 'NEW',
+                "path" varchar(255) NOT NULL,
+                "target" JSONB NOT NULL,
+                "body" JSONB NOT NULL,
+                "on_change" JSONB NOT NULL,
+                "mode" char(4) NOT NULL,
+                "owner" varchar(128) NOT NULL,
+                "group" varchar(128) NOT NULL,
+                "created_at" timestamp NOT NULL DEFAULT current_timestamp,
+                "updated_at" timestamp NOT NULL DEFAULT current_timestamp
+            );
+            """,
+            """
+            CREATE INDEX IF NOT EXISTS config_configs_project_id_idx
+                ON config_configs (project_id);
+            """,
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS config_configs_path_target_id_idx
+                ON config_configs (path, target);
             """,
             # Views
             """
@@ -140,9 +157,15 @@ class MigrationStep(migrations.AbstarctMigrationStep):
             """,
         ]
 
+        sql_types = [
+            """
+            DROP TYPE IF EXISTS enum_config_status;
+            """,
+        ]
+
         tables = [
+            "config_configs",
             "compute_net_interfaces",
-            "compute_core_agents",
         ]
         views = [
             "compute_hw_nodes_without_ports",
@@ -156,6 +179,9 @@ class MigrationStep(migrations.AbstarctMigrationStep):
 
         for table_name in tables:
             self._delete_table_if_exists(session, table_name)
+
+        for expr in sql_types:
+            session.execute(expr, None)
 
 
 migration_step = MigrationStep()

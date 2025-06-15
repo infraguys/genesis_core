@@ -16,7 +16,7 @@
 
 from restalchemy.api import routes
 
-from gcl_sdk.agents.universal.status_api import routes as status_routers
+from gcl_sdk.agents.universal.status_api import routes as status_routes
 from genesis_core.status_api.api import controllers
 
 
@@ -26,5 +26,5 @@ class ApiEndpointRoute(routes.Route):
     __controller__ = controllers.ApiEndpointController
     __allow_methods__ = [routes.FILTER]
 
-    agents = routes.route(status_routers.UniversalAgentsRoute)
-    resources = routes.route(status_routers.ResourcesRoute)
+    agents = routes.route(status_routes.UniversalAgentsRoute)
+    resources = routes.route(status_routes.ResourcesRoute)

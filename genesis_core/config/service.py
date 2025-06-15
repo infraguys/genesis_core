@@ -72,6 +72,13 @@ class ConfigService(basic.BasicService):
         )
         render_map = collections.defaultdict(list)
         for render in renders:
+            # Updated resource aren't outdated
+            if (
+                render.target_resource.updated_at
+                > render.actual_resource.updated_at
+            ):
+                continue
+
             render_map[render.target_resource.master].append(
                 (render.target_resource, render.actual_resource)
             )
