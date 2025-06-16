@@ -17,6 +17,7 @@
 import logging
 
 from gcl_looper.services import basic
+from restalchemy.common import contexts
 
 from genesis_core.elements.dm import models
 
@@ -36,30 +37,45 @@ class ElementManagerBuilder(basic.BasicService):
         self._first_step = True
 
     def _actualize_target_resources(self):
+        # Delete outdated resources that do not have a corresponding EM
         for info in models.OutdatedResources.objects.get_all():
             if info.em_resource is None:
                 info.target_resource.delete()
+                LOG.info(" Resource %s has been deleted", info.target_resource)
 
         for resource in self._element_engine.get_resources():
             resource.actualize()
 
-    def _actualize_statuses(self):
-        incorrect_statuses = (
+    def _actualize_statuses(self, session):
+        incorrect_resource_statuses = (
+            models.ResourceIncorrectStatusesView.objects.get_all()
+        )
+        for em_status_model in incorrect_resource_statuses:
+            LOG.info(
+                "Actualizing status for resource (%s): %s -> %s...",
+                em_status_model.uuid,
+                em_status_model.current_status,
+                em_status_model.actual_status,
+            )
+            em_status_model.actualize_status(session)
+
+        incorrect_element_statuses = (
             models.ElementIncorrectStatusesView.objects.get_all()
         )
-        for em_status_model in incorrect_statuses:
+        for em_status_model in incorrect_element_statuses:
             LOG.info(
                 "Actualizing status for element (%s): %s -> %s...",
                 em_status_model.name,
                 em_status_model.api_status,
                 em_status_model.actual_status,
             )
-            em_status_model.actualize_api_status()
+            em_status_model.actualize_status()
 
     def _iteration(self):
-        if self._first_step:
-            self._element_engine.load_from_database()
-            self._first_step = True  # Disable optimization
-        self._actualize_target_resources()
-        self._actualize_statuses()
-        LOG.debug("Starting iteration")
+        with contexts.Context().session_manager() as session:
+            if self._first_step:
+                self._element_engine.load_from_database()
+                self._first_step = True  # Disable optimization
+            self._actualize_target_resources()
+            self._actualize_statuses(session)
+            LOG.debug("Starting iteration")

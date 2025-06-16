@@ -147,6 +147,21 @@ class MigrationStep(migrations.AbstarctMigrationStep):
                     OR "utr"."uuid" IS NULL
                     OR "er"."updated_at" <> "utr"."tracked_at";
             """,
+            """
+                CREATE OR REPLACE VIEW "em_incorrect_resource_statuses_view" AS
+                SELECT
+                    "er"."uuid" AS "uuid",
+                    "er"."status" AS "current_status",
+                    "uar"."status" AS "actual_status"
+                FROM
+                    "em_resources" "er"
+                LEFT JOIN
+                    "ua_actual_resources" "uar"
+                ON
+                    "er"."uuid" = "uar"."uuid"
+                WHERE
+                    "er"."status" <> "uar"."status";
+            """,
         ]
 
         for expression in expressions:
@@ -160,6 +175,7 @@ class MigrationStep(migrations.AbstarctMigrationStep):
         ]
         views = [
             "em_incorrect_statuses_view",
+            "em_incorrect_resource_statuses_view",
             "em_outdated_resources_view",
         ]
 

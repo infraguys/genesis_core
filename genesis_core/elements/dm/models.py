@@ -218,16 +218,19 @@ class ElementIncorrectStatusesView(
         read_only=True,
     )
 
-    def actualize_api_status(self):
+    def actualize_status(self):
         engine = engines.engine_factory.get_engine()
         with engine.session_manager() as s:
             s.execute(
-                """
-                UPDATE em_elements
+                f"""
+                UPDATE {Element.__tablename__}
                 SET status = %s
                 WHERE uuid = %s;
                 """,
-                [self.actual_status, self.uuid],
+                (
+                    self.actual_status,
+                    self.uuid,
+                ),
             )
 
 
@@ -416,17 +419,34 @@ class Resource(
 
     def calculate_full_hash(self):
         if self.actual_resource is not None:
-            self.full_hash = self.actual_resource.full_hash
-        else:
-            target_state = self.render_target_state()
-            self.full_hash = sdk_utils.calculate_hash(target_state)
-        self.update()
-        return self.full_hash
+            return self.actual_resource.full_hash
+        target_state = self.render_target_state()
+        return sdk_utils.calculate_hash(target_state)
+
+    def _find_actual_resource(self):
+        if self.actual_resource is None:
+            for actual_resource in sdk_models.Resource.objects.get_all(
+                filters={
+                    "uuid": ra_filters.EQ(self.uuid),
+                    "kind": ra_filters.EQ(self.kind),
+                },
+            ):
+                return actual_resource
+        return None
 
     def actualize(self):
-        target_state = self.render_target_state()
+        try:
+            target_state = self.render_target_state()
+        except KeyError as e:
+            LOG.debug(
+                "Target state is not available for resource %s by reason: %r",
+                self,
+                str(e),
+            )
+            return
+        self.actual_resource = self._find_actual_resource()
         hash = sdk_utils.calculate_hash(target_state)
-        self.calculate_full_hash()
+        self.full_hash = self.calculate_full_hash()
         if self.target_resource is None:
             target_resource = sdk_models.TargetResource(
                 uuid=self.uuid,
@@ -439,7 +459,7 @@ class Resource(
             target_resource.insert()
             self.target_resource = target_resource
             self.update()
-            LOG.debug("Target resource %r has been created.", target_resource)
+            LOG.debug("Target resource %s has been created.", target_resource)
         elif self.target_resource.hash != hash:
             self.target_resource.value = target_state
             self.target_resource.calculate_hash()
@@ -447,14 +467,29 @@ class Resource(
             self.target_resource.tracked_at = self.updated_at
             self.target_resource.update()
             LOG.debug(
-                "Target resource %r has been updated.",
+                "Target resource %s has been updated.",
+                self.target_resource,
+            )
+        elif self.target_resource.full_hash != self.full_hash:
+            self.target_resource.full_hash = self.full_hash
+            self.target_resource.update()
+            LOG.debug(
+                "Target resource %s full hash has been updated.",
+                self.target_resource,
+            )
+        elif self.target_resource.tracked_at != self.updated_at:
+            self.target_resource.tracked_at = self.updated_at
+            self.target_resource.update()
+            LOG.debug(
+                "Target resource %s tracked_at has been updated.",
                 self.target_resource,
             )
         else:
             LOG.debug(
-                "Target resource %r is actual state.",
+                "Target resource %s is actual state.",
                 self.target_resource,
             )
+        self.update()
 
     def delete(self, session=None):
         for ts in sdk_models.TargetResource.objects.get_all(
@@ -478,6 +513,33 @@ class OutdatedResources(models.ModelWithUUID, orm.SQLStorableMixin):
         default=None,
         prefetch=True,
     )
+
+
+class ResourceIncorrectStatusesView(
+    models.ModelWithUUID, orm.SQLStorableMixin
+):
+    __tablename__ = "em_incorrect_resource_statuses_view"
+
+    current_status = properties.property(
+        ra_types.String(),
+        required=True,
+    )
+    actual_status = properties.property(
+        ra_types.AllowNone(ra_types.String()),
+        default=None,
+    )
+
+    def actualize_status(self, session):
+        new_status = Status.NEW
+        if self.actual_status == Status.ACTIVE.value:
+            new_status = Status.ACTIVE
+        elif self.actual_status is not None:
+            new_status = Status.IN_PROGRESS
+
+        session.execute(
+            f'UPDATE {Resource.__tablename__} SET status=%s WHERE "uuid"=%s;',
+            (new_status, self.uuid),
+        )
 
 
 class Namespace:
