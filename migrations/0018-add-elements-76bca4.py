@@ -14,13 +14,50 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import logging
+import os
+
+from gcl_sdk import migrations as sdk_migrations
+
 from restalchemy.storage.sql import migrations
+
+
+SDK_MIGRATION_FILE_NAME = "0001-universal-agent-391c09.py"
+
+
+LOG = logging.getLogger(__name__)
+
+
+class MigrationEngine(migrations.MigrationEngine):
+
+    def apply_migration(self, migration_name, session):
+        filename = self.get_file_name(migration_name)
+        self._init_migration_table(session)
+        migrations = self._load_migration_controllers(session)
+
+        migration = migrations[filename]
+        if migration.is_applied():
+            LOG.warning("Migration '%s' is already applied", migration.name)
+        else:
+            LOG.info("Applying migration '%s'", migration.name)
+            migrations[filename].apply(session, migrations)
+
+    def rollback_migration(self, migration_name, session):
+        filename = self.get_file_name(migration_name)
+        self._init_migration_table(session)
+        migrations = self._load_migration_controllers(session)
+        migration = migrations[filename]
+        if not migration.is_applied():
+            LOG.warning("Migration '%s' is not applied", migration.name)
+        else:
+            LOG.info("Rolling back migration '%s'", migration.name)
+            migrations[filename].rollback(session, migrations)
 
 
 class MigrationStep(migrations.AbstarctMigrationStep):
 
     def __init__(self):
-        self._depends = ["0018-init-configs-c3bbc6.py"]
+        self._depends = ["0017-init-configs-c3bbc6.py"]
 
     @property
     def migration_id(self):
@@ -29,6 +66,10 @@ class MigrationStep(migrations.AbstarctMigrationStep):
     @property
     def is_manual(self):
         return False
+
+    def _get_migration_engine(self):
+        sdk_migration_path = os.path.dirname(sdk_migrations.__file__)
+        return MigrationEngine(migrations_path=sdk_migration_path)
 
     def upgrade(self, session):
         expressions = [
@@ -164,6 +205,9 @@ class MigrationStep(migrations.AbstarctMigrationStep):
             """,
         ]
 
+        migration_engine = self._get_migration_engine()
+        migration_engine.apply_migration(SDK_MIGRATION_FILE_NAME, session)
+
         for expression in expressions:
             session.execute(expression)
 
@@ -184,6 +228,9 @@ class MigrationStep(migrations.AbstarctMigrationStep):
 
         for table in reversed(tables):
             self._delete_table_if_exists(session, table)
+
+        migration_engine = self._get_migration_engine()
+        migration_engine.rollback_migration(SDK_MIGRATION_FILE_NAME, session)
 
 
 migration_step = MigrationStep()
