@@ -26,3 +26,8 @@ class MachineAlreadyExistsError(exceptions.GCException):
 class VolumeAlreadyExistsError(exceptions.GCException):
     __template__ = "The volume {volume} already exists."
     volume: sys_uuid.UUID
+
+
+class VolumeNotFoundError(exceptions.GCException):
+    __template__ = "The volume {volume} not found."
+    volume: sys_uuid.UUID
