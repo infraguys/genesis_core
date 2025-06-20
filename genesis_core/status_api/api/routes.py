@@ -27,4 +27,4 @@ class ApiEndpointRoute(routes.Route):
     __allow_methods__ = [routes.FILTER]
 
     agents = routes.route(status_routes.UniversalAgentsRoute)
-    resources = routes.route(status_routes.ResourcesRoute)
+    kind = routes.route(status_routes.KindRoute)

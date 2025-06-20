@@ -14,39 +14,21 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import enum
-import typing as tp
+from restalchemy.api import routes
 
-DEFAULT_SQL_LIMIT = 100
-CONFIG_KIND = "config"
-RENDER_KIND = "render"
+from genesis_core.user_api.secret.api import controllers
 
 
-class ConfigStatus(str, enum.Enum):
-    NEW = "NEW"
-    IN_PROGRESS = "IN_PROGRESS"
-    ACTIVE = "ACTIVE"
-    ERROR = "ERROR"
+class PasswordsRoute(routes.Route):
+    """Handler for /v1/secret/passwords/ endpoint"""
+
+    __controller__ = controllers.PasswordsController
 
 
-class FilePermission(enum.Flag):
-    R = 4
-    W = 2
-    X = 1
+class SecretRoute(routes.Route):
+    """Handler for /v1/secret/ endpoint"""
 
-    ALL = R | W | X
+    __allow_methods__ = [routes.FILTER]
+    __controller__ = controllers.SecretController
 
-    @classmethod
-    def combinations(cls) -> tp.Tuple[int]:
-        return tuple(range(8))
-
-
-FileMode = enum.Enum(
-    "FileMode",
-    [
-        (f"o{u}{g}{o}", f"0{u}{g}{o}")
-        for u in FilePermission.combinations()
-        for g in FilePermission.combinations()
-        for o in FilePermission.combinations()
-    ],
-)
+    passwords = routes.route(PasswordsRoute)

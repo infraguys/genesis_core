@@ -138,9 +138,9 @@ class MigrationStep(migrations.AbstarctMigrationStep):
                     "resource_link_prefix" VARCHAR(256) NOT NULL,
                     "value" JSONB NOT NULL DEFAULT '{}',
                     "target_resource" UUID DEFAULT NULL REFERENCES
-                        ua_target_resources("uuid"),
+                        ua_target_resources("res_uuid"),
                     "actual_resource" UUID DEFAULT NULL REFERENCES
-                        ua_actual_resources("uuid"),
+                        ua_actual_resources("res_uuid"),
                     "full_hash" VARCHAR(256) NOT NULL DEFAULT '',
                     "created_at" TIMESTAMP(6) NOT NULL DEFAULT NOW(),
                     "updated_at" TIMESTAMP(6) NOT NULL DEFAULT NOW()
@@ -182,9 +182,17 @@ class MigrationStep(migrations.AbstarctMigrationStep):
                 SELECT
                     COALESCE("er"."uuid", "utr"."uuid") AS "uuid",
                     "er"."uuid" AS "em_resource",
-                    "utr"."uuid" AS "target_resource"
+                    "utr"."res_uuid" AS "target_resource"
                 FROM "em_resources" "er"
-                FULL OUTER JOIN  "ua_target_resources" "utr"
+                FULL OUTER JOIN  (
+                    SELECT
+                        "uuid",
+                        "res_uuid",
+                        "updated_at",
+                        "tracked_at"
+                    FROM "ua_target_resources"
+                    WHERE "kind" like 'em_core_%'
+                ) AS "utr"
                     on "er"."uuid" = "utr"."uuid"
                 WHERE
                     "er"."uuid"  IS NULL
@@ -199,8 +207,13 @@ class MigrationStep(migrations.AbstarctMigrationStep):
                     "uar"."status" AS "actual_status"
                 FROM
                     "em_resources" "er"
-                LEFT JOIN
-                    "ua_actual_resources" "uar"
+                LEFT JOIN (
+                    SELECT
+                        "uuid",
+                        "status"
+                    FROM "ua_actual_resources"
+                    WHERE "kind" like 'em_core_%'
+                ) AS "uar"
                 ON
                     "er"."uuid" = "uar"."uuid"
                 WHERE

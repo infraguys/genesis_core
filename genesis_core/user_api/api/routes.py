@@ -21,6 +21,7 @@ from genesis_core.user_api.dns.api import routes as dns_routes
 from genesis_core.user_api.em.api import routes as em_routes
 from genesis_core.user_api.iam.api import routes as iam_routes
 from genesis_core.user_api.config.api import routes as config_routes
+from genesis_core.user_api.secret.api import routes as secret_routes
 
 
 # TODO(e.frolov): should be raw route
@@ -66,6 +67,7 @@ class ApiEndpointRoute(routes.Route):
     iam = routes.route(iam_routes.IamRoute)
     em = routes.route(em_routes.ElementManagerRoute)
     config = routes.route(config_routes.ConfigRoute)
+    secret = routes.route(secret_routes.SecretRoute)
     nodes = routes.route(NodeRoute)
     machines = routes.route(MachineRoute)
     hypervisors = routes.route(HypervisorRoute)

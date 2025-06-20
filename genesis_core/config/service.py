@@ -33,13 +33,11 @@ from genesis_core.config import constants as cc
 
 
 LOG = logging.getLogger(__name__)
-CONFIG_CAPABILITY_RESOURCE = "config"
-RENDER_CAPABILITY_RESOURCE = "render"
 ORPHAN_CFG_ITERATION_FREQUENCY = 10
 DEF_OUTDATE_MIN_PERIOD = datetime.timedelta(minutes=10)
 
 
-class ConfigService(basic.BasicService):
+class ConfigServiceBuilder(basic.BasicService):
 
     def _get_new_configs(
         self,
@@ -67,18 +65,11 @@ class ConfigService(basic.BasicService):
         list[tuple[ua_models.TargetResource, ua_models.Resource]],
     ]:
         renders = ua_models.OutdatedResource.objects.get_all(
-            filters={"kind": dm_filters.EQ(RENDER_CAPABILITY_RESOURCE)},
+            filters={"kind": dm_filters.EQ(cc.RENDER_KIND)},
             limit=limit,
         )
         render_map = collections.defaultdict(list)
         for render in renders:
-            # Updated resource aren't outdated
-            if (
-                render.target_resource.updated_at
-                > render.actual_resource.updated_at
-            ):
-                continue
-
             render_map[render.target_resource.master].append(
                 (render.target_resource, render.actual_resource)
             )
@@ -122,7 +113,7 @@ class ConfigService(basic.BasicService):
         if len(target_nodes) == 0:
             return
 
-        config_resource = config.to_ua_resource(CONFIG_CAPABILITY_RESOURCE)
+        config_resource = config.to_ua_resource(cc.CONFIG_KIND)
         config_resource.insert()
 
         # Make renders for this config
@@ -132,12 +123,7 @@ class ConfigService(basic.BasicService):
             # Hack for scheduler
             render.agent = node.uuid
 
-            # It's possible that the render already exists so just skip it
-            try:
-                render.insert()
-
-            except ra_exceptions.ConflictRecords:
-                LOG.warning("Render %s already exists", render.uuid)
+            render.insert()
 
         config.status = cc.ConfigStatus.IN_PROGRESS.value
         config.save()
@@ -193,13 +179,21 @@ class ConfigService(basic.BasicService):
         config_resources = ua_models.TargetResource.objects.get_all(
             filters={
                 "uuid": dm_filters.In(str(uc.uuid) for uc in changed_configs),
-                "kind": dm_filters.EQ(CONFIG_CAPABILITY_RESOURCE),
+                "kind": dm_filters.EQ(cc.CONFIG_KIND),
+            }
+        )
+        render_resources = ua_models.TargetResource.objects.get_all(
+            filters={
+                "master": dm_filters.In(
+                    str(uc.uuid) for uc in changed_configs
+                ),
+                "kind": dm_filters.EQ(cc.RENDER_KIND),
             }
         )
 
-        for cfg in config_resources:
+        for cfg in render_resources + config_resources:
             cfg.delete()
-            LOG.debug("Outdated config resource %s deleted", cfg.uuid)
+            LOG.debug("Outdated resource (config/render) %s deleted", cfg.uuid)
 
         # Now they are new configs
         self._actualize_new_configs(changed_configs)
@@ -217,21 +211,32 @@ class ConfigService(basic.BasicService):
         # Update target renders with actual information from the DP.
         for target_render, actual_render in renders:
             target_render.full_hash = actual_render.full_hash
-            target_render.status = actual_render.status
+
+            # `ACTIVE` only if the hash is the same
+            if (
+                actual_render.status == cc.ConfigStatus.ACTIVE
+                and target_render.hash == actual_render.hash
+            ):
+                target_render.status = actual_render.status
+            elif (
+                actual_render.status != cc.ConfigStatus.ACTIVE
+                and target_render.status != actual_render.status
+            ):
+                target_render.status = actual_render.status
             target_render.update()
             LOG.debug("Outdated render %s actualized", target_render.uuid)
 
         # Actualize status if needed.
         status = None
         if all(r.status == cc.ConfigStatus.ACTIVE for r, _ in renders):
-            status = cc.ConfigStatus.ACTIVE.value
+            status = cc.ConfigStatus.ACTIVE
         elif any(r.status == cc.ConfigStatus.NEW for r, _ in renders):
-            status = cc.ConfigStatus.NEW.value
+            status = cc.ConfigStatus.NEW
         elif any(r.status == cc.ConfigStatus.IN_PROGRESS for r, _ in renders):
-            status = cc.ConfigStatus.IN_PROGRESS.value
+            status = cc.ConfigStatus.IN_PROGRESS
 
         if status is not None and config.status != status:
-            config.status = status
+            config.status = status.value
             config.update()
             config_resource.tracked_at = config.updated_at
             config_resource.update()
@@ -260,17 +265,26 @@ class ConfigService(basic.BasicService):
 
     def _actualize_deleted_configs(self) -> None:
         """Actualize configs deleted by user."""
-        deleted_configs = self._get_deleted_configs()
+        deleted_config_resources = self._get_deleted_configs()
 
-        if len(deleted_configs) == 0:
+        if len(deleted_config_resources) == 0:
             return
 
-        for config in deleted_configs:
+        render_resources = ua_models.TargetResource.objects.get_all(
+            filters={
+                "master": dm_filters.In(
+                    str(uc.uuid) for uc in deleted_config_resources
+                ),
+                "kind": dm_filters.EQ(cc.RENDER_KIND),
+            }
+        )
+
+        for resource in render_resources + deleted_config_resources:
             try:
-                config.delete()
-                LOG.debug("Outdated resource %s deleted", config.uuid)
+                resource.delete()
+                LOG.debug("Outdated resource %s deleted", resource.uuid)
             except Exception:
-                LOG.exception("Error deleting resource %s", config.uuid)
+                LOG.exception("Error deleting resource %s", resource.uuid)
 
     def _handle_orphan_configs(
         self, outdate_min_period: datetime.timedelta = DEF_OUTDATE_MIN_PERIOD
