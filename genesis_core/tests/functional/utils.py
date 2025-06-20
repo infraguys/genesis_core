@@ -75,14 +75,6 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
         return migrations
 
     def apply_all_migrations(self) -> None:
-
-        # SDK migrations
-        self._sdk_migration = self.apply_migrations(
-            migration_path=sdk_migrations.__path__[0],
-            first_migration=sdk_conftest.FIRST_MIGRATION,
-        )
-
-        # Service migrations
         self._migration = self.apply_migrations(
             migration_path=os.path.join(
                 os.path.dirname(os.path.abspath(__file__)),
@@ -179,4 +171,3 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
 
         # Rollback migrations
         self._migration.rollback_migration(self.__FIRST_MIGRATION__)
-        self._sdk_migration.rollback_migration(sdk_conftest.FIRST_MIGRATION)
