@@ -24,11 +24,11 @@ from genesis_core.config import service
 from genesis_core.config.dm import models
 
 
-class TestConfigService:
+class TestConfigServiceBuilder:
 
     def setup_method(self) -> None:
         # Run service
-        self._service = service.ConfigService()
+        self._service = service.ConfigServiceBuilder()
 
     def teardown_method(self) -> None:
         pass
@@ -77,7 +77,7 @@ class TestConfigService:
         config = configs[0]
 
         assert config.status == "IN_PROGRESS"
-        assert render.status == "ACTIVE"
+        assert render.status == "IN_PROGRESS"
         assert str(render.agent) == default_node["uuid"]
 
     def test_new_config_fake_node(

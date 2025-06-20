@@ -448,9 +448,13 @@ class Resource(
         hash = sdk_utils.calculate_hash(target_state)
         self.full_hash = self.calculate_full_hash()
         if self.target_resource is None:
+            res_uuid = sdk_models.TargetResource.gen_res_uuid(
+                self.uuid, self.kind
+            )
             target_resource = sdk_models.TargetResource(
                 uuid=self.uuid,
                 kind=self.kind,
+                res_uuid=res_uuid,
                 value=target_state,
                 hash=hash,
                 full_hash=self.full_hash,

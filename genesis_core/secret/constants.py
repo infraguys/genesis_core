@@ -15,38 +15,23 @@
 #    under the License.
 
 import enum
-import typing as tp
 
 DEFAULT_SQL_LIMIT = 100
-CONFIG_KIND = "config"
-RENDER_KIND = "render"
+PASSWORD_KIND = "password"
 
 
-class ConfigStatus(str, enum.Enum):
+class SecretStatus(str, enum.Enum):
     NEW = "NEW"
     IN_PROGRESS = "IN_PROGRESS"
     ACTIVE = "ACTIVE"
     ERROR = "ERROR"
 
 
-class FilePermission(enum.Flag):
-    R = 4
-    W = 2
-    X = 1
+class SecretMethod(str, enum.Enum):
+    AUTO_HEX = "AUTO_HEX"
+    AUTO_URL_SAFE = "AUTO_URL_SAFE"
+    MANUAL = "MANUAL"
 
-    ALL = R | W | X
-
-    @classmethod
-    def combinations(cls) -> tp.Tuple[int]:
-        return tuple(range(8))
-
-
-FileMode = enum.Enum(
-    "FileMode",
-    [
-        (f"o{u}{g}{o}", f"0{u}{g}{o}")
-        for u in FilePermission.combinations()
-        for g in FilePermission.combinations()
-        for o in FilePermission.combinations()
-    ],
-)
+    @property
+    def is_auto(self):
+        return self in {SecretMethod.AUTO_HEX, SecretMethod.AUTO_URL_SAFE}

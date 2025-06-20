@@ -34,7 +34,7 @@ class MigrationStep(migrations.AbstarctMigrationStep):
     def upgrade(self, session):
         expressions = [
             """
-CREATE SEQUENCE dns_domain_id_seq;
+CREATE SEQUENCE IF NOT EXISTS dns_domain_id_seq;
             """,
             """
 CREATE TABLE dns_domains (

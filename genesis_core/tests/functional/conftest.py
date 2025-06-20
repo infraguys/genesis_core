@@ -34,6 +34,8 @@ from genesis_core.user_api.api import app as user_app
 from genesis_core.tests.functional import utils as test_utils
 from genesis_core.config.dm import models as conf_models
 from genesis_core.config import constants as cc
+from genesis_core.secret import constants as sc
+from genesis_core.secret.dm import models as secret_models
 
 
 FIRST_MIGRATION = "0000-root-d34de1.py"
@@ -450,6 +452,38 @@ def config_factory():
             on_change=on_change,
             project_id=project_id,
             status=status,
+            **kwargs,
+        )
+        view = config.dump_to_simple_view()
+        return view
+
+    return factory
+
+
+@pytest.fixture
+def password_factory():
+    def factory(
+        uuid: sys_uuid.UUID | None = None,
+        name: str = "password",
+        constructor: secret_models.AbstractPasswordConstructor | None = None,
+        method: sc.SecretMethod = sc.SecretMethod.AUTO_HEX,
+        project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
+        status: str = cc.ConfigStatus.NEW.value,
+        **kwargs,
+    ) -> tp.Dict[str, tp.Any]:
+        uuid = uuid or sys_uuid.uuid4()
+        constructor = (
+            secret_models.PlainPasswordConstructor()
+            if constructor is None
+            else constructor
+        )
+        config = secret_models.Password(
+            uuid=uuid,
+            name=name,
+            method=method.value,
+            project_id=project_id,
+            status=status,
+            constructor=constructor,
             **kwargs,
         )
         view = config.dump_to_simple_view()
