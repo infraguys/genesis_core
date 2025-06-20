@@ -39,7 +39,7 @@ ORPHAN_CFG_ITERATION_FREQUENCY = 10
 DEF_OUTDATE_MIN_PERIOD = datetime.timedelta(minutes=10)
 
 
-class ConfigService(basic.BasicService):
+class ConfigServiceBuilder(basic.BasicService):
 
     def _get_new_configs(
         self,
