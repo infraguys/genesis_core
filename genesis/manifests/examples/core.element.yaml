@@ -8,7 +8,7 @@ Requirements: []
 Resources:
 
   $core.endpoints:
-    managment:
+    management:
       kind: internal_client
       #endpoint: http://localhost:11010/v1/
 
