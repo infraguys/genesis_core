@@ -35,17 +35,17 @@ from genesis_core.elements.dm import utils
 LOG = logging.getLogger(__name__)
 
 
-class Status(enum.Enum):
+class Status(str, enum.Enum):
     NEW = "NEW"
     IN_PROGRESS = "IN_PROGRESS"
     ACTIVE = "ACTIVE"
 
 
-class AlwaysActiveStatus(enum.Enum):
+class AlwaysActiveStatus(str, enum.Enum):
     ACTIVE = "ACTIVE"
 
 
-class InstallTypes(enum.Enum):
+class InstallTypes(str, enum.Enum):
     MANUAL = "MANUAL"
     AUTO_AS_DEPENDENCY = "AUTO_AS_DEPENDENCY"
 
@@ -61,8 +61,8 @@ class Manifest(
     STATUS = AlwaysActiveStatus
 
     status = properties.property(
-        ra_types.Enum([s.value for s in Status]),
-        default=STATUS.ACTIVE.value,
+        ra_types.Enum([s for s in Status]),
+        default=STATUS.ACTIVE,
     )
     version = properties.property(
         ra_types.String(min_length=5, max_length=64),
@@ -146,8 +146,8 @@ class Element(
     INSTALL_TYPES = InstallTypes
 
     status = properties.property(
-        ra_types.Enum([s.value for s in STATUSES]),
-        default=STATUSES.NEW.value,
+        ra_types.Enum([s for s in STATUSES]),
+        default=STATUSES.NEW,
     )
 
     version = properties.property(
@@ -156,8 +156,8 @@ class Element(
     )
 
     install_type = properties.property(
-        ra_types.Enum([s.value for s in INSTALL_TYPES]),
-        default=INSTALL_TYPES.MANUAL.value,
+        ra_types.Enum([s for s in INSTALL_TYPES]),
+        default=INSTALL_TYPES.MANUAL,
     )
 
     @property
@@ -210,11 +210,11 @@ class ElementIncorrectStatusesView(
         read_only=True,
     )
     api_status = properties.property(
-        ra_types.Enum([s.value for s in Status]),
+        ra_types.Enum([s for s in Status]),
         read_only=True,
     )
     actual_status = properties.property(
-        ra_types.Enum([s.value for s in Status]),
+        ra_types.Enum([s for s in Status]),
         read_only=True,
     )
 
@@ -250,12 +250,12 @@ class Requirement(
         required=True,
     )
     from_version = properties.property(
-        ra_types.String(min_length=5, max_length=64),
-        required=True,
+        ra_types.AllowNone(ra_types.String(min_length=5, max_length=64)),
+        default=None,
     )
     to_version = properties.property(
-        ra_types.String(min_length=5, max_length=64),
-        required=True,
+        ra_types.AllowNone(ra_types.String(min_length=5, max_length=64)),
+        default=None,
     )
 
 
@@ -289,7 +289,7 @@ class Resource(
     )
     status = properties.property(
         ra_types.Enum(Status),
-        default=Status.NEW.value,
+        default=Status.NEW,
     )
     resource_link_prefix = properties.property(
         ra_types.String(min_length=1, max_length=256),
@@ -531,7 +531,7 @@ class ResourceIncorrectStatusesView(
 
     def actualize_status(self, session):
         new_status = Status.NEW
-        if self.actual_status == Status.ACTIVE.value:
+        if self.actual_status == Status.ACTIVE:
             new_status = Status.ACTIVE
         elif self.actual_status is not None:
             new_status = Status.IN_PROGRESS

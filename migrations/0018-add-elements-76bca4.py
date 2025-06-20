@@ -115,7 +115,10 @@ class MigrationStep(migrations.AbstarctMigrationStep):
                             )
                         ),
                     "created_at" TIMESTAMP(6) NOT NULL DEFAULT NOW(),
-                    "updated_at" TIMESTAMP(6) NOT NULL DEFAULT NOW()
+                    "updated_at" TIMESTAMP(6) NOT NULL DEFAULT NOW(),
+                    CONSTRAINT unique_em_elements_name_version_idx UNIQUE (
+                        name, version
+                    )
                 );
             """,
             """
