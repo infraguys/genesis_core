@@ -30,6 +30,29 @@
             "console": "integratedTerminal",
             "justMyCode": false
         }, {
+            "name": "Python Debugger: Manifest Parser",
+            "type": "debugpy",
+            "request": "launch",
+            "program": ".tox/develop/bin/gc-manifest-parser",
+            "args": [
+                "--config-file", "etc/genesis_core/genesis_core.conf",
+                "--config-dir", "etc/genesis_core/genesis_core.d/",
+                "--manifest-path", "genesis/manifests/core.element.yaml"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        }, {
+            "name": "Python Debugger: Genesis Universal Agent",
+            "type": "debugpy",
+            "request": "launch",
+            "program": ".tox/develop/bin/genesis-universal-agent",
+            "args": [
+                "--config-file", "etc/genesis_core/genesis_core.conf",
+                "--config-dir", "etc/genesis_core/genesis_core.d/",
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false
+        }, {
             "name": "Python Debugger: Apply Migrations",
             "type": "debugpy",
             "request": "launch",
