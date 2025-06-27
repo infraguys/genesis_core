@@ -200,19 +200,24 @@ class Record(CommonModel):
     def __init__(self, domain: Domain, **kwargs) -> None:
         super().__init__(domain=domain, domain_id=domain.id, **kwargs)
 
+        self._fill_n_validate_record()
+
+    def _fill_n_validate_record(self) -> None:
         if self.type != self.record.kind:
             raise ValueError("Types of model and record must match")
 
-        self._fill_from_record()
-
-    def _fill_from_record(self) -> None:
         self.content = self.record.get_content(self.domain)
         self.name = self.record.get_name(self.domain)
 
-    def save(self, session=None):
-        self._fill_from_record()
+    def update(self, session=None, force=False):
+        self._fill_n_validate_record()
 
-        super().save(session=session)
+        super().update(session=session, force=force)
+
+    def insert(self, session=None):
+        self._fill_n_validate_record()
+
+        super().insert(session=session)
 
     def delete(self, session=None, force=False, **kwargs):
         if not force and self.type == "SOA":
