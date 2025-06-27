@@ -171,3 +171,54 @@ class TestDnsApi:
         response = client.delete(url)
 
         assert response.status_code == 204
+
+    def test_txt_record(
+        self,
+        user_api_client: iam_clients.GenesisCoreTestRESTClient,
+        auth_user_admin: iam_clients.GenesisCoreAuth,
+        domain1: tp.Dict,
+        pdns_server: int | None,
+    ):
+        client = user_api_client(auth_user_admin)
+
+        data = {
+            "uuid": str(sys_uuid.uuid4()),
+            "type": "TXT",
+            "ttl": 0,
+            "record": {"kind": "TXT", "name": "test", "content": "a" * 5000},
+        }
+
+        url = client.build_collection_uri(
+            ["dns", "domains", domain1["uuid"], "records"]
+        )
+
+        response = client.post(url, json=data)
+        output = response.json()
+
+        assert response.status_code == 201
+        assert self._cmp_shallow(data, output)
+
+        url = client.build_resource_uri(
+            ["dns", "domains", domain1["uuid"], "records", data["uuid"]]
+        )
+
+        response = client.get(url)
+        record = response.json()
+        assert response.status_code == 200
+        assert self._cmp_shallow(data, record)
+
+        if pdns_server:
+            res = dns.resolver.make_resolver_at("127.0.0.1", port=pdns_server)
+            answer = res.resolve(f"test.{DEF_DOMAIN}", "TXT")
+
+            assert len(answer) == 1
+            # TXT records may not fit in one UDP frame, so there'll be many
+            #  strings inside
+            assert (
+                "".join([i.decode() for i in answer[0].strings]) == "a" * 5000
+            )
+
+        # Delete
+        response = client.delete(url)
+
+        assert response.status_code == 204

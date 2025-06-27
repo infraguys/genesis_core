@@ -14,6 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import re
+
 from oslo_config import cfg
 from restalchemy.common import contexts
 from restalchemy.common import exceptions
@@ -112,7 +114,7 @@ class AbstractRecord(types_dynamic.AbstractKindModel):
         )
 
     def get_content(self, domain) -> str:
-        return str(self.address)
+        return str(self.content)
 
 
 class ARecord(AbstractRecord):
@@ -126,6 +128,9 @@ class ARecord(AbstractRecord):
         types_network.IPAddress(),
         required=True,
     )
+
+    def get_content(self, domain) -> str:
+        return str(self.address)
 
 
 class SOARecord(AbstractRecord):
@@ -149,12 +154,26 @@ class SOARecord(AbstractRecord):
         return f"{self.primary_dns} {domain.name} {self.serial} {self.refresh} {self.retry} {self.expire} {self.ttl}"
 
 
+class TXTRecord(AbstractRecord):
+    KIND = "TXT"
+
+    name = properties.property(
+        types_network.RecordName(),
+        required=True,
+    )
+    content = properties.property(
+        # Restrict newline and length
+        types.BaseCompiledRegExpType(re.compile(r"^([^\n]{1,8192})$")),
+        required=True,
+    )
+
+
 class Record(CommonModel):
     __tablename__ = "dns_records"
     domain = relationships.relationship(Domain, required=True)
     domain_id = properties.property(types.Integer())
     type = properties.property(
-        types.Enum(("A", "SOA")), # "AAAA", "CNAME", "MX", "TXT",
+        types.Enum(("A", "SOA", "TXT")),  # "AAAA", "CNAME", "MX",
         read_only=True,
         required=True,
     )
@@ -165,6 +184,7 @@ class Record(CommonModel):
         types_dynamic.KindModelSelectorType(
             types_dynamic.KindModelType(ARecord),
             types_dynamic.KindModelType(SOARecord),
+            types_dynamic.KindModelType(TXTRecord),
         ),
         required=True,
     )
