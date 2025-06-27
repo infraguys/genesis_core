@@ -1064,5 +1064,6 @@ class IamClient(
     def send_reset_password_event(
         self, email, app_endpoint="http://localhost/"
     ):
+        email = email.lower()
         user = User.objects.get_one(filters={"email": ra_filters.EQ(email)})
         user.send_reset_password_event(app_endpoint=app_endpoint)
