@@ -168,12 +168,25 @@ class TXTRecord(AbstractRecord):
     )
 
 
+class NSRecord(AbstractRecord):
+    KIND = "NS"
+
+    name = properties.property(
+        types_network.RecordName(),
+        required=True,
+    )
+    content = properties.property(
+        types_network.FQDN(),
+        required=True,
+    )
+
+
 class Record(CommonModel):
     __tablename__ = "dns_records"
     domain = relationships.relationship(Domain, required=True)
     domain_id = properties.property(types.Integer())
     type = properties.property(
-        types.Enum(("A", "SOA", "TXT")),  # "AAAA", "CNAME", "MX",
+        types.Enum(("A", "NS", "SOA", "TXT")),  # "AAAA", "CNAME", "MX",
         read_only=True,
         required=True,
     )
@@ -185,6 +198,7 @@ class Record(CommonModel):
             types_dynamic.KindModelType(ARecord),
             types_dynamic.KindModelType(SOARecord),
             types_dynamic.KindModelType(TXTRecord),
+            types_dynamic.KindModelType(NSRecord),
         ),
         required=True,
     )
