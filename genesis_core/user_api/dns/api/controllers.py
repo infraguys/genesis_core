@@ -42,7 +42,7 @@ class DomainController(
     ra_controllers.BaseResourceControllerPaginated,
 ):
     __policy_service_name__ = "dns"
-    __policy_name__ = "domains"
+    __policy_name__ = "domain"
 
     __resource__ = resources.ResourceByRAModel(
         models.Domain,
@@ -62,7 +62,7 @@ class RecordController(
 ):
     __pr_name__ = "domain"
     __policy_service_name__ = "dns"
-    __policy_name__ = "records"
+    __policy_name__ = "record"
 
     __resource__ = resources.ResourceByRAModel(
         models.Record,
@@ -71,7 +71,7 @@ class RecordController(
             default=field_p.Permissions.RW,
             fields={
                 "domain_id": {constants.ALL: field_p.Permissions.HIDDEN},
-                "name": {constants.ALL: field_p.Permissions.HIDDEN},
+                "name": {constants.ALL: field_p.Permissions.RO},
                 "content": {constants.ALL: field_p.Permissions.HIDDEN},
             },
         ),
