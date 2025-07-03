@@ -91,7 +91,7 @@ class TestProjects(base.BaseIamResourceTest):
 
         projects = client.list_projects()
 
-        assert len(projects) == 3  # 3 project from migrations
+        assert len(projects) == 4  # 4 projects from migrations
 
     def test_create_project_wo_project_from_admin(
         self,
