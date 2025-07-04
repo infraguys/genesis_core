@@ -465,7 +465,7 @@ def password_factory():
     def factory(
         uuid: sys_uuid.UUID | None = None,
         name: str = "password",
-        constructor: secret_models.AbstractPasswordConstructor | None = None,
+        constructor: secret_models.AbstractSecretConstructor | None = None,
         method: sc.SecretMethod = sc.SecretMethod.AUTO_HEX,
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
         status: str = cc.ConfigStatus.NEW.value,
@@ -473,7 +473,7 @@ def password_factory():
     ) -> tp.Dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
         constructor = (
-            secret_models.PlainPasswordConstructor()
+            secret_models.PlainSecretConstructor()
             if constructor is None
             else constructor
         )

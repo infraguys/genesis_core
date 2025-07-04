@@ -107,7 +107,7 @@ class TestPasswordsUserApi:
 
         password = password_factory(
             method=sc.SecretMethod.AUTO_URL_SAFE,
-            constructor=secret_models.PlainPasswordConstructor(),
+            constructor=secret_models.PlainSecretConstructor(),
         )
         url = client.build_collection_uri(["secret/passwords"])
         response = client.post(url, json=password)
