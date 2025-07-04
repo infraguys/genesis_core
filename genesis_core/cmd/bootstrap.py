@@ -20,11 +20,14 @@ import logging
 
 import yaml
 from oslo_config import cfg
+from restalchemy.dm import filters as dm_filters
+from restalchemy.dm import types_network
 from restalchemy.storage.sql import engines
 from restalchemy.storage import exceptions as ra_exceptions
 from restalchemy.common import config_opts as ra_config_opts
 
 from genesis_core.common import config
+from genesis_core.user_api.dns.dm import models as dns_models
 from genesis_core.node.dm import models
 from genesis_core.common import constants as c
 
@@ -77,6 +80,8 @@ def _apply_startup_db():
             ports = subnet.pop("ports", [])
             subnet_project_id = subnet.pop("project_id", net_project_id)
             subnet["project_id"] = subnet_project_id
+            if startup_entities.get("domain"):
+                subnet["dns_servers"] = [startup_entities["core_ip"]]
             subnet = models.Subnet.restore_from_simple_view(**subnet)
             subnet.network = network.uuid
             try:
@@ -108,6 +113,33 @@ def _apply_startup_db():
             LOG.info("Machine pool %s already exists", pool.uuid)
         else:
             LOG.info("Created machine pool %s", pool.uuid)
+
+    # Dns
+    if startup_entities.get("domain"):
+        zone = dns_models.Domain.objects.get_one_or_none(
+            filters={"name": dm_filters.EQ(startup_entities["domain"])}
+        ) or dns_models.Domain(
+            name=startup_entities["domain"], project_id=c.SERVICE_PROJECT_ID
+        )
+        zone.save()
+
+        core_record = dns_models.Record.objects.get_one_or_none(
+            filters={
+                "domain": dm_filters.EQ(zone),
+                "name": dm_filters.EQ(f"core.{startup_entities["domain"]}"),
+            }
+        ) or dns_models.Record(
+            domain=zone,
+            ttl=300,
+            type="A",
+            record=dns_models.ARecord(
+                name="core",
+                address=types_network.IPAddress().from_simple_type(
+                    startup_entities["core_ip"]
+                ),
+            ),
+        )
+        core_record.save()
 
 
 def main() -> None:
