@@ -31,10 +31,30 @@ class PasswordsController(iam_controllers.PolicyBasedController):
     """Controller for /v1/secret/passwords/ endpoint"""
 
     __policy_name__ = "password"
-    __policy_service_name__ = "password"
+    __policy_service_name__ = "secret"
 
     __resource__ = resources.ResourceByRAModel(
         model_class=models.Password,
+        process_filters=True,
+        convert_underscore=False,
+    )
+
+    def update(self, uuid, **kwargs):
+        # Force config to be NEW
+        # In order to regenerate renders
+        kwargs["status"] = sc.SecretStatus.NEW.value
+
+        return super().update(uuid, **kwargs)
+
+
+class CertificatesController(iam_controllers.PolicyBasedController):
+    """Controller for /v1/secret/certificates/ endpoint"""
+
+    __policy_name__ = "certificate"
+    __policy_service_name__ = "secret"
+
+    __resource__ = resources.ResourceByRAModel(
+        model_class=models.Certificate,
         process_filters=True,
         convert_underscore=False,
     )
