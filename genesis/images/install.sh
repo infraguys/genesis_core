@@ -37,7 +37,7 @@ SDK_DEV_MODE=$([ -d "$DEV_SDK_PATH" ] && echo "true" || echo "false")
 
 # Install packages
 sudo apt update
-sudo apt install postgresql libev-dev libvirt-dev \
+sudo apt install yq postgresql libev-dev libvirt-dev \
     tftpd-hpa isc-dhcp-server -y
 
 # Useful for all-in-one-vm tests
@@ -119,9 +119,22 @@ sudo systemctl enable gc-user-api gc-orch-api gc-status-api gc-gservice \
 # Prepare DNSaaS
 
 # Install packages
-sudo apt install pdns-backend-pgsql pdns-server -y
+sudo apt install pdns-backend-pgsql pdns-server dnsdist -y
 
+#pdns
 sudo rm /etc/powerdns/pdns.d/bind.conf
 sudo cp "$GC_PATH/etc/powerdns/genesis.conf" /etc/powerdns/pdns.d/genesis.conf
-
 sudo systemctl enable pdns
+
+#dnsdist
+sudo cp "$GC_PATH/etc/dnsdist/dnsdist-private.conf" /etc/dnsdist/dnsdist-private.conf
+sudo systemctl enable dnsdist@private
+
+# Optional, only for public resolving, for ex. ACME dns01 certs challenge
+sudo cp "$GC_PATH/etc/dnsdist/dnsdist-public.conf" /etc/dnsdist/dnsdist-public.conf
+sudo systemctl enable dnsdist@public
+
+# Set local IP where needed
+LOCAL_IP=$(cat "$GC_PATH/genesis/images/startup_cfg.yaml" | yq '.startup_entities.core_ip' -r)
+echo "DNS=${LOCAL_IP}" | sudo tee -a /etc/systemd/resolved.conf > /dev/null
+sudo sed -i 's/setLocal("10.20.0.2:53")/setLocal("'"${LOCAL_IP}"':53")/' /etc/dnsdist/dnsdist-private.conf

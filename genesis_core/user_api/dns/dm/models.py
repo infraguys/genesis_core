@@ -71,10 +71,10 @@ class Domain(CommonModel, models.ModelWithProject):
 
     @classmethod
     def get_next_domain_id(cls, session=None):
-        session = session or contexts.Context().get_session()
-        return session.execute(
-            "SELECT nextval('dns_domain_id_seq') as val"
-        ).fetchall()[0]["val"]
+        with cls._get_engine().session_manager(session=session) as s:
+            return s.execute(
+                "SELECT nextval('dns_domain_id_seq') as val"
+            ).fetchall()[0]["val"]
 
     def __init__(self, session=None, **kwargs):
         super().__init__(id=self.get_next_domain_id(session=session), **kwargs)
