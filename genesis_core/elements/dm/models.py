@@ -61,8 +61,8 @@ class Manifest(
     STATUS = AlwaysActiveStatus
 
     status = properties.property(
-        ra_types.Enum([s for s in Status]),
-        default=STATUS.ACTIVE,
+        ra_types.Enum([s.value for s in Status]),
+        default=STATUS.ACTIVE.value,
     )
     version = properties.property(
         ra_types.String(min_length=5, max_length=64),
@@ -146,8 +146,8 @@ class Element(
     INSTALL_TYPES = InstallTypes
 
     status = properties.property(
-        ra_types.Enum([s for s in STATUSES]),
-        default=STATUSES.NEW,
+        ra_types.Enum([s.value for s in STATUSES]),
+        default=STATUSES.NEW.value,
     )
 
     version = properties.property(
@@ -156,8 +156,8 @@ class Element(
     )
 
     install_type = properties.property(
-        ra_types.Enum([s for s in INSTALL_TYPES]),
-        default=INSTALL_TYPES.MANUAL,
+        ra_types.Enum([s.value for s in INSTALL_TYPES]),
+        default=INSTALL_TYPES.MANUAL.value,
     )
 
     @property
@@ -210,11 +210,11 @@ class ElementIncorrectStatusesView(
         read_only=True,
     )
     api_status = properties.property(
-        ra_types.Enum([s for s in Status]),
+        ra_types.Enum([s.value for s in Status]),
         read_only=True,
     )
     actual_status = properties.property(
-        ra_types.Enum([s for s in Status]),
+        ra_types.Enum([s.value for s in Status]),
         read_only=True,
     )
 
@@ -288,8 +288,8 @@ class Resource(
         read_only=True,
     )
     status = properties.property(
-        ra_types.Enum(Status),
-        default=Status.NEW,
+        ra_types.Enum([s.value for s in Status]),
+        default=Status.NEW.value,
     )
     resource_link_prefix = properties.property(
         ra_types.String(min_length=1, max_length=256),
