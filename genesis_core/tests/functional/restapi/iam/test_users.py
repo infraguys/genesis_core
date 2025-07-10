@@ -21,7 +21,7 @@ from bazooka import exceptions as bazooka_exc
 from genesis_core.common import constants as common_c
 from genesis_core.tests.functional.restapi.iam import base
 from genesis_core.user_api.iam import constants as c
-from genesis_core.user_api.iam.dm.models import User
+from genesis_core.user_api.iam.dm import models as iam_models
 
 
 class TestUsers(base.BaseIamResourceTest):
@@ -238,7 +238,7 @@ class TestUsers(base.BaseIamResourceTest):
         user_api_noauth_client,
         auth_test1_user,
     ):
-        user = User.objects.get_one(filters={"uuid": auth_test1_user.uuid})
+        user = iam_models.User.objects.get_one(filters={"uuid": auth_test1_user.uuid})
         user.email_verified = False
         user.confirmation_code = sys_uuid.uuid4()
         user.save()
@@ -253,7 +253,7 @@ class TestUsers(base.BaseIamResourceTest):
         assert result["email_verified"] is True
 
         # Check for success in the DB
-        user_updated = User.objects.get_one(
+        user_updated = iam_models.User.objects.get_one(
             filters={"uuid": auth_test1_user.uuid}
         )
         assert user_updated.email_verified

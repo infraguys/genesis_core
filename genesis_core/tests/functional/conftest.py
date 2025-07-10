@@ -36,7 +36,7 @@ from genesis_core.config.dm import models as conf_models
 from genesis_core.config import constants as cc
 from genesis_core.secret import constants as sc
 from genesis_core.secret.dm import models as secret_models
-from genesis_core.user_api.iam.dm.models import User
+from genesis_core.user_api.iam.dm import models as iam_models
 
 FIRST_MIGRATION = "0000-root-d34de1.py"
 
@@ -137,7 +137,7 @@ def auth_test1_user(
     password = "test1"
     client = user_api_client(auth_user_admin)
     user = client.create_user(username="test1", password=password)
-    user_obj = User.objects.get_one(filters={"uuid": user["uuid"]})
+    user_obj = iam_models.User.objects.get_one(filters={"uuid": user["uuid"]})
     client.confirm_email(
         user_uuid=user_obj.uuid,
         code=str(user_obj.confirmation_code),
@@ -165,7 +165,7 @@ def auth_test2_user(
     password = "test2"
     client = user_api_client(auth_user_admin)
     user = client.create_user(username="test2", password=password)
-    user_obj = User.objects.get_one(filters={"uuid": user["uuid"]})
+    user_obj = iam_models.User.objects.get_one(filters={"uuid": user["uuid"]})
     client.confirm_email(
         user_uuid=user_obj.uuid,
         code=str(user_obj.confirmation_code),
@@ -193,7 +193,7 @@ def auth_test1_p1_user(
     password = "test1p1"
     client = user_api_client(auth_user_admin)
     user = client.create_user(username="test1p1", password=password)
-    user_obj = User.objects.get_one(filters={"uuid": user["uuid"]})
+    user_obj = iam_models.User.objects.get_one(filters={"uuid": user["uuid"]})
     client.confirm_email(
         user_uuid=user_obj.uuid,
         code=str(user_obj.confirmation_code),
@@ -242,7 +242,7 @@ def auth_test2_p1_user(
     password = "test2p1"
     client = user_api_client(auth_user_admin)
     user = client.create_user(username="test2p1", password=password)
-    user_obj = User.objects.get_one(filters={"uuid": user["uuid"]})
+    user_obj = iam_models.User.objects.get_one(filters={"uuid": user["uuid"]})
     client.confirm_email(
         user_uuid=user_obj.uuid,
         code=str(user_obj.confirmation_code),
