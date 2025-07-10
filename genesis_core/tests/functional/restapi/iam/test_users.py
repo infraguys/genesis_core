@@ -238,7 +238,9 @@ class TestUsers(base.BaseIamResourceTest):
         user_api_noauth_client,
         auth_test1_user,
     ):
-        user = iam_models.User.objects.get_one(filters={"uuid": auth_test1_user.uuid})
+        user = iam_models.User.objects.get_one(
+            filters={"uuid": auth_test1_user.uuid}
+        )
         user.email_verified = False
         user.confirmation_code = sys_uuid.uuid4()
         user.save()
