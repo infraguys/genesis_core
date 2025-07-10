@@ -213,10 +213,16 @@ class UserController(
         return resource
 
     @actions.post
+    def force_confirm_email(self, resource):
+        rule = c.PERMISSION_USER_WRITE_ALL
+        if not self.enforce(rule):
+            raise iam_e.CanNotUpdateUser(uuid=resource.uuid, rule=rule)
+
+        resource.confirm_email()
+        return resource
+
+    @actions.post
     def confirm_email(self, resource, code=None):
-        if self.enforce(c.PERMISSION_USER_WRITE_ALL):
-            resource.confirm_email()
-            return resource
         code = code or self._req.params.get("code", "")
         resource.confirm_email_by_code(code)
         return resource
