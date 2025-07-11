@@ -36,7 +36,7 @@ from genesis_core.config.dm import models as conf_models
 from genesis_core.config import constants as cc
 from genesis_core.secret import constants as sc
 from genesis_core.secret.dm import models as secret_models
-
+from genesis_core.user_api.iam.dm import models as iam_models
 
 FIRST_MIGRATION = "0000-root-d34de1.py"
 
@@ -136,17 +136,21 @@ def auth_test1_user(
 ):
     password = "test1"
     client = user_api_client(auth_user_admin)
-    result = client.create_user(username="test1", password=password)
-    client.confirm_email(result["uuid"])
+    user = client.create_user(username="test1", password=password)
+    user_obj = iam_models.User.objects.get_one(filters={"uuid": user["uuid"]})
+    client.confirm_email(
+        user_uuid=user_obj.uuid,
+        code=str(user_obj.confirmation_code),
+    )
 
     return iam_clients.GenesisCoreAuth(
-        username=result["username"],
+        username=user["username"],
         password=password,
         client_uuid=default_client_uuid,
         client_id=default_client_id,
         client_secret=default_client_secret,
-        uuid=result["uuid"],
-        email=result["email"],
+        uuid=user["uuid"],
+        email=user["email"],
     )
 
 
@@ -160,17 +164,21 @@ def auth_test2_user(
 ):
     password = "test2"
     client = user_api_client(auth_user_admin)
-    result = client.create_user(username="test2", password=password)
-    client.confirm_email(result["uuid"])
+    user = client.create_user(username="test2", password=password)
+    user_obj = iam_models.User.objects.get_one(filters={"uuid": user["uuid"]})
+    client.confirm_email(
+        user_uuid=user_obj.uuid,
+        code=str(user_obj.confirmation_code),
+    )
 
     return iam_clients.GenesisCoreAuth(
-        username=result["username"],
+        username=user["username"],
         password=password,
         client_uuid=default_client_uuid,
         client_id=default_client_id,
         client_secret=default_client_secret,
-        uuid=result["uuid"],
-        email=result["email"],
+        uuid=user["uuid"],
+        email=user["email"],
     )
 
 
@@ -185,7 +193,11 @@ def auth_test1_p1_user(
     password = "test1p1"
     client = user_api_client(auth_user_admin)
     user = client.create_user(username="test1p1", password=password)
-    client.confirm_email(user_uuid=user["uuid"])
+    user_obj = iam_models.User.objects.get_one(filters={"uuid": user["uuid"]})
+    client.confirm_email(
+        user_uuid=user_obj.uuid,
+        code=str(user_obj.confirmation_code),
+    )
 
     auth = iam_clients.GenesisCoreAuth(
         username=user["username"],
@@ -198,9 +210,7 @@ def auth_test1_p1_user(
         project_id=None,
     )
 
-    client = client = user_api_client(
-        auth,
-    )
+    client = user_api_client(auth)
 
     org = client.create_organization(name="OrganizationU1P1")
     project = client.create_project(
@@ -232,7 +242,11 @@ def auth_test2_p1_user(
     password = "test2p1"
     client = user_api_client(auth_user_admin)
     user = client.create_user(username="test2p1", password=password)
-    client.confirm_email(user_uuid=user["uuid"])
+    user_obj = iam_models.User.objects.get_one(filters={"uuid": user["uuid"]})
+    client.confirm_email(
+        user_uuid=user_obj.uuid,
+        code=str(user_obj.confirmation_code),
+    )
 
     auth = iam_clients.GenesisCoreAuth(
         username=user["username"],
@@ -245,9 +259,7 @@ def auth_test2_p1_user(
         project_id=None,
     )
 
-    client = client = user_api_client(
-        auth,
-    )
+    client = user_api_client(auth)
 
     org = client.create_organization(name="OrganizationU2P1")
     project = client.create_project(

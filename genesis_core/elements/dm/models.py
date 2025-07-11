@@ -317,7 +317,7 @@ class Resource(
 
     def get_uri(self):
         parts = self.link.split(".")
-        return f"/{"/".join(parts[1:-1])}/{self.uuid}"
+        return f"/{'/'.join(parts[1:-1])}/{self.uuid}"
 
     def get_parameter_value(self, parameter):
         parts = parameter.split(":")

@@ -13,13 +13,15 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+import uuid as sys_uuid
 
-from bazooka import exceptions as bazooka_exc
 import pytest
+from bazooka import exceptions as bazooka_exc
 
 from genesis_core.common import constants as common_c
 from genesis_core.tests.functional.restapi.iam import base
 from genesis_core.user_api.iam import constants as c
+from genesis_core.user_api.iam.dm import models as iam_models
 
 
 class TestUsers(base.BaseIamResourceTest):
@@ -230,6 +232,57 @@ class TestUsers(base.BaseIamResourceTest):
         )
 
         assert result["uuid"] == auth_test2_user.uuid
+
+    def test_confirm_email_no_auth_success(
+        self,
+        user_api_noauth_client,
+        auth_test1_user,
+    ):
+        user = iam_models.User.objects.get_one(
+            filters={"uuid": auth_test1_user.uuid}
+        )
+        user.email_verified = False
+        user.confirmation_code = sys_uuid.uuid4()
+        user.save()
+
+        client = user_api_noauth_client()
+        result = client.confirm_email(
+            user_uuid=auth_test1_user.uuid,
+            code=str(user.confirmation_code),
+        )
+        # Check for success in the API response
+        assert result["uuid"] == str(auth_test1_user.uuid)
+        assert result["email_verified"] is True
+
+        # Check for success in the DB
+        user_updated = iam_models.User.objects.get_one(
+            filters={"uuid": auth_test1_user.uuid}
+        )
+        assert user_updated.email_verified
+
+    def test_confirm_email_invalid_code_400_error(
+        self,
+        user_api_noauth_client,
+        auth_test1_user,
+    ):
+        client = user_api_noauth_client()
+
+        with pytest.raises(bazooka_exc.ForbiddenError):
+            client.confirm_email(
+                user_uuid=auth_test1_user.uuid,
+                code="invalid code",
+            )
+
+    def test_confirm_email_no_code_400_error(
+        self, user_api_noauth_client, auth_test1_user
+    ):
+        client = user_api_noauth_client()
+
+        with pytest.raises(bazooka_exc.ForbiddenError):
+            client.confirm_email(
+                user_uuid=auth_test1_user.uuid,
+                code=None,
+            )
 
     def test_delete_my_user_test1_auth_success(
         self, user_api_client, auth_test1_user

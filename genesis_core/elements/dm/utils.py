@@ -54,7 +54,7 @@ def get_element_uuid(element_name, element_version):
 def get_project_id():
     # return sys_uuid.UUID(f"{UUID_PREFIX}{str(sys_uuid.uuid4())[8:]}")
     return sys_uuid.UUID(
-        f"{UUID_PREFIX}{str("00000000-0000-0000-0000-000000000000")[8:]}"
+        f"{UUID_PREFIX}{str('00000000-0000-0000-0000-000000000000')[8:]}"
     )
 
 

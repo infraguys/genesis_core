@@ -70,6 +70,12 @@ class ConfirmEmailAction(routes.Action):
     __controller__ = controllers.UserController
 
 
+class ForceConfirmEmailAction(routes.Action):
+    """Handler for .../actions/force_confirm_email/invoke endpoint"""
+
+    __controller__ = controllers.UserController
+
+
 class ResetPasswordAction(routes.Action):
     """Handler for .../actions/reset_password/invoke endpoint"""
 
@@ -90,6 +96,7 @@ class UserRoute(routes.Route):
         ResendEmailConfirmationAction, invoke=True
     )
     confirm_email = routes.action(ConfirmEmailAction, invoke=True)
+    force_confirm_email = routes.action(ForceConfirmEmailAction, invoke=True)
     reset_password = routes.action(ResetPasswordAction, invoke=True)
 
 
