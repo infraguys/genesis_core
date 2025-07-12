@@ -1,6 +1,10 @@
 ![Tests workflow](https://github.com/infraguys/genesis_core/actions/workflows/tests.yml/badge.svg)
 ![Build workflow](https://github.com/infraguys/genesis_core/actions/workflows/build.yml/badge.svg)
 
+<p align="center">
+<img height="256" src="logo.svg" alt="genesis core svg logo">
+</p>
+
 Welcome to Genesis Core!
 
 The Genesis Core is an open source software that offers a one turnkey solution to deal with infrastructure at all levels - from bare metal and virtual machines to applications and services.
