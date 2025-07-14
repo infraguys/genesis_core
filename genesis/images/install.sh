@@ -38,7 +38,14 @@ SDK_DEV_MODE=$([ -d "$DEV_SDK_PATH" ] && echo "true" || echo "false")
 # Install packages
 sudo apt update
 sudo apt install yq postgresql libev-dev libvirt-dev \
-    tftpd-hpa isc-dhcp-server -y
+    tftpd-hpa isc-dhcp-server yq -y
+
+ALLOW_USER_PASSWD=${ALLOW_USER_PASSWD-}
+if [ -n "$ALLOW_USER_PASSWD" ]; then
+    echo "ubuntu:ubuntu" | sudo chpasswd
+    sudo rm /etc/ssh/sshd_config.d/60-cloudimg-settings.conf
+    sudo yq -yi '.system_info.default_user.lock_passwd |= false' /etc/cloud/cloud.cfg
+fi
 
 # Useful for all-in-one-vm tests
 # sudo apt install qemu-kvm libvirt-daemon-system zfsutils-linux \
