@@ -47,6 +47,34 @@ if [ -n "$ALLOW_USER_PASSWD" ]; then
     sudo yq -yi '.system_info.default_user.lock_passwd |= false' /etc/cloud/cloud.cfg
 fi
 
+FREQUENT_LOG_VACUUM=${FREQUENT_LOG_VACUUM-}
+if [ -n "$FREQUENT_LOG_VACUUM" ]; then
+    # Optimize log rotation
+    echo "0 * * * * root journalctl --vacuum-size=500M" | sudo tee /etc/cron.d/genesis_vacuum_logs > /dev/null
+    cat <<EOF | sudo tee /etc/logrotate.d/rsyslog > /dev/null
+/var/log/syslog
+/var/log/mail.log
+/var/log/kern.log
+/var/log/auth.log
+/var/log/user.log
+/var/log/cron.log
+{
+        rotate 5
+        hourly
+        size 100M
+        missingok
+        notifempty
+        compress
+        delaycompress
+        sharedscripts
+        postrotate
+                /usr/lib/rsyslog/rsyslog-rotate
+        endscript
+}
+EOF
+    echo "1 * * * * root systemctl start logrotate" | sudo tee -a /etc/cron.d/genesis_vacuum_logs > /dev/null
+fi
+
 # Useful for all-in-one-vm tests
 # sudo apt install qemu-kvm libvirt-daemon-system zfsutils-linux \
 #     libvirt-daemon-driver-storage-zfs libvirt-clients -y
