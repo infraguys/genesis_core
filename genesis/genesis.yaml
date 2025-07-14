@@ -55,3 +55,4 @@ build:
 
         envs:
           - ALLOW_USER_PASSWD
+          - FREQUENT_LOG_VACUUM
