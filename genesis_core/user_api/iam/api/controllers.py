@@ -546,7 +546,7 @@ class ClientsController(
                 client_secret=client_secret,
             )
             token = resource.get_token_by_password(
-                username=kwargs.get(c.PARAM_USERNAME),
+                login=kwargs.get(c.PARAM_LOGIN),
                 password=kwargs.get(c.PARAM_PASSWORD),
                 scope=kwargs.get(c.PARAM_SCOPE, ""),
                 ttl=kwargs.get(c.PARAM_TTL, None),

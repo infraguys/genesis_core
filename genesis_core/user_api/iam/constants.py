@@ -35,7 +35,7 @@ HEADER_OTP_CODE = "X-OTP"
 
 
 # user creds in request
-PARAM_USERNAME = "username"
+PARAM_LOGIN = "login"
 PARAM_PASSWORD = "password"
 PARAM_SCOPE = "scope"
 PARAM_TTL = "ttl"
