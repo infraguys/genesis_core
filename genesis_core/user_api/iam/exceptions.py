@@ -20,7 +20,7 @@ from genesis_core.common import exceptions
 
 
 class UserNotFound(exceptions.CommonNotFoundException):
-    __template__ = "User with login {username} not found"
+    __template__ = "User with login {login} not found"
 
 
 class CanNotSetOwner(exceptions.CommonForbiddenException, iam_exc.Forbidden):

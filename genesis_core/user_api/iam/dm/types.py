@@ -23,7 +23,7 @@ class Username(types.BaseCompiledRegExpType):
 
     def __init__(self, min_length=1, max_length=128):
         pattern = re.compile(
-            r"^[\w!#$%&\'*+/=?^_`{|}~.@-]+$",
+            r"^[\w!#$%&\'*+/=?^_`{|}~.-]+$",
             flags=re.UNICODE,
         )
         super().__init__(pattern=pattern)
