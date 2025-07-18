@@ -20,11 +20,10 @@ import pytest
 from bazooka import exceptions as bazooka_exc
 from gcl_iam.tests.functional import clients as iam_clients
 
-from genesis_core.secret import constants as sc
 from genesis_core.secret.dm import models as secret_models
 
 
-class TestPasswordsUserApi:
+class TestCertificatesUserApi:
 
     # Utils
 
@@ -40,168 +39,181 @@ class TestPasswordsUserApi:
                 "name",
                 "method",
                 "constructor",
+                "email",
+                "domains",
             )
         )
 
     # Tests
 
-    def test_passwords_list(
+    def test_certificates_list(
         self,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
     ):
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["secret/passwords"])
+        url = client.build_collection_uri(["secret/certificates"])
 
         response = client.get(url)
 
         assert response.status_code == 200
         assert len(response.json()) == 0
 
-    def test_passwords_add(
+    def test_certificates_add(
         self,
-        password_factory: tp.Callable,
+        cert_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
     ):
         client = user_api_client(auth_user_admin)
 
-        password = password_factory()
-        url = client.build_collection_uri(["secret/passwords"])
-        response = client.post(url, json=password)
+        cert = cert_factory()
+        url = client.build_collection_uri(["secret/certificates"])
+        response = client.post(url, json=cert)
         output = response.json()
 
         assert response.status_code == 201
-        assert self._secret_cmp_shallow(password, output)
+        assert self._secret_cmp_shallow(cert, output)
 
-    def test_passwords_add_several(
+    def test_certificates_add_several(
         self,
-        password_factory: tp.Callable,
+        cert_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
     ):
         client = user_api_client(auth_user_admin)
 
         urls = []
-        url = client.build_collection_uri(["secret/passwords"])
+        url = client.build_collection_uri(["secret/certificates"])
         for i in range(3):
-            password = password_factory()
-            response = client.post(url, json=password)
+            cert = cert_factory()
+            response = client.post(url, json=cert)
             output = response.json()
             assert response.status_code == 201
-            assert self._secret_cmp_shallow(password, output)
+            assert self._secret_cmp_shallow(cert, output)
             urls.append(url + "/" + output["uuid"])
 
         for url in urls:
             response = client.get(url)
             assert response.status_code == 200
 
-    def test_passwords_add_not_default(
+    def test_certificates_update(
         self,
-        password_factory: tp.Callable,
+        cert_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
     ):
         client = user_api_client(auth_user_admin)
 
-        password = password_factory(
-            method=sc.SecretMethod.AUTO_URL_SAFE,
-            constructor=secret_models.PlainSecretConstructor(),
+        cert = cert_factory()
+        url = client.build_collection_uri(["secret/certificates"])
+        response = client.post(url, json=cert)
+        output = response.json()
+
+        assert response.status_code == 201
+        assert self._secret_cmp_shallow(cert, output)
+
+        update = {"name": "foo-cert"}
+        url = client.build_resource_uri(
+            ["secret/certificates", output["uuid"]]
         )
-        url = client.build_collection_uri(["secret/passwords"])
-        response = client.post(url, json=password)
-        output = response.json()
-
-        assert response.status_code == 201
-        assert output["method"] == sc.SecretMethod.AUTO_URL_SAFE
-        assert output["constructor"]["kind"] == "plain"
-
-    def test_passwords_update(
-        self,
-        password_factory: tp.Callable,
-        user_api_client: iam_clients.GenesisCoreTestRESTClient,
-        auth_user_admin: iam_clients.GenesisCoreAuth,
-    ):
-        client = user_api_client(auth_user_admin)
-
-        password = password_factory()
-        url = client.build_collection_uri(["secret/passwords"])
-        response = client.post(url, json=password)
-        output = response.json()
-
-        assert response.status_code == 201
-        assert self._secret_cmp_shallow(password, output)
-
-        update = {"name": "foo-password"}
-        url = client.build_resource_uri(["secret/passwords", output["uuid"]])
         response = client.put(url, json=update)
         output = response.json()
 
         assert response.status_code == 200
-        assert output["name"] == "foo-password"
+        assert output["name"] == "foo-cert"
 
         response = client.get(url)
         output = response.json()
         assert response.status_code == 200
-        assert output["name"] == "foo-password"
+        assert output["name"] == "foo-cert"
 
-    def test_passwords_update_status_new(
+    def test_certificates_update_status_new(
         self,
-        password_factory: tp.Callable,
+        cert_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
     ):
         client = user_api_client(auth_user_admin)
 
-        password = password_factory()
-        url = client.build_collection_uri(["secret/passwords"])
-        response = client.post(url, json=password)
+        cert = cert_factory()
+        url = client.build_collection_uri(["secret/certificates"])
+        response = client.post(url, json=cert)
         output = response.json()
 
         assert response.status_code == 201
-        assert self._secret_cmp_shallow(password, output)
+        assert self._secret_cmp_shallow(cert, output)
 
         # Manually change status
-        password_obj = secret_models.Password.objects.get_one(
+        cert_obj = secret_models.Certificate.objects.get_one(
             filters={"uuid": output["uuid"]}
         )
-        password_obj.status = "IN_PROGRESS"
-        password_obj.update()
+        cert_obj.status = "IN_PROGRESS"
+        cert_obj.update()
 
-        url = client.build_resource_uri(["secret/passwords", output["uuid"]])
+        url = client.build_resource_uri(
+            ["secret/certificates", output["uuid"]]
+        )
         response = client.get(url)
         output = response.json()
         assert response.status_code == 200
         assert output["status"] == "IN_PROGRESS"
 
-        update = {"name": "foo-password"}
-        url = client.build_resource_uri(["secret/passwords", output["uuid"]])
+        update = {"name": "foo-cert"}
+        url = client.build_resource_uri(
+            ["secret/certificates", output["uuid"]]
+        )
         response = client.put(url, json=update)
         output = response.json()
 
         assert response.status_code == 200
-        assert output["name"] == "foo-password"
+        assert output["name"] == "foo-cert"
         assert output["status"] == "NEW"
 
-    def test_passwords_delete(
+    def test_certificates_delete(
         self,
-        password_factory: tp.Callable,
+        cert_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
     ):
         client = user_api_client(auth_user_admin)
 
-        password = password_factory()
-        url = client.build_collection_uri(["secret/passwords"])
-        response = client.post(url, json=password)
+        cert = cert_factory()
+        url = client.build_collection_uri(["secret/certificates"])
+        response = client.post(url, json=cert)
         output = response.json()
 
         assert response.status_code == 201
-        assert self._secret_cmp_shallow(password, output)
+        assert self._secret_cmp_shallow(cert, output)
 
-        url = client.build_resource_uri(["secret/passwords", output["uuid"]])
+        url = client.build_resource_uri(
+            ["secret/certificates", output["uuid"]]
+        )
         response = client.delete(url)
         assert response.status_code == 204
 
         with pytest.raises(bazooka_exc.NotFoundError):
             client.get(url)
+
+    def test_certificates_update_unable_update_status(
+        self,
+        cert_factory: tp.Callable,
+        user_api_client: iam_clients.GenesisCoreTestRESTClient,
+        auth_user_admin: iam_clients.GenesisCoreAuth,
+    ):
+        client = user_api_client(auth_user_admin)
+
+        cert = cert_factory()
+        url = client.build_collection_uri(["secret/certificates"])
+        response = client.post(url, json=cert)
+        output = response.json()
+
+        assert response.status_code == 201
+        assert self._secret_cmp_shallow(cert, output)
+
+        update = {"status": "ACTIVE"}
+        url = client.build_resource_uri(
+            ["secret/certificates", output["uuid"]]
+        )
+        with pytest.raises(bazooka_exc.ForbiddenError):
+            client.put(url, json=update)

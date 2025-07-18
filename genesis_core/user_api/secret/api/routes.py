@@ -25,6 +25,12 @@ class PasswordsRoute(routes.Route):
     __controller__ = controllers.PasswordsController
 
 
+class CertificatesRoute(routes.Route):
+    """Handler for /v1/secret/certificates/ endpoint"""
+
+    __controller__ = controllers.CertificatesController
+
+
 class SecretRoute(routes.Route):
     """Handler for /v1/secret/ endpoint"""
 
@@ -32,3 +38,4 @@ class SecretRoute(routes.Route):
     __controller__ = controllers.SecretController
 
     passwords = routes.route(PasswordsRoute)
+    certificates = routes.route(CertificatesRoute)
