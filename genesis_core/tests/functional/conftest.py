@@ -477,28 +477,93 @@ def password_factory():
     def factory(
         uuid: sys_uuid.UUID | None = None,
         name: str = "password",
-        constructor: secret_models.AbstractPasswordConstructor | None = None,
+        constructor: secret_models.AbstractSecretConstructor | None = None,
         method: sc.SecretMethod = sc.SecretMethod.AUTO_HEX,
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
-        status: str = cc.ConfigStatus.NEW.value,
+        status: cc.ConfigStatus | None = None,
+        value: str | None = None,
         **kwargs,
     ) -> tp.Dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
         constructor = (
-            secret_models.PlainPasswordConstructor()
+            secret_models.PlainSecretConstructor()
             if constructor is None
             else constructor
         )
-        config = secret_models.Password(
+        status_value = (
+            cc.ConfigStatus.NEW.value if status is None else status.value
+        )
+        obj = secret_models.Password(
             uuid=uuid,
             name=name,
             method=method.value,
             project_id=project_id,
-            status=status,
+            status=status_value,
             constructor=constructor,
             **kwargs,
         )
-        view = config.dump_to_simple_view()
+        view = obj.dump_to_simple_view()
+        if status is None:
+            view.pop("status")
+        if value is None:
+            view.pop("value")
+        return view
+
+    return factory
+
+
+@pytest.fixture
+def cert_factory():
+    def factory(
+        uuid: sys_uuid.UUID | None = None,
+        name: str = "cert",
+        domains: tp.Collection[str] = ("genesis-core.tech",),
+        email: str = "user@genesis-core.tech",
+        key: str | None = None,
+        cert: str | None = None,
+        constructor: secret_models.AbstractSecretConstructor | None = None,
+        method: secret_models.AbstractCertificateMethod | None = None,
+        project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
+        status: cc.ConfigStatus | None = None,
+        **kwargs,
+    ) -> tp.Dict[str, tp.Any]:
+        uuid = uuid or sys_uuid.uuid4()
+        constructor = (
+            secret_models.PlainSecretConstructor()
+            if constructor is None
+            else constructor
+        )
+        method = (
+            secret_models.DNSCoreCertificateMethod()
+            if method is None
+            else method
+        )
+        status_value = (
+            cc.ConfigStatus.NEW.value if status is None else status.value
+        )
+        obj = secret_models.Certificate(
+            uuid=uuid,
+            name=name,
+            method=method,
+            project_id=project_id,
+            status=status_value,
+            constructor=constructor,
+            domains=list(domains),
+            email=email,
+            key=key,
+            cert=cert,
+            **kwargs,
+        )
+        view = obj.dump_to_simple_view()
+        if status is None:
+            view.pop("status")
+        if key is None:
+            view.pop("key")
+        if cert is None:
+            view.pop("cert")
+        view.pop("expiration_threshold")
+        view.pop("overcome_threshold")
+
         return view
 
     return factory
