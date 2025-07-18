@@ -39,11 +39,6 @@ class SOARecordDeleteRestricted(exceptions.RestAlchemyException):
     message = "SOA record cannot be deleted without domain deletion."
 
 
-class RecordNameWithWildcard(types_network.RecordName):
-    # Difference - allow wildcard at the beginning of domain name.
-    pattern = re.compile(r"^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$")
-
-
 class CommonModel(
     models.ModelWithTimestamp,
     models.ModelWithUUID,
@@ -126,7 +121,7 @@ class ARecord(AbstractRecord):
     KIND = "A"
 
     name = properties.property(
-        RecordNameWithWildcard(),
+        types_network.RecordNameWithWildcard(),
         required=True,
     )
     address = properties.property(
@@ -142,7 +137,7 @@ class SOARecord(AbstractRecord):
     KIND = "SOA"
 
     name = properties.property(
-        RecordNameWithWildcard(),
+        types_network.RecordNameWithWildcard(),
         required=True,
     )
     primary_dns = properties.property(
@@ -163,7 +158,7 @@ class TXTRecord(AbstractRecord):
     KIND = "TXT"
 
     name = properties.property(
-        RecordNameWithWildcard(),
+        types_network.RecordNameWithWildcard(),
         required=True,
     )
     content = properties.property(
@@ -177,7 +172,7 @@ class NSRecord(AbstractRecord):
     KIND = "NS"
 
     name = properties.property(
-        RecordNameWithWildcard(),
+        types_network.RecordNameWithWildcard(),
         required=True,
     )
     content = properties.property(
