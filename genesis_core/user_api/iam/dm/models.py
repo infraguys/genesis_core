@@ -847,6 +847,7 @@ class Token(
             "aud": self.audience,
             "sub": str(self.user.uuid),
             "typ": self.typ,
+            "otp": self.user.otp_enabled,
         }
         access_token = algorithm.encode(access_token_info)
 
