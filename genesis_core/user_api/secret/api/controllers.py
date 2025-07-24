@@ -84,3 +84,29 @@ class CertificatesController(iam_controllers.PolicyBasedController):
         kwargs["status"] = sc.SecretStatus.NEW.value
 
         return super().update(uuid, **kwargs)
+
+
+class SSHKeysController(iam_controllers.PolicyBasedController):
+    """Controller for /v1/secret/ssh_keys/ endpoint"""
+
+    __policy_name__ = "ssh_key"
+    __policy_service_name__ = "secret"
+
+    __resource__ = resources.ResourceByRAModel(
+        model_class=models.SSHKey,
+        process_filters=True,
+        convert_underscore=False,
+        fields_permissions=field_p.FieldsPermissions(
+            default=field_p.Permissions.RW,
+            fields={
+                "status": {ra_c.ALL: field_p.Permissions.RO},
+            },
+        ),
+    )
+
+    def update(self, uuid, **kwargs):
+        # Force config to be NEW
+        # In order to regenerate renders
+        kwargs["status"] = sc.SecretStatus.NEW.value
+
+        return super().update(uuid, **kwargs)
