@@ -19,6 +19,10 @@ import enum
 DEFAULT_SQL_LIMIT = 100
 PASSWORD_KIND = "password"
 CERTIFICATE_KIND = "certificate"
+SSH_KEY_KIND = "ssh_key"
+SSH_KEY_TARGET_KIND = "ssh_key_target"
+
+AUTHORIZED_KEYS_PATH = ".ssh/authorized_keys"
 
 
 class SecretStatus(str, enum.Enum):
