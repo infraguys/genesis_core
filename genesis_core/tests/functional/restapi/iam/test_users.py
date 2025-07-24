@@ -63,8 +63,8 @@ class TestUsers(base.BaseIamResourceTest):
                 last_name=empty_name,
             )
             assert user["username"] == name
-            assert user["first_name"] == ""
-            assert user["last_name"] == ""
+            assert not user.get("first_name")
+            assert not user.get("last_name")
 
     def test_update_user_clear_first_last_name_success(
         self, user_api_client, auth_test1_user

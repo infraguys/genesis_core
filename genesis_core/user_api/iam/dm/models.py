@@ -169,13 +169,12 @@ class User(
     )
 
     first_name = properties.property(
-        types.Name(min_length=0, max_length=128),
-        default="",
+        ra_types.AllowNone(types.Name(min_length=0, max_length=128)),
+        default=None,
     )
-
     last_name = properties.property(
-        types.Name(min_length=0, max_length=128),
-        default="",
+        ra_types.AllowNone(types.Name(min_length=0, max_length=128)),
+        default=None,
     )
     surname = properties.property(
         types.Name(min_length=0, max_length=128),
