@@ -21,6 +21,10 @@ from gcl_iam import rules
 
 # Grant Types
 GRANT_TYPE_PASSWORD = "password"
+GRANT_TYPE_PASSWORD_USERNAME = "username+password"
+GRANT_TYPE_PASSWORD_EMAIL = "email+password"
+GRANT_TYPE_PASSWORD_PHONE = "phone+password"
+GRANT_TYPE_PASSWORD_LOGIN = "login+password"
 GRANT_TYPE_REFRESH_TOKEN = "refresh_token"
 
 
@@ -36,6 +40,9 @@ HEADER_OTP_CODE = "X-OTP"
 
 # user creds in request
 PARAM_USERNAME = "username"
+PARAM_EMAIL = "email"
+PARAM_PHONE = "phone"
+PARAM_LOGIN = "login"
 PARAM_PASSWORD = "password"
 PARAM_SCOPE = "scope"
 PARAM_TTL = "ttl"
