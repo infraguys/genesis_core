@@ -570,6 +570,51 @@ def cert_factory():
 
 
 @pytest.fixture
+def ssh_key_factory():
+    def factory(
+        target_node: sys_uuid.UUID,
+        target_public_key: str,
+        uuid: sys_uuid.UUID | None = None,
+        name: str = "key",
+        constructor: secret_models.AbstractSecretConstructor | None = None,
+        project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
+        status: cc.ConfigStatus | None = None,
+        user: str = "root",
+        authorized_keys=".ssh/authorized_keys",
+        **kwargs,
+    ) -> tp.Dict[str, tp.Any]:
+        uuid = uuid or sys_uuid.uuid4()
+        target = conf_models.NodeTarget.from_node(target_node)
+        constructor = (
+            secret_models.PlainSecretConstructor()
+            if constructor is None
+            else constructor
+        )
+        status_value = (
+            cc.ConfigStatus.NEW.value if status is None else status.value
+        )
+        obj = secret_models.SSHKey(
+            uuid=uuid,
+            name=name,
+            project_id=project_id,
+            status=status_value,
+            constructor=constructor,
+            target=target,
+            user=user,
+            authorized_keys=authorized_keys,
+            target_public_key=target_public_key,
+            **kwargs,
+        )
+        view = obj.dump_to_simple_view()
+        if status is None:
+            view.pop("status")
+
+        return view
+
+    return factory
+
+
+@pytest.fixture
 def builder_factory() -> tp.Callable:
     def factory(
         uuid: sys_uuid.UUID | None = None,

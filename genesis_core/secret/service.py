@@ -24,6 +24,7 @@ from restalchemy.dm import filters as dm_filters
 from gcl_looper.services import basic
 from gcl_sdk.agents.universal.dm import models as ua_models
 
+from genesis_core.node.dm import models as nm
 from genesis_core.secret.dm import models
 from genesis_core.common import constants as c
 from genesis_core.secret import constants as sc
@@ -70,6 +71,24 @@ class SecretServiceBuilder(basic.BasicService):
     ) -> list[ua_models.TargetResource]:
         return models.Certificate.get_deleted_certificates(limit=limit)
 
+    def _get_new_ssh_keys(
+        self,
+        limit: int = c.DEFAULT_SQL_LIMIT,
+    ) -> list[models.SSHKey]:
+        return models.SSHKey.get_new_keys(limit=limit)
+
+    def _get_changed_ssh_keys(
+        self,
+        limit: int = c.DEFAULT_SQL_LIMIT,
+    ) -> list[models.SSHKey]:
+        return models.SSHKey.get_updated_keys(limit=limit)
+
+    def _get_deleted_ssh_keys(
+        self,
+        limit: int = c.DEFAULT_SQL_LIMIT,
+    ) -> list[ua_models.TargetResource]:
+        return models.SSHKey.get_deleted_keys(limit=limit)
+
     def _get_outdated_resources(
         self,
         kind: str,
@@ -98,6 +117,51 @@ class SecretServiceBuilder(basic.BasicService):
         return model.objects.get_all(
             filters={"uuid": dm_filters.In(str(p) for p in uuids)},
         )
+
+    def _get_outdated_ssh_key_hosts(
+        self,
+        limit: int = c.DEFAULT_SQL_LIMIT,
+    ) -> dict[
+        sys_uuid.UUID,  # Master UUID
+        list[tuple[ua_models.TargetResource, ua_models.Resource]],
+    ]:
+        outdated = ua_models.OutdatedResource.objects.get_all(
+            filters={"kind": dm_filters.EQ(sc.SSH_KEY_TARGET_KIND)},
+            limit=limit,
+        )
+        key_map = {}
+        for pair in outdated:
+            key_map.setdefault(pair.target_resource.master, []).append(
+                (pair.target_resource, pair.actual_resource)
+            )
+
+        return key_map
+
+    def _get_outdated_ssh_keys(
+        self,
+        masters: tp.Collection[sys_uuid.UUID],
+    ) -> list[tuple[models.SSHKey, ua_models.TargetResource]]:
+        ssh_key_resources = ua_models.TargetResource.objects.get_all(
+            filters={
+                "uuid": dm_filters.In(m for m in masters),
+                "kind": dm_filters.EQ(sc.SSH_KEY_KIND),
+            },
+            order_by={"uuid": "asc"},
+        )
+
+        ssh_keys = models.SSHKey.objects.get_all(
+            filters={
+                "uuid": dm_filters.In(m for m in masters),
+            },
+            order_by={"uuid": "asc"},
+        )
+
+        if len(ssh_keys) != len(ssh_key_resources):
+            raise RuntimeError(
+                "Number of SSH keys and SSH key resources not equal"
+            )
+
+        return list(zip(ssh_keys, ssh_key_resources))
 
     def _actualize_new_secrets(
         self, kind: str, secrets: tp.Collection[models.Secret]
@@ -359,6 +423,198 @@ class SecretServiceBuilder(basic.BasicService):
         deleted_certificates = self._get_deleted_certificates()
         self._actualize_deleted_secrets(deleted_certificates)
 
+    # SSH Keys
+
+    def _actualize_new_ssh_key(
+        self,
+        key: models.SSHKey,
+        target_nodes: list[nm.Node],
+    ) -> None:
+        # Validate the owners exist
+        # FIXME(akremenetsky): Only nodes as owners are supported for now.
+        # It will be updated when sets appear.
+
+        # FIXME(akremenetsky): Seems the key may be deleted since its
+        # owners are absent. May be it will be better to control this
+        # behavior via an additional option in the target model but for
+        # now just delete this config.
+        if not key.target.are_owners_alive():
+            LOG.error("SSH key %s has no owners, delete it.", key.uuid)
+            key.delete()
+            return
+
+        # FIXME(akremenetsky): Should we set status `IN_PROGRESS` here?
+        # Let's wait at least one node to be created
+        if len(target_nodes) == 0:
+            return
+
+        key_resource = key.to_ua_resource(sc.SSH_KEY_KIND)
+        key_resource.insert()
+
+        # Key for every node.
+        # There is a 'master' key with the `SSH_KEY_KIND` kind It's a common
+        # key for every nodes. There is a `SSH_KEY_TARGET_KIND` resources
+        # that acts as slaves for per nodes.
+        for node in target_nodes:
+            key_host_resource = key.to_host_resource(
+                master=key_resource.uuid,
+                node=node.uuid,
+                status=sc.SecretStatus.IN_PROGRESS,
+            )
+            key_host_resource.insert()
+
+        key.status = sc.SecretStatus.IN_PROGRESS.value
+        key.save()
+
+        key_resource.tracked_at = key.updated_at
+        key_resource.status = key.status
+        key_resource.update()
+        LOG.debug("SSH key resource %s created", key_resource.uuid)
+
+    def _actualize_new_ssh_keys(
+        self, keys: tp.Collection[models.SSHKey] = tuple()
+    ) -> None:
+        """Actualize new SSH keys."""
+        keys = keys or self._get_new_ssh_keys()
+
+        if len(keys) == 0:
+            return
+
+        # Collect all target nodes
+        target_nodes = {n for key in keys for n in key.target_nodes()}
+        nodes = {
+            n.uuid: n
+            for n in nm.Node.objects.get_all(
+                filters={"uuid": dm_filters.In(target_nodes)}
+            )
+        }
+
+        for key in keys:
+            # Collect all available nodes for the key
+            target_nodes = tuple(
+                nodes[n] for n in key.target_nodes() if n in nodes
+            )
+            try:
+                self._actualize_new_ssh_key(key, target_nodes)
+            except Exception:
+                LOG.exception("Error actualizing SSH key %s", key.uuid)
+
+    def _actualize_changed_ssh_keys(self) -> None:
+        """Actualize SSH keys changed by user."""
+        changed_keys = self._get_changed_ssh_keys()
+
+        if len(changed_keys) == 0:
+            return
+
+        # The simplest implementation. Update through recreation.
+        keys_resources = ua_models.TargetResource.objects.get_all(
+            filters={
+                "uuid": dm_filters.In(str(uc.uuid) for uc in changed_keys),
+                "kind": dm_filters.EQ(sc.SSH_KEY_KIND),
+            }
+        )
+        key_host_resources = ua_models.TargetResource.objects.get_all(
+            filters={
+                "master": dm_filters.In(str(k.uuid) for k in keys_resources),
+                "kind": dm_filters.EQ(sc.SSH_KEY_TARGET_KIND),
+            }
+        )
+
+        for key in key_host_resources + keys_resources:
+            key.delete()
+            LOG.debug("Outdated resource SSH key %s deleted", key.uuid)
+
+        # Now they are new configs
+        self._actualize_new_ssh_keys(changed_keys)
+
+    def _actualize_outdated_ssh_key(
+        self,
+        key: models.SSHKey,
+        key_resource: ua_models.TargetResource,
+        host_keys: tp.Collection[
+            tuple[ua_models.TargetResource, ua_models.Resource]
+        ],
+    ) -> None:
+        """Actualize outdated SSH keys."""
+        # Update target keys with actual information from the DP.
+        for target, actual in host_keys:
+            target.full_hash = actual.full_hash
+
+            # `ACTIVE` only if the hash is the same
+            if (
+                actual.status == sc.SecretStatus.ACTIVE
+                and target.hash == actual.hash
+            ):
+                target.status = actual.status
+            elif (
+                actual.status != sc.SecretStatus.ACTIVE
+                and target.status != actual.status
+            ):
+                target.status = actual.status
+            target.update()
+            LOG.debug("Outdated host SSH key %s actualized", target.uuid)
+
+        # Actualize status if needed.
+        status = None
+        if all(r.status == sc.SecretStatus.ACTIVE for r, _ in host_keys):
+            status = sc.SecretStatus.ACTIVE
+        elif any(r.status == sc.SecretStatus.NEW for r, _ in host_keys):
+            status = sc.SecretStatus.NEW
+        elif any(
+            r.status == sc.SecretStatus.IN_PROGRESS for r, _ in host_keys
+        ):
+            status = sc.SecretStatus.IN_PROGRESS
+
+        if status is not None and key.status != status:
+            key.status = status.value
+            key.update()
+            key_resource.status = key.status
+            key_resource.tracked_at = key.updated_at
+            key_resource.update()
+
+    def _actualize_outdated_ssh_keys(self) -> None:
+        """Actualize outdated SSH keys.
+
+        It means some changes occurred in the system and the key
+        are outdated now. For instance, their status is key.
+        """
+        resource_map = self._get_outdated_ssh_key_hosts()
+
+        if len(resource_map) == 0:
+            return
+
+        ssh_keys = self._get_outdated_ssh_keys(tuple(resource_map.keys()))
+
+        for key, key_resource in ssh_keys:
+            host_keys = resource_map[key_resource.uuid]
+            try:
+                self._actualize_outdated_ssh_key(key, key_resource, host_keys)
+            except Exception:
+                LOG.exception("Error actualizing SSH key %s", key.uuid)
+
+    def _actualize_deleted_ssh_keys(self) -> None:
+        """Actualize SSH keys deleted by user."""
+        deleted_key_resources = self._get_deleted_ssh_keys()
+
+        if len(deleted_key_resources) == 0:
+            return
+
+        key_host_resources = ua_models.TargetResource.objects.get_all(
+            filters={
+                "master": dm_filters.In(k.uuid for k in deleted_key_resources),
+                "kind": dm_filters.EQ(sc.SSH_KEY_TARGET_KIND),
+            }
+        )
+
+        for resource in key_host_resources + deleted_key_resources:
+            try:
+                resource.delete()
+                LOG.debug(
+                    "Outdated resource SSH key %s deleted", resource.uuid
+                )
+            except Exception:
+                LOG.exception("Error deleting resource %s", resource.uuid)
+
     def _actualize_passwords(self) -> None:
         try:
             self._actualize_new_passwords()
@@ -401,7 +657,29 @@ class SecretServiceBuilder(basic.BasicService):
         except Exception:
             LOG.exception("Error actualizing deleted certificates")
 
+    def _actualize_ssh_keys(self) -> None:
+        try:
+            self._actualize_new_ssh_keys()
+        except Exception:
+            LOG.exception("Error actualizing new SSH keys")
+
+        try:
+            self._actualize_changed_ssh_keys()
+        except Exception:
+            LOG.exception("Error actualizing changed SSH keys")
+
+        try:
+            self._actualize_outdated_ssh_keys()
+        except Exception:
+            LOG.exception("Error actualizing outdated SSH keys")
+
+        try:
+            self._actualize_deleted_ssh_keys()
+        except Exception:
+            LOG.exception("Error actualizing deleted SSH keys")
+
     def _iteration(self) -> None:
         with contexts.Context().session_manager():
             self._actualize_passwords()
             self._actualize_certificates()
+            self._actualize_ssh_keys()

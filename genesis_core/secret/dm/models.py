@@ -15,6 +15,9 @@
 #    under the License.
 from __future__ import annotations
 
+import typing as tp
+import uuid as sys_uuid
+
 from restalchemy.dm import properties
 from restalchemy.dm import types
 from restalchemy.dm import types_network
@@ -24,8 +27,9 @@ from restalchemy.storage.sql import orm
 
 from gcl_sdk.agents.universal.dm import models as ua_models
 
-from genesis_core.common.dm import models as cm
 from genesis_core.common import constants as c
+from genesis_core.common.dm import models as cm
+from genesis_core.config.dm import models as cfg_models
 from genesis_core.secret import constants as sc
 
 
@@ -207,3 +211,126 @@ class Certificate(
         return cls.get_deleted_target_resources(
             cls.__tablename__, sc.CERTIFICATE_KIND, limit
         )
+
+
+class SSHKey(
+    Secret,
+    orm.SQLStorableMixin,
+    ua_models.TargetResourceSQLStorableMixin,
+):
+    __tablename__ = "secret_ssh_keys"
+
+    target = properties.property(
+        types_dynamic.KindModelSelectorType(
+            types_dynamic.KindModelType(cfg_models.NodeTarget),
+        ),
+        required=True,
+    )
+    user = properties.property(types.String(min_length=1, max_length=64))
+    authorized_keys = properties.property(
+        types.String(min_length=1, max_length=256),
+        default=sc.AUTHORIZED_KEYS_PATH,
+    )
+    target_public_key = properties.property(
+        types.String(max_length=10240),
+        default="",
+    )
+
+    def target_nodes(self) -> tp.List[sys_uuid.UUID]:
+        return self.target.target_nodes()
+
+    def get_resource_target_fields(self) -> set[str]:
+        """Return the collection of target fields.
+
+        Refer to the Resource model for more details about target fields.
+        """
+        return {
+            "uuid",
+            "name",
+            "description",
+            "project_id",
+            "constructor",
+            "user",
+            "authorized_keys",
+            "target",
+            "target_public_key",
+        }
+
+    def to_host_resource(
+        self,
+        master: sys_uuid.UUID,
+        node: sys_uuid.UUID,
+        status: sc.SecretStatus | None = None,
+    ) -> ua_models.TargetResource:
+        """Create a target resource for a specific host (node).
+
+        This creates a 'slave' resource for a specific node, which is linked
+        to the 'master' SSHKey secret.
+
+        Args:
+            master: The UUID of the master SSHKey secret.
+            node: The UUID of the target node.
+            status: The initial status for the host resource.
+
+        Returns:
+            A TargetResource instance for the host.
+        """
+        properties = {}
+
+        # Copy properties
+        for name in self.properties.properties.keys():
+            if name not in SSHHostKey.properties.properties:
+                continue
+            properties[name] = getattr(self, name)
+
+        # Correct UUID based on node UUID
+        properties["uuid"] = sys_uuid.uuid5(self.uuid, str(node))
+        host_ssh = SSHHostKey(**properties)
+
+        resource = host_ssh.to_ua_resource(
+            sc.SSH_KEY_TARGET_KIND, master=master
+        )
+        if status is not None:
+            resource.status = status.value
+        # Place the key on the node
+        resource.agent = node
+
+        return resource
+
+    @classmethod
+    def get_new_keys(cls, limit: int = c.DEFAULT_SQL_LIMIT) -> list["SSHKey"]:
+
+        return cls.get_new_entities(cls.__tablename__, sc.SSH_KEY_KIND, limit)
+
+    @classmethod
+    def get_updated_keys(
+        cls, limit: int = c.DEFAULT_SQL_LIMIT
+    ) -> list["SSHKey"]:
+        return cls.get_updated_entities(
+            cls.__tablename__, sc.SSH_KEY_KIND, limit
+        )
+
+    @classmethod
+    def get_deleted_keys(
+        cls, limit: int = c.DEFAULT_SQL_LIMIT
+    ) -> list[ua_models.TargetResource]:
+        return cls.get_deleted_target_resources(
+            cls.__tablename__, sc.SSH_KEY_KIND, limit
+        )
+
+
+class SSHHostKey(
+    ra_models.ModelWithUUID,
+    ua_models.TargetResourceMixin,
+):
+    """SSH host key model."""
+
+    user = properties.property(types.String(min_length=1, max_length=64))
+    authorized_keys = properties.property(
+        types.String(min_length=1, max_length=256),
+        default=sc.AUTHORIZED_KEYS_PATH,
+    )
+    target_public_key = properties.property(
+        types.String(max_length=10240),
+        default="",
+    )
