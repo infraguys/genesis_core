@@ -31,6 +31,12 @@ class CertificatesRoute(routes.Route):
     __controller__ = controllers.CertificatesController
 
 
+class SSHKeysRoute(routes.Route):
+    """Handler for /v1/secret/ssh_keys/ endpoint"""
+
+    __controller__ = controllers.SSHKeysController
+
+
 class SecretRoute(routes.Route):
     """Handler for /v1/secret/ endpoint"""
 
@@ -39,3 +45,4 @@ class SecretRoute(routes.Route):
 
     passwords = routes.route(PasswordsRoute)
     certificates = routes.route(CertificatesRoute)
+    ssh_keys = routes.route(SSHKeysRoute)
