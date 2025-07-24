@@ -169,13 +169,12 @@ class User(
     )
 
     first_name = properties.property(
-        types.Name(min_length=1, max_length=128),
-        required=True,
+        ra_types.AllowNone(types.Name(min_length=0, max_length=128)),
+        default=None,
     )
-
     last_name = properties.property(
-        types.Name(min_length=1, max_length=128),
-        required=True,
+        ra_types.AllowNone(types.Name(min_length=0, max_length=128)),
+        default=None,
     )
     surname = properties.property(
         types.Name(min_length=0, max_length=128),
@@ -187,7 +186,7 @@ class User(
         default=None,
     )
     email = properties.property(
-        ra_types.Email(max_length=128),
+        types.Email(max_length=128),
         required=True,
     )
     email_verified = properties.property(
@@ -988,36 +987,32 @@ class IamClient(
         ):
             raise iam_e.CredentialsAreInvalidError()
 
-    def get_token_by_password(
+    def _get_token_by_password_and_smth(
         self,
-        username,
+        users_query,
         password,
         scope=iam_c.PARAM_SCOPE_DEFAULT,
         ttl=None,
         refresh_ttl=None,
         otp_code=None,
-        root_endpoint=(
-            f"http://{c.DEFAULT_USER_API_HOST}:{c.DEFAULT_USER_API_PORT}/v1/"
-        ),
+        root_endpoint=c.DEFAULT_ROOT_ENDPOINT,
         **kwargs,
     ):
-        expiration_delta = (
-            datetime.timedelta(seconds=float(ttl))
-            if ttl is not None
-            else Token.get_default_expiration_delta()
-        )
-        refresh_expiration_delta = (
-            datetime.timedelta(seconds=float(refresh_ttl))
-            if refresh_ttl is not None
-            else Token.get_default_refresh_expiration_delta()
-        )
-        for user in User.objects.get_all(
-            filters={"name": ra_filters.EQ(username)}
-        ):
+        for user in users_query:
             user.validate_secret(secret=password)
             if user.otp_enabled and not user.validate_otp(otp_code):
                 raise iam_e.OTPInvalidCodeError()
 
+            expiration_delta = (
+                datetime.timedelta(seconds=float(ttl))
+                if ttl is not None
+                else Token.get_default_expiration_delta()
+            )
+            refresh_expiration_delta = (
+                datetime.timedelta(seconds=float(refresh_ttl))
+                if refresh_ttl is not None
+                else Token.get_default_refresh_expiration_delta()
+            )
             token = Token(
                 user=user,
                 scope=scope,
@@ -1029,8 +1024,60 @@ class IamClient(
             )
             token.insert()
             return token
-        else:
-            raise iam_exceptions.UserNotFound(username=username)
+
+        raise iam_exceptions.UserNotFound()
+
+    def get_token_by_password(self, username, **kwargs):
+        """
+        Get auth token by username + password (default approach).
+        """
+        users_query = User.objects.get_all(
+            filters={"name": ra_filters.EQ(username)}
+        )
+        return self._get_token_by_password_and_smth(
+            users_query=users_query, **kwargs
+        )
+
+    def get_token_by_password_username(self, **kwargs):
+        """
+        Get auth token by username + password.
+        This is just an alias for get_token_by_password_username,
+        to ensure consistency.
+        """
+        return self.get_token_by_password(**kwargs)
+
+    def get_token_by_password_email(self, email, **kwargs):
+        """
+        Get auth token by email + password.
+        """
+        users_query = User.objects.get_all(
+            filters={"email": ra_filters.EQ(email)}
+        )
+        return self._get_token_by_password_and_smth(
+            users_query=users_query, **kwargs
+        )
+
+    def get_token_by_password_phone(self, **kwargs):
+        """
+        Get auth token by phone + password.
+        Will be added later.
+        """
+        raise NotImplementedError()
+
+    def get_token_by_password_login(self, login, **kwargs):
+        """
+        Get auth token by any login field + password.
+        Dynamic "smart" lookup is done by one of these fields:
+         - by email (if it has "@")
+         - by username (if no "@")
+         - by phone [to be done later]
+        """
+        lookup_field = "email" if "@" in login else "name"
+        filters = {lookup_field: ra_filters.EQ(login)}
+        users_query = User.objects.get_all(filters=filters)
+        return self._get_token_by_password_and_smth(
+            users_query=users_query, **kwargs
+        )
 
     def get_token_by_refresh_token(self, refresh_token, scope=None):
         context = contexts.get_context()
