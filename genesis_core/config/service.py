@@ -83,6 +83,7 @@ class ConfigServiceBuilder(basic.BasicService):
             filters={"uuid": dm_filters.In(str(cfg) for cfg in config_uuids)},
             order_by={"uuid": "asc"},
         )
+        # TODO(akremenetsky): Kind ?
         resources = ua_models.TargetResource.objects.get_all(
             filters={"uuid": dm_filters.In(str(cfg) for cfg in config_uuids)},
             order_by={"uuid": "asc"},
