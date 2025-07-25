@@ -169,13 +169,13 @@ class User(
     )
 
     first_name = properties.property(
-        types.Name(min_length=1, max_length=128),
-        required=True,
+        types.Name(min_length=0, max_length=128),
+        default="",
     )
 
     last_name = properties.property(
-        types.Name(min_length=1, max_length=128),
-        required=True,
+        types.Name(min_length=0, max_length=128),
+        default="",
     )
     surname = properties.property(
         types.Name(min_length=0, max_length=128),
@@ -990,7 +990,7 @@ class IamClient(
 
     def get_token_by_password(
         self,
-        username,
+        login,
         password,
         scope=iam_c.PARAM_SCOPE_DEFAULT,
         ttl=None,
@@ -1011,9 +1011,9 @@ class IamClient(
             if refresh_ttl is not None
             else Token.get_default_refresh_expiration_delta()
         )
-        for user in User.objects.get_all(
-            filters={"name": ra_filters.EQ(username)}
-        ):
+        lookup_field = "email" if "@" in login else "name"
+        filters = {lookup_field: ra_filters.EQ(login)}
+        for user in User.objects.get_all(filters=filters):
             user.validate_secret(secret=password)
             if user.otp_enabled and not user.validate_otp(otp_code):
                 raise iam_e.OTPInvalidCodeError()
@@ -1029,8 +1029,8 @@ class IamClient(
             )
             token.insert()
             return token
-        else:
-            raise iam_exceptions.UserNotFound(username=username)
+
+        raise iam_exceptions.UserNotFound(login=login)
 
     def get_token_by_refresh_token(self, refresh_token, scope=None):
         context = contexts.get_context()

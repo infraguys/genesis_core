@@ -48,6 +48,55 @@ class TestUsers(base.BaseIamResourceTest):
         with pytest.raises(bazooka_exc.BadRequestError):
             client.create_user(username=" ", password="test")
 
+    def test_create_user_without_first_last_name_success(
+        self, user_api_noauth_client
+    ):
+        client = user_api_noauth_client()
+        for empty_name in ["", None]:
+            name = f"test_no_names_{empty_name}".lower()
+            user = client.create_user(
+                username=name,
+                password="password",
+                first_name=empty_name,
+                last_name=empty_name,
+            )
+            assert user["username"] == name
+            assert user["first_name"] == ""
+            assert user["last_name"] == ""
+
+    def test_update_user_clear_first_last_name_success(
+        self, user_api_client, auth_test1_user
+    ):
+        client = user_api_client(auth_test1_user)
+        for empty_name in ["", None]:
+            result = client.update_user(
+                auth_test1_user.uuid,
+                first_name=empty_name,
+                last_name=empty_name,
+            )
+            assert result.get("first_name", None) == empty_name
+            assert result.get("last_name", None) == empty_name
+
+    def test_me_endpoint_with_empty_names_success(
+        self, user_api_client, auth_test1_user
+    ):
+        client = user_api_client(auth_test1_user)
+
+        # First clear the names
+        client.update_user(
+            auth_test1_user.uuid,
+            first_name="",
+            last_name="",
+        )
+
+        # Verify in /me endpoint
+        result = client.get(
+            auth_test1_user.get_me_url(client.endpoint),
+        ).json()
+
+        assert result["user"]["first_name"] == ""
+        assert result["user"]["last_name"] == ""
+
     def test_create_user_and_check_roles(
         self, user_api_client, auth_test1_user
     ):
@@ -138,15 +187,6 @@ class TestUsers(base.BaseIamResourceTest):
         )
 
         assert result["username"] == "testxxx"
-
-    def test_update_my_user_400_error(self, user_api_client, auth_test1_user):
-        client = user_api_client(auth_test1_user)
-
-        with pytest.raises(bazooka_exc.BadRequestError):
-            client.update_user(
-                auth_test1_user.uuid,
-                first_name="",
-            )
 
     def test_update_other_user_test1_auth_forbidden(
         self, user_api_client, auth_test1_user, auth_test2_user
@@ -354,3 +394,36 @@ class TestUsers(base.BaseIamResourceTest):
         for field in user_has_only_fields:
             result["user"].pop(field)
         assert result["user"] == {}
+
+    def test_login_success(self, user_api_noauth_client, auth_test1_user):
+        client = user_api_noauth_client()
+        for login in [auth_test1_user.username, auth_test1_user.email]:
+            response = client.login(
+                login=login,
+                password="test1",
+            )
+            assert "access_token" in response
+
+    def test_login_with_invalid_login_404_error(self, user_api_noauth_client):
+        client = user_api_noauth_client()
+        for login in ["nonexistent_user", "nonexistent@mail.com", "", " " * 8]:
+            with pytest.raises(bazooka_exc.NotFoundError):
+                client.login(login=login, password="password")
+
+    def test_login_with_wrong_password_400_error(
+        self, user_api_noauth_client, auth_test1_user
+    ):
+        client = user_api_noauth_client()
+        for password in ["wrong_password", "", " " * 8]:
+            with pytest.raises(bazooka_exc.BadRequestError):
+                client.login(login=auth_test1_user.email, password=password)
+
+    def test_login_case_insensitive_username(
+        self, user_api_noauth_client, auth_test1_user
+    ):
+        client = user_api_noauth_client()
+        response = client.login(
+            login=auth_test1_user.username.upper(),
+            password="test1",
+        )
+        assert "access_token" in response
