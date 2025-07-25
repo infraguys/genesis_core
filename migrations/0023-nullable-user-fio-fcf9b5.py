@@ -20,7 +20,7 @@ from restalchemy.storage.sql import migrations
 class MigrationStep(migrations.AbstarctMigrationStep):
 
     def __init__(self):
-        self._depends = ["0021-dns-permissions-7adac7.py"]
+        self._depends = ["0022-secret-certs-d340e8.py"]
 
     @property
     def migration_id(self):
