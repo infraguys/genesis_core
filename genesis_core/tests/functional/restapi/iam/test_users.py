@@ -14,9 +14,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 import uuid as sys_uuid
+from contextlib import nullcontext
 
 import pytest
 from bazooka import exceptions as bazooka_exc
+from gcl_iam.tests.functional import clients as iam_clients
 
 from genesis_core.common import constants as common_c
 from genesis_core.tests.functional.restapi.iam import base
@@ -47,6 +49,55 @@ class TestUsers(base.BaseIamResourceTest):
 
         with pytest.raises(bazooka_exc.BadRequestError):
             client.create_user(username=" ", password="test")
+
+    def test_create_user_without_first_last_name_success(
+        self, user_api_noauth_client
+    ):
+        client = user_api_noauth_client()
+        for empty_name in ["", None]:
+            name = f"test_no_names_{empty_name}".lower()
+            user = client.create_user(
+                username=name,
+                password="password",
+                first_name=empty_name,
+                last_name=empty_name,
+            )
+            assert user["username"] == name
+            assert not user.get("first_name")
+            assert not user.get("last_name")
+
+    def test_update_user_clear_first_last_name_success(
+        self, user_api_client, auth_test1_user
+    ):
+        client = user_api_client(auth_test1_user)
+        for empty_name in ["", None]:
+            result = client.update_user(
+                auth_test1_user.uuid,
+                first_name=empty_name,
+                last_name=empty_name,
+            )
+            assert result.get("first_name", None) == empty_name
+            assert result.get("last_name", None) == empty_name
+
+    def test_me_endpoint_with_empty_names_success(
+        self, user_api_client, auth_test1_user
+    ):
+        client = user_api_client(auth_test1_user)
+
+        # First clear the names
+        client.update_user(
+            auth_test1_user.uuid,
+            first_name="",
+            last_name="",
+        )
+
+        # Verify in /me endpoint
+        result = client.get(
+            auth_test1_user.get_me_url(client.endpoint),
+        ).json()
+
+        assert result["user"]["first_name"] == ""
+        assert result["user"]["last_name"] == ""
 
     def test_create_user_and_check_roles(
         self, user_api_client, auth_test1_user
@@ -138,15 +189,6 @@ class TestUsers(base.BaseIamResourceTest):
         )
 
         assert result["username"] == "testxxx"
-
-    def test_update_my_user_400_error(self, user_api_client, auth_test1_user):
-        client = user_api_client(auth_test1_user)
-
-        with pytest.raises(bazooka_exc.BadRequestError):
-            client.update_user(
-                auth_test1_user.uuid,
-                first_name="",
-            )
 
     def test_update_other_user_test1_auth_forbidden(
         self, user_api_client, auth_test1_user, auth_test2_user
@@ -354,3 +396,119 @@ class TestUsers(base.BaseIamResourceTest):
         for field in user_has_only_fields:
             result["user"].pop(field)
         assert result["user"] == {}
+
+    @pytest.mark.parametrize(
+        "grant_type, auth_param, expectation",
+        [
+            (c.GRANT_TYPE_PASSWORD, "username", nullcontext()),
+            (c.GRANT_TYPE_PASSWORD_USERNAME, "username", nullcontext()),
+            (c.GRANT_TYPE_PASSWORD_EMAIL, "email", nullcontext()),
+            (
+                c.GRANT_TYPE_PASSWORD_PHONE,
+                "phone",
+                pytest.raises(bazooka_exc.BaseHTTPException),
+                # auth by phone is not implemented yet
+            ),
+            ("invalid_grant_type", "username", pytest.raises(ValueError)),
+        ],
+    )
+    def test_auth_with_param(
+        self,
+        grant_type,
+        auth_param,
+        expectation,
+        user_api,
+        auth_test1_user,
+    ):
+        params = {
+            "username": "dummy_username",
+            "password": auth_test1_user.password,
+            "grant_type": grant_type,
+        }
+        params[auth_param] = (getattr(auth_test1_user, auth_param, None),)
+        auth = iam_clients.GenesisCoreAuth(**params)
+        with expectation:
+            client = iam_clients.GenesisCoreTestRESTClient(
+                f"{user_api.get_endpoint()}v1/",
+                auth,
+            )  # tries to authorise on init
+            assert "access_token" in client._auth_cache
+
+    @pytest.mark.parametrize(
+        "login, password, expectation",
+        [
+            ("username", None, nullcontext()),
+            ("email", None, nullcontext()),
+            ("phone", None, pytest.raises(bazooka_exc.BaseHTTPException)),
+            ("username", "wrong", pytest.raises(bazooka_exc.BadRequestError)),
+            ("username", "", pytest.raises(bazooka_exc.BadRequestError)),
+            ("null", None, pytest.raises(bazooka_exc.NotFoundError)),
+        ],
+    )
+    def test_auth_with_login(
+        self,
+        login,
+        password,
+        expectation,
+        user_api,
+        auth_test1_user,
+    ):
+        params = {
+            "username": "dummy_username",
+            "password": auth_test1_user.password,
+            "grant_type": c.GRANT_TYPE_PASSWORD_LOGIN,
+            "login": getattr(auth_test1_user, login, "doesnt_exist"),
+        }
+        if password is not None:
+            params["password"] = password
+
+        auth = iam_clients.GenesisCoreAuth(**params)
+        with expectation:
+            client = iam_clients.GenesisCoreTestRESTClient(
+                f"{user_api.get_endpoint()}v1/",
+                auth,
+            )  # tries to authorise on init
+            assert "access_token" in client._auth_cache
+
+    @pytest.mark.parametrize(
+        "grant_type,use_email,field_name",
+        [
+            (c.GRANT_TYPE_PASSWORD_USERNAME, False, "username"),
+            (c.GRANT_TYPE_PASSWORD_LOGIN, False, "login"),
+            (c.GRANT_TYPE_PASSWORD_LOGIN, True, "login"),
+            (c.GRANT_TYPE_PASSWORD_EMAIL, True, "email"),
+        ],
+    )
+    def test_auth_case_insensitivity(
+        self, user_api, auth_test1_user, grant_type, use_email, field_name
+    ):
+        # Set up email if needed
+        if use_email:
+            user = iam_models.User.objects.get_one(
+                filters={"uuid": auth_test1_user.uuid}
+            )
+            user.email = "test1@mail.com"
+            user.save()
+            email_value = user.email.upper()
+
+        params = {
+            "username": "dummy_username",
+            "password": auth_test1_user.password,
+            "grant_type": grant_type,
+        }
+        if grant_type == c.GRANT_TYPE_PASSWORD_USERNAME:
+            params[field_name] = auth_test1_user.username.upper()
+        elif grant_type == c.GRANT_TYPE_PASSWORD_EMAIL:
+            params[field_name] = email_value
+        elif grant_type == c.GRANT_TYPE_PASSWORD_LOGIN:
+            params[field_name] = (
+                email_value if use_email else auth_test1_user.username.upper()
+            )
+
+        # Test authentication
+        auth = iam_clients.GenesisCoreAuth(**params)
+        client = iam_clients.GenesisCoreTestRESTClient(
+            f"{user_api.get_endpoint()}v1/",
+            auth,
+        )  # tries to authorise on init
+        assert "access_token" in client._auth_cache

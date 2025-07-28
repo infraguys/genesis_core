@@ -30,7 +30,7 @@ class TestUsernameTestCase:
         params=[
             ("u", True),
             ("用户123!", True),
-            ("test+user@domain.com", True),
+            ("test+user@domain.com", False),
             ("a#b$c%&'*", True),
             ("~underscore_", True),
             ("john.doe{2023}", True),
@@ -42,7 +42,7 @@ class TestUsernameTestCase:
             ("pipe|symbol", True),
             ("tilde~wave", True),
             ("dash-test", True),
-            ("123.45@domain", True),
+            ("123.45@domain", False),
             ("أحمد_2023", True),
             ("", False),
             (" space ", False),
@@ -56,8 +56,6 @@ class TestUsernameTestCase:
             ("angle<tag", False),
             ("comma,separated", False),
             ("dash-", True),  # Дефис в конце разрешен
-            ("@start-with", True),  # @ в начале разрешен
-            ("user@", True),  # @ в конце разрешен
             ("a\nb", False),
         ],
     )
