@@ -15,6 +15,7 @@
 #    under the License.
 
 from restalchemy.openapi import constants as oa_c
+from genesis_core.user_api.iam import constants as c
 
 
 responses = {}
@@ -133,11 +134,57 @@ OA_SPEC_GET_TOKEN_KWARGS = dict(
                     "properties": {
                         "grant_type": {
                             "type": "string",
-                            "enum": ["password"],
+                            "enum": [c.GRANT_TYPE_PASSWORD],
                         },
                         "client_id": {"type": "string"},
                         "client_secret": {"type": "string"},
                         "username": {"type": "string"},
+                        "password": {"type": "string"},
+                        "scope": {"type": "string"},
+                        "ttl": {"type": "number", "format": "float"},
+                        "refresh_ttl": {"type": "string", "format": "float"},
+                    },
+                },
+                {
+                    "type": "object",
+                    "required": [
+                        "grant_type",
+                        "client_id",
+                        "client_secret",
+                        "email",
+                        "password",
+                    ],
+                    "properties": {
+                        "grant_type": {
+                            "type": "string",
+                            "enum": [c.GRANT_TYPE_PASSWORD_EMAIL],
+                        },
+                        "client_id": {"type": "string"},
+                        "client_secret": {"type": "string"},
+                        "email": {"type": "string"},
+                        "password": {"type": "string"},
+                        "scope": {"type": "string"},
+                        "ttl": {"type": "number", "format": "float"},
+                        "refresh_ttl": {"type": "string", "format": "float"},
+                    },
+                },
+                {
+                    "type": "object",
+                    "required": [
+                        "grant_type",
+                        "client_id",
+                        "client_secret",
+                        "login",
+                        "password",
+                    ],
+                    "properties": {
+                        "grant_type": {
+                            "type": "string",
+                            "enum": [c.GRANT_TYPE_PASSWORD_LOGIN],
+                        },
+                        "client_id": {"type": "string"},
+                        "client_secret": {"type": "string"},
+                        "login": {"type": "string"},
                         "password": {"type": "string"},
                         "scope": {"type": "string"},
                         "ttl": {"type": "number", "format": "float"},

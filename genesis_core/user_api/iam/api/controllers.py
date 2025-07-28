@@ -532,7 +532,13 @@ class ClientsController(
     @oa_utils.extend_schema(**oa_specs.OA_SPEC_GET_TOKEN_KWARGS)
     @actions.post
     def get_token(self, resource, grant_type, **kwargs):
-        if grant_type == c.GRANT_TYPE_PASSWORD:
+        if grant_type in (
+            c.GRANT_TYPE_PASSWORD,
+            c.GRANT_TYPE_PASSWORD_USERNAME,
+            c.GRANT_TYPE_PASSWORD_EMAIL,
+            c.GRANT_TYPE_PASSWORD_PHONE,
+            c.GRANT_TYPE_PASSWORD_LOGIN,
+        ):
             client_id = kwargs.get(
                 c.PARAM_CLIENT_ID,
                 self._req.headers.get(c.HEADER_CLIENT_ID, ""),
@@ -545,8 +551,7 @@ class ClientsController(
                 client_id=client_id,
                 client_secret=client_secret,
             )
-            token = resource.get_token_by_password(
-                username=kwargs.get(c.PARAM_USERNAME),
+            payload = dict(
                 password=kwargs.get(c.PARAM_PASSWORD),
                 scope=kwargs.get(c.PARAM_SCOPE, ""),
                 ttl=kwargs.get(c.PARAM_TTL, None),
@@ -554,7 +559,35 @@ class ClientsController(
                 otp_code=self._req.headers.get(c.HEADER_OTP_CODE, None),
                 root_endpoint=resource.redirect_url,
             )
+            if grant_type == c.GRANT_TYPE_PASSWORD:
+                token = resource.get_token_by_password(
+                    username=kwargs.get(c.PARAM_USERNAME),
+                    **payload,
+                )
+            elif grant_type == c.GRANT_TYPE_PASSWORD_USERNAME:
+                token = resource.get_token_by_password(
+                    username=kwargs.get(c.PARAM_USERNAME),
+                    **payload,
+                )
+            elif grant_type == c.GRANT_TYPE_PASSWORD_EMAIL:
+                token = resource.get_token_by_password_email(
+                    email=kwargs.get(c.PARAM_EMAIL),
+                    **payload,
+                )
+            elif grant_type == c.GRANT_TYPE_PASSWORD_PHONE:
+                token = resource.get_token_by_password_phone(
+                    phone=kwargs.get(c.PARAM_PHONE),
+                    **payload,
+                )
+            elif grant_type == c.GRANT_TYPE_PASSWORD_LOGIN:
+                token = resource.get_token_by_password_login(
+                    login=kwargs.get(c.PARAM_LOGIN),
+                    **payload,
+                )
+            else:
+                raise ValueError(f"Unexpected {grant_type=}")
             return token.get_response_body()
+
         elif grant_type == c.GRANT_TYPE_REFRESH_TOKEN:
             token = resource.get_token_by_refresh_token(
                 refresh_token=kwargs.get("refresh_token"),

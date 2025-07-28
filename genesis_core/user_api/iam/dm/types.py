@@ -23,7 +23,7 @@ class Username(types.BaseCompiledRegExpType):
 
     def __init__(self, min_length=1, max_length=128):
         pattern = re.compile(
-            r"^[\w!#$%&\'*+/=?^_`{|}~.@-]+$",
+            r"^[\w!#$%&\'*+/=?^_`{|}~.-]+$",
             flags=re.UNICODE,
         )
         super().__init__(pattern=pattern)
@@ -75,3 +75,11 @@ class Name(types.BaseCompiledRegExpType):
     def validate(self, value):
         result = super().validate(value)
         return result and self.min_length <= len(str(value)) <= self.max_length
+
+
+class Email(types.Email):
+    def to_simple_type(self, value):
+        return value.lower()
+
+    def from_simple_type(self, value):
+        return value.lower()
