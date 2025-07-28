@@ -235,13 +235,13 @@ class XMLLibvirtInstance(XMLLibvirtMixin):
             "memory",
             text=str(memory),
             meta_tag=META_MEM_TAG,
-            unit="MB",
+            unit="MiB",
         )
         cls.document_set_tag(
             domain,
             "currentMemory",
             text=str(memory),
-            unit="MB",
+            unit="MiB",
         )
 
     @classmethod
