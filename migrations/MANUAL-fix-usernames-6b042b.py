@@ -34,10 +34,7 @@ class MigrationStep(migrations.AbstarctMigrationStep):
         expression = """
             UPDATE iam_users
             SET 
-                email = CASE 
-                            WHEN email IS NULL THEN name
-                            ELSE email
-                        END,
+                email = COALESCE(email, name),
                 name = SUBSTRING(name, 1, POSITION('@' IN name) - 1)
             WHERE name LIKE '%@%';
         """
