@@ -210,7 +210,8 @@ class User(
     def get_response_body(self):
         return {
             "uuid": str(self.uuid),
-            "name": self.name,
+            "name": self.name,  # deprecated, use "username"
+            "username": self.name,
             "first_name": self.first_name,
             "last_name": self.last_name,
             "email": self.email,
@@ -943,6 +944,9 @@ class MeInfo:
         user = self._user.get_storable_snapshot()
         for drop_field in skip_fields:
             user.pop(drop_field, None)
+
+        # "name" field is deprecated and will be removed, use "username"
+        user["username"] = user["name"]
 
         organizations = []
         for organization in Organization.list_my():
