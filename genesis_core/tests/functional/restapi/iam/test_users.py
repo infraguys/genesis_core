@@ -376,6 +376,7 @@ class TestUsers(base.BaseIamResourceTest):
         user_has_only_fields = [
             "uuid",
             "name",
+            "username",
             "description",
             "created_at",
             "updated_at",
