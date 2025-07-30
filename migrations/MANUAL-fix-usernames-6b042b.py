@@ -34,14 +34,19 @@ class MigrationStep(migrations.AbstarctMigrationStep):
         expression = """
             UPDATE iam_users
             SET 
-                email = COALESCE(email, name),
-                name = SUBSTRING(name, 1, POSITION('@' IN name) - 1)
+                name = REPLACE(name, '@', '.at.')
             WHERE name LIKE '%@%';
         """
         session.execute(expression)
 
     def downgrade(self, session):
-        pass
+        expression = """
+            UPDATE iam_users
+            SET 
+                name = REPLACE(name, '.at.', '@')
+            WHERE name LIKE '%.at.%';
+        """
+        session.execute(expression)
 
 
 migration_step = MigrationStep()
