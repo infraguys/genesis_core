@@ -49,7 +49,7 @@ class EnforceMixin:
 
 class ValidateMixin:
     min_length = 8
-    not_contain: str = string.whitespace
+    not_contain: list[str] = [string.whitespace]
     must_contain: list[str] = None  # [digits, ascii_uppercase, punctuation]
     regex: str = None
 
@@ -59,8 +59,11 @@ class ValidateMixin:
             error = "Value is required"
         elif self.min_length and len(value) < self.min_length:
             error = f"Value must be at least {self.min_length} characters long"
-        elif self.not_contain and set(self.not_contain) & set(value):
-            error = f"Value must not contain {self.not_contain}"
+        elif self.not_contain:
+            for not_contain in self.not_contain:
+                if set(not_contain) & set(value):
+                    error = f"Value must not contain {self.not_contain}"
+                    break
         elif self.must_contain:
             for required in self.must_contain:
                 if not set(required) & set(value):
@@ -73,6 +76,8 @@ class ValidateMixin:
             exc.message = error
             raise exc
 
+
+class ValidateSecretMixin(ValidateMixin):
     def validate_secret(self, kwargs: dict):
         if "secret" in kwargs:
             self.validate(kwargs["secret"])
@@ -102,7 +107,9 @@ def _get_app_endpoint(req):
 
 
 class UserController(
-    controllers.BaseResourceControllerPaginated, EnforceMixin, ValidateMixin
+    controllers.BaseResourceControllerPaginated,
+    EnforceMixin,
+    ValidateSecretMixin,
 ):
     __resource__ = resources.ResourceByModelWithCustomProps(
         models.User,
