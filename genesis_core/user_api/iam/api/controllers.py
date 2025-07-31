@@ -47,9 +47,14 @@ class EnforceMixin:
         return iam.enforcer.enforce(rule, do_raise, exc)
 
 
+class ValidationException(ra_e.RestAlchemyException):
+    code = 400
+    message = "Validation Error. %(description)s"
+
+
 class ValidateMixin:
     min_length = 8
-    not_contain: str = string.whitespace
+    not_contain: list[str] = [string.whitespace]
     must_contain: list[str] = None  # [digits, ascii_uppercase, punctuation]
     regex: str = None
 
@@ -59,20 +64,25 @@ class ValidateMixin:
             error = "Value is required"
         elif self.min_length and len(value) < self.min_length:
             error = f"Value must be at least {self.min_length} characters long"
-        elif self.not_contain and set(self.not_contain) & set(value):
-            error = f"Value must not contain {self.not_contain}"
+        elif self.not_contain:
+            value_set = set(value)
+            for not_contain in self.not_contain:
+                if set(not_contain) & value_set:
+                    error = f"Value must not contain {self.not_contain}"
+                    break
         elif self.must_contain:
+            value_set = set(value)
             for required in self.must_contain:
-                if not set(required) & set(value):
+                if not set(required) & value_set:
                     error = f"Value must contain one of {required}"
                     break
         elif self.regex and not re.match(self.regex, value):
             error = f"Value must match regex {self.regex}"
         if error:
-            exc = ValidationErrorException()
-            exc.message = error
-            raise exc
+            raise ValidationException(description=error)
 
+
+class ValidateSecretMixin(ValidateMixin):
     def validate_secret(self, kwargs: dict):
         if "secret" in kwargs:
             self.validate(kwargs["secret"])
@@ -102,7 +112,9 @@ def _get_app_endpoint(req):
 
 
 class UserController(
-    controllers.BaseResourceControllerPaginated, EnforceMixin, ValidateMixin
+    controllers.BaseResourceControllerPaginated,
+    EnforceMixin,
+    ValidateSecretMixin,
 ):
     __resource__ = resources.ResourceByModelWithCustomProps(
         models.User,
