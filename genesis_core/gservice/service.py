@@ -28,6 +28,7 @@ from genesis_core.node.machine import service as n_machine_service
 from genesis_core.network import service as n_network_service
 from genesis_core.config import service as config_service
 from genesis_core.secret import service as secret_service
+from genesis_core.janitor import service as janitor_service
 
 
 LOG = logging.getLogger(__name__)
@@ -78,6 +79,10 @@ class GeneralService(basic.BasicService):
         em_builder = em_builders.ElementManagerBuilder(
             iter_min_period=1, iter_pause=0.1
         )
+        janitor = janitor_service.ExpiredEmailConfirmationCodeJanitorService(
+            iter_min_period=60 * 60,
+            iter_pause=0,
+        )
 
         self._services = [
             n_scheduler,
@@ -88,6 +93,7 @@ class GeneralService(basic.BasicService):
             secret_svc,
             event_sender,
             em_builder,
+            janitor,
         ]
 
     def _setup(self):

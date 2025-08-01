@@ -28,6 +28,7 @@ from gcl_sdk.agents.universal.dm import models as ua_models
 
 from genesis_core.common.dm import models as cm
 from genesis_core.node.dm import models as nm
+from genesis_core.common import constants as c
 from genesis_core.config import constants as cc
 
 
@@ -209,13 +210,13 @@ class Config(
 
     @classmethod
     def get_new_configs(
-        cls, limit: int = cc.DEFAULT_SQL_LIMIT
+        cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list["Config"]:
         return cls.get_new_entities(cls.__tablename__, cc.CONFIG_KIND, limit)
 
     @classmethod
     def get_updated_configs(
-        cls, limit: int = cc.DEFAULT_SQL_LIMIT
+        cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list["Config"]:
         return cls.get_updated_entities(
             cls.__tablename__, cc.CONFIG_KIND, limit
@@ -223,7 +224,7 @@ class Config(
 
     @classmethod
     def get_deleted_config_renders(
-        cls, limit: int = cc.DEFAULT_SQL_LIMIT
+        cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list[ua_models.TargetResource]:
         return cls.get_deleted_target_resources(
             cls.__tablename__, cc.CONFIG_KIND, limit

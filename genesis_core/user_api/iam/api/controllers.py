@@ -80,12 +80,14 @@ class UserController(
                 "secret",
                 "otp_secret",
                 "confirmation_code",
+                "confirmation_code_made_at",
             ],
             create=[
                 "salt",
                 "secret_hash",
                 "otp_secret",
                 "confirmation_code",
+                "confirmation_code_made_at",
             ],
             update=[
                 "salt",
@@ -93,6 +95,7 @@ class UserController(
                 "secret",
                 "otp_secret",
                 "confirmation_code",
+                "confirmation_code_made_at",
             ],
             filter=[
                 "salt",
@@ -100,6 +103,7 @@ class UserController(
                 "secret",
                 "otp_secret",
                 "confirmation_code",
+                "confirmation_code_made_at",
             ],
             action_post=[
                 "salt",
@@ -107,6 +111,7 @@ class UserController(
                 "secret",
                 "otp_secret",
                 "confirmation_code",
+                "confirmation_code_made_at",
             ],
         ),
         name_map={"secret": "password", "name": "username"},
