@@ -17,6 +17,8 @@
 import errno
 from os import path as os_path
 import mimetypes
+import re
+import string
 from urllib import parse as urllib_parse
 
 from authlib.integrations import requests_client
@@ -26,6 +28,7 @@ from restalchemy.api import actions
 from restalchemy.api import controllers
 from restalchemy.api import resources
 from restalchemy.common import contexts
+from restalchemy.common.exceptions import ValidationErrorException
 from restalchemy.dm import filters as ra_filters
 from restalchemy.openapi import utils as oa_utils
 import pyotp
@@ -42,6 +45,42 @@ class EnforceMixin:
     def enforce(self, rule, do_raise=False, exc=None):
         iam = contexts.get_context().iam_context
         return iam.enforcer.enforce(rule, do_raise, exc)
+
+
+class ValidateMixin:
+    min_length = 8
+    not_contain: list[str] = [string.whitespace]
+    must_contain: list[str] = None  # [digits, ascii_uppercase, punctuation]
+    regex: str = None
+
+    def validate(self, value):
+        error = None
+        if value is None:
+            error = "Value is required"
+        elif self.min_length and len(value) < self.min_length:
+            error = f"Value must be at least {self.min_length} characters long"
+        elif self.not_contain:
+            for not_contain in self.not_contain:
+                if set(not_contain) & set(value):
+                    error = f"Value must not contain {self.not_contain}"
+                    break
+        elif self.must_contain:
+            for required in self.must_contain:
+                if not set(required) & set(value):
+                    error = f"Value must contain one of {required}"
+                    break
+        elif self.regex and not re.match(self.regex, value):
+            error = f"Value must match regex {self.regex}"
+        if error:
+            exc = ValidationErrorException()
+            exc.message = error
+            raise exc
+
+
+class ValidateSecretMixin(ValidateMixin):
+    def validate_secret(self, kwargs: dict):
+        if "secret" in kwargs:
+            self.validate(kwargs["secret"])
 
 
 class IamController(controllers.RoutesListController):
@@ -68,7 +107,9 @@ def _get_app_endpoint(req):
 
 
 class UserController(
-    controllers.BaseResourceControllerPaginated, EnforceMixin
+    controllers.BaseResourceControllerPaginated,
+    EnforceMixin,
+    ValidateSecretMixin,
 ):
     __resource__ = resources.ResourceByModelWithCustomProps(
         models.User,
@@ -113,6 +154,7 @@ class UserController(
     )
 
     def create(self, **kwargs):
+        self.validate_secret(kwargs)
         kwargs.pop("email_verified", None)
         user = super().create(**kwargs)
         app_endpoint = _get_app_endpoint(req=self._req)
@@ -126,6 +168,7 @@ class UserController(
         return super().filter(filters, **kwargs)
 
     def update(self, uuid, **kwargs):
+        self.validate_secret(kwargs)
         kwargs.pop("email_verified", None)
         is_me = models.User.me().uuid == uuid
         if self.enforce(c.PERMISSION_USER_WRITE_ALL) or is_me:
@@ -148,6 +191,7 @@ class UserController(
 
     @actions.post
     def change_password(self, resource, old_password, new_password):
+        self.validate(new_password)
         is_me = models.User.me() == resource
         if self.enforce(c.PERMISSION_USER_WRITE_ALL) or is_me:
             resource.change_secret_safe(
@@ -231,6 +275,7 @@ class UserController(
     def reset_password(self, resource, new_password=None, code=None):
         code = code or self._req.params.get("code")
         new_secret = new_password or self._req.params.get("new_password")
+        self.validate(new_secret)
         resource.reset_secret_by_code(
             new_secret=new_secret,
             code=code,
