@@ -16,7 +16,6 @@
 
 import enum
 
-DEFAULT_SQL_LIMIT = 100
 PASSWORD_KIND = "password"
 CERTIFICATE_KIND = "certificate"
 

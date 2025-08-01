@@ -25,6 +25,7 @@ from restalchemy.storage.sql import orm
 from gcl_sdk.agents.universal.dm import models as ua_models
 
 from genesis_core.common.dm import models as cm
+from genesis_core.common import constants as c
 from genesis_core.secret import constants as sc
 
 
@@ -92,13 +93,13 @@ class Password(
 
     @classmethod
     def get_new_passwords(
-        cls, limit: int = sc.DEFAULT_SQL_LIMIT
+        cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list["Password"]:
         return cls.get_new_entities(cls.__tablename__, sc.PASSWORD_KIND, limit)
 
     @classmethod
     def get_updated_passwords(
-        cls, limit: int = sc.DEFAULT_SQL_LIMIT
+        cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list["Password"]:
         return cls.get_updated_entities(
             cls.__tablename__, sc.PASSWORD_KIND, limit
@@ -106,7 +107,7 @@ class Password(
 
     @classmethod
     def get_deleted_passwords(
-        cls, limit: int = sc.DEFAULT_SQL_LIMIT
+        cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list[ua_models.TargetResource]:
         return cls.get_deleted_target_resources(
             cls.__tablename__, sc.PASSWORD_KIND, limit
@@ -185,7 +186,7 @@ class Certificate(
 
     @classmethod
     def get_new_certificates(
-        cls, limit: int = sc.DEFAULT_SQL_LIMIT
+        cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list["Certificate"]:
         return cls.get_new_entities(
             cls.__tablename__, sc.CERTIFICATE_KIND, limit
@@ -193,7 +194,7 @@ class Certificate(
 
     @classmethod
     def get_updated_certificates(
-        cls, limit: int = sc.DEFAULT_SQL_LIMIT
+        cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list["Certificate"]:
         return cls.get_updated_entities(
             cls.__tablename__, sc.CERTIFICATE_KIND, limit
@@ -201,7 +202,7 @@ class Certificate(
 
     @classmethod
     def get_deleted_certificates(
-        cls, limit: int = sc.DEFAULT_SQL_LIMIT
+        cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list[ua_models.TargetResource]:
         return cls.get_deleted_target_resources(
             cls.__tablename__, sc.CERTIFICATE_KIND, limit

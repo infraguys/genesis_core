@@ -25,6 +25,7 @@ from gcl_looper.services import basic
 from gcl_sdk.agents.universal.dm import models as ua_models
 
 from genesis_core.secret.dm import models
+from genesis_core.common import constants as c
 from genesis_core.secret import constants as sc
 
 
@@ -35,44 +36,44 @@ class SecretServiceBuilder(basic.BasicService):
 
     def _get_new_passwords(
         self,
-        limit: int = sc.DEFAULT_SQL_LIMIT,
+        limit: int = c.DEFAULT_SQL_LIMIT,
     ) -> list[models.Password]:
         return models.Password.get_new_passwords(limit=limit)
 
     def _get_changed_passwords(
         self,
-        limit: int = sc.DEFAULT_SQL_LIMIT,
+        limit: int = c.DEFAULT_SQL_LIMIT,
     ) -> list[models.Password]:
         return models.Password.get_updated_passwords(limit=limit)
 
     def _get_deleted_passwords(
         self,
-        limit: int = sc.DEFAULT_SQL_LIMIT,
+        limit: int = c.DEFAULT_SQL_LIMIT,
     ) -> list[ua_models.TargetResource]:
         return models.Password.get_deleted_passwords(limit=limit)
 
     def _get_new_certificates(
         self,
-        limit: int = sc.DEFAULT_SQL_LIMIT,
+        limit: int = c.DEFAULT_SQL_LIMIT,
     ) -> list[models.Certificate]:
         return models.Certificate.get_new_certificates(limit=limit)
 
     def _get_changed_certificates(
         self,
-        limit: int = sc.DEFAULT_SQL_LIMIT,
+        limit: int = c.DEFAULT_SQL_LIMIT,
     ) -> list[models.Certificate]:
         return models.Certificate.get_updated_certificates(limit=limit)
 
     def _get_deleted_certificates(
         self,
-        limit: int = sc.DEFAULT_SQL_LIMIT,
+        limit: int = c.DEFAULT_SQL_LIMIT,
     ) -> list[ua_models.TargetResource]:
         return models.Certificate.get_deleted_certificates(limit=limit)
 
     def _get_outdated_resources(
         self,
         kind: str,
-        limit: int = sc.DEFAULT_SQL_LIMIT,
+        limit: int = c.DEFAULT_SQL_LIMIT,
     ) -> dict[
         sys_uuid.UUID,  # Resource UUID
         tuple[ua_models.TargetResource, ua_models.Resource],
