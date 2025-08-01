@@ -15,6 +15,7 @@
 #    under the License.
 
 import enum
+from datetime import timedelta
 
 from gcl_iam import rules
 
@@ -47,6 +48,10 @@ PARAM_PASSWORD = "password"
 PARAM_SCOPE = "scope"
 PARAM_TTL = "ttl"
 PARAM_REFRESH_TTL = "refresh_ttl"
+
+
+# User settings
+USER_CONFIRMATION_CODE_TTL = timedelta(hours=1)
 
 
 # Default Values

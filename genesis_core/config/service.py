@@ -29,6 +29,7 @@ from gcl_sdk.agents.universal.dm import models as ua_models
 
 from genesis_core.node.dm import models as node_models
 from genesis_core.config.dm import models
+from genesis_core.common import constants as c
 from genesis_core.config import constants as cc
 
 
@@ -41,25 +42,25 @@ class ConfigServiceBuilder(basic.BasicService):
 
     def _get_new_configs(
         self,
-        limit: int = cc.DEFAULT_SQL_LIMIT,
+        limit: int = c.DEFAULT_SQL_LIMIT,
     ) -> list[models.Config]:
         return models.Config.get_new_configs(limit=limit)
 
     def _get_changed_configs(
         self,
-        limit: int = cc.DEFAULT_SQL_LIMIT,
+        limit: int = c.DEFAULT_SQL_LIMIT,
     ) -> list[models.Config]:
         return models.Config.get_updated_configs(limit=limit)
 
     def _get_deleted_configs(
         self,
-        limit: int = cc.DEFAULT_SQL_LIMIT,
+        limit: int = c.DEFAULT_SQL_LIMIT,
     ) -> list[ua_models.TargetResource]:
         return models.Config.get_deleted_config_renders(limit=limit)
 
     def _get_outdated_renders(
         self,
-        limit: int = cc.DEFAULT_SQL_LIMIT,
+        limit: int = c.DEFAULT_SQL_LIMIT,
     ) -> dict[
         sys_uuid.UUID,
         list[tuple[ua_models.TargetResource, ua_models.Resource]],
