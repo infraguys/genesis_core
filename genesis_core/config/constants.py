@@ -17,7 +17,6 @@
 import enum
 import typing as tp
 
-DEFAULT_SQL_LIMIT = 100
 CONFIG_KIND = "config"
 RENDER_KIND = "render"
 

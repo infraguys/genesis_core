@@ -195,7 +195,11 @@ class User(
     )
     confirmation_code = properties.property(
         ra_types.AllowNone(ra_types.UUID()),
-        default=sys_uuid.uuid4,
+        default=None,
+    )
+    confirmation_code_made_at = properties.property(
+        ra_types.AllowNone(ra_types.UTCDateTimeZ()),
+        default=None,
     )
     otp_secret = properties.property(
         ra_types.String(max_length=128),
@@ -324,29 +328,54 @@ class User(
         )
 
     def resend_confirmation_event(self, app_endpoint="http://localhost/"):
-        self.confirmation_code = sys_uuid.uuid4()
+        self.reset_confirmation_code()
         self.save()
         self.send_registration_event(app_endpoint=app_endpoint)
 
     def confirm_email(self):
         self.email_verified = True
-        self.confirmation_code = sys_uuid.uuid4()
+        self.clear_confirmation_code()
         self.make_newcomer()
         self.save()
         return self
 
     def confirm_email_by_code(self, code):
-        if str(self.confirmation_code) == str(code):
+        if self.check_confirmation_code(code):
             return self.confirm_email()
         raise iam_exceptions.CanNotConfirmUser(code=code)
 
+    def reset_confirmation_code(self):
+        self.confirmation_code = sys_uuid.uuid4()
+        self.confirmation_code_made_at = datetime.datetime.now(
+            datetime.timezone.utc
+        )
+        self.save()
+
+    def check_confirmation_code(self, code):
+        if not (
+            code and self.confirmation_code and self.confirmation_code_made_at
+        ):
+            return False
+
+        now = datetime.datetime.now(datetime.timezone.utc)
+        code_age = now - self.confirmation_code_made_at
+        if code_age > iam_c.USER_CONFIRMATION_CODE_TTL:
+            return False
+
+        return str(self.confirmation_code) == str(code)
+
+    def clear_confirmation_code(self):
+        self.confirmation_code = None
+        self.confirmation_code_made_at = None
+        self.save()
+
     def reset_secret(self, new_secret):
         self.secret = new_secret
-        self.confirmation_code = sys_uuid.uuid4()
+        self.reset_confirmation_code()
         self.save()
 
     def reset_secret_by_code(self, new_secret, code):
-        if str(self.confirmation_code) == str(code):
+        if self.check_confirmation_code(code):
             return self.reset_secret(new_secret)
         raise iam_exceptions.CanNotConfirmUser(code=code)
 
@@ -940,6 +969,7 @@ class MeInfo:
             "secret_hash",
             "secret",
             "confirmation_code",
+            "confirmation_code_made_at",
         ]
         user = self._user.get_storable_snapshot()
         for drop_field in skip_fields:

@@ -13,7 +13,7 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-import uuid as sys_uuid
+import datetime
 from contextlib import nullcontext
 
 import pytest
@@ -284,7 +284,7 @@ class TestUsers(base.BaseIamResourceTest):
             filters={"uuid": auth_test1_user.uuid}
         )
         user.email_verified = False
-        user.confirmation_code = sys_uuid.uuid4()
+        user.reset_confirmation_code()
         user.save()
 
         client = user_api_noauth_client()
@@ -302,28 +302,45 @@ class TestUsers(base.BaseIamResourceTest):
         )
         assert user_updated.email_verified
 
+    @pytest.mark.parametrize("code", ["invalid code", None])
     def test_confirm_email_invalid_code_400_error(
         self,
         user_api_noauth_client,
         auth_test1_user,
+        code,
     ):
         client = user_api_noauth_client()
 
         with pytest.raises(bazooka_exc.ForbiddenError):
             client.confirm_email(
                 user_uuid=auth_test1_user.uuid,
-                code="invalid code",
+                code=code,
             )
 
-    def test_confirm_email_no_code_400_error(
-        self, user_api_noauth_client, auth_test1_user
+    @pytest.mark.parametrize(
+        "code_made_at",
+        [
+            datetime.datetime(2000, 1, 1, tzinfo=datetime.timezone.utc),
+            None,
+        ],
+    )
+    def test_confirm_email_expired_code_400_error(
+        self, user_api_noauth_client, auth_test1_user, code_made_at
     ):
+        user = iam_models.User.objects.get_one(
+            filters={"uuid": auth_test1_user.uuid}
+        )
+        user.email_verified = False
+        user.reset_confirmation_code()
+        user.confirmation_code_made_at = code_made_at
+        user.save()
+
         client = user_api_noauth_client()
 
         with pytest.raises(bazooka_exc.ForbiddenError):
             client.confirm_email(
                 user_uuid=auth_test1_user.uuid,
-                code=None,
+                code=str(user.confirmation_code),
             )
 
     def test_delete_my_user_test1_auth_success(
