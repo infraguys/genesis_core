@@ -53,31 +53,36 @@ class ValidationException(ra_e.RestAlchemyException):
 
 
 class ValidateMixin:
-    min_length = 8
-    not_contain: list[str] = [string.whitespace]
-    must_contain: list[str] = None  # [digits, ascii_uppercase, punctuation]
-    regex: str = None
+    __validate_min_length__ = 8
+    __validate_not_contain__: list[str] = [string.whitespace]
+    __validate_must_contain__: list[str] = None  # [digits, punctuation]
+    __validate_regex__: str = None
 
     def validate(self, value):
         error = None
         if value is None:
             error = "Value is required"
-        elif self.min_length and len(value) < self.min_length:
-            error = f"Value must be at least {self.min_length} characters long"
-        elif self.not_contain:
+        elif (
+            self.__validate_min_length__
+            and len(value) < self.__validate_min_length__
+        ):
+            error = f"Value must be at least {self.__validate_min_length__} characters long"
+        elif self.__validate_not_contain__:
             value_set = set(value)
-            for not_contain in self.not_contain:
+            for not_contain in self.__validate_not_contain__:
                 if set(not_contain) & value_set:
-                    error = f"Value must not contain {self.not_contain}"
+                    error = f"Value must not contain {self.__validate_not_contain__}"
                     break
-        elif self.must_contain:
+        elif self.__validate_must_contain__:
             value_set = set(value)
-            for required in self.must_contain:
+            for required in self.__validate_must_contain__:
                 if not set(required) & value_set:
                     error = f"Value must contain one of {required}"
                     break
-        elif self.regex and not re.match(self.regex, value):
-            error = f"Value must match regex {self.regex}"
+        elif self.__validate_regex__ and not re.match(
+            self.__validate_regex__, value
+        ):
+            error = f"Value must match regex {self.__validate_regex__}"
         if error:
             raise ValidationException(description=error)
 
