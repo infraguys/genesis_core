@@ -428,6 +428,26 @@ class TestUsers(base.BaseIamResourceTest):
                 # auth by phone is not implemented yet
             ),
             ("invalid_grant_type", "username", pytest.raises(ValueError)),
+            (
+                c.GRANT_TYPE_PASSWORD,
+                "login",
+                pytest.raises(bazooka_exc.BadRequestError),
+            ),
+            (
+                c.GRANT_TYPE_PASSWORD,
+                "email",
+                pytest.raises(bazooka_exc.BadRequestError),
+            ),
+            (
+                c.GRANT_TYPE_PASSWORD_EMAIL,
+                "username",
+                pytest.raises(bazooka_exc.BadRequestError),
+            ),
+            (
+                c.GRANT_TYPE_PASSWORD_LOGIN,
+                "username",
+                pytest.raises(bazooka_exc.BadRequestError),
+            ),
         ],
     )
     def test_auth_with_param(
@@ -439,7 +459,7 @@ class TestUsers(base.BaseIamResourceTest):
         auth_test1_user,
     ):
         params = {
-            "username": "dummy_username",
+            "username": None,
             "password": auth_test1_user.password,
             "grant_type": grant_type,
         }
