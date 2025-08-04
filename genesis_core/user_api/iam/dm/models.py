@@ -1066,20 +1066,22 @@ class IamClient(
         """
         Get auth token by username + password (default approach).
         """
-        users_query = User.objects.get_all(
-            filters={"name": ra_filters.EQ(username)}
+        users_query = User.objects.query(
+            where_conditions="LOWER(name) = %s",
+            where_values=(username.lower(),),
+            limit=1,
         )
         return self._get_token_by_password_and_smth(
             users_query=users_query, **kwargs
         )
 
-    def get_token_by_password_username(self, **kwargs):
+    def get_token_by_password_username(self, username, **kwargs):
         """
         Get auth token by username + password.
         This is just an alias for get_token_by_password_username,
         to ensure consistency.
         """
-        return self.get_token_by_password(**kwargs)
+        return self.get_token_by_password(username, **kwargs)
 
     def get_token_by_password_email(self, email, **kwargs):
         """
@@ -1092,7 +1094,7 @@ class IamClient(
             users_query=users_query, **kwargs
         )
 
-    def get_token_by_password_phone(self, **kwargs):
+    def get_token_by_password_phone(self, phone, **kwargs):
         """
         Get auth token by phone + password.
         Will be added later.
@@ -1107,12 +1109,10 @@ class IamClient(
          - by username (if no "@")
          - by phone [to be done later]
         """
-        lookup_field = "email" if "@" in login else "name"
-        filters = {lookup_field: ra_filters.EQ(login)}
-        users_query = User.objects.get_all(filters=filters)
-        return self._get_token_by_password_and_smth(
-            users_query=users_query, **kwargs
-        )
+        if "@" in login:
+            return self.get_token_by_password_email(login, **kwargs)
+        else:
+            return self.get_token_by_password_username(login, **kwargs)
 
     def get_token_by_refresh_token(self, refresh_token, scope=None):
         context = contexts.get_context()
