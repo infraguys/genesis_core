@@ -26,6 +26,7 @@ from restalchemy.api import actions
 from restalchemy.api import controllers
 from restalchemy.api import resources
 from restalchemy.common import contexts
+from restalchemy.common import exceptions as ra_e
 from restalchemy.dm import filters as ra_filters
 from restalchemy.openapi import utils as oa_utils
 import pyotp
@@ -532,13 +533,29 @@ class ClientsController(
     @oa_utils.extend_schema(**oa_specs.OA_SPEC_GET_TOKEN_KWARGS)
     @actions.post
     def get_token(self, resource, grant_type, **kwargs):
-        if grant_type in (
-            c.GRANT_TYPE_PASSWORD,
-            c.GRANT_TYPE_PASSWORD_USERNAME,
-            c.GRANT_TYPE_PASSWORD_EMAIL,
-            c.GRANT_TYPE_PASSWORD_PHONE,
-            c.GRANT_TYPE_PASSWORD_LOGIN,
-        ):
+        grant_type_map = {
+            c.GRANT_TYPE_PASSWORD: (
+                c.PARAM_USERNAME,
+                resource.get_token_by_password,
+            ),
+            c.GRANT_TYPE_PASSWORD_USERNAME: (
+                c.PARAM_USERNAME,
+                resource.get_token_by_password_username,
+            ),
+            c.GRANT_TYPE_PASSWORD_EMAIL: (
+                c.PARAM_EMAIL,
+                resource.get_token_by_password_email,
+            ),
+            c.GRANT_TYPE_PASSWORD_PHONE: (
+                c.PARAM_PHONE,
+                resource.get_token_by_password_phone,
+            ),
+            c.GRANT_TYPE_PASSWORD_LOGIN: (
+                c.PARAM_LOGIN,
+                resource.get_token_by_password_login,
+            ),
+        }
+        if grant_type in grant_type_map:
             client_id = kwargs.get(
                 c.PARAM_CLIENT_ID,
                 self._req.headers.get(c.HEADER_CLIENT_ID, ""),
@@ -559,33 +576,12 @@ class ClientsController(
                 otp_code=self._req.headers.get(c.HEADER_OTP_CODE, None),
                 root_endpoint=resource.redirect_url,
             )
-            if grant_type == c.GRANT_TYPE_PASSWORD:
-                token = resource.get_token_by_password(
-                    username=kwargs.get(c.PARAM_USERNAME),
-                    **payload,
-                )
-            elif grant_type == c.GRANT_TYPE_PASSWORD_USERNAME:
-                token = resource.get_token_by_password(
-                    username=kwargs.get(c.PARAM_USERNAME),
-                    **payload,
-                )
-            elif grant_type == c.GRANT_TYPE_PASSWORD_EMAIL:
-                token = resource.get_token_by_password_email(
-                    email=kwargs.get(c.PARAM_EMAIL),
-                    **payload,
-                )
-            elif grant_type == c.GRANT_TYPE_PASSWORD_PHONE:
-                token = resource.get_token_by_password_phone(
-                    phone=kwargs.get(c.PARAM_PHONE),
-                    **payload,
-                )
-            elif grant_type == c.GRANT_TYPE_PASSWORD_LOGIN:
-                token = resource.get_token_by_password_login(
-                    login=kwargs.get(c.PARAM_LOGIN),
-                    **payload,
-                )
-            else:
-                raise ValueError(f"Unexpected {grant_type=}")
+            login_attr, token_getter = grant_type_map[grant_type]
+            payload[login_attr] = kwargs.get(login_attr)
+            if not payload[login_attr]:
+                raise ra_e.ValidationErrorException()
+
+            token = token_getter(**payload)
             return token.get_response_body()
 
         elif grant_type == c.GRANT_TYPE_REFRESH_TOKEN:
