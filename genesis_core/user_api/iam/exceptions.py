@@ -168,3 +168,10 @@ class CanNotDeleteIamClient(
         "The current user is not permitted to delete IAM client `{uuid}`."
         " This action requires the `{rule}`, which has not been granted."
     )
+
+
+class InvalidGrantType(
+    exceptions.CommonValueErrorException,
+    iam_exc.InvalidGrantTypeError,
+):
+    __template__ = "Invalid grant type: {grant_type}"

@@ -32,6 +32,7 @@ class ErrorsHandlerMiddleware(middlewares.ErrorsHandlerMiddleware):
     )
     valid_exc = middlewares.ErrorsHandlerMiddleware.valid_exc + (
         ra_e.TypeError,
+        common_exc.CommonValueErrorException,
     )
 
     def _construct_error_response(self, req, e):
