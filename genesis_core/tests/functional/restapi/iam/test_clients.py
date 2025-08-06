@@ -397,3 +397,12 @@ class TestClients(base.BaseIamResourceTest):
                     "scope": "project:859aaa4f-9fcb-4433-8bc0-a84232a1177f",
                 },
             )
+
+    def test_invalid_grant_type_error(self, user_api_client, auth_test1_user):
+        client = user_api_client(auth_test1_user)
+
+        with pytest.raises(bazooka_exc.BadRequestError):
+            client.post(
+                url=auth_test1_user.get_token_url(endpoint=client.endpoint),
+                data={"grant_type": "obviously invalid"},
+            )
