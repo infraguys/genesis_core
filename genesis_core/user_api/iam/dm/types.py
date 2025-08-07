@@ -38,12 +38,6 @@ class Username(types.BaseCompiledRegExpType):
     def max_length(self):
         return self._max_length
 
-    def to_simple_type(self, value):
-        return value.lower()
-
-    def from_simple_type(self, value):
-        return value.lower()
-
     def from_unicode(self, value):
         return self.from_simple_type(value)
 
