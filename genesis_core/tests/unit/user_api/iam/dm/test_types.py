@@ -46,16 +46,16 @@ class TestUsernameTestCase:
             ("أحمد_2023", True),
             ("", False),
             (" space ", False),
-            ("two words", False),
+            ("two words", True),  # " " space is allowed
             ("emoji😊", False),
-            ("percent%age", True),  # % разрешен!
-            ("invalid/", True),  # / разрешен!
+            ("percent%age", True),  # "%" is allowed
+            ("invalid/", True),  # "/" is allowed
             ("semicolon;test", False),
             ('quote"mark', False),
             ("bracket(test)", False),
             ("angle<tag", False),
             ("comma,separated", False),
-            ("dash-", True),  # Дефис в конце разрешен
+            ("dash-", True),  # trailing "-" dash is allowed
             ("a\nb", False),
         ],
     )
