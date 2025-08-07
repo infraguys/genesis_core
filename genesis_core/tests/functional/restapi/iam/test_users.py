@@ -30,13 +30,14 @@ class TestUsers(base.BaseIamResourceTest):
 
     USERS_ENDPOINT = "iam/users"
 
-    def test_create_user_success(self, user_api_noauth_client):
+    @pytest.mark.parametrize("name", ["test", "Spider-Man"])
+    def test_create_user_success(self, name, user_api_noauth_client):
         client = user_api_noauth_client()
 
-        user = client.create_user(username="test", password="test")
+        user = client.create_user(username=name, password="test")
 
         assert user["password"] == "*******"
-        assert user["username"] == "test"
+        assert user["username"] == name
 
     def test_create_user_400_error(self, user_api_noauth_client):
         client = user_api_noauth_client()
@@ -182,24 +183,16 @@ class TestUsers(base.BaseIamResourceTest):
         self, user_api_client, auth_test1_user
     ):
         client = user_api_client(auth_test1_user)
-
-        result = client.update_user(
-            auth_test1_user.uuid,
-            username="testXXX",
-        )
-
-        assert result["username"] == "testxxx"
+        name = "testXXX"
+        result = client.update_user(auth_test1_user.uuid, username=name)
+        assert result["username"] == name
 
     def test_update_other_user_test1_auth_forbidden(
         self, user_api_client, auth_test1_user, auth_test2_user
     ):
         client = user_api_client(auth_test1_user)
-
         with pytest.raises(bazooka_exc.ForbiddenError):
-            client.update_user(
-                auth_test2_user.uuid,
-                username="testXXX",
-            )
+            client.update_user(auth_test2_user.uuid, username="testXXX")
 
     def test_update_other_user_test1_auth_access(
         self, user_api_client, auth_test1_user, auth_test2_user
@@ -210,13 +203,9 @@ class TestUsers(base.BaseIamResourceTest):
                 c.PERMISSION_USER_WRITE_ALL,
             ],
         )
-
-        result = client.update_user(
-            auth_test2_user.uuid,
-            username="testXXX",
-        )
-
-        assert result["username"] == "testxxx"
+        name = "testXXX"
+        result = client.update_user(auth_test2_user.uuid, username=name)
+        assert result["username"] == name
 
     def test_update_my_user_update_password_test1_auth_bad_request(
         self, user_api_client, auth_test1_user
@@ -520,28 +509,24 @@ class TestUsers(base.BaseIamResourceTest):
     def test_auth_case_insensitivity(
         self, user_api, auth_test1_user, grant_type, use_email, field_name
     ):
-        # Set up email if needed
+        user = iam_models.User.objects.get_one(
+            filters={"uuid": auth_test1_user.uuid}
+        )
+        user.name = user.name.title()
+        user.email = "Test1@mail.com"
+        user.save()
+
         if use_email:
-            user = iam_models.User.objects.get_one(
-                filters={"uuid": auth_test1_user.uuid}
-            )
-            user.email = "test1@mail.com"
-            user.save()
-            email_value = user.email.upper()
+            login = user.email.upper()
+        else:
+            login = auth_test1_user.username.upper()
 
         params = {
-            "username": "dummy_username",
+            "username": None,
             "password": auth_test1_user.password,
             "grant_type": grant_type,
         }
-        if grant_type == c.GRANT_TYPE_PASSWORD_USERNAME:
-            params[field_name] = auth_test1_user.username.upper()
-        elif grant_type == c.GRANT_TYPE_PASSWORD_EMAIL:
-            params[field_name] = email_value
-        elif grant_type == c.GRANT_TYPE_PASSWORD_LOGIN:
-            params[field_name] = (
-                email_value if use_email else auth_test1_user.username.upper()
-            )
+        params[field_name] = login
 
         # Test authentication
         auth = iam_clients.GenesisCoreAuth(**params)
