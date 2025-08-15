@@ -314,6 +314,8 @@ class User(
         ctx = contexts.get_context()
         event_client = ctx.context_storage.get(iam_c.STORAGE_KEY_EVENTS_CLIENT)
 
+        self.reset_confirmation_code()
+
         registration_event_payload = event_payloads.ResetPasswordEventPayload(
             site_endpoint=app_endpoint,
             reset_code=self.confirmation_code,
@@ -371,7 +373,7 @@ class User(
 
     def reset_secret(self, new_secret):
         self.secret = new_secret
-        self.reset_confirmation_code()
+        self.clear_confirmation_code()
         self.save()
 
     def reset_secret_by_code(self, new_secret, code):
