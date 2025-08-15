@@ -15,8 +15,10 @@
 #    under the License.
 import datetime
 from contextlib import nullcontext
+from urllib.parse import urljoin
 
 import pytest
+import requests
 from bazooka import exceptions as bazooka_exc
 from gcl_iam.tests.functional import clients as iam_clients
 
@@ -535,3 +537,47 @@ class TestUsers(base.BaseIamResourceTest):
             auth,
         )  # tries to authorise on init
         assert "access_token" in client._auth_cache
+
+    def test_reset_password_success(
+        self, auth_test1_user, user_api, default_client_uuid
+    ):
+        user = iam_models.User.objects.get_one(
+            filters={"uuid": auth_test1_user.uuid}
+        )
+        # after confirm email (auth_test1_user) confirmation_code is None
+        assert user.confirmation_code is None
+
+        url = urljoin(
+            user_api.base_url,
+            f"iam/clients/{default_client_uuid}/actions/reset_password/invoke",
+        )
+        result = requests.post(url, json={"email": user.email})
+        assert result.status_code == 200
+
+        user_updated = iam_models.User.objects.get_one(
+            filters={"uuid": auth_test1_user.uuid}
+        )
+        # after send reset password event confirmation_code present
+        assert user_updated.confirmation_code
+
+        new_password = f"{auth_test1_user.password}_changed"
+        url = urljoin(
+            user_api.base_url,
+            f"iam/users/{user.uuid}/actions/reset_password/invoke",
+        )
+        result = requests.post(
+            url,
+            json={
+                "new_password": new_password,
+                "code": str(user_updated.confirmation_code),
+            },
+        )
+        assert result.status_code == 200
+
+        user_updated = iam_models.User.objects.get_one(
+            filters={"uuid": auth_test1_user.uuid}
+        )
+        # after reset password confirmation_code is None
+        assert user_updated.confirmation_code is None
+        # password changed
+        assert user_updated.secret_hash != user.secret_hash
