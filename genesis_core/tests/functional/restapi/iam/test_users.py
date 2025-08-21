@@ -34,7 +34,7 @@ class TestUsers(base.BaseIamResourceTest):
     def test_create_user_success(self, name, user_api_noauth_client):
         client = user_api_noauth_client()
 
-        user = client.create_user(username=name, password="test")
+        user = client.create_user(username=name, password="testtest")
 
         assert user["password"] == "*******"
         assert user["username"] == name
@@ -44,6 +44,10 @@ class TestUsers(base.BaseIamResourceTest):
 
         with pytest.raises(bazooka_exc.BadRequestError):
             client.create_user(username="", password="test")
+        with pytest.raises(bazooka_exc.BadRequestError):
+            client.create_user(username="test400", password="test")
+        with pytest.raises(bazooka_exc.BadRequestError):
+            client.create_user(username="test400", password="test test")
 
     def test_create_user_space_login_400_error(self, user_api_noauth_client):
         client = user_api_noauth_client()
