@@ -134,7 +134,7 @@ def auth_test1_user(
     default_client_id: str,
     default_client_secret: str,
 ):
-    password = "test1"
+    password = "test1test"
     client = user_api_client(auth_user_admin)
     user = client.create_user(username="test1", password=password)
     user_obj = iam_models.User.objects.get_one(filters={"uuid": user["uuid"]})
@@ -162,7 +162,7 @@ def auth_test2_user(
     default_client_id: str,
     default_client_secret: str,
 ):
-    password = "test2"
+    password = "test2test"
     client = user_api_client(auth_user_admin)
     user = client.create_user(username="test2", password=password)
     user_obj = iam_models.User.objects.get_one(filters={"uuid": user["uuid"]})
@@ -190,7 +190,7 @@ def auth_test1_p1_user(
     default_client_id: str,
     default_client_secret: str,
 ):
-    password = "test1p1"
+    password = "testtest1p1"
     client = user_api_client(auth_user_admin)
     user = client.create_user(username="test1p1", password=password)
     user_obj = iam_models.User.objects.get_one(filters={"uuid": user["uuid"]})
@@ -239,7 +239,7 @@ def auth_test2_p1_user(
     default_client_id: str,
     default_client_secret: str,
 ):
-    password = "test2p1"
+    password = "testtest2p1"
     client = user_api_client(auth_user_admin)
     user = client.create_user(username="test2p1", password=password)
     user_obj = iam_models.User.objects.get_one(filters={"uuid": user["uuid"]})
