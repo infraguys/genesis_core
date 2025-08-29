@@ -38,7 +38,7 @@ SDK_DEV_MODE=$([ -d "$DEV_SDK_PATH" ] && echo "true" || echo "false")
 # Install packages
 sudo apt update
 sudo apt install yq postgresql libev-dev libvirt-dev \
-    tftpd-hpa isc-dhcp-server yq -y
+    tftpd-hpa nginx isc-dhcp-server -y
 
 ALLOW_USER_PASSWD=${ALLOW_USER_PASSWD-}
 if [ -n "$ALLOW_USER_PASSWD" ]; then
@@ -95,6 +95,12 @@ sudo mkdir -p /srv/tftp/bios
 sudo cp "$GC_ART_DIR/undionly.kpxe" /srv/tftp/bios/undionly.kpxe
 sudo cp "$GC_ART_DIR/initrd.img" /srv/tftp/bios/initrd.img
 sudo cp "$GC_ART_DIR/vmlinuz" /srv/tftp/bios/vmlinuz
+
+sudo rm /etc/nginx/sites-enabled/default
+
+sudo cp "$GC_PATH/etc/nginx/sites-available/genesis.conf" /etc/nginx/sites-available/genesis.conf
+sudo ln -s /etc/nginx/sites-available/genesis.conf /etc/nginx/sites-enabled/genesis.conf
+sudo systemctl enable nginx
 
 # Default creds for genesis core services
 sudo -u postgres psql -c "CREATE ROLE $GC_PG_USER WITH LOGIN PASSWORD '$GC_PG_PASS';"
