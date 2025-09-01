@@ -1,6 +1,4 @@
 startup_entities:
-  core_ip: "10.20.0.2"
-  domain: "local.genesis-core.tech"
   machine_pools:
     - uuid: "2bd17956-600b-4beb-8ddd-9fc4856262e6"
       name: "default-hw-pool"

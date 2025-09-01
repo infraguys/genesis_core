@@ -35,6 +35,9 @@ SYSTEMD_SERVICE_DIR=/etc/systemd/system/
 DEV_SDK_PATH="/opt/gcl_sdk"
 SDK_DEV_MODE=$([ -d "$DEV_SDK_PATH" ] && echo "true" || echo "false")
 
+DEV_CLI_PATH="/opt/genesis_ci_tools"
+CLI_DEV_MODE=$([ -d "$DEV_CLI_PATH" ] && echo "true" || echo "false")
+
 # Install packages
 sudo apt update
 sudo apt install yq postgresql libev-dev libvirt-dev \
@@ -111,6 +114,7 @@ sudo mkdir -p $GC_CFG_DIR
 sudo cp "$GC_PATH/etc/genesis_core/genesis_core.conf" $GC_CFG_DIR/
 sudo cp "$GC_PATH/etc/genesis_core/logging.yaml" $GC_CFG_DIR/
 sudo cp "$GC_PATH/etc/genesis_core/event_type_mapping.yaml" $GC_CFG_DIR/
+sudo cp "$GC_PATH/genesis/manifests/core.yaml" $GC_CFG_DIR/
 sudo cp "$GC_PATH/genesis/images/startup_cfg.yaml" $GC_CFG_DIR/
 sudo cp "$GC_PATH/genesis/images/bootstrap.sh" $BOOTSTRAP_PATH/0100-gc-bootstrap.sh
 
@@ -132,6 +136,14 @@ sudo cp -r "$GC_PATH/etc/genesis_universal_agent" /etc/
 
 # Apply migrations
 ra-apply-migration --config-dir "$GC_PATH/etc/genesis_core/" --path "$GC_PATH/migrations"
+
+# Install CLI
+if [[ "$CLI_DEV_MODE" == "true" ]]; then
+    pip install -e "$DEV_CLI_PATH"
+else
+    pip install genesis-ci-tools
+fi
+
 deactivate
 
 # Create links to venv

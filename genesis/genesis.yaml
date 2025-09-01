@@ -40,6 +40,12 @@ build:
       optional: true
       path:
         env: LOCAL_GENESIS_SDK_PATH
+    
+    # Take CLI from a local path for development purposes.
+    - dst: /opt/genesis_ci_tools
+      optional: true
+      path:
+        env: LOCAL_GENESIS_CLI_PATH
 
   # List of elements in the project
   elements:
