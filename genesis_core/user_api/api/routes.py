@@ -22,6 +22,7 @@ from genesis_core.user_api.em.api import routes as em_routes
 from genesis_core.user_api.iam.api import routes as iam_routes
 from genesis_core.user_api.config.api import routes as config_routes
 from genesis_core.user_api.secret.api import routes as secret_routes
+from gcl_sdk.audit.api import routes as audit_routes
 
 
 # TODO(e.frolov): should be raw route
@@ -72,3 +73,4 @@ class ApiEndpointRoute(routes.Route):
     machines = routes.route(MachineRoute)
     hypervisors = routes.route(HypervisorRoute)
     machine_agents = routes.route(MachineAgentRoute)
+    audit = routes.route(audit_routes.AuditRoute)

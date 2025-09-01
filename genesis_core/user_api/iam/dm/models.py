@@ -39,6 +39,7 @@ from genesis_core.events import payloads as event_payloads
 from genesis_core.user_api.iam import constants as iam_c
 from genesis_core.user_api.iam.dm import types
 from genesis_core.user_api.iam import exceptions as iam_exceptions
+from gcl_sdk.audit.dm.models import AuditLogSQLStorableMixin
 
 
 class ModelWithSecret(models.Model, models.CustomPropertiesMixin):
@@ -159,7 +160,7 @@ class User(
     models.ModelWithTimestamp,
     ModelWithSecret,
     ModelWithAlwaysActiveStatus,
-    orm.SQLStorableMixin,
+    AuditLogSQLStorableMixin,
 ):
     __tablename__ = "iam_users"
 
@@ -387,7 +388,7 @@ class Role(
     models.ModelWithRequiredNameDesc,
     models.ModelWithTimestamp,
     ModelWithAlwaysActiveStatus,
-    orm.SQLStorableMixin,
+    AuditLogSQLStorableMixin,
 ):
     __tablename__ = "iam_roles"
 
@@ -403,7 +404,7 @@ class Permission(
     models.ModelWithRequiredNameDesc,
     models.ModelWithTimestamp,
     ModelWithAlwaysActiveStatus,
-    orm.SQLStorableMixin,
+    AuditLogSQLStorableMixin,
 ):
     __tablename__ = "iam_permissions"
 
@@ -411,7 +412,7 @@ class Permission(
 class PermissionBinding(
     models.ModelWithUUID,
     models.ModelWithTimestamp,
-    orm.SQLStorableMixin,
+    AuditLogSQLStorableMixin,
 ):
     __tablename__ = "iam_binding_permissions"
 
@@ -436,7 +437,7 @@ class Organization(
     models.ModelWithRequiredNameDesc,
     models.ModelWithTimestamp,
     ModelWithAlwaysActiveStatus,
-    orm.SQLStorableWithJSONFieldsMixin,
+    AuditLogSQLStorableMixin,
 ):
     __tablename__ = "iam_organizations"
     __jsonfields__ = ["info"]
@@ -499,7 +500,7 @@ class Organization(
 class OrganizationMember(
     models.ModelWithUUID,
     models.ModelWithTimestamp,
-    orm.SQLStorableMixin,
+    AuditLogSQLStorableMixin,
 ):
     __tablename__ = "iam_organization_members"
 
@@ -524,7 +525,7 @@ class Project(
     models.ModelWithRequiredNameDesc,
     models.ModelWithTimestamp,
     ModelWithStatus,
-    orm.SQLStorableMixin,
+    AuditLogSQLStorableMixin,
 ):
     __tablename__ = "iam_projects"
 
@@ -586,7 +587,7 @@ class Project(
 
 class PermissionFastView(
     models.ModelWithUUID,
-    orm.SQLStorableMixin,
+    AuditLogSQLStorableMixin,
 ):
     __tablename__ = "iam_permissions_fast_view"
 
@@ -616,7 +617,7 @@ class RoleBinding(
     models.ModelWithUUID,
     models.ModelWithTimestamp,
     ModelWithAlwaysActiveStatus,
-    orm.SQLStorableMixin,
+    AuditLogSQLStorableMixin,
 ):
     __tablename__ = "iam_binding_roles"
 
@@ -643,7 +644,7 @@ class Idp(
     models.ModelWithTimestamp,
     ModelWithSecret,
     ModelWithAlwaysActiveStatus,
-    orm.SQLStorableMixin,
+    AuditLogSQLStorableMixin,
 ):
     __tablename__ = "iam_idp"
 
@@ -715,7 +716,7 @@ class Introspection(
 class Token(
     models.ModelWithUUID,
     models.ModelWithTimestamp,
-    orm.SQLStorableMixin,
+    AuditLogSQLStorableMixin,
 ):
     __tablename__ = "iam_tokens"
 
@@ -1000,7 +1001,7 @@ class IamClient(
     models.ModelWithTimestamp,
     ModelWithSecret,
     ModelWithAlwaysActiveStatus,
-    orm.SQLStorableMixin,
+    AuditLogSQLStorableMixin,
 ):
     __tablename__ = "iam_clients"
 
