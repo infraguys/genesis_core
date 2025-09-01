@@ -1,0 +1,18 @@
+Name: core
+Description: Genesis Core element
+SchemaVersion: 1
+Version: 0.0.1
+
+Requirements: []
+
+Resources:
+
+  $core.dns.domains:
+    local_domain:
+      uuid: "afd4b306-8960-4a77-8e7d-42d46db8a7cf"
+      name: "local-domain"
+      type: "A"
+      record:
+        name: "dbaas-cp"
+        address: "$core.compute.nodes.$dbaas_cp.default_network.ipv4"
+  
