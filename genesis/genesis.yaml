@@ -8,6 +8,12 @@ build:
       # Local path
       path:
         src: ../../genesis_core
+      exclude:
+        - .venv
+        - .tox
+        - .pytest_cache
+        - build
+        - cover
 
     # Network configuration
     - dst: /etc/netplan/90-genesis-net-base-config.yaml
