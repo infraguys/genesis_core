@@ -20,14 +20,13 @@ import logging
 
 import yaml
 from oslo_config import cfg
-from restalchemy.dm import filters as dm_filters
-from restalchemy.dm import types_network
 from restalchemy.storage.sql import engines
 from restalchemy.storage import exceptions as ra_exceptions
 from restalchemy.common import config_opts as ra_config_opts
+from gcl_sdk.clients.http import base as http_client
+from genesis_ci_tools import elements
 
 from genesis_core.common import config
-from genesis_core.user_api.dns.dm import models as dns_models
 from genesis_core.node.dm import models
 from genesis_core.common import constants as c
 
@@ -44,6 +43,26 @@ cli_opts = [
         "startup_db_path",
         default="/etc/genesis_core/startup_cfg.yaml",
         help="Path to the startup database",
+    ),
+    cfg.StrOpt(
+        "manifest_path",
+        default="/etc/genesis_core/core.yaml",
+        help="Path to the core manifest",
+    ),
+    cfg.StrOpt(
+        "core_endpoint",
+        default="http://localhost:11010",
+        help="Core endpoint",
+    ),
+    cfg.StrOpt(
+        "core_user",
+        default="admin",
+        help="Core user",
+    ),
+    cfg.StrOpt(
+        "core_password",
+        default="admin",
+        help="Core password",
     ),
 ]
 
@@ -114,32 +133,23 @@ def _apply_startup_db():
         else:
             LOG.info("Created machine pool %s", pool.uuid)
 
-    # Dns
-    if startup_entities.get("domain"):
-        zone = dns_models.Domain.objects.get_one_or_none(
-            filters={"name": dm_filters.EQ(startup_entities["domain"])}
-        ) or dns_models.Domain(
-            name=startup_entities["domain"], project_id=c.SERVICE_PROJECT_ID
-        )
-        zone.save()
 
-        core_record = dns_models.Record.objects.get_one_or_none(
-            filters={
-                "domain": dm_filters.EQ(zone),
-                "name": dm_filters.EQ(f"core.{startup_entities["domain"]}"),
-            }
-        ) or dns_models.Record(
-            domain=zone,
-            ttl=300,
-            type="A",
-            record=dns_models.ARecord(
-                name="core",
-                address=types_network.IPAddress().from_simple_type(
-                    startup_entities["core_ip"]
-                ),
-            ),
-        )
-        core_record.save()
+def _install_core_manifest():
+    with open(CONF.manifest_path, "r", encoding="utf-8") as f:
+        manifest = yaml.safe_load(f)
+
+    auth = http_client.CoreIamAuthenticator(
+        base_url=CONF.core_endpoint,
+        username=CONF.core_user,
+        password=CONF.core_password,
+    )
+    client = http_client.CollectionBaseClient(
+        base_url=CONF.core_endpoint,
+        auth=auth,
+    )
+
+    manifest = elements.add_manifest(client, manifest)
+    elements.install_manifest(client, manifest["uuid"])
 
 
 def main() -> None:
@@ -153,6 +163,7 @@ def main() -> None:
         try:
             LOG.info("GC Bootstrap script")
             _apply_startup_db()
+            _install_core_manifest()
             return
         except Exception:
             LOG.exception("Unable to perform bootstrap, retrying...")

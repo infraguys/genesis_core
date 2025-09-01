@@ -1,0 +1,22 @@
+name: "core"
+uuid: "160c92d5-8104-4f02-bac1-e9407961c2e8"
+description: "Genesis Core element"
+schema_version: 1
+version: "0.0.1"
+api_version: "v1"
+
+resources:
+  $core.dns.domains:
+    local_domain:
+      uuid: "afd4b306-8960-4a77-8e7d-42d46db8a7cf"
+      name: "local.genesis-core.tech"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+
+  $core.dns.domains.$local_domain.records:
+    local_core_record:
+      uuid: "6de6aa08-f229-4b81-bf4a-9207ebe2dac4"
+      domain: "$core.dns.domains.$local_domain:get_uri()"
+      type: "A"
+      record:
+        name: "core"
+        address: "10.20.0.2"
