@@ -2,7 +2,11 @@ name: build
 
 on:
   push:
-  pull_request:
+
+env:
+  ARTIFACTS_PATH: artifacts
+  PROJECT_NAME: genesis_core
+  REPO_ENDPOINT_PUT: http://10.20.0.1:8082
 
 jobs:
   Build:
@@ -13,5 +17,29 @@ jobs:
       - uses: actions/checkout@v3
       - name: Build Genesis Core
         run: |
+          set -eux
+          mkdir -p ${ARTIFACTS_PATH}
+
+          # Install DevTools
+          python3 -m venv .venv
+          source .venv/bin/activate
+          pip install genesis-devtools
+
+          VERSION="$(genesis get-version .)"
+
+          # Build Genesis Core
           genesis build $(pwd)
+
+          # Upload the VM image
+          gzip -k output/genesis-core.raw -c | \
+          curl -X PUT -T - "$REPO_ENDPOINT_PUT/${PROJECT_NAME}/${VERSION}/genesis-core.raw.gz"
+
+          # Temporary upload step is done in the build script
+          echo "${VERSION}" > "${ARTIFACTS_PATH}/version.txt"
+          
+      - name: Upload the build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build_artifacts
+          path: artifacts/
 
