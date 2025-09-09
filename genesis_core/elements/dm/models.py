@@ -74,6 +74,10 @@ class Manifest(
         read_only=True,
         default=1,
     )
+    api_version = properties.property(
+        ra_types.AllowNone(ra_types.String(max_length=16, min_length=1)),
+        default=None,
+    )
     project_id = properties.property(
         ra_types.UUID(),
         read_only=True,
@@ -97,6 +101,7 @@ class Manifest(
             uuid=utils.get_element_uuid(self.name, self.version),
             name=self.name,
             version=self.version,
+            api_version=self.api_version,
             description=self.description,
             project_id=utils.get_project_id(),
         )
@@ -153,6 +158,11 @@ class Element(
     version = properties.property(
         ra_types.String(min_length=5, max_length=64),
         required=True,
+    )
+
+    api_version = properties.property(
+        ra_types.AllowNone(ra_types.String(max_length=16, min_length=1)),
+        default=None,
     )
 
     install_type = properties.property(
@@ -316,8 +326,11 @@ class Resource(
     )
 
     def get_uri(self):
+        version_prefix = ""
+        if self.element.api_version:
+            version_prefix = f"/{self.element.api_version}"
         parts = self.link.split(".")
-        return f"/{'/'.join(parts[1:-1])}/{self.uuid}"
+        return f"{version_prefix}/{'/'.join(parts[1:-1])}/{self.uuid}"
 
     def get_parameter_value(self, parameter):
         parts = parameter.split(":")
@@ -414,7 +427,11 @@ class Resource(
 
     @property
     def kind(self):
-        parts = [p for p in self.resource_link_prefix.split(".")[1:]]
+        parts = [
+            p
+            for p in self.resource_link_prefix.split(".")[1:]
+            if not p.startswith("$")
+        ]
         return f"em_{self.element.name}_{'_'.join(parts)}"
 
     def calculate_full_hash(self):
