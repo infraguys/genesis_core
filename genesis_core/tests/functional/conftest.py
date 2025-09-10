@@ -30,6 +30,7 @@ from genesis_core.common import constants as c
 from genesis_core.common import utils
 from genesis_core.node import constants as nc
 from genesis_core.node.dm import models as node_models
+from genesis_core.node.node_set.dm import models as node_set_models
 from genesis_core.user_api.api import app as user_app
 from genesis_core.tests.functional import utils as test_utils
 from genesis_core.config.dm import models as conf_models
@@ -361,6 +362,38 @@ def node_factory():
             **kwargs,
         )
         view = node.dump_to_simple_view()
+        view.pop("node_set")
+        return view
+
+    return factory
+
+
+@pytest.fixture
+def node_set_factory():
+    def factory(
+        uuid: sys_uuid.UUID | None = None,
+        name: str = "node_set",
+        cores: int = 1,
+        ram: int = 1024,
+        image: str = "ubuntu_24.04",
+        replicas: int = 1,
+        project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
+        status: str = nc.NodeStatus.NEW.value,
+        **kwargs,
+    ) -> tp.Dict[str, tp.Any]:
+        uuid = uuid or sys_uuid.uuid4()
+        obj = node_set_models.NodeSet(
+            uuid=uuid,
+            name=name,
+            cores=cores,
+            ram=ram,
+            image=image,
+            replicas=replicas,
+            project_id=project_id,
+            status=status,
+            **kwargs,
+        )
+        view = obj.dump_to_simple_view()
         return view
 
     return factory

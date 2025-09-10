@@ -56,6 +56,12 @@ class MachineAgentRoute(routes.Route):
     __controller__ = controllers.MachineAgentController
 
 
+class NodeSetsRoute(routes.Route):
+    """Handler for /v1/sets/ endpoint"""
+
+    __controller__ = controllers.NodeSetsController
+
+
 class ApiEndpointRoute(routes.Route):
     """Handler for /v1/ endpoint"""
 
@@ -72,3 +78,4 @@ class ApiEndpointRoute(routes.Route):
     machines = routes.route(MachineRoute)
     hypervisors = routes.route(HypervisorRoute)
     machine_agents = routes.route(MachineAgentRoute)
+    sets = routes.route(NodeSetsRoute)

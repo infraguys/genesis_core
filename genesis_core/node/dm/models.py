@@ -16,7 +16,6 @@
 from __future__ import annotations
 
 import random
-import datetime
 import typing as tp
 import netaddr
 import uuid as sys_uuid
@@ -29,6 +28,8 @@ from restalchemy.dm import types
 from restalchemy.dm import types_network as types_net
 from restalchemy.dm import filters as dm_filters
 from restalchemy.storage.sql import orm
+from gcl_sdk.infra.dm import models as infra_models
+from gcl_sdk.agents.universal.dm import models as ua_models
 
 from genesis_core.node import constants as nc
 from genesis_core.common import utils
@@ -162,32 +163,53 @@ class MachinePool(
         raise ValueError(f"Driver for spec '{self.driver_spec}' not found")
 
 
-class Node(
-    cm.ModelWithFullAsset,
+class NodeSet(
+    infra_models.NodeSet,
+    ua_models.InstanceWithDerivativesMixin,
     orm.SQLStorableWithJSONFieldsMixin,
-    models.SimpleViewMixin,
 ):
-    __tablename__ = "nodes"
-    __jsonfields__ = ["default_network"]
+    __tablename__ = "compute_sets"
+    __jsonfields__ = ["nodes", "ipsv4"]
 
-    cores = properties.property(
-        types.Integer(min_value=1, max_value=4096), required=True
+    uuid = properties.property(
+        types.UUID(),
+        read_only=True,
+        id_property=True,
+        default=lambda: sys_uuid.uuid4(),
     )
-    ram = properties.property(types.Integer(min_value=1), required=True)
-    root_disk_size = properties.property(
-        types.AllowNone(types.Integer(min_value=1, max_value=1000000)),
-        default=nc.DEF_ROOT_DISK_SIZE,
-    )
-    image = properties.property(types.String(max_length=255), required=True)
+
     status = properties.property(
         types.Enum([s.value for s in nc.NodeStatus]),
         default=nc.NodeStatus.NEW.value,
     )
-    node_type = properties.property(
-        types.Enum([t.value for t in nc.NodeType]),
-        default=nc.NodeType.VM.value,
+
+    # TODO(akremenetsky): Move to SDK models
+    ipsv4 = properties.property(
+        types.TypedList(types.AllowNone(types.String(max_length=15))),
+        default=lambda: [],
     )
-    default_network = properties.property(types.Dict(), default=lambda: {})
+
+
+class Node(
+    infra_models.Node,
+    orm.SQLStorableWithJSONFieldsMixin,
+):
+    __tablename__ = "nodes"
+    __jsonfields__ = ["default_network"]
+
+    uuid = properties.property(
+        types.UUID(),
+        read_only=True,
+        id_property=True,
+        default=lambda: sys_uuid.uuid4(),
+    )
+
+    status = properties.property(
+        types.Enum([s.value for s in nc.NodeStatus]),
+        default=nc.NodeStatus.NEW.value,
+    )
+
+    node_set = properties.property(types.AllowNone(types.UUID()), default=None)
 
     def update_default_network(self, port: Port) -> None:
         self.default_network = {
@@ -199,6 +221,25 @@ class Node(
             "mac": port.mac,
         }
         self.update()
+
+    def get_resource_target_fields(self) -> tp.Collection[str]:
+        """Return the collection of Node target fields.
+
+        Refer to the Resource model for more details about target fields.
+        """
+        return frozenset(
+            (
+                "uuid",
+                "name",
+                "cores",
+                "ram",
+                "root_disk_size",
+                "node_type",
+                "image",
+                "project_id",
+                "node_set",
+            )
+        )
 
 
 class Machine(

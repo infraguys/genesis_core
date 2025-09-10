@@ -20,6 +20,7 @@ import typing as tp
 import pytest
 from bazooka import exceptions as bazooka_exc
 from gcl_iam.tests.functional import clients as iam_clients
+from genesis_core.node import constants as nc
 
 
 class TestNodeUserApi:
@@ -187,7 +188,7 @@ class TestNodeUserApi:
         output = response.json()
 
         assert response.status_code == 201
-        assert output["root_disk_size"] == 15
+        assert output["root_disk_size"] == nc.DEF_ROOT_DISK_SIZE
 
     # Hypervisors
 
