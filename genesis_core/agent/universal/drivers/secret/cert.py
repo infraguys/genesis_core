@@ -29,7 +29,9 @@ from genesis_core.agent.universal.drivers.secret.backend import (
 
 LOG = logging.getLogger(__name__)
 
-AGENT_WORK_DIR = "/var/lib/genesis/universal_agent/"
+CERT_TARGET_FIELDS_STORAGE = (
+    "/var/lib/genesis/genesis_core/cert_target_fields.json"
+)
 
 
 class CoreDNSCertificateCapabilityDriver(direct.DirectAgentDriver):
@@ -38,7 +40,7 @@ class CoreDNSCertificateCapabilityDriver(direct.DirectAgentDriver):
     def __init__(
         self, user_api_base_url: str, username: str, password: str
     ) -> None:
-        storage = fs.FileAgentStorage(AGENT_WORK_DIR, "cert_cap_storage.json")
+        storage = fs.TargetFieldsFileStorage(CERT_TARGET_FIELDS_STORAGE)
 
         auth = core_client_base.CoreIamAuthenticator(
             base_url=user_api_base_url, username=username, password=password
