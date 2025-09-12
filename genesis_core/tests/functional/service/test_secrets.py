@@ -107,6 +107,8 @@ class TestSecretsServiceBuilder:
         target_resources = ua_models.TargetResource.objects.get_all()
         view = target_resources[0].dump_to_simple_view()
         view.pop("master", None)
+        view.pop("master_hash", None)
+        view.pop("master_full_hash", None)
         view.pop("agent", None)
         view.pop("tracked_at", None)
         view["status"] = "ACTIVE"
@@ -153,6 +155,8 @@ class TestSecretsServiceBuilder:
         target_resources = ua_models.TargetResource.objects.get_all()
         view = target_resources[0].dump_to_simple_view()
         view.pop("master", None)
+        view.pop("master_hash", None)
+        view.pop("master_full_hash", None)
         view.pop("agent", None)
         view.pop("tracked_at", None)
         view["status"] = "ACTIVE"
@@ -249,6 +253,8 @@ class TestSecretsServiceBuilder:
         target_resources = ua_models.TargetResource.objects.get_all()
         view = target_resources[0].dump_to_simple_view()
         view.pop("master", None)
+        view.pop("master_hash", None)
+        view.pop("master_full_hash", None)
         view.pop("agent", None)
         view.pop("tracked_at", None)
         view["status"] = "ACTIVE"
@@ -341,6 +347,8 @@ class TestSecretsServiceBuilder:
         target_resources = ua_models.TargetResource.objects.get_all()
         view = target_resources[0].dump_to_simple_view()
         view.pop("master", None)
+        view.pop("master_hash", None)
+        view.pop("master_full_hash", None)
         view.pop("agent", None)
         view.pop("tracked_at", None)
         view["status"] = "ACTIVE"
@@ -389,6 +397,8 @@ class TestSecretsServiceBuilder:
         target_resources = ua_models.TargetResource.objects.get_all()
         view = target_resources[0].dump_to_simple_view()
         view.pop("master", None)
+        view.pop("master_hash", None)
+        view.pop("master_full_hash", None)
         view.pop("agent", None)
         view.pop("tracked_at", None)
         view["status"] = "ACTIVE"
@@ -486,6 +496,8 @@ class TestSecretsServiceBuilder:
         target_resources = ua_models.TargetResource.objects.get_all()
         view = target_resources[0].dump_to_simple_view()
         view.pop("master", None)
+        view.pop("master_hash", None)
+        view.pop("master_full_hash", None)
         view.pop("agent", None)
         view.pop("tracked_at", None)
         view["status"] = "ACTIVE"
@@ -632,6 +644,8 @@ class TestSecretsServiceBuilder:
         ]
         view = host_key.dump_to_simple_view()
         view.pop("master", None)
+        view.pop("master_hash", None)
+        view.pop("master_full_hash", None)
         view.pop("agent", None)
         view.pop("tracked_at", None)
         view["status"] = "ACTIVE"
@@ -685,6 +699,8 @@ class TestSecretsServiceBuilder:
         ]
         view = host_key.dump_to_simple_view()
         view.pop("master", None)
+        view.pop("master_hash", None)
+        view.pop("master_full_hash", None)
         view.pop("agent", None)
         view.pop("tracked_at", None)
         view["status"] = "ACTIVE"

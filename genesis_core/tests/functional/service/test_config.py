@@ -176,6 +176,8 @@ class TestConfigServiceBuilder:
         render = [r for r in target_resources if r.kind == "render"][0]
         view = render.dump_to_simple_view()
         view.pop("master", None)
+        view.pop("master_hash", None)
+        view.pop("master_full_hash", None)
         view.pop("agent", None)
         view.pop("tracked_at", None)
         view["status"] = "ACTIVE"
@@ -295,6 +297,8 @@ class TestConfigServiceBuilder:
         render = [r for r in target_resources if r.kind == "render"][0]
         view = render.dump_to_simple_view()
         view.pop("master", None)
+        view.pop("master_hash", None)
+        view.pop("master_full_hash", None)
         view.pop("agent", None)
         view.pop("tracked_at", None)
         view["status"] = "ACTIVE"
