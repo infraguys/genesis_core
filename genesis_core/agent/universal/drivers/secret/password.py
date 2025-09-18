@@ -25,16 +25,16 @@ from genesis_core.agent.universal.drivers.secret.backend import db as db_back
 
 LOG = logging.getLogger(__name__)
 
-AGENT_WORK_DIR = "/var/lib/genesis/universal_agent/"
+PASSWORD_TARGET_FIELDS_STORAGE = (
+    "/var/lib/genesis/genesis_core/password_target_fields.json"
+)
 
 
 class PasswordCapabilityDriver(direct.DirectAgentDriver):
     """Password capability driver."""
 
     def __init__(self):
-        storage = fs.FileAgentStorage(
-            AGENT_WORK_DIR, "password_cap_storage.json"
-        )
+        storage = fs.TargetFieldsFileStorage(PASSWORD_TARGET_FIELDS_STORAGE)
         client = db_back.DatabaseSecretBackendClient()
 
         super().__init__(storage=storage, client=client)

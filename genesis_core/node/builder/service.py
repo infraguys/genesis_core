@@ -16,7 +16,6 @@
 from __future__ import annotations
 
 import logging
-import random
 import collections
 import uuid as sys_uuid
 import typing as tp
