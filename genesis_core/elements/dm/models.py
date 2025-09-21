@@ -29,10 +29,15 @@ from restalchemy.dm import types as ra_types
 from restalchemy.storage.sql import orm
 from restalchemy.storage.sql import engines
 
+from genesis_core.common import exceptions
 from genesis_core.elements.dm import utils
 
 
 LOG = logging.getLogger(__name__)
+
+
+class NamespaceNotFound(exceptions.GCException):
+    __template__ = "Namespace with name '{name}' was not found."
 
 
 class Status(str, enum.Enum):
@@ -119,6 +124,11 @@ class Manifest(
                     resource_link_prefix=resource_link_prefix,
                     value=resource_value,
                 )
+
+                # NOTE(efrolov): checks that the element providing this
+                #   resource is installed
+                resource.get_provider_element()
+
                 resource.insert()
         return self
 
@@ -205,6 +215,13 @@ class Element(
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._requirements = []
+
+    def delete(self, session=None):
+        for resource in Resource.objects.get_all(
+            filters={"element": ra_filters.EQ(self)}
+        ):
+            resource.delete(session=session)
+        super().delete(session=session)
 
 
 class ElementIncorrectStatusesView(
@@ -425,6 +442,11 @@ class Resource(
     def link(self):
         return f"{self.resource_link_prefix}.${self.name}"
 
+    def get_provider_element(self):
+        namespace_name = self.resource_link_prefix.split(".", 2)[0]
+        namespace = element_engine.get_namespace(namespace_name)
+        return namespace.element
+
     @property
     def kind(self):
         parts = [
@@ -432,7 +454,9 @@ class Resource(
             for p in self.resource_link_prefix.split(".")[1:]
             if not p.startswith("$")
         ]
-        return f"em_{self.element.name}_{'_'.join(parts)}"
+
+        provider_element = self.get_provider_element()
+        return f"em_{provider_element.name}_{'_'.join(parts)}"
 
     def calculate_full_hash(self):
         if self.actual_resource is not None:
@@ -513,11 +537,11 @@ class Resource(
         self.update()
 
     def delete(self, session=None):
+        super().delete(session=session)
         for ts in sdk_models.TargetResource.objects.get_all(
             filters={"uuid": ra_filters.EQ(self.uuid)}
         ):
             ts.delete(session=session)
-        super().delete(session=session)
 
 
 class OutdatedResources(models.ModelWithUUID, orm.SQLStorableMixin):
@@ -570,6 +594,10 @@ class Namespace:
         self._element = element
         # NOTE(efrolov): map of resources by link string
         self._namespace_resources = {}
+
+    @property
+    def element(self):
+        return self._element
 
     def add_resource(self, resource):
         if resource.link in self._namespace_resources:
@@ -678,6 +706,12 @@ class ElementEngine:
         self.add_element(element)
         for resource in manifest_parser.load_resources(element):
             self.add_resource(resource)
+
+    def get_namespace(self, name: str):
+        try:
+            return self._namespaces[name]
+        except KeyError:
+            raise NamespaceNotFound(name=name)
 
     def load_from_database(self):
         self._namespaces = {}
