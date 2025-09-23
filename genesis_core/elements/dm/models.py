@@ -111,6 +111,8 @@ class Manifest(
             project_id=utils.get_project_id(),
         )
         element.insert()
+        element_engine.add_element(element)
+
         # prepare resources:
         for resource_link_prefix, resource in self.resources.items():
             for resource_name, resource_value in resource.items():
@@ -142,6 +144,7 @@ class Manifest(
         )
         for element in elements:
             element.delete()
+            element_engine.remove_element(element)
         return self
 
 
