@@ -136,6 +136,7 @@ class TestDnsApi:
 
         data = {
             "uuid": str(sys_uuid.uuid4()),
+            "project_id": str(c.SERVICE_PROJECT_ID),
             "type": "A",
             "ttl": 0,
             "record": {"kind": "A", "name": "test", "address": "1.2.3.4"},
@@ -183,6 +184,7 @@ class TestDnsApi:
 
         data = {
             "uuid": str(sys_uuid.uuid4()),
+            "project_id": str(c.SERVICE_PROJECT_ID),
             "type": "TXT",
             "ttl": 0,
             "record": {"kind": "TXT", "name": "test", "content": "a" * 5000},

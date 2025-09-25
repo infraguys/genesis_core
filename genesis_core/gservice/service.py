@@ -17,12 +17,14 @@
 import logging
 import uuid as sys_uuid
 
+from restalchemy.dm import filters as dm_filters
 from gcl_looper.services import basic
 from gcl_sdk.events.services import senders
 from gcl_sdk.agents.universal.services import agent as ua_agent_service
 from gcl_sdk.agents.universal.services import scheduler as ua_scheduler_service
 from gcl_sdk.agents.universal import utils as ua_utils
 from gcl_sdk.agents.universal.clients.orch import db as orch_db
+from gcl_sdk.agents.universal.clients.backend import db as db_back
 from gcl_sdk.agents.universal.drivers import core as ua_core_drivers
 
 from genesis_core.elements.services import builders as em_builders
@@ -100,11 +102,13 @@ class GeneralService(basic.BasicService):
         orch_client = orch_db.DatabaseOrchClient()
         agent_uuid = sys_uuid.uuid5(ua_utils.system_uuid(), "set_agent")
 
+        spec = db_back.ModelSpec(
+            kind="set_agent_node",
+            model=compute_models.Node,
+            filters={"project_id": dm_filters.EQ(str(nc.NODE_SET_PROJECT))},
+        )
         db_core_driver = ua_core_drivers.DatabaseCapabilityDriver(
-            project_id=nc.NODE_SET_PROJECT,
-            models=[
-                (compute_models.Node, "set_agent_node"),
-            ],
+            model_specs=[spec],
             target_fields_storage_path=NODE_SET_TF_STORAGE,
         )
 
