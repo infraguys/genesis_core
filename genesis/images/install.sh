@@ -112,6 +112,7 @@ sudo -u postgres psql -c "CREATE DATABASE $GC_PG_USER OWNER $GC_PG_DB;"
 # Install genesis core
 sudo mkdir -p $GC_CFG_DIR
 sudo cp "$GC_PATH/etc/genesis_core/genesis_core.conf" $GC_CFG_DIR/
+sudo cp "$GC_PATH/etc/genesis_core/core_agent.conf" $GC_CFG_DIR/
 sudo cp "$GC_PATH/etc/genesis_core/logging.yaml" $GC_CFG_DIR/
 sudo cp "$GC_PATH/etc/genesis_core/event_type_mapping.yaml" $GC_CFG_DIR/
 sudo cp "$GC_PATH/genesis/manifests/core.yaml" $GC_CFG_DIR/
@@ -153,6 +154,7 @@ sudo ln -sf "$VENV_PATH/bin/gc-status-api" "/usr/bin/gc-status-api"
 sudo ln -sf "$VENV_PATH/bin/gc-gservice" "/usr/bin/gc-gservice"
 sudo ln -sf "$VENV_PATH/bin/gc-bootstrap" "/usr/bin/gc-bootstrap"
 sudo ln -sf "$VENV_PATH/bin/genesis-universal-agent" "/usr/bin/genesis-universal-agent"
+sudo ln -sf "$VENV_PATH/bin/genesis-universal-agent-db-back" "/usr/bin/genesis-universal-agent-db-back"
 sudo ln -sf "$VENV_PATH/bin/genesis-universal-scheduler" "/usr/bin/genesis-universal-scheduler"
 
 # Install Systemd service files
@@ -160,11 +162,12 @@ sudo cp "$GC_PATH/etc/systemd/gc-user-api.service" $SYSTEMD_SERVICE_DIR
 sudo cp "$GC_PATH/etc/systemd/gc-orch-api.service" $SYSTEMD_SERVICE_DIR
 sudo cp "$GC_PATH/etc/systemd/gc-status-api.service" $SYSTEMD_SERVICE_DIR
 sudo cp "$GC_PATH/etc/systemd/gc-gservice.service" $SYSTEMD_SERVICE_DIR
+sudo cp "$GC_PATH/etc/systemd/gc-core-agent.service" $SYSTEMD_SERVICE_DIR
 sudo cp "$GC_PATH/etc/systemd/genesis-universal-agent.service" $SYSTEMD_SERVICE_DIR
 sudo cp "$GC_PATH/etc/systemd/genesis-universal-scheduler.service" $SYSTEMD_SERVICE_DIR
 
 # Enable genesis core services
-sudo systemctl enable gc-user-api gc-orch-api gc-status-api gc-gservice \
+sudo systemctl enable gc-user-api gc-orch-api gc-status-api gc-gservice gc-core-agent \
     genesis-universal-agent \
     genesis-universal-scheduler
 

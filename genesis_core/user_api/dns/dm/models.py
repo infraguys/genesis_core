@@ -27,6 +27,7 @@ from restalchemy.dm import types
 from restalchemy.dm import types_dynamic
 from restalchemy.dm import types_network
 from restalchemy.storage.sql import orm
+from gcl_sdk.agents.universal.dm import models as ua_models
 
 from genesis_core.common import utils as u
 
@@ -48,7 +49,9 @@ class CommonModel(
     pass
 
 
-class Domain(CommonModel, models.ModelWithProject):
+class Domain(
+    CommonModel, models.ModelWithProject, ua_models.TargetResourceMixin
+):
     __tablename__ = "dns_domains"
     name = properties.property(types.String(), required=True)
     # Used only for PDNS

@@ -191,7 +191,7 @@ class MigrationStep(migrations.AbstarctMigrationStep):
                         "updated_at",
                         "tracked_at"
                     FROM "ua_target_resources"
-                    WHERE "kind" like 'em_core_%'
+                    WHERE "kind" like 'em_%'
                 ) AS "utr"
                     on "er"."uuid" = "utr"."uuid"
                 WHERE
@@ -212,7 +212,7 @@ class MigrationStep(migrations.AbstarctMigrationStep):
                         "uuid",
                         "status"
                     FROM "ua_actual_resources"
-                    WHERE "kind" like 'em_core_%'
+                    WHERE "kind" like 'em_%'
                 ) AS "uar"
                 ON
                     "er"."uuid" = "uar"."uuid"
