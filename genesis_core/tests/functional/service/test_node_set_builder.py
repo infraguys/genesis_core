@@ -20,10 +20,12 @@ import typing as tp
 import uuid as sys_uuid
 from unittest import mock
 
+from restalchemy.dm import filters as dm_filters
 from gcl_iam.tests.functional import clients as iam_clients
 from gcl_sdk.agents.universal.dm import models as ua_models
 from gcl_sdk.agents.universal import utils as ua_utils
 from gcl_sdk.agents.universal.clients.orch import db as orch_db
+from gcl_sdk.agents.universal.clients.backend import db as db_back
 from gcl_sdk.agents.universal.services import agent as ua_agent_service
 from gcl_sdk.agents.universal.services import scheduler as ua_scheduler_service
 from gcl_sdk.agents.universal.drivers import core as ua_core_drivers
@@ -60,11 +62,13 @@ class TestNodeSetBuilder:
         self._tmp_fs_path = tmp_fs_path
         os.remove(self._tmp_fs_path)
 
+        spec = db_back.ModelSpec(
+            kind="set_agent_node",
+            model=compute_models.Node,
+            filters={"project_id": dm_filters.EQ(str(nc.NODE_SET_PROJECT))},
+        )
         db_core_driver = ua_core_drivers.DatabaseCapabilityDriver(
-            project_id=nc.NODE_SET_PROJECT,
-            models=[
-                (compute_models.Node, "set_agent_node"),
-            ],
+            model_specs=[spec],
             target_fields_storage_path=self._tmp_fs_path,
         )
 

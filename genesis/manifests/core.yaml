@@ -13,10 +13,27 @@ resources:
       project_id: "12345678-c625-4fee-81d5-f691897b8142"
 
   $core.dns.domains.$local_domain.records:
+    local_soa_record:
+      uuid: "affb6c9d-7e89-5482-a2cb-f52347d60116"
+      domain: "$core.dns.domains.$local_domain:uuid"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      type: "SOA"
+      record:
+        kind: "SOA"
+        name: "@"
+        ttl: 3600
+        retry: 3600
+        expire: 604800
+        serial: 0
+        refresh: 10800
+        primary_dns: "a.misconfigured.dns.server.invalid"
     local_core_record:
       uuid: "6de6aa08-f229-4b81-bf4a-9207ebe2dac4"
-      domain: "$core.dns.domains.$local_domain:get_uri()"
+      domain: "$core.dns.domains.$local_domain:uuid"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
       type: "A"
       record:
+        kind: "A"
         name: "core"
+        # TODO: Take the IP from the node resource
         address: "10.20.0.2"

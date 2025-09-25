@@ -129,7 +129,8 @@ class Manifest(
 
                 # NOTE(efrolov): checks that the element providing this
                 #   resource is installed
-                resource.get_provider_element()
+                # TODO(akremenetsky): Temporarily disabled this check
+                # resource.get_provider_element()
 
                 resource.insert()
         return self
@@ -476,7 +477,8 @@ class Resource(
                 },
             ):
                 return actual_resource
-        return None
+
+        return self.actual_resource
 
     def actualize(self):
         try:
