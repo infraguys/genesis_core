@@ -17,9 +17,13 @@
 from gcl_iam import controllers as iam_controllers
 from restalchemy.api import controllers
 from restalchemy.api import resources
+from restalchemy.api import constants as ra_c
+from restalchemy.api import field_permissions as field_p
+
 
 from genesis_core.node import constants as nc
 from genesis_core.node.dm import models as node_models
+from genesis_core.user_api.dm import models as user_models
 
 
 class ApiEndpointController(controllers.RoutesListController):
@@ -48,10 +52,38 @@ class NodesController(
     __policy_service_name__ = nc.POLICY_SERVICE_NAME
 
     __resource__ = resources.ResourceByRAModel(
-        model_class=node_models.Node,
+        model_class=user_models.Node,
         process_filters=True,
         convert_underscore=False,
     )
+
+
+class NodeSetsController(iam_controllers.PolicyBasedController):
+    """Controller for /v1/sets/ endpoint"""
+
+    __policy_name__ = "node_set"
+    __policy_service_name__ = nc.POLICY_SERVICE_NAME
+
+    __resource__ = resources.ResourceByRAModel(
+        model_class=node_models.NodeSet,
+        process_filters=True,
+        convert_underscore=False,
+        fields_permissions=field_p.FieldsPermissions(
+            default=field_p.Permissions.RW,
+            fields={
+                "status": {ra_c.ALL: field_p.Permissions.RO},
+                "nodes": {ra_c.ALL: field_p.Permissions.RO},
+                "ipsv4": {ra_c.ALL: field_p.Permissions.RO},
+            },
+        ),
+    )
+
+    def update(self, uuid, **kwargs):
+        # Force config to be NEW
+        # In order to regenerate renders
+        kwargs["status"] = nc.NodeStatus.NEW.value
+
+        return super().update(uuid, **kwargs)
 
 
 class MachinesController(
