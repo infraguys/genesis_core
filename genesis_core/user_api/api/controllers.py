@@ -73,7 +73,6 @@ class NodeSetsController(iam_controllers.PolicyBasedController):
             fields={
                 "status": {ra_c.ALL: field_p.Permissions.RO},
                 "nodes": {ra_c.ALL: field_p.Permissions.RO},
-                "ipsv4": {ra_c.ALL: field_p.Permissions.RO},
             },
         ),
     )

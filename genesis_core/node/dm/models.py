@@ -166,10 +166,8 @@ class MachinePool(
 class NodeSet(
     infra_models.NodeSet,
     ua_models.InstanceWithDerivativesMixin,
-    orm.SQLStorableWithJSONFieldsMixin,
 ):
     __tablename__ = "compute_sets"
-    __jsonfields__ = ["nodes", "ipsv4"]
 
     uuid = properties.property(
         types.UUID(),
@@ -181,12 +179,6 @@ class NodeSet(
     status = properties.property(
         types.Enum([s.value for s in nc.NodeStatus]),
         default=nc.NodeStatus.NEW.value,
-    )
-
-    # TODO(akremenetsky): Move to SDK models
-    ipsv4 = properties.property(
-        types.TypedList(types.AllowNone(types.String(max_length=15))),
-        default=lambda: [],
     )
 
 

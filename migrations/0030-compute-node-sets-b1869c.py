@@ -48,8 +48,7 @@ class MigrationStep(migrations.AbstarctMigrationStep):
                 "node_type" VARCHAR(2) NOT NULL CHECK (node_type IN ('VM', 'HW')),
                 "set_type" VARCHAR(32) NOT NULL CHECK (set_type IN ('SET')),
                 "status" VARCHAR(32) NOT NULL CHECK (status IN ('NEW', 'SCHEDULED', 'IN_PROGRESS', 'STARTED', 'ACTIVE', 'ERROR')),
-                "nodes" varchar(1024) NOT NULL,
-                "ipsv4" varchar(512) NOT NULL,
+                "nodes" JSONB NOT NULL,
                 "default_network" JSONB NOT NULL,
                 "created_at" timestamp NOT NULL DEFAULT current_timestamp,
                 "updated_at" timestamp NOT NULL DEFAULT current_timestamp

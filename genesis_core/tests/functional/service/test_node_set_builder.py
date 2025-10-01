@@ -117,7 +117,6 @@ class TestNodeSetBuilder:
         node_set = node_set_factory()
         node_set.pop("status", None)
         node_set.pop("nodes", None)
-        node_set.pop("ipsv4", None)
 
         url = client.build_collection_uri(["sets"])
         response = client.post(url, json=node_set)
@@ -157,7 +156,6 @@ class TestNodeSetBuilder:
         node_set = node_set_factory()
         node_set.pop("status", None)
         node_set.pop("nodes", None)
-        node_set.pop("ipsv4", None)
 
         url = client.build_collection_uri(["sets"])
         response = client.post(url, json=node_set)
@@ -209,7 +207,6 @@ class TestNodeSetBuilder:
         node_set = node_set_factory()
         node_set.pop("status", None)
         node_set.pop("nodes", None)
-        node_set.pop("ipsv4", None)
 
         url = client.build_collection_uri(["sets"])
         response = client.post(url, json=node_set)
@@ -261,7 +258,6 @@ class TestNodeSetBuilder:
         node_set = node_set_factory()
         node_set.pop("status", None)
         node_set.pop("nodes", None)
-        node_set.pop("ipsv4", None)
 
         url = client.build_collection_uri(["sets"])
         response = client.post(url, json=node_set)

@@ -62,7 +62,7 @@ class NodeSetBuilder(builder.CoreInfraBuilder):
             instance: The instance to actualize.
             infra: The infrastructure objects.
         """
-        actual_nodes = []
+        actual_nodes = {}
         statuses = []
         status = instance.status
 
@@ -70,16 +70,15 @@ class NodeSetBuilder(builder.CoreInfraBuilder):
             if actual is None:
                 continue
 
-            actual_nodes.append(
-                (actual.uuid, actual.default_network.get("ipv4"))
-            )
+            uuid_str = str(actual.uuid)
+            actual_nodes[uuid_str] = {}
+
+            if ipv4 := actual.default_network.get("ipv4"):
+                actual_nodes[uuid_str]["ipv4"] = ipv4
+
             statuses.append(actual.status)
 
-        # NOTE(akremenetsky): Sort nodes by uuid to ensure the same order
-        actual_nodes.sort(key=lambda x: x[0])
-
-        instance.nodes = [node[0] for node in actual_nodes]
-        instance.ipsv4 = [node[1] for node in actual_nodes]
+        instance.nodes = actual_nodes
 
         # Set the status to active if all nodes are active.
         # It's normal to compare the length of statuses with replicas
