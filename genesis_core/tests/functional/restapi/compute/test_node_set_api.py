@@ -87,7 +87,6 @@ class TestNodeSetUserApi:
     ):
         node_set = node_set_factory()
         node_set.pop("nodes", None)
-        node_set.pop("ipsv4", None)
         node_set.pop("status", None)
 
         client = user_api_client(auth_user_admin)
@@ -110,7 +109,6 @@ class TestNodeSetUserApi:
         for i in range(3):
             node_set = node_set_factory(name=f"node_set{i}")
             node_set.pop("nodes", None)
-            node_set.pop("ipsv4", None)
             node_set.pop("status", None)
             node_sets.append(node_set)
 
@@ -139,7 +137,6 @@ class TestNodeSetUserApi:
     ):
         node_set = node_set_factory()
         node_set.pop("nodes", None)
-        node_set.pop("ipsv4", None)
         node_set.pop("status", None)
 
         client = user_api_client(auth_user_admin)
@@ -166,7 +163,6 @@ class TestNodeSetUserApi:
     ):
         node_set = node_set_factory()
         node_set.pop("nodes", None)
-        node_set.pop("ipsv4", None)
         node_set.pop("status", None)
 
         client = user_api_client(auth_user_admin)
@@ -194,7 +190,6 @@ class TestNodeSetUserApi:
 
         node_set = node_set_factory()
         node_set.pop("nodes", None)
-        node_set.pop("ipsv4", None)
         node_set.pop("status", None)
 
         set_uuid = node_set["uuid"]
@@ -207,7 +202,6 @@ class TestNodeSetUserApi:
 
         node_set = node_set_factory()
         node_set.pop("nodes", None)
-        node_set.pop("ipsv4", None)
         node_set.pop("status", None)
         url = client.build_collection_uri(["sets"])
 
@@ -247,7 +241,6 @@ class TestNodeSetUserApi:
             project_id=sys_uuid.UUID(auth_test1_p1_user.project_id)
         )
         node_set.pop("nodes", None)
-        node_set.pop("ipsv4", None)
         node_set.pop("status", None)
 
         set_uuid = node_set["uuid"]
