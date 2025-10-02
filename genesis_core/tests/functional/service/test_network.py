@@ -24,9 +24,9 @@ from restalchemy.dm import filters as dm_filters
 
 from genesis_core.network.driver import base as driver_base
 from genesis_core.network import service
-from genesis_core.node.dm import models
+from genesis_core.compute.dm import models
 from genesis_core.common import constants as c
-from genesis_core.node import constants as nc
+from genesis_core.compute import constants as nc
 
 
 def fake_load_driver(

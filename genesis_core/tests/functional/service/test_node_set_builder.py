@@ -29,11 +29,11 @@ from gcl_sdk.agents.universal.clients.backend import db as db_back
 from gcl_sdk.agents.universal.services import agent as ua_agent_service
 from gcl_sdk.agents.universal.services import scheduler as ua_scheduler_service
 from gcl_sdk.agents.universal.drivers import core as ua_core_drivers
-from genesis_core.node.dm import models as compute_models
-from genesis_core.node import constants as nc
+from genesis_core.compute.dm import models as compute_models
+from genesis_core.compute import constants as nc
 
-from genesis_core.node.node_set.builders import service
-from genesis_core.node.node_set.dm import models as node_set_models
+from genesis_core.compute.node_set.builders import service
+from genesis_core.compute.node_set.dm import models as node_set_models
 
 
 def fake_system_uuid(*args, **kwargs):
@@ -118,7 +118,7 @@ class TestNodeSetBuilder:
         node_set.pop("status", None)
         node_set.pop("nodes", None)
 
-        url = client.build_collection_uri(["sets"])
+        url = client.build_collection_uri(["compute", "sets"])
         response = client.post(url, json=node_set)
         output = response.json()
 
@@ -157,7 +157,7 @@ class TestNodeSetBuilder:
         node_set.pop("status", None)
         node_set.pop("nodes", None)
 
-        url = client.build_collection_uri(["sets"])
+        url = client.build_collection_uri(["compute", "sets"])
         response = client.post(url, json=node_set)
         output = response.json()
 
@@ -171,7 +171,7 @@ class TestNodeSetBuilder:
         update = {
             "replicas": 2,
         }
-        url = client.build_resource_uri(["sets", node_set["uuid"]])
+        url = client.build_resource_uri(["compute", "sets", node_set["uuid"]])
         response = client.put(url, json=update)
         output = response.json()
 
@@ -208,7 +208,7 @@ class TestNodeSetBuilder:
         node_set.pop("status", None)
         node_set.pop("nodes", None)
 
-        url = client.build_collection_uri(["sets"])
+        url = client.build_collection_uri(["compute", "sets"])
         response = client.post(url, json=node_set)
         output = response.json()
 
@@ -225,7 +225,7 @@ class TestNodeSetBuilder:
         update = {
             "replicas": 1,
         }
-        url = client.build_resource_uri(["sets", node_set["uuid"]])
+        url = client.build_resource_uri(["compute", "sets", node_set["uuid"]])
         response = client.put(url, json=update)
         output = response.json()
 
@@ -263,7 +263,7 @@ class TestNodeSetBuilder:
         node_set.pop("status", None)
         node_set.pop("nodes", None)
 
-        url = client.build_collection_uri(["sets"])
+        url = client.build_collection_uri(["compute", "sets"])
         response = client.post(url, json=node_set)
         output = response.json()
 
@@ -277,7 +277,7 @@ class TestNodeSetBuilder:
         update = {
             "cores": 2,
         }
-        url = client.build_resource_uri(["sets", node_set["uuid"]])
+        url = client.build_resource_uri(["compute", "sets", node_set["uuid"]])
         response = client.put(url, json=update)
         output = response.json()
 
@@ -314,7 +314,7 @@ class TestNodeSetBuilder:
         node_set.pop("status", None)
         node_set.pop("nodes", None)
 
-        url = client.build_collection_uri(["sets"])
+        url = client.build_collection_uri(["compute", "sets"])
         response = client.post(url, json=node_set)
         output = response.json()
 
@@ -338,7 +338,7 @@ class TestNodeSetBuilder:
         assert node_sets[0].status == "IN_PROGRESS"
         assert len(nodes) == 1
 
-        url = client.build_resource_uri(["sets", node_set["uuid"]])
+        url = client.build_resource_uri(["compute", "sets", node_set["uuid"]])
         response = client.delete(url)
 
         assert response.status_code == 204

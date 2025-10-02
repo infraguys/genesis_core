@@ -70,7 +70,7 @@ class TestConfigUserApi:
     ):
         node = node_factory()
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["nodes"])
+        url = client.build_collection_uri(["compute", "nodes"])
 
         response = client.post(url, json=node)
         assert response.status_code == 201
@@ -92,7 +92,7 @@ class TestConfigUserApi:
     ):
         node = node_factory()
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["nodes"])
+        url = client.build_collection_uri(["compute", "nodes"])
 
         response = client.post(url, json=node)
         assert response.status_code == 201
@@ -124,7 +124,7 @@ class TestConfigUserApi:
     ):
         node = node_factory()
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["nodes"])
+        url = client.build_collection_uri(["compute", "nodes"])
 
         response = client.post(url, json=node)
         assert response.status_code == 201
@@ -154,7 +154,7 @@ class TestConfigUserApi:
     ):
         node = node_factory()
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["nodes"])
+        url = client.build_collection_uri(["compute", "nodes"])
 
         response = client.post(url, json=node)
         assert response.status_code == 201
@@ -185,7 +185,7 @@ class TestConfigUserApi:
     ):
         node = node_factory()
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["nodes"])
+        url = client.build_collection_uri(["compute", "nodes"])
 
         response = client.post(url, json=node)
         assert response.status_code == 201
@@ -223,7 +223,7 @@ class TestConfigUserApi:
     ):
         node = node_factory()
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["nodes"])
+        url = client.build_collection_uri(["compute", "nodes"])
 
         response = client.post(url, json=node)
         assert response.status_code == 201

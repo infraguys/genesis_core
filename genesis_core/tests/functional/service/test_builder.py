@@ -17,9 +17,9 @@
 import typing as tp
 import uuid as sys_uuid
 
-from genesis_core.node.builder import service
-from genesis_core.node.dm import models
-from genesis_core.node import constants as nc
+from genesis_core.compute.builder import service
+from genesis_core.compute.dm import models
+from genesis_core.compute import constants as nc
 
 
 class TestBuilderService:

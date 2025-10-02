@@ -19,7 +19,7 @@ import abc
 import typing as tp
 
 
-from genesis_core.node.dm import models
+from genesis_core.compute.dm import models
 
 
 class MachinePoolAbstractFilter(abc.ABC):

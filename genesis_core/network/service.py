@@ -24,7 +24,7 @@ from restalchemy.common import contexts
 from restalchemy.dm import filters as dm_filters
 from gcl_looper.services import basic
 
-from genesis_core.node.dm import models
+from genesis_core.compute.dm import models
 from genesis_core.network.dm import models as net_models
 from genesis_core.network.driver import base as net_base
 from genesis_core.network import ipam as net_ipam
