@@ -21,7 +21,7 @@ import pytest
 from bazooka import exceptions as bazooka_exc
 from gcl_iam.tests.functional import clients as iam_clients
 
-from genesis_core.node import constants as nc
+from genesis_core.compute import constants as nc
 
 
 class TestNodeSetUserApi:
@@ -72,7 +72,7 @@ class TestNodeSetUserApi:
         auth_user_admin: iam_clients.GenesisCoreAuth,
     ):
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["sets"])
+        url = client.build_collection_uri(["compute", "sets"])
 
         response = client.get(url)
 
@@ -90,7 +90,7 @@ class TestNodeSetUserApi:
         node_set.pop("status", None)
 
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["sets"])
+        url = client.build_collection_uri(["compute", "sets"])
 
         response = client.post(url, json=node_set)
         output = response.json()
@@ -113,7 +113,7 @@ class TestNodeSetUserApi:
             node_sets.append(node_set)
 
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["sets"])
+        url = client.build_collection_uri(["compute", "sets"])
 
         for node_set in node_sets:
             response = client.post(url, json=node_set)
@@ -140,14 +140,14 @@ class TestNodeSetUserApi:
         node_set.pop("status", None)
 
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["sets"])
+        url = client.build_collection_uri(["compute", "sets"])
 
         response = client.post(url, json=node_set)
         output = response.json()
         assert response.status_code == 201
 
         update = {"cores": 2, "ram": 2048}
-        url = client.build_resource_uri(["sets", node_set["uuid"]])
+        url = client.build_resource_uri(["compute", "sets", node_set["uuid"]])
         response = client.put(url, json=update)
         output = response.json()
 
@@ -166,16 +166,16 @@ class TestNodeSetUserApi:
         node_set.pop("status", None)
 
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["sets"])
+        url = client.build_collection_uri(["compute", "sets"])
         response = client.post(url, json=node_set)
         assert response.status_code == 201
 
-        url = client.build_resource_uri(["sets", node_set["uuid"]])
+        url = client.build_resource_uri(["compute", "sets", node_set["uuid"]])
         response = client.delete(url)
 
         assert response.status_code == 204
 
-        url = client.build_resource_uri(["sets", node_set["uuid"]])
+        url = client.build_resource_uri(["compute", "sets", node_set["uuid"]])
         with pytest.raises(bazooka_exc.NotFoundError):
             response = client.get(url)
 
@@ -193,7 +193,7 @@ class TestNodeSetUserApi:
         node_set.pop("status", None)
 
         set_uuid = node_set["uuid"]
-        url = admin_client.build_collection_uri(["sets"])
+        url = admin_client.build_collection_uri(["compute", "sets"])
         response = admin_client.post(url, json=node_set)
 
         assert response.status_code == 201
@@ -203,7 +203,7 @@ class TestNodeSetUserApi:
         node_set = node_set_factory()
         node_set.pop("nodes", None)
         node_set.pop("status", None)
-        url = client.build_collection_uri(["sets"])
+        url = client.build_collection_uri(["compute", "sets"])
 
         with pytest.raises(bazooka_exc.ForbiddenError):
             client.get(url)
@@ -211,11 +211,11 @@ class TestNodeSetUserApi:
         with pytest.raises(bazooka_exc.ForbiddenError):
             client.post(url, json=node_set)
 
-        url = client.build_resource_uri(["sets", set_uuid])
+        url = client.build_resource_uri(["compute", "sets", set_uuid])
         with pytest.raises(bazooka_exc.ForbiddenError):
             client.delete(url)
 
-        url = admin_client.build_collection_uri(["sets"])
+        url = admin_client.build_collection_uri(["compute", "sets"])
         response = admin_client.get(url)
 
         assert response.status_code == 200
@@ -244,12 +244,12 @@ class TestNodeSetUserApi:
         node_set.pop("status", None)
 
         set_uuid = node_set["uuid"]
-        url = client.build_collection_uri(["sets"])
+        url = client.build_collection_uri(["compute", "sets"])
         response = admin_client.post(url, json=node_set)
 
         assert response.status_code == 201
 
-        url = client.build_collection_uri(["sets"])
+        url = client.build_collection_uri(["compute", "sets"])
         response = client.get(url)
         assert response.status_code == 200
 
@@ -257,6 +257,6 @@ class TestNodeSetUserApi:
         assert len(output) == 1
         assert self._node_set_cmp_shallow(node_set, output[0])
 
-        url = client.build_resource_uri(["sets", set_uuid])
+        url = client.build_resource_uri(["compute", "sets", set_uuid])
         response = client.delete(url)
         assert response.status_code == 204

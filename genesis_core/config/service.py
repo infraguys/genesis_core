@@ -27,7 +27,7 @@ from restalchemy.storage import exceptions as ra_exceptions
 from gcl_looper.services import basic
 from gcl_sdk.agents.universal.dm import models as ua_models
 
-from genesis_core.node.dm import models as node_models
+from genesis_core.compute.dm import models as node_models
 from genesis_core.config.dm import models
 from genesis_core.common import constants as c
 from genesis_core.config import constants as cc

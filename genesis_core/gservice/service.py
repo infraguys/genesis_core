@@ -28,19 +28,19 @@ from gcl_sdk.agents.universal.clients.backend import db as db_back
 from gcl_sdk.agents.universal.drivers import core as ua_core_drivers
 
 from genesis_core.elements.services import builders as em_builders
-from genesis_core.node.scheduler.driver.filters import available
-from genesis_core.node.scheduler.driver.weighter import relative
-from genesis_core.node.scheduler import service as n_scheduler_service
-from genesis_core.node.builder import service as n_builder_service
-from genesis_core.node.machine import service as n_machine_service
-from genesis_core.node.node_set.builders import service as set_builder_svc
-from genesis_core.node.dm import models as compute_models
+from genesis_core.compute.scheduler.driver.filters import available
+from genesis_core.compute.scheduler.driver.weighter import relative
+from genesis_core.compute.scheduler import service as n_scheduler_service
+from genesis_core.compute.builder import service as n_builder_service
+from genesis_core.compute.machine import service as n_machine_service
+from genesis_core.compute.node_set.builders import service as set_builder_svc
+from genesis_core.compute.dm import models as compute_models
 from genesis_core.network import service as n_network_service
 from genesis_core.config import service as config_service
 from genesis_core.secret import service as secret_service
 from genesis_core.janitor import service as janitor_service
-from genesis_core.node.node_set.dm import models as node_set_models
-from genesis_core.node import constants as nc
+from genesis_core.compute.node_set.dm import models as node_set_models
+from genesis_core.compute import constants as nc
 
 
 LOG = logging.getLogger(__name__)

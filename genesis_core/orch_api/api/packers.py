@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from restalchemy.api import packers
 
-from genesis_core.node import constants as nc
+from genesis_core.compute import constants as nc
 from genesis_core.orch_api.dm import models
 
 

@@ -17,7 +17,7 @@
 
 from restalchemy.storage.sql import migrations
 
-from genesis_core.node import constants as nc
+from genesis_core.compute import constants as nc
 
 
 class MigrationStep(migrations.AbstarctMigrationStep):

@@ -18,7 +18,7 @@ import typing as tp
 
 import netaddr
 
-from genesis_core.node.dm import models
+from genesis_core.compute.dm import models
 
 
 class StaticRoute(tp.NamedTuple):

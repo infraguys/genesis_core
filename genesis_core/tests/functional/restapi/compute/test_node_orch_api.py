@@ -23,7 +23,7 @@ import netaddr
 import requests
 from oslo_config import cfg
 
-from genesis_core.node.dm import models
+from genesis_core.compute.dm import models
 from genesis_core.config.dm import models as config_models
 from genesis_core.common import constants as c
 from genesis_core.tests.functional import utils as test_utils

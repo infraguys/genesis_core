@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from restalchemy.dm import types
 
-from genesis_core.node.dm import models as node_models
+from genesis_core.compute.dm import models as node_models
 
 LOCAL_GC_HOST = "localhost"
 LOCAL_GC_PORT = 11011

@@ -26,12 +26,14 @@ from restalchemy.storage import exceptions as ra_exceptions
 from restalchemy.dm import filters as dm_filters
 from gcl_looper.services import basic
 
-from genesis_core.node import constants as nc
+from genesis_core.compute import constants as nc
 from genesis_core.common import utils
-from genesis_core.node.dm import models as models
-from genesis_core.node.machine.dm import models as machine_models
-from genesis_core.node.machine.pool.driver import exceptions as pool_exceptions
-from genesis_core.node.machine.pool.driver import base as pool_driver
+from genesis_core.compute.dm import models as models
+from genesis_core.compute.machine.dm import models as machine_models
+from genesis_core.compute.machine.pool.driver import (
+    exceptions as pool_exceptions,
+)
+from genesis_core.compute.machine.pool.driver import base as pool_driver
 
 
 LOG = logging.getLogger(__name__)
