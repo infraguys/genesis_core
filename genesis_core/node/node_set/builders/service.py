@@ -66,8 +66,20 @@ class NodeSetBuilder(builder.CoreInfraBuilder):
         statuses = []
         status = instance.status
 
+        # Get the target nodes for the node set based on the current
+        # configuration. This will be used to filter out nodes that are
+        # being deleted during a shrink operation.
+        new_target_nodes = {
+            n.uuid: n for n in instance.create_nodes(self._project_id)
+        }
+
         for _, actual in infra.infra_objects:
             if actual is None:
+                continue
+
+            # Skip the nodes that are not in the target nodes.
+            # They will be deleted.
+            if actual.uuid not in new_target_nodes:
                 continue
 
             uuid_str = str(actual.uuid)
@@ -83,7 +95,7 @@ class NodeSetBuilder(builder.CoreInfraBuilder):
         # Set the status to active if all nodes are active.
         # It's normal to compare the length of statuses with replicas
         # for the default node set type.
-        if len(statuses) == instance.replicas and all(
+        if len(statuses) >= instance.replicas and all(
             s == nc.NodeStatus.ACTIVE for s in statuses
         ):
             status = nc.NodeStatus.ACTIVE.value
@@ -97,7 +109,4 @@ class NodeSetBuilder(builder.CoreInfraBuilder):
         if status != instance.status:
             instance.status = status
 
-        # Return the target infrastructure objects
-        # The create_nodes method returns the target resources
-        # for the node set.
-        return instance.create_nodes(self._project_id)
+        return tuple(new_target_nodes.values())

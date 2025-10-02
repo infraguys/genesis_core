@@ -193,6 +193,61 @@ class TestNodeSetBuilder:
         assert node_sets[0].status == "NEW"
         assert len(nodes) == 2
 
+    def test_update_node_sets_replicas_shrink(
+        self,
+        node_set_factory: tp.Callable,
+        user_api_client: iam_clients.GenesisCoreTestRESTClient,
+        auth_user_admin: iam_clients.GenesisCoreAuth,
+    ):
+        # For agent to be available
+        self._infra_agent._iteration()
+
+        client = user_api_client(auth_user_admin)
+
+        node_set = node_set_factory(replicas=2)
+        node_set.pop("status", None)
+        node_set.pop("nodes", None)
+
+        url = client.build_collection_uri(["sets"])
+        response = client.post(url, json=node_set)
+        output = response.json()
+
+        assert response.status_code == 201
+        assert output["status"] == "NEW"
+
+        self._service._iteration()
+        self._infra_scheduler._iteration()
+        self._infra_agent._iteration()
+
+        nodes = compute_models.Node.objects.get_all()
+        assert len(nodes) == 2
+
+        update = {
+            "replicas": 1,
+        }
+        url = client.build_resource_uri(["sets", node_set["uuid"]])
+        response = client.put(url, json=update)
+        output = response.json()
+
+        assert response.status_code == 200
+        self._service._iteration()
+        self._infra_scheduler._iteration()
+        self._infra_agent._iteration()
+
+        target_resources = ua_models.TargetResource.objects.get_all()
+        node_sets = node_set_models.NodeSet.objects.get_all()
+        nodes = compute_models.Node.objects.get_all()
+
+        assert len(target_resources) == 2
+        assert {r.kind for r in target_resources} == {
+            "set_agent_node",
+            "node_set",
+        }
+        assert len(node_sets) == 1
+        assert node_sets[0].status == "NEW"
+        assert len(nodes) == 1
+        assert len(node_sets[0].nodes) == 1
+
     def test_update_node_sets_cores(
         self,
         node_set_factory: tp.Callable,
