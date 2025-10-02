@@ -25,9 +25,9 @@ from restalchemy.storage import exceptions as ra_exceptions
 from restalchemy.dm import filters as dm_filters
 from gcl_looper.services import basic
 
-from genesis_core.node.dm import models
-from genesis_core.node import constants as nc
-from genesis_core.node.scheduler.driver import base
+from genesis_core.compute.dm import models
+from genesis_core.compute import constants as nc
+from genesis_core.compute.scheduler.driver import base
 
 LOG = logging.getLogger(__name__)
 BUILDER_REBALANCE_RATE = 100

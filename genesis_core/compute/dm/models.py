@@ -31,7 +31,7 @@ from restalchemy.storage.sql import orm
 from gcl_sdk.infra.dm import models as infra_models
 from gcl_sdk.agents.universal.dm import models as ua_models
 
-from genesis_core.node import constants as nc
+from genesis_core.compute import constants as nc
 from genesis_core.common import utils
 from genesis_core.common import system
 from genesis_core.common.dm import models as cm

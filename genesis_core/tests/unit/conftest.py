@@ -20,7 +20,7 @@ import uuid as sys_uuid
 import pytest
 
 from genesis_core.network import ipam
-from genesis_core.node.dm import models
+from genesis_core.compute.dm import models
 from genesis_core.common import constants as c
 
 

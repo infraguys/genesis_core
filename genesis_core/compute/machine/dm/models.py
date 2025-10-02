@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from restalchemy.dm import relationships
 
-from genesis_core.node.dm import models
+from genesis_core.compute.dm import models
 from genesis_core.common.dm import models as cm
 
 

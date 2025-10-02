@@ -20,7 +20,7 @@ import typing as tp
 import pytest
 from bazooka import exceptions as bazooka_exc
 from gcl_iam.tests.functional import clients as iam_clients
-from genesis_core.node import constants as nc
+from genesis_core.compute import constants as nc
 
 
 class TestNodeUserApi:
@@ -84,7 +84,7 @@ class TestNodeUserApi:
         auth_user_admin: iam_clients.GenesisCoreAuth,
     ):
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["nodes"])
+        url = client.build_collection_uri(["compute", "nodes"])
 
         response = client.get(url)
 
@@ -99,7 +99,7 @@ class TestNodeUserApi:
     ):
         node = node_factory()
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["nodes"])
+        url = client.build_collection_uri(["compute", "nodes"])
 
         response = client.post(url, json=node)
         output = response.json()
@@ -115,7 +115,7 @@ class TestNodeUserApi:
     ):
         nodes = [node_factory(name=f"node{i}") for i in range(3)]
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["nodes"])
+        url = client.build_collection_uri(["compute", "nodes"])
 
         for node in nodes:
             response = client.post(url, json=node)
@@ -137,14 +137,14 @@ class TestNodeUserApi:
     ):
         node = node_factory()
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["nodes"])
+        url = client.build_collection_uri(["compute", "nodes"])
 
         response = client.post(url, json=node)
         output = response.json()
         assert response.status_code == 201
 
         update = {"cores": 2, "ram": 2048}
-        url = client.build_resource_uri(["nodes", node["uuid"]])
+        url = client.build_resource_uri(["compute", "nodes", node["uuid"]])
         response = client.put(url, json=update)
         output = response.json()
 
@@ -161,16 +161,16 @@ class TestNodeUserApi:
         node = node_factory()
 
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["nodes"])
+        url = client.build_collection_uri(["compute", "nodes"])
         response = client.post(url, json=node)
         assert response.status_code == 201
 
-        url = client.build_resource_uri(["nodes", node["uuid"]])
+        url = client.build_resource_uri(["compute", "nodes", node["uuid"]])
         response = client.delete(url)
 
         assert response.status_code == 204
 
-        url = client.build_resource_uri(["nodes", node["uuid"]])
+        url = client.build_resource_uri(["compute", "nodes", node["uuid"]])
         with pytest.raises(bazooka_exc.NotFoundError):
             response = client.get(url)
 
@@ -182,7 +182,7 @@ class TestNodeUserApi:
     ):
         node = node_factory()
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["nodes"])
+        url = client.build_collection_uri(["compute", "nodes"])
 
         response = client.post(url, json=node)
         output = response.json()
@@ -198,7 +198,7 @@ class TestNodeUserApi:
         auth_user_admin: iam_clients.GenesisCoreAuth,
     ):
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["hypervisors"])
+        url = client.build_collection_uri(["compute", "hypervisors"])
 
         response = client.get(url)
 
@@ -212,7 +212,7 @@ class TestNodeUserApi:
         auth_user_admin: iam_clients.GenesisCoreAuth,
     ):
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["hypervisors"])
+        url = client.build_collection_uri(["compute", "hypervisors"])
 
         response = client.get(url)
         output = response.json()
@@ -229,7 +229,7 @@ class TestNodeUserApi:
     ):
         pool = pool_factory()
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["hypervisors"])
+        url = client.build_collection_uri(["compute", "hypervisors"])
 
         response = client.post(url, json=pool)
         output = response.json()
@@ -245,7 +245,7 @@ class TestNodeUserApi:
     ):
         pool = pool_factory()
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["hypervisors"])
+        url = client.build_collection_uri(["compute", "hypervisors"])
 
         response = client.post(url, json=pool)
         output = response.json()
@@ -253,7 +253,9 @@ class TestNodeUserApi:
         assert response.status_code == 201
 
         update = {"name": "foo", "description": "bar"}
-        url = client.build_resource_uri(["hypervisors", pool["uuid"]])
+        url = client.build_resource_uri(
+            ["compute", "hypervisors", pool["uuid"]]
+        )
         response = client.put(url, json=update)
         output = response.json()
 
@@ -269,13 +271,15 @@ class TestNodeUserApi:
     ):
         pool = pool_factory()
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["hypervisors"])
+        url = client.build_collection_uri(["compute", "hypervisors"])
 
         response = client.post(url, json=pool)
 
         assert response.status_code == 201
 
-        url = client.build_resource_uri(["hypervisors", pool["uuid"]])
+        url = client.build_resource_uri(
+            ["compute", "hypervisors", pool["uuid"]]
+        )
         response = client.delete(url)
 
         assert response.status_code == 204
@@ -294,7 +298,7 @@ class TestNodeUserApi:
     ):
         machine = machine_factory()
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["machines"])
+        url = client.build_collection_uri(["compute", "machines"])
 
         response = client.post(url, json=machine)
         output = response.json()
@@ -311,7 +315,7 @@ class TestNodeUserApi:
     ):
         machines = [machine_factory(name=f"machine{i}") for i in range(3)]
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["machines"])
+        url = client.build_collection_uri(["compute", "machines"])
 
         for machine in machines:
             response = client.post(url, json=machine)
@@ -336,14 +340,16 @@ class TestNodeUserApi:
     ):
         machine = machine_factory()
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["machines"])
+        url = client.build_collection_uri(["compute", "machines"])
 
         response = client.post(url, json=machine)
         output = response.json()
         assert response.status_code == 201
 
         update = {"cores": 2, "ram": 2048}
-        url = client.build_resource_uri(["machines", machine["uuid"]])
+        url = client.build_resource_uri(
+            ["compute", "machines", machine["uuid"]]
+        )
 
         response = client.put(url, json=update)
         output = response.json()
@@ -361,13 +367,15 @@ class TestNodeUserApi:
     ):
         machine = machine_factory()
         client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["machines"])
+        url = client.build_collection_uri(["compute", "machines"])
 
         response = client.post(url, json=machine)
 
         assert response.status_code == 201
 
-        url = client.build_resource_uri(["machines", machine["uuid"]])
+        url = client.build_resource_uri(
+            ["compute", "machines", machine["uuid"]]
+        )
 
         response = client.delete(url)
 
@@ -387,7 +395,7 @@ class TestNodeUserApi:
 
         node = node_factory()
         node_uuid = node["uuid"]
-        url = admin_client.build_collection_uri(["nodes"])
+        url = admin_client.build_collection_uri(["compute", "nodes"])
         response = admin_client.post(url, json=node)
 
         assert response.status_code == 201
@@ -395,7 +403,7 @@ class TestNodeUserApi:
         client = user_api_client(auth_test1_user)
 
         node = node_factory()
-        url = client.build_collection_uri(["nodes"])
+        url = client.build_collection_uri(["compute", "nodes"])
 
         with pytest.raises(bazooka_exc.ForbiddenError):
             client.get(url)
@@ -403,11 +411,11 @@ class TestNodeUserApi:
         with pytest.raises(bazooka_exc.ForbiddenError):
             client.post(url, json=node)
 
-        url = client.build_resource_uri(["nodes", node_uuid])
+        url = client.build_resource_uri(["compute", "nodes", node_uuid])
         with pytest.raises(bazooka_exc.ForbiddenError):
             client.delete(url)
 
-        url = admin_client.build_collection_uri(["nodes"])
+        url = admin_client.build_collection_uri(["compute", "nodes"])
         response = admin_client.get(url)
 
         assert response.status_code == 200
@@ -433,12 +441,12 @@ class TestNodeUserApi:
             project_id=sys_uuid.UUID(auth_test1_p1_user.project_id)
         )
         node_uuid = node["uuid"]
-        url = client.build_collection_uri(["nodes"])
+        url = client.build_collection_uri(["compute", "nodes"])
         response = admin_client.post(url, json=node)
 
         assert response.status_code == 201
 
-        url = client.build_collection_uri(["nodes"])
+        url = client.build_collection_uri(["compute", "nodes"])
         response = client.get(url)
         assert response.status_code == 200
 
@@ -446,6 +454,6 @@ class TestNodeUserApi:
         assert len(output) == 1
         assert self._node_cmp_shallow(node, output[0])
 
-        url = client.build_resource_uri(["nodes", node_uuid])
+        url = client.build_resource_uri(["compute", "nodes", node_uuid])
         response = client.delete(url)
         assert response.status_code == 204
