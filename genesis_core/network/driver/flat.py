@@ -24,10 +24,10 @@ import typing as tp
 import uuid as sys_uuid
 
 from genesis_core.network.driver import base
-from genesis_core.node.dm import models
+from genesis_core.compute.dm import models
 from genesis_core.network import exceptions
 from genesis_core.network.dhcp import isc
-from genesis_core.node import constants as nc
+from genesis_core.compute import constants as nc
 
 
 DHCP_CTX_FILE = "gc_ctx_dhcpd.json"

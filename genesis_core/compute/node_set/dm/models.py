@@ -18,8 +18,8 @@ from __future__ import annotations
 import typing as tp
 import uuid as sys_uuid
 
-from genesis_core.node import constants as nc
-from genesis_core.node.dm import models as compute_models
+from genesis_core.compute import constants as nc
+from genesis_core.compute.dm import models as compute_models
 
 
 class Node(compute_models.Node):

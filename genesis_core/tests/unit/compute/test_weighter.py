@@ -15,8 +15,8 @@
 #    under the License.
 
 import pytest
-from genesis_core.node.dm import models
-from genesis_core.node.scheduler.driver.weighter import relative
+from genesis_core.compute.dm import models
+from genesis_core.compute.scheduler.driver.weighter import relative
 
 
 class TestSchedulerWeighter:

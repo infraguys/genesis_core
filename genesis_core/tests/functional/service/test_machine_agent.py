@@ -23,11 +23,11 @@ import netaddr
 from gcl_iam.tests.functional import clients as iam_clients
 from restalchemy.dm import filters as dm_filters
 
-from genesis_core.node.machine.pool.driver import base as driver_base
-from genesis_core.node.machine import service
-from genesis_core.node.dm import models
+from genesis_core.compute.machine.pool.driver import base as driver_base
+from genesis_core.compute.machine import service
+from genesis_core.compute.dm import models
 from genesis_core.common import constants as c
-from genesis_core.node import constants as nc
+from genesis_core.compute import constants as nc
 
 
 def fake_load_driver(

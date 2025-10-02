@@ -20,8 +20,8 @@ import typing as tp
 
 from gcl_sdk.infra.services import builder
 
-from genesis_core.node.node_set.dm import models
-from genesis_core.node import constants as nc
+from genesis_core.compute.node_set.dm import models
+from genesis_core.compute import constants as nc
 
 LOG = logging.getLogger(__name__)
 

@@ -15,8 +15,8 @@
 #    under the License.
 import typing as tp
 
-from genesis_core.node.dm import models
-from genesis_core.node.scheduler.driver import base
+from genesis_core.compute.dm import models
+from genesis_core.compute.scheduler.driver import base
 
 
 class RelativeCoreRamWeighter(base.MachinePoolAbstractWeighter):

@@ -25,11 +25,11 @@ import contextlib as ctxlib
 import libvirt
 import netaddr
 
-from genesis_core.node.dm import models
+from genesis_core.compute.dm import models
 from genesis_core.common import constants as c
-from genesis_core.node import constants as nc
-from genesis_core.node.machine.pool.driver import base
-from genesis_core.node.machine.pool.driver import exceptions as pool_exc
+from genesis_core.compute import constants as nc
+from genesis_core.compute.machine.pool.driver import base
+from genesis_core.compute.machine.pool.driver import exceptions as pool_exc
 
 ImageFormatType = tp.Literal["raw", "qcow2"]
 NetworkType = tp.Literal["bridge", "network"]

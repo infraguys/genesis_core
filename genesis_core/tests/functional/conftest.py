@@ -28,9 +28,9 @@ from gcl_sdk.events import clients as sdk_clients
 
 from genesis_core.common import constants as c
 from genesis_core.common import utils
-from genesis_core.node import constants as nc
-from genesis_core.node.dm import models as node_models
-from genesis_core.node.node_set.dm import models as node_set_models
+from genesis_core.compute import constants as nc
+from genesis_core.compute.dm import models as node_models
+from genesis_core.compute.node_set.dm import models as node_set_models
 from genesis_core.user_api.api import app as user_app
 from genesis_core.tests.functional import utils as test_utils
 from genesis_core.config.dm import models as conf_models

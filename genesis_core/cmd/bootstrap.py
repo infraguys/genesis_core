@@ -27,7 +27,7 @@ from gcl_sdk.clients.http import base as http_client
 from genesis_ci_tools import elements
 
 from genesis_core.common import config
-from genesis_core.node.dm import models
+from genesis_core.compute.dm import models
 from genesis_core.common import constants as c
 
 LOG = logging.getLogger(__name__)

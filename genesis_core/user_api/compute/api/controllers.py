@@ -17,75 +17,44 @@
 from gcl_iam import controllers as iam_controllers
 from restalchemy.api import controllers
 from restalchemy.api import resources
-from restalchemy.dm import relationships
 from restalchemy.api import constants as ra_c
 from restalchemy.api import field_permissions as field_p
 
 
 from genesis_core.compute import constants as nc
 from genesis_core.compute.dm import models as node_models
+from genesis_core.user_api.compute.dm import models as user_models
 
 
-class ApiEndpointController(controllers.RoutesListController):
-    """Controller for /v1/ endpoint"""
+class ComputeController(controllers.RoutesListController):
 
-    __TARGET_PATH__ = "/v1/"
-
-
-class HealthController(controllers.Controller):
-    """Controller for /v1/health/ endpoint"""
-
-    def filter(self, filters, **kwargs):
-        return "OK"
-
-
-# DEPRECATED(akremenetsky): Use compute controller
-
-
-class NodeSet(node_models.NodeSet):
-    pass
-
-
-class Node(node_models.Node):
-    node_set = relationships.relationship(NodeSet, read_only=True)
-
-
-class Machine(node_models.Machine):
-    pass
-
-
-class MachineAgent(node_models.MachineAgent):
-    pass
-
-
-class MachinePool(node_models.MachinePool):
-    pass
+    __TARGET_PATH__ = "/v1/compute/"
 
 
 class NodesController(
     iam_controllers.PolicyBasedController,
     controllers.BaseResourceControllerPaginated,
 ):
-    """Controller for /v1/nodes/ endpoint"""
+    """Controller for /v1/compute/nodes/ endpoint"""
 
     __policy_name__ = "node"
     __policy_service_name__ = nc.POLICY_SERVICE_NAME
 
     __resource__ = resources.ResourceByRAModel(
-        model_class=Node,
+        model_class=user_models.Node,
         process_filters=True,
         convert_underscore=False,
     )
 
 
 class NodeSetsController(iam_controllers.PolicyBasedController):
-    """Controller for /v1/sets/ endpoint"""
+    """Controller for /v1/compute/sets/ endpoint"""
 
     __policy_name__ = "node_set"
     __policy_service_name__ = nc.POLICY_SERVICE_NAME
 
     __resource__ = resources.ResourceByRAModel(
-        model_class=NodeSet,
+        model_class=node_models.NodeSet,
         process_filters=True,
         convert_underscore=False,
         fields_permissions=field_p.FieldsPermissions(
@@ -109,13 +78,13 @@ class MachinesController(
     iam_controllers.PolicyBasedController,
     controllers.BaseResourceControllerPaginated,
 ):
-    """Controller for /v1/machines/ endpoint"""
+    """Controller for /v1/compute/machines/ endpoint"""
 
     __policy_name__ = "machine"
     __policy_service_name__ = nc.POLICY_SERVICE_NAME
 
     __resource__ = resources.ResourceByRAModel(
-        model_class=Machine,
+        model_class=node_models.Machine,
         process_filters=True,
         convert_underscore=False,
     )
@@ -125,13 +94,13 @@ class HypervisorsController(
     iam_controllers.PolicyBasedController,
     controllers.BaseResourceControllerPaginated,
 ):
-    """Controller for /v1/hypervisors/ endpoint"""
+    """Controller for /v1/compute/hypervisors/ endpoint"""
 
     __policy_name__ = "hypervisor"
     __policy_service_name__ = nc.POLICY_SERVICE_NAME
 
     __resource__ = resources.ResourceByRAModel(
-        model_class=MachinePool,
+        model_class=node_models.MachinePool,
         process_filters=True,
         convert_underscore=False,
     )
@@ -150,13 +119,13 @@ class MachineAgentController(
     iam_controllers.PolicyBasedController,
     controllers.BaseResourceControllerPaginated,
 ):
-    """Controller for /v1/machine_agents/ endpoint"""
+    """Controller for /v1/compute/machine_agents/ endpoint"""
 
     __policy_name__ = "machine_agent"
     __policy_service_name__ = nc.POLICY_SERVICE_NAME
 
     __resource__ = resources.ResourceByRAModel(
-        model_class=MachineAgent,
+        model_class=node_models.MachineAgent,
         process_filters=True,
         convert_underscore=False,
     )

@@ -19,7 +19,7 @@ from restalchemy.api import controllers
 from restalchemy.api import resources
 from restalchemy.storage import exceptions as ra_storage_exceptions
 
-from genesis_core.node import constants as nc
+from genesis_core.compute import constants as nc
 from genesis_core.orch_api.dm import models as node_models
 from genesis_core.orch_api.api import packers
 

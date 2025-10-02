@@ -20,10 +20,10 @@ import uuid as sys_uuid
 
 from gcl_iam.tests.functional import clients as iam_clients
 
-from genesis_core.node.scheduler import service
-from genesis_core.node.dm import models
-from genesis_core.node.scheduler.driver.filters import available
-from genesis_core.node.scheduler.driver.weighter import relative
+from genesis_core.compute.scheduler import service
+from genesis_core.compute.dm import models
+from genesis_core.compute.scheduler.driver.filters import available
+from genesis_core.compute.scheduler.driver.weighter import relative
 
 
 class TestSchedulerService:
