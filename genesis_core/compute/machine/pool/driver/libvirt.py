@@ -382,29 +382,34 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
     def __init__(self, pool: models.MachinePool):
         self._spec = LibvirtPoolDriverSpec(**pool.driver_spec)
         self._pool = pool
+        # Check if connection string is valid and we can connect
+        _ = self._client
+
+    @property
+    def _client(self):
+        instance = getattr(self, "_client_instance", None)
+        # isAlive() doesn't actually ping host (so it's cheap),
+        #  but it will return 0 if there were any errors before
+        if not instance or not instance.isAlive():
+            instance = libvirt.open(self._spec.connection_uri)
+            if not instance:
+                raise ConnectionError(
+                    f"Failed to open libvirt connection: {self._spec.connection_uri}"
+                )
+            self._client_instance = instance
+        return instance
 
     @staticmethod
     def _eq_memory(target_memory: int, actual_memory: int) -> bool:
         return abs(target_memory - actual_memory) <= 0.09 * actual_memory
 
-    def _connect(self) -> libvirt.virConnect:
-        """Initiate and return a new libvirt connection."""
-        connection = libvirt.open(self._spec.connection_uri)
-        if not connection:
-            raise ConnectionError(
-                f"Failed to open libvirt connection: {self._spec.connection_uri}"
-            )
-
-        return connection
-
     def _create_domain(self, domain_xml: str) -> libvirt.virDomain:
-        with ctxlib.closing(self._connect()) as cn:
-            virt_domain = cn.defineXML(domain_xml)
-            virt_domain.create()
+        virt_domain = self._client.defineXML(domain_xml)
+        virt_domain.create()
 
-            # Set the autostart flag to run the domain
-            # after hypervisor restart
-            virt_domain.setAutostart(True)
+        # Set the autostart flag to run the domain
+        # after hypervisor restart
+        virt_domain.setAutostart(True)
 
         return virt_domain
 
@@ -481,43 +486,39 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         # an interface. We need more appropriate model.
         ports = []
 
-        with ctxlib.closing(self._connect()) as cn:
-            domain = cn.lookupByUUIDString(str(machine.uuid))
-            domain_xml = minidom.parseString(domain.XMLDesc())
+        domain = self._client.lookupByUUIDString(str(machine.uuid))
+        domain_xml = minidom.parseString(domain.XMLDesc())
 
-            for iface in domain_xml.getElementsByTagName("interface"):
-                mac_tags = iface.getElementsByTagName("mac")
-                if len(mac_tags) != 1 or not mac_tags[0].getAttribute(
-                    "address"
-                ):
-                    LOG.error("Unable to detect MAC address for %s", iface)
-                    continue
+        for iface in domain_xml.getElementsByTagName("interface"):
+            mac_tags = iface.getElementsByTagName("mac")
+            if len(mac_tags) != 1 or not mac_tags[0].getAttribute("address"):
+                LOG.error("Unable to detect MAC address for %s", iface)
+                continue
 
-                mac = mac_tags[0].getAttribute("address")
-                ports.append(
-                    models.Port(
-                        uuid=sys_uuid.UUID(
-                            "00000000-0000-0000-0000-000000000000"
-                        ),
-                        machine=machine.uuid,
-                        mac=mac,
-                        project_id=c.SERVICE_PROJECT_ID,
-                    )
+            mac = mac_tags[0].getAttribute("address")
+            ports.append(
+                models.Port(
+                    uuid=sys_uuid.UUID("00000000-0000-0000-0000-000000000000"),
+                    machine=machine.uuid,
+                    mac=mac,
+                    project_id=c.SERVICE_PROJECT_ID,
                 )
+            )
 
         return ports
 
     def list_volumes(
         self, machine: models.Machine
     ) -> tp.Iterable[models.MachineVolume]:
-        with ctxlib.closing(self._connect()) as cn:
-            storage_pool = cn.storagePoolLookupByName(self._spec.storage_pool)
-            volumes = []
-            for v in storage_pool.listAllVolumes():
-                try:
-                    volumes.append(self._vir_volume2machine_volume(v))
-                except Exception:
-                    LOG.warning("Failed to parse volume %s", v.name())
+        storage_pool = self._client.storagePoolLookupByName(
+            self._spec.storage_pool
+        )
+        volumes = []
+        for v in storage_pool.listAllVolumes():
+            try:
+                volumes.append(self._vir_volume2machine_volume(v))
+            except Exception:
+                LOG.warning("Failed to parse volume %s", v.name())
 
         result = [v for v in volumes if v.machine == machine.uuid]
         LOG.debug("Volumes: %s", result)
@@ -537,42 +538,42 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         name = self._form_vir_volume_name(target_volume)
 
         """Get the machine volume by uuid."""
-        with ctxlib.closing(self._connect()) as cn:
-            storage_pool = cn.storagePoolLookupByName(self._spec.storage_pool)
+        storage_pool = self._client.storagePoolLookupByName(
+            self._spec.storage_pool
+        )
 
-            # We don't know which format is used for the volume so we try them all
-            for fmt in tp.get_args(ImageFormatType):
-                name_with_format = f"{name}.{fmt}"
-                try:
-                    volume = storage_pool.storageVolLookupByName(
-                        name_with_format
-                    )
-                    break
-                except libvirt.libvirtError as e:
-                    if e.get_error_code() == libvirt.VIR_ERR_NO_STORAGE_VOL:
-                        continue
-                    raise
-            else:
-                raise pool_exc.VolumeNotFoundError(volume=uuid)
+        # We don't know which format is used for the volume so we try them all
+        for fmt in tp.get_args(ImageFormatType):
+            name_with_format = f"{name}.{fmt}"
+            try:
+                volume = storage_pool.storageVolLookupByName(name_with_format)
+                break
+            except libvirt.libvirtError as e:
+                if e.get_error_code() == libvirt.VIR_ERR_NO_STORAGE_VOL:
+                    continue
+                raise
+        else:
+            raise pool_exc.VolumeNotFoundError(volume=uuid)
 
         return self._vir_volume2machine_volume(volume)
 
     def create_volume(
         self, volume: models.MachineVolume
     ) -> models.MachineVolume:
-        with ctxlib.closing(self._connect()) as cn:
-            storage_pool = cn.storagePoolLookupByName(self._spec.storage_pool)
-            name = self._form_vir_volume_name(volume)
-            volume_xml = XMLLibvirtVolume.xml_from_base_template(
-                storage_pool, name, volume.size << 30
-            )
+        storage_pool = self._client.storagePoolLookupByName(
+            self._spec.storage_pool
+        )
+        name = self._form_vir_volume_name(volume)
+        volume_xml = XMLLibvirtVolume.xml_from_base_template(
+            storage_pool, name, volume.size << 30
+        )
 
-            try:
-                virt_volume = storage_pool.createXML(volume_xml)
-            except libvirt.libvirtError as e:
-                if e.get_error_code() == libvirt.VIR_ERR_STORAGE_VOL_EXIST:
-                    raise pool_exc.VolumeAlreadyExistsError(volume=volume.uuid)
-                raise
+        try:
+            virt_volume = storage_pool.createXML(volume_xml)
+        except libvirt.libvirtError as e:
+            if e.get_error_code() == libvirt.VIR_ERR_STORAGE_VOL_EXIST:
+                raise pool_exc.VolumeAlreadyExistsError(volume=volume.uuid)
+            raise
 
         # TODO(akremenetsky): We shouldn't change the original object
         volume.path = virt_volume.path()
@@ -581,52 +582,50 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         return volume
 
     def delete_volume(self, volume: models.MachineVolume) -> None:
-        with ctxlib.closing(self._connect()) as cn:
-            try:
-                v = cn.storageVolLookupByPath(volume.path)
-            except libvirt.libvirtError as e:
-                LOG.exception("The volume %s has not been found:", volume.uuid)
-                return
-
-            try:
-                v.wipe()
-            except libvirt.libvirtError as e:
-                # Some backends don't need wiping, for ex. ZFS
-                if e.get_error_code() != 3:  # VIR_ERR_NO_SUPPORT
-                    raise
-            max_iters = 20
-            for i in range(max_iters + 1):
-                try:
-                    v.delete()
-                except libvirt.libvirtError as e:
-                    if i == max_iters:
-                        raise
-                    # Volume may be busy, just wait a little bit
-                    time.sleep(0.05)
-                else:
-                    break
-            LOG.debug("The volume %s has been deleted", v.name())
+        try:
+            v = self._client.storageVolLookupByPath(volume.path)
+        except libvirt.libvirtError as e:
+            LOG.exception("The volume %s has not been found:", volume.uuid)
             return
+
+        try:
+            v.wipe()
+        except libvirt.libvirtError as e:
+            # Some backends don't need wiping, for ex. ZFS
+            if e.get_error_code() != 3:  # VIR_ERR_NO_SUPPORT
+                raise
+        max_iters = 20
+        for i in range(max_iters + 1):
+            try:
+                v.delete()
+            except libvirt.libvirtError as e:
+                if i == max_iters:
+                    raise
+                # Volume may be busy, just wait a little bit
+                time.sleep(0.05)
+            else:
+                break
+        LOG.debug("The volume %s has been deleted", v.name())
+        return
 
     def list_machines(self) -> tp.List[models.Machine]:
         """Return machine list from data plane."""
-        with ctxlib.closing(self._connect()) as cn:
-            domains = cn.listAllDomains()
+        domains = self._client.listAllDomains()
 
-            # If the filter prefix is not set, return all domains
-            if not self._spec.machine_prefix:
-                machines = [self._domain2machine(d) for d in domains]
-                LOG.debug("Machines: %s", machines)
-                return machines
-
-            # Otherwise, filter domains by the prefix
-            machines = []
-            for d in domains:
-                if d.name().startswith(self._spec.machine_prefix):
-                    machines.append(self._domain2machine(d))
-
+        # If the filter prefix is not set, return all domains
+        if not self._spec.machine_prefix:
+            machines = [self._domain2machine(d) for d in domains]
             LOG.debug("Machines: %s", machines)
             return machines
+
+        # Otherwise, filter domains by the prefix
+        machines = []
+        for d in domains:
+            if d.name().startswith(self._spec.machine_prefix):
+                machines.append(self._domain2machine(d))
+
+        LOG.debug("Machines: %s", machines)
+        return machines
 
     def create_machine(
         self,
@@ -685,17 +684,16 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
 
         :param machine: The machine to delete
         """
-        with ctxlib.closing(self._connect()) as cn:
-            domain = cn.lookupByUUIDString(str(machine.uuid))
+        domain = self._client.lookupByUUIDString(str(machine.uuid))
 
-            # Remove the libvirt domain
-            try:
-                domain.destroy()
-            except libvirt.libvirtError:
-                LOG.debug("The domain is not in the running state")
-            # FIXME(akremenetsky): Actully we should undefine the
-            # domain before volume deletion
-            domain.undefine()
+        # Remove the libvirt domain
+        try:
+            domain.destroy()
+        except libvirt.libvirtError:
+            LOG.debug("The domain is not in the running state")
+        # FIXME(akremenetsky): Actully we should undefine the
+        # domain before volume deletion
+        domain.undefine()
 
         if delete_volumes:
             for volume in self.list_volumes(machine):
@@ -727,13 +725,12 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
 
     def reset_machine(self, machine: models.Machine) -> None:
         """Reset the machine."""
-        with ctxlib.closing(self._connect()) as cn:
-            domain = cn.lookupByUUIDString(str(machine.uuid))
+        domain = self._client.lookupByUUIDString(str(machine.uuid))
 
-            try:
-                domain.destroy()
-            except libvirt.libvirtError:
-                LOG.debug("The domain is not in the running state")
+        try:
+            domain.destroy()
+        except libvirt.libvirtError:
+            LOG.debug("The domain is not in the running state")
 
-            domain.create()
-            LOG.debug("The domain %s was reset", str(machine.uuid))
+        domain.create()
+        LOG.debug("The domain %s was reset", str(machine.uuid))
