@@ -37,10 +37,10 @@ class HypervisorRoute(routes.Route):
     __controller__ = controllers.HypervisorsController
 
 
-class MachineAgentRoute(routes.Route):
-    """Handler for /v1/compute/machine_agents/ endpoint"""
+# class MachineAgentRoute(routes.Route):
+#     """Handler for /v1/compute/machine_agents/ endpoint"""
 
-    __controller__ = controllers.MachineAgentController
+#     __controller__ = controllers.MachineAgentController
 
 
 class NodeSetsRoute(routes.Route):
@@ -58,5 +58,5 @@ class ComputeRoute(routes.Route):
     nodes = routes.route(NodeRoute)
     machines = routes.route(MachineRoute)
     hypervisors = routes.route(HypervisorRoute)
-    machine_agents = routes.route(MachineAgentRoute)
+    # machine_agents = routes.route(MachineAgentRoute)
     sets = routes.route(NodeSetsRoute)

@@ -53,6 +53,18 @@ class AbstractPoolDriver(abc.ABC):
         """Delete the volume from data plane."""
 
     @abc.abstractmethod
+    def resize_volume(self, volume: models.MachineVolume) -> None:
+        """Resize the volume."""
+
+    @abc.abstractmethod
+    def attach_volume(self, volume: models.MachineVolume) -> None:
+        """Attach the volume."""
+
+    @abc.abstractmethod
+    def detach_volume(self, volume: models.MachineVolume) -> None:
+        """Detach the volume."""
+
+    @abc.abstractmethod
     def list_volumes(
         self, machine: models.Machine
     ) -> tp.Iterable[models.MachineVolume]:

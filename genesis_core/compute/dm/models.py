@@ -56,30 +56,30 @@ class IPRange(types.BaseType):
         return self.from_simple_type(value)
 
 
-class MachineAgent(
-    models.ModelWithUUID,
-    models.ModelWithNameDesc,
-    orm.SQLStorableMixin,
-    models.SimpleViewMixin,
-):
-    __tablename__ = "machine_agents"
+# class MachineAgent(
+#     models.ModelWithUUID,
+#     models.ModelWithNameDesc,
+#     orm.SQLStorableMixin,
+#     models.SimpleViewMixin,
+# ):
+#     __tablename__ = "machine_agents"
 
-    status = properties.property(
-        types.Enum([s.value for s in nc.MachineAgentStatus]),
-        default=nc.MachineAgentStatus.DISABLED.value,
-    )
+#     status = properties.property(
+#         types.Enum([s.value for s in nc.MachineAgentStatus]),
+#         default=nc.MachineAgentStatus.DISABLED.value,
+#     )
 
-    @classmethod
-    def all_active(
-        cls, limit: int | None = nc.DEF_SQL_LIMIT
-    ) -> tp.List["MachineAgent"]:
-        """Get all active machine agents."""
-        return cls.objects.get_all(
-            filters={
-                "status": dm_filters.EQ(nc.MachineAgentStatus.ACTIVE.value),
-            },
-            limit=limit,
-        )
+#     @classmethod
+#     def all_active(
+#         cls, limit: int | None = nc.DEF_SQL_LIMIT
+#     ) -> tp.List["MachineAgent"]:
+#         """Get all active machine agents."""
+#         return cls.objects.get_all(
+#             filters={
+#                 "status": dm_filters.EQ(nc.MachineAgentStatus.ACTIVE.value),
+#             },
+#             limit=limit,
+#         )
 
 
 class MachinePool(
@@ -93,7 +93,8 @@ class MachinePool(
     __driver_map__ = {}
 
     driver_spec = properties.property(types.Dict(), default=lambda: {})
-    agent = properties.property(types.AllowNone(types.UUID()), default=None)
+    # agent = properties.property(types.AllowNone(types.UUID()), default=None)
+    builder = properties.property(types.AllowNone(types.UUID()), default=None)
     machine_type = properties.property(
         types.Enum([t.value for t in nc.NodeType]),
         default=nc.NodeType.VM.value,
@@ -183,8 +184,8 @@ class NodeSet(
 
 
 class Node(
-    infra_models.Node,
     orm.SQLStorableWithJSONFieldsMixin,
+    infra_models.Node,
 ):
     __tablename__ = "nodes"
     __jsonfields__ = ["default_network"]
@@ -264,12 +265,6 @@ class Machine(
         default=None,
     )
 
-    builder = properties.property(types.AllowNone(types.UUID()), default=None)
-    build_status = properties.property(
-        types.Enum([s.value for s in nc.MachineBuildStatus]),
-        default=nc.MachineBuildStatus.IN_BUILD.value,
-    )
-
     # Actual image of the machine
     image = properties.property(
         types.AllowNone(types.String(max_length=255)), default=None
@@ -292,6 +287,10 @@ class Volume(
         types.Enum([t.value for t in nc.VolumeType]),
         default=nc.VolumeType.QCOW2.value,
     )
+    status = properties.property(
+        types.Enum([s.value for s in nc.VolumeStatus]),
+        default=nc.VolumeStatus.NEW.value,
+    )
 
 
 class MachineVolume(Volume):
@@ -305,6 +304,7 @@ class MachineVolume(Volume):
         super().__init__(*args, **kwargs)
 
     machine = properties.property(types.AllowNone(types.UUID()))
+    index = properties.property(types.Integer(min_value=-1, max_value=1024))
 
 
 class UnscheduledNode(models.ModelWithUUID, orm.SQLStorableMixin):
