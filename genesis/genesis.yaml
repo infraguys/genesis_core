@@ -34,6 +34,10 @@ build:
       # Local path
       http:
         src: http://repository.genesis-core.tech:8081/seed_os/latest/vmlinuz
+    - dst: /opt/genesis_core/artifacts/html.tgz
+      # Local path
+      http:
+        src: http://repository.genesis-core.tech:8081/genesis_ui/0.0.1-dev+20251107074958.be5ceb21/html.tgz
 
     # Take SDK from a local path for development purposes.
     - dst: /opt/gcl_sdk
@@ -62,7 +66,7 @@ build:
 
         # Override image build parameters, for instance Packer parameters
         override:
-          disk_size: "6G"
+          disk_size: "10G"
       # manifest: manifests/genesis-core.yaml
 
         envs:

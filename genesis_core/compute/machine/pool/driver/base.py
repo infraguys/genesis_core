@@ -24,6 +24,10 @@ from genesis_core.compute.dm import models
 class AbstractPoolDriver(abc.ABC):
 
     @abc.abstractmethod
+    def get_pool_info(self) -> dict[str, tp.Any]:
+        """Get pool info."""
+
+    @abc.abstractmethod
     def list_machines(self) -> tp.List[models.Machine]:
         """Return machine list from data plane."""
 
@@ -53,8 +57,20 @@ class AbstractPoolDriver(abc.ABC):
         """Delete the volume from data plane."""
 
     @abc.abstractmethod
+    def resize_volume(self, volume: models.MachineVolume) -> None:
+        """Resize the volume."""
+
+    @abc.abstractmethod
+    def attach_volume(self, volume: models.MachineVolume) -> None:
+        """Attach the volume."""
+
+    @abc.abstractmethod
+    def detach_volume(self, volume: models.MachineVolume) -> None:
+        """Detach the volume."""
+
+    @abc.abstractmethod
     def list_volumes(
-        self, machine: models.Machine
+        self, machine: models.Machine | None = None
     ) -> tp.Iterable[models.MachineVolume]:
         """Return volume list from data plane."""
 
@@ -76,6 +92,10 @@ class AbstractPoolDriver(abc.ABC):
     def reset_machine(self, machine: models.Machine) -> None:
         """Reset the machine."""
 
+    @abc.abstractmethod
+    def list_storage_pools(self) -> tp.Collection[models.StoragePool]:
+        """List storage pools."""
+
 
 class DummyPoolDriver(AbstractPoolDriver):
     SPEC = {"driver": "dummy"}
@@ -83,6 +103,10 @@ class DummyPoolDriver(AbstractPoolDriver):
     def __init__(self, pool: models.MachinePool):
         if pool.driver_spec != self.SPEC:
             raise ValueError(f"Invalid driver spec: {pool.driver_spec}")
+
+    def get_pool_info(self) -> dict[str, tp.Any]:
+        """Get pool info."""
+        return {}
 
     def list_machines(self) -> tp.List[models.Machine]:
         """Create a machine."""
@@ -113,7 +137,7 @@ class DummyPoolDriver(AbstractPoolDriver):
         pass
 
     def list_volumes(
-        self, machine: models.Machine
+        self, machine: models.Machine | None = None
     ) -> tp.Iterable[models.MachineVolume]:
         """Return volume list from data plane."""
         return []
@@ -123,6 +147,15 @@ class DummyPoolDriver(AbstractPoolDriver):
     ) -> models.MachineVolume:
         """Get the machine volume by uuid."""
 
+    def resize_volume(self, volume: models.MachineVolume) -> None:
+        """Resize the volume."""
+
+    def attach_volume(self, volume: models.MachineVolume) -> None:
+        """Attach the volume."""
+
+    def detach_volume(self, volume: models.MachineVolume) -> None:
+        """Detach the volume."""
+
     def set_machine_cores(self, machine: models.Machine, cores: int) -> None:
         """Set machine cores."""
 
@@ -131,3 +164,7 @@ class DummyPoolDriver(AbstractPoolDriver):
 
     def reset_machine(self, machine: models.Machine) -> None:
         """Reset the machine."""
+
+    def list_storage_pools(self) -> tp.Collection[models.StoragePool]:
+        """List storage pools."""
+        return []

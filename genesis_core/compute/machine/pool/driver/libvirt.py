@@ -20,10 +20,8 @@ import time
 import typing as tp
 import uuid as sys_uuid
 from xml.dom import minidom
-import contextlib as ctxlib
 
 import libvirt
-import netaddr
 
 from genesis_core.compute.dm import models
 from genesis_core.common import constants as c
@@ -475,9 +473,10 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         return models.MachineVolume(
             uuid=volume_uuid,
             machine=machine_uuid,
-            path=volume.path(),
-            size=15,
+            name=volume.name(),
             project_id=c.SERVICE_PROJECT_ID,
+            # TODO(akremenetsky): Get the size from the volume
+            size=15,
         )
 
     def _list_interfaces(self, machine: models.Machine) -> list[models.Port]:
@@ -507,8 +506,16 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
 
         return ports
 
+    def get_pool_info(self) -> dict[str, tp.Any]:
+        """Get pool info."""
+        info = self._client.getInfo()
+        return {
+            "cores": info[2],
+            "ram": info[1],
+        }
+
     def list_volumes(
-        self, machine: models.Machine
+        self, machine: models.Machine | None = None
     ) -> tp.Iterable[models.MachineVolume]:
         storage_pool = self._client.storagePoolLookupByName(
             self._spec.storage_pool
@@ -520,8 +527,10 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
             except Exception:
                 LOG.warning("Failed to parse volume %s", v.name())
 
+        if machine is None:
+            return volumes
+
         result = [v for v in volumes if v.machine == machine.uuid]
-        LOG.debug("Volumes: %s", result)
         return result
 
     def get_volume(
@@ -575,15 +584,12 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
                 raise pool_exc.VolumeAlreadyExistsError(volume=volume.uuid)
             raise
 
-        # TODO(akremenetsky): We shouldn't change the original object
-        volume.path = virt_volume.path()
-
         LOG.debug("The volume %s has been created", name)
         return volume
 
     def delete_volume(self, volume: models.MachineVolume) -> None:
         try:
-            v = self._client.storageVolLookupByPath(volume.path)
+            v = self._client.storageVolLookupByName(volume.name)
         except libvirt.libvirtError as e:
             LOG.exception("The volume %s has not been found:", volume.uuid)
             return
@@ -607,6 +613,18 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
                 break
         LOG.debug("The volume %s has been deleted", v.name())
         return
+
+    def attach_volume(self, volume: models.MachineVolume) -> None:
+        """Attach the volume."""
+        pass
+
+    def detach_volume(self, volume: models.MachineVolume) -> None:
+        """Detach the volume."""
+        pass
+
+    def resize_volume(self, volume: models.MachineVolume) -> None:
+        """Resize the volume."""
+        pass
 
     def list_machines(self) -> tp.List[models.Machine]:
         """Return machine list from data plane."""
@@ -654,13 +672,19 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
                 source=self._spec.network,
             )
 
+        # Prepare volume paths
+        storage_pool = self._client.storagePoolLookupByName(
+            self._spec.storage_pool
+        )
+        storage_pool_xml = minidom.parseString(storage_pool.XMLDesc())
+        pool_path = storage_pool_xml.getElementsByTagName("path")[
+            0
+        ].firstChild.data
+
         # Add the volumes to the domain
         for i, volume in enumerate(volumes):
-            if volume.path is None:
-                raise ValueError(f"Volume {volume.uuid} has no path")
-
             domain.add_disk(
-                image_path=volume.path,
+                image_path=f"{pool_path}/{volume.name}",
                 device="vd" + chr(ord("a") + i),
                 bus="virtio",
             )
@@ -734,3 +758,26 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
 
         domain.create()
         LOG.debug("The domain %s was reset", str(machine.uuid))
+
+    def list_storage_pools(self) -> list[models.StoragePool, ...]:
+        """List storage pools."""
+        pools = []
+        _pools = self._client.listAllStoragePools()
+
+        for p in _pools:
+            pool_xml = minidom.parseString(p.XMLDesc())
+            pool_type = pool_xml.getElementsByTagName("pool")[0].getAttribute(
+                "type"
+            )
+
+            pools.append(
+                models.StoragePool(
+                    uuid=sys_uuid.UUID(p.UUIDString()),
+                    name=p.name(),
+                    capacity=p.info()[1] >> 30,  # GB
+                    available=p.info()[3] >> 30,  # GB
+                    pool_type=pool_type,
+                )
+            )
+
+        return pools

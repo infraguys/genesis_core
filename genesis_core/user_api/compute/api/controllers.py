@@ -31,6 +31,36 @@ class ComputeController(controllers.RoutesListController):
     __TARGET_PATH__ = "/v1/compute/"
 
 
+class VolumesController(
+    iam_controllers.PolicyBasedController,
+    controllers.BaseResourceControllerPaginated,
+):
+    """Controller for /v1/compute/volumes/ endpoint"""
+
+    __policy_name__ = "volume"
+    __policy_service_name__ = nc.POLICY_SERVICE_NAME
+
+    __resource__ = resources.ResourceByRAModel(
+        model_class=user_models.Volume,
+        process_filters=True,
+        convert_underscore=False,
+        fields_permissions=field_p.FieldsPermissions(
+            default=field_p.Permissions.RW,
+            fields={
+                "status": {ra_c.ALL: field_p.Permissions.RO},
+            },
+        ),
+        hidden_fields=resources.HiddenFieldMap(
+            all=["pool"],
+        ),
+    )
+
+    def update(self, uuid, **kwargs):
+        kwargs["status"] = nc.VolumeStatus.IN_PROGRESS.value
+
+        return super().update(uuid, **kwargs)
+
+
 class NodesController(
     iam_controllers.PolicyBasedController,
     controllers.BaseResourceControllerPaginated,
@@ -44,7 +74,18 @@ class NodesController(
         model_class=user_models.Node,
         process_filters=True,
         convert_underscore=False,
+        fields_permissions=field_p.FieldsPermissions(
+            default=field_p.Permissions.RW,
+            fields={
+                "status": {ra_c.ALL: field_p.Permissions.RO},
+            },
+        ),
     )
+
+    def update(self, uuid, **kwargs):
+        kwargs["status"] = nc.NodeStatus.IN_PROGRESS.value
+
+        return super().update(uuid, **kwargs)
 
 
 class NodeSetsController(iam_controllers.PolicyBasedController):
@@ -67,9 +108,7 @@ class NodeSetsController(iam_controllers.PolicyBasedController):
     )
 
     def update(self, uuid, **kwargs):
-        # Force config to be NEW
-        # In order to regenerate renders
-        kwargs["status"] = nc.NodeStatus.NEW.value
+        kwargs["status"] = nc.NodeStatus.IN_PROGRESS.value
 
         return super().update(uuid, **kwargs)
 
@@ -115,17 +154,17 @@ class HypervisorsController(
         return hyper
 
 
-class MachineAgentController(
-    iam_controllers.PolicyBasedController,
-    controllers.BaseResourceControllerPaginated,
-):
-    """Controller for /v1/compute/machine_agents/ endpoint"""
+# class MachineAgentController(
+#     iam_controllers.PolicyBasedController,
+#     controllers.BaseResourceControllerPaginated,
+# ):
+#     """Controller for /v1/compute/machine_agents/ endpoint"""
 
-    __policy_name__ = "machine_agent"
-    __policy_service_name__ = nc.POLICY_SERVICE_NAME
+#     __policy_name__ = "machine_agent"
+#     __policy_service_name__ = nc.POLICY_SERVICE_NAME
 
-    __resource__ = resources.ResourceByRAModel(
-        model_class=node_models.MachineAgent,
-        process_filters=True,
-        convert_underscore=False,
-    )
+#     __resource__ = resources.ResourceByRAModel(
+#         model_class=node_models.MachineAgent,
+#         process_filters=True,
+#         convert_underscore=False,
+#     )
