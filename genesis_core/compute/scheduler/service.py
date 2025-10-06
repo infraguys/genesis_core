@@ -24,6 +24,7 @@ from restalchemy.common import contexts
 from restalchemy.storage import exceptions as ra_exceptions
 from restalchemy.dm import filters as dm_filters
 from gcl_looper.services import basic
+from gcl_sdk.agents.universal.dm import models as ua_models
 
 from genesis_core.compute.dm import models
 from genesis_core.compute import constants as nc
@@ -31,16 +32,17 @@ from genesis_core.compute.scheduler.driver import base
 
 LOG = logging.getLogger(__name__)
 BUILDER_REBALANCE_RATE = 100
+MACHINE_POOL_CAP = "pool"
 
 
-class NodeSchedulerService(basic.BasicService):
+class SchedulerService(basic.BasicService):
 
     def __init__(
         self,
-        pool_filters: tp.List[base.MachinePoolAbstractFilter],
-        pool_weighters: tp.List[base.MachinePoolAbstractWeighter],
-        machine_filters: tp.List[base.MachineAbstractFilter],
-        machine_weighters: tp.List[base.MachineAbstractWeighter],
+        pool_filters: list[base.MachinePoolAbstractFilter],
+        pool_weighters: list[base.MachinePoolAbstractWeighter],
+        machine_filters: list[base.MachineAbstractFilter],
+        machine_weighters: list[base.MachineAbstractWeighter],
         iter_min_period: int = 1,
         iter_pause: float = 0.1,
     ):
@@ -50,20 +52,22 @@ class NodeSchedulerService(basic.BasicService):
         self._machine_filters = machine_filters
         self._machine_weighters = machine_weighters
 
-    def _get_builders(
+    def _get_pool_builders(
         self, limit: int = nc.DEF_SQL_LIMIT
-    ) -> tp.List[models.Builder]:
+    ) -> list[ua_models.UniversalAgent]:
         """Get all active builders."""
-        return models.Builder.objects.get_all(
+        return ua_models.UniversalAgent.objects.get_all(
             filters={
                 "status": dm_filters.EQ(nc.BuilderStatus.ACTIVE.value),
+                # TODO(akremenetsky): Add something like service type
+                "name": dm_filters.Like("compute_pool_builder%"),
             },
             limit=limit,
         )
 
     def _get_in_update_machines(
         self, limit: int = nc.DEF_SQL_LIMIT
-    ) -> tp.List[models.Machine]:
+    ) -> list[models.Machine]:
         """Get all in update machines."""
         return models.Machine.objects.get_all(
             filters={
@@ -76,26 +80,74 @@ class NodeSchedulerService(basic.BasicService):
             limit=limit,
         )
 
+    def _get_machines_for_nodes(
+        self, nodes: tp.Collection[sys_uuid.UUID]
+    ) -> list[models.Machine]:
+        """Get all machines for nodes."""
+        return models.Machine.objects.get_all(
+            filters={
+                "node": dm_filters.In(nodes),
+            },
+        )
+
     def _get_unscheduled_nodes(
         self, limit: int = nc.DEF_SQL_LIMIT
-    ) -> tp.List[models.UnscheduledNode]:
-        """Get all unscheduled nodes."""
-        return models.UnscheduledNode.objects.get_all(limit=limit)
+    ) -> tuple[base.NodeBundle, ...]:
+        unscheduled = models.UnscheduledNode.objects.get_all(limit=limit)
 
-    def _get_unscheduled_machines(
-        self, limit: int = nc.DEF_SQL_LIMIT
-    ) -> tp.List[models.Machine]:
-        """Get all unscheduled machines."""
-        return models.Machine.objects.get_all(
-            filters={"pool": dm_filters.Is(None)},
-            limit=limit,
+        if not unscheduled:
+            return tuple()
+
+        volumes = models.Volume.objects.get_all(
+            filters={
+                "node": dm_filters.In([u.uuid for u in unscheduled]),
+            },
         )
+        volume_map = {}
+        for v in volumes:
+            volume_map.setdefault(v.node, []).append(v)
+
+        return tuple(
+            base.NodeBundle(node=u.node, volumes=volume_map.get(u.uuid, []))
+            for u in unscheduled
+        )
+
+    def _get_unscheduled_volumes(
+        self, limit: int = nc.DEF_SQL_LIMIT
+    ) -> list[models.UnscheduledVolume]:
+        """Get all unscheduled volumes."""
+        return models.UnscheduledVolume.objects.get_all(limit=limit)
+
+    # def _get_unscheduled_machines(
+    #     self, limit: int = nc.DEF_SQL_LIMIT
+    # ) -> tuple[base.MachineBundle, ...]:
+    #     """Get all unscheduled machines."""
+    #     machines = models.Machine.objects.get_all(
+    #         filters={"pool": dm_filters.Is(None)},
+    #         limit=limit,
+    #     )
+
+    #     if not machines:
+    #         return tuple()
+
+    #     volumes = models.MachineVolume.objects.get_all(
+    #         filters={
+    #             "machine": dm_filters.In([m.uuid for m in machines]),
+    #         },
+    #     )
+    #     volume_map = {}
+    #     for v in volumes:
+    #         volume_map.setdefault(v.machine, []).append(v)
+
+    #     return tuple(
+    #         base.MachineBundle(machine=m, volumes=volume_map.get(m.uuid, []))
+    #         for m in machines
+    #     )
 
     def _get_idle_machines(
         self, limit: int = nc.DEF_SQL_LIMIT
-    ) -> tp.List[models.Machine]:
-        """Get available HW machines."""
-        return models.Machine.objects.get_all(
+    ) -> tuple[base.MachineBundle, ...]:
+        idle = models.Machine.objects.get_all(
             filters={
                 "node": dm_filters.Is(None),
                 "status": dm_filters.EQ(nc.MachineStatus.IDLE.value),
@@ -103,106 +155,264 @@ class NodeSchedulerService(basic.BasicService):
             limit=limit,
         )
 
+        if not idle:
+            return tuple()
+
+        volumes = models.MachineVolume.objects.get_all(
+            filters={
+                "machine": dm_filters.In([m.uuid for m in idle]),
+            },
+        )
+        volume_map = {}
+        for v in volumes:
+            volume_map.setdefault(v.machine, []).append(v)
+
+        return tuple(
+            base.MachineBundle(machine=m, volumes=volume_map.get(m.uuid, []))
+            for m in idle
+        )
+
     def _get_unscheduled_pools(
         self, limit: int = nc.DEF_SQL_LIMIT
-    ) -> tp.List[models.MachinePool]:
+    ) -> list[models.MachinePool]:
         """Get all unscheduled pools."""
         return models.MachinePool.objects.get_all(
-            filters={"agent": dm_filters.Is(None)},
+            filters={"builder": dm_filters.Is(None)},
             limit=limit,
         )
 
     def _get_pools(
         self, limit: int = nc.DEF_SQL_LIMIT
-    ) -> tp.List[models.MachinePool]:
-        """Get all active pools."""
-        return models.MachinePool.objects.get_all(
+    ) -> list[base.MachinePoolBundle]:
+        """Fetch pools and available volumes in the pools."""
+        pools = models.MachinePool.objects.get_all(
             filters={
                 "status": dm_filters.EQ(nc.MachinePoolStatus.ACTIVE.value),
                 "machine_type": dm_filters.EQ(nc.NodeType.VM.value),
-                "agent": dm_filters.IsNot(None),
+                "builder": dm_filters.IsNot(None),
                 "driver_spec": dm_filters.NE("{}"),
             },
             limit=limit,
         )
+        volumes = models.MachineVolume.objects.get_all(
+            filters={
+                "pool": dm_filters.In(p.uuid for p in pools),
+                "machine": dm_filters.Is(None),
+                "node_volume": dm_filters.Is(None),
+            },
+        )
+        volume_map = {}
+        for v in volumes:
+            volume_map.setdefault(v.pool, []).append(v)
 
-    def _build_vm(
-        self,
-        node: models.UnscheduledNode,
-    ) -> models.Machine:
-        machine_uuid = node.uuid
+        return tuple(
+            base.MachinePoolBundle(pool=p, volumes=volume_map.get(p.uuid, []))
+            for p in pools
+        )
+
+    # def _build_root_volume(
+    #     self, node: models.UnscheduledNode
+    # ) -> models.Volume:
+    #     volume_name = "root-volume"
+    #     volume_uuid = sys_uuid.uuid5(node.uuid, volume_name)
+    #     volume = models.Volume(
+    #         uuid=volume_uuid,
+    #         name=volume_name,
+    #         size=node.root_disk_size,
+    #         node=node.uuid,
+    #         project_id=node.project_id,
+    #         index=0,
+    #     )
+
+    #     return volume
+
+    # def _create_machines_for(
+    #     self, unscheduled: list[models.UnscheduledNode]
+    # ) -> list[models.Machine]:
+    #     """Create machines for unscheduled nodes."""
+    #     machines = []
+    #     if not unscheduled:
+    #         LOG.debug("Nothing to schedule, no unscheduled nodes")
+    #         return machines
+
+    #     for node in unscheduled:
+    #         # TODO(akremenetsky): It's a builder work.
+    #         # Move to the builder service.
+    #         if node.root_disk_size:
+    #             try:
+    #                 volume = self._build_root_volume(node)
+    #                 volume.insert()
+    #                 LOG.info(
+    #                     "The root volume %s has been created", volume.uuid
+    #                 )
+    #             except ra_exceptions.ConflictRecords:
+    #                 # It's ok, the volume is already created
+    #                 pass
+
+    #         machines.append(self._build_vm(node))
+
+    #     return machines
+    def _build_machine_volume(
+        self, pool: base.MachinePoolBundle, volume: models.Volume
+    ) -> models.MachineVolume:
+        # TODO(akremenetsky): Rework this simple implementation.
+        # At the moment we just take the first storage pool
+        # and allocate additional space for the volume.
+        # But we need to figure out which storage pool is
+        # the owner of the volume.
+        storage_pool = pool.pool.storage_pools[0]
+        storage_pool.allocate_capacity(volume.size)
+
+        pool_volume = models.MachineVolume(
+            uuid=volume.uuid,
+            name=str(volume.uuid),
+            index=0,
+            size=volume.size,
+            image=volume.image,
+            boot=volume.boot,
+            label=volume.label,
+            device_type=volume.device_type,
+            node_volume=volume.uuid,
+            project_id=volume.project_id,
+        )
+
+        return pool_volume
+
+    def _place_volume_into_pool(
+        self, volume: models.Volume, pool: base.MachinePoolBundle
+    ) -> models.MachineVolume:
+        """Place a volume into a pool.
+
+        The scheduling operation has been completed. A particular pool
+        has been selected for the volume. Now we need to place the volume
+        into the pool.
+        """
+
+        # Don't waste time on volumes without an image.
+        # Create a new volume.
+        if volume.image is None:
+            return self._build_machine_volume(pool, volume)
+
+        volumes = []
+        for pool_volume in pool.volumes:
+            # We can take less than required size and resize it later
+            # NOTE(akremenetsky): Need to think about target fileds for
+            # volumes. Is the size is a target or actual field?
+            if (
+                pool_volume.image == volume.image
+                and pool_volume.size <= volume.size
+            ):
+                volumes.append(pool_volume)
+
+        # No volumes found, just create a new volume later
+        if not volumes:
+            return self._build_machine_volume(pool, volume)
+
+        # Figure out the best volume
+        volumes.sort(key=lambda v: volume.size - v.size)
+        pool_volume = volumes[0]
+        need_size = volume.size - pool_volume.size
+
+        # TODO(akremenetsky): Rework this simple implementation.
+        # At the moment we just take the first storage pool
+        # and allocate additional space for the volume.
+        # But we need to figure out which storage pool is
+        # the owner of the volume.
+        storage_pool = pool.pool.storage_pools[0]
+
+        # Check if the storage pool has enough space
+        if need_size and storage_pool.available < need_size:
+            return self._build_machine_volume(pool, volume)
+
+        # Allocate additional space for the volume
+        storage_pool.allocate_capacity(need_size)
+
+        # Remove the volume from the pool
+        pool.volumes.remove(pool_volume)
+        LOG.debug(
+            "Found machine volume %s for node volume %s",
+            pool_volume,
+            volume,
+        )
+
+        pool_volume.node_volume = volume.uuid
+        return pool_volume
+
+    def _place_node_into_pool(
+        self, node: base.NodeBundle, pool: base.MachinePoolBundle
+    ) -> None:
+        """Place a node into a pool.
+
+        The scheduling operation has been completed. A particular pool
+        has been selected for the node. Now we need to place the node
+        into the pool.
+        """
+        # Prepare the machine
+        machine_uuid = node.node.uuid
         machine = models.Machine(
             uuid=machine_uuid,
             firmware_uuid=machine_uuid,
-            name=node.name,
-            cores=node.cores,
-            ram=node.ram,
-            node=node.uuid,
-            project_id=node.project_id,
+            name=node.node.name,
+            cores=node.node.cores,
+            ram=node.node.ram,
+            node=node.node.uuid,
+            project_id=node.node.project_id,
             machine_type=nc.NodeType.VM.value,
             status=nc.MachineStatus.SCHEDULED.value,
         )
-        return machine
 
-    def _build_root_volume(
-        self, node: models.UnscheduledNode
-    ) -> models.Volume:
-        volume_name = "root-volume"
-        volume_uuid = sys_uuid.uuid5(node.uuid, volume_name)
-        volume = models.Volume(
-            uuid=volume_uuid,
-            name=volume_name,
-            size=node.root_disk_size,
-            node=node.uuid,
-            project_id=node.project_id,
+        # Place volumes into the pool
+        volume_allocations = []
+        for node_volume in node.volumes:
+            volume_allocations.append(
+                self._place_volume_into_pool(node_volume, pool)
+            )
+
+        # Set pool to machine, node and volumes
+        machine.pool = pool.pool.uuid
+        node.node.pool = pool.pool.uuid
+        node.node.save()
+        machine.save()
+        for volume in volume_allocations:
+            volume.pool = pool.pool.uuid
+            volume.machine = machine_uuid
+            volume.save()
+
+        LOG.info(
+            "The machine %s scheduled to %s pool",
+            machine.uuid,
+            pool.pool.uuid,
         )
 
-        return volume
+        # Actualize pool after scheduling machine to it.
+        # We need consider the machine we just scheduled
+        # for next machines in this cycle
+        pool.pool.avail_cores -= machine.cores
+        pool.pool.avail_ram -= machine.ram
 
-    def _schedule_vm_nodes(
-        self, unsheduled: tp.List[models.UnscheduledNode]
-    ) -> tp.List[models.Machine]:
-        machines = []
-        if not unsheduled:
-            LOG.debug("Nothing to schedule, no unscheduled nodes")
-            return machines
-
-        for node in unsheduled:
-            # TODO(akremenetsky): It's a builder work.
-            # Move to the builder service.
-            if node.root_disk_size:
-                volume = self._build_root_volume(node)
-                if models.Volume.objects.get_one_or_none(
-                    filters={"uuid": dm_filters.EQ(volume.uuid)}
-                ):
-                    LOG.warning(
-                        "The root volume %s already exists, do nothing",
-                        volume.uuid,
-                    )
-                else:
-                    volume.insert()
-                    LOG.info(
-                        "The root volume %s has been created", volume.uuid
-                    )
-
-            machines.append(self._build_vm(node))
-
-        return machines
-
-    def _schedule_nodes(self) -> tp.List[models.Machine]:
+    def _schedule_on_existing_machines(self) -> tuple[base.MachineBundle, ...]:
         unscheduled = self._get_unscheduled_nodes()
+
+        # TODO(akremenetsky): Idle machines are limited by some number
+        # in SQL query and it's maybe a problem if we have a lot of
+        # idle machines. The fetched machines may be not suitable for
+        # unscheduled nodes and we will create another machines.
         idle_machines = self._get_idle_machines()
 
         idle_hws = [
-            m for m in idle_machines if m.machine_type == nc.NodeType.HW.value
+            m
+            for m in idle_machines
+            if m.machine.machine_type == nc.NodeType.HW.value
         ]
         idle_vms = [
-            m for m in idle_machines if m.machine_type == nc.NodeType.VM.value
+            m
+            for m in idle_machines
+            if m.machine.machine_type == nc.NodeType.VM.value
         ]
         vms = []
 
         for unscheduled_node in unscheduled:
-            node = unscheduled_node.node
+            node: models.Node = unscheduled_node.node
             if node.node_type == nc.NodeType.HW:
                 idle_machines = idle_hws
             else:
@@ -212,7 +422,7 @@ class NodeSchedulerService(basic.BasicService):
             # machines that doesn't have enough cores or ram or some
             # placement constraints.
             for filter in self._machine_filters:
-                idle_machines = filter.filter(node, idle_machines)
+                idle_machines = filter.filter(unscheduled_node, idle_machines)
 
             # There are no available HW machines for this node
             # This means we unable to proceed scheduling process
@@ -236,7 +446,7 @@ class NodeSchedulerService(basic.BasicService):
                     "No idle VM machines found to schedule node %s",
                     node.uuid,
                 )
-                vms.append(node)
+                vms.append(unscheduled_node)
                 continue
 
             # Weighting. We weight machines and choose the best one.
@@ -251,59 +461,60 @@ class NodeSchedulerService(basic.BasicService):
 
             # Choose the best machine, it means the one with the highest weight
             index = accumulated_weights.index(max(accumulated_weights))
-            machine = idle_machines[index]
+            machine_bundle = idle_machines[index]
 
-            machine.node = node.uuid
-            machine.status = nc.MachineStatus.SCHEDULED.value
+            # TODO(akremenetsky): Map volumes to machine volumes
+            machine_bundle.machine.node = node.uuid
+            machine_bundle.machine.status = nc.MachineStatus.SCHEDULED.value
             node.status = nc.NodeStatus.SCHEDULED.value
             try:
                 node.save()
-                machine.save()
+                machine_bundle.machine.save()
                 LOG.info(
                     "The node %s scheduled to %s machine",
                     node.uuid,
-                    machine.uuid,
+                    machine_bundle.machine.uuid,
                 )
             except Exception:
                 LOG.exception("Error scheduling node %s", node.uuid)
 
             # Actualize idle machines
             if node.node_type == nc.NodeType.HW.value:
-                idle_hws.remove(machine)
+                idle_hws.remove(machine_bundle)
             else:
-                idle_vms.remove(machine)
+                idle_vms.remove(machine_bundle)
 
-        return self._schedule_vm_nodes(vms)
+        return vms
 
-    def _schedule_machines(
+    def _schedule_on_pools(
         self,
-        machines: tp.Iterable[models.Machine],
-        builders: tp.Iterable[models.Builder],
+        nodes: tp.Collection[base.NodeBundle],
+        pools: tp.Collection[base.MachinePoolBundle],
     ) -> None:
-        if not machines:
-            LOG.debug("Nothing to schedule, no unscheduled machines")
+        if not nodes:
+            LOG.debug("Nothing to schedule, no unscheduled nodes")
             return
 
-        pools = self._get_pools()
         if not pools:
-            _machines = (m.uuid for m in machines)
-            LOG.warning("No pools found to schedule machines %s", _machines)
+            _nodes = tuple(m.node.uuid for m in nodes)
+            LOG.warning("No pools found to schedule nodes %s", _nodes)
             return
 
         # Save origin pools to filter them out for each machine
         origin_pools = pools
 
-        for machine in machines:
+        for node in nodes:
             pools = origin_pools
+
             # Filtering. We filter out unsuitable pools. For instance, pools
             # that doesn't have enough cores or ram or some placement
             # constraints.
             for filter in self._pool_filters:
-                pools = filter.filter(machine, pools)
+                pools = filter.filter(node, pools)
 
             if not pools:
                 LOG.warning(
-                    "No pools found to schedule machine %s", machine.uuid
+                    "No pools found to schedule node %s", node.node.uuid
                 )
                 continue
 
@@ -324,139 +535,224 @@ class NodeSchedulerService(basic.BasicService):
             pool = pools[index]
             if not pool:
                 LOG.warning(
-                    "No pools found to schedule machine %s", machine.uuid
+                    "No pools found to schedule node %s", node.node.uuid
                 )
                 continue
 
-            builder = random.choice(builders)
-            machine.pool = pool.uuid
-            machine.builder = builder.uuid
-            machine.build_status = nc.MachineBuildStatus.IN_BUILD.value
+            # The final step is to place the node into the pool
             try:
-                machine.save()
-                LOG.info(
-                    "The machine %s scheduled to %s pool",
-                    machine.uuid,
-                    pool.uuid,
-                )
+                self._place_node_into_pool(node, pool)
             except Exception:
-                LOG.exception("Error building machine %s", machine.uuid)
+                LOG.exception(
+                    "Error placing node %s into pool %s",
+                    node.node.uuid,
+                    pool.pool.uuid,
+                )
 
-            # Actualize pool after scheduling machine to it.
-            # We need consider the machine we just scheduled
-            # for next machines in this cycle
-            pool.avail_cores -= machine.cores
-            pool.avail_ram -= machine.ram
-
-    def _schedule_pools(self) -> None:
+    def _schedule_pools(
+        self, pool_builders: list[ua_models.UniversalAgent]
+    ) -> None:
         unsheduled = self._get_unscheduled_pools()
         if not unsheduled:
             LOG.debug("Nothing to schedule, no unscheduled pools")
             return
 
         # The simplest implementation is to schedule to a random machine agent
-        agents = models.MachineAgent.all_active()
-        if not agents:
+        if not pool_builders:
+            pools = [pool.uuid for pool in unsheduled]
+            LOG.warning("No pool builders found to schedule pools %s", pools)
+            return
+
+        machine_agents = ua_models.UniversalAgent.have_capabilities(
+            (MACHINE_POOL_CAP,)
+        )
+
+        # TODO(akremenetsky): We need to rebalance pools among agents
+        # and builders. Also we need to track died agents and builders.
+        if not machine_agents:
             pools = [pool.uuid for pool in unsheduled]
             LOG.warning("No machine agents found to schedule pools %s", pools)
             return
 
         for pool in unsheduled:
-            agent = random.choice(agents)
+            builder = random.choice(pool_builders)
+            agent = random.choice(machine_agents[MACHINE_POOL_CAP])
 
             try:
+                pool.builder = builder.uuid
                 pool.agent = agent.uuid
                 pool.update()
                 LOG.info(
-                    "The pool %s scheduled to machine agent %s",
+                    "The pool %s scheduled to builder %s and agent %s",
                     pool.uuid,
+                    builder.uuid,
                     agent.uuid,
                 )
             except Exception:
                 LOG.exception("Error scheduling pool %s", pool.uuid)
 
-    def _schedule_in_update(self, builders: tp.List[models.Builder]) -> None:
-        machines = self._get_in_update_machines()
-        if not machines:
-            LOG.debug("No in update machines found")
+    def _schedule_volume_on_pools(
+        self, pools: list[base.MachinePoolBundle]
+    ) -> None:
+        """Schedule volumes on pools."""
+        unscheduled_volumes = self._get_unscheduled_volumes()
+        if not unscheduled_volumes:
+            LOG.debug("Nothing to schedule, no unscheduled volumes")
             return
 
-        for machine in machines:
-            try:
-                builder = random.choice(builders)
-                machine.builder = builder.uuid
-                machine.update()
+        if not pools:
+            LOG.warning("Unable to schedule volumes, no pools")
+            return
+
+        pools = {p.pool.uuid: p for p in pools}
+
+        machines = self._get_machines_for_nodes(
+            unscheduled.volume.node
+            for unscheduled in unscheduled_volumes
+            if unscheduled.volume.node is not None
+        )
+        node_map = {m.node: m for m in machines}
+
+        for unscheduled in unscheduled_volumes:
+            volume = unscheduled.volume
+
+            # Unknown case, just skip it
+            if volume.node is None:
                 LOG.debug(
-                    "The machine %s scheduled to builder %s",
-                    machine.uuid,
-                    builder.uuid,
+                    "Volume %s is not assigned to any node, skipping",
+                    volume.uuid,
                 )
+                continue
+
+            # Unknown node case, just skip it
+            if volume.node not in node_map:
+                LOG.error(
+                    "Volume %s is assigned to unknown node %s",
+                    volume.uuid,
+                    volume.node,
+                )
+                continue
+
+            try:
+                pool = pools[node_map[volume.node].pool]
+            except KeyError:
+                LOG.error(
+                    "Unable to find pool for volume %s assigned to node %s",
+                    volume.uuid,
+                    volume.node,
+                )
+                continue
+
+            # Place the volume into the same pool as the machine
+            try:
+                machine_volume = self._place_volume_into_pool(volume, pool)
+                machine_volume.pool = pool.pool.uuid
+                machine_volume.save()
+
+                volume.pool = pool.pool.uuid
+                volume.save()
             except Exception:
-                LOG.exception("Error scheduling machine %s", machine.uuid)
+                LOG.exception(
+                    "Error placing volume %s into pool %s",
+                    volume.uuid,
+                    pool.uuid,
+                )
+                continue
 
-    def _rebalance_builders(self, builders: tp.List[models.Builder]) -> None:
-        """Rebalances builders.
+    # def _schedule_in_update(self, builders: list[models.Builder]) -> None:
+    #     machines = self._get_in_update_machines()
+    #     if not machines:
+    #         LOG.debug("No in update machines found")
+    #         return
 
-        There are two reasons why we would like to rebalance builders:
-        1. The build procedure may be pretty long and some machines may
-           get stuck waiting for others to be built. A possible solution is
-           to rebalance loads between the builders.
-        2. Drop "dead" builders. A builder may receive machines
-           to build and then become inactive for some reason. In this case,
-           the machines will be built indefinitely. To handle this case, we
-           need to "drop" all builders from time to time. All active builders
-           will register themselves on a new iteration, and all inactive builders
-           are removed.
-        """
-        # Check if the current iteration is a rebalancing point
-        if self._iteration_number % BUILDER_REBALANCE_RATE != 0:
-            return
+    #     for machine in machines:
+    #         try:
+    #             builder = random.choice(builders)
+    #             machine.builder = builder.uuid
+    #             machine.update()
+    #             LOG.debug(
+    #                 "The machine %s scheduled to builder %s",
+    #                 machine.uuid,
+    #                 builder.uuid,
+    #             )
+    #         except Exception:
+    #             LOG.exception("Error scheduling machine %s", machine.uuid)
 
-        # Delete all builders. They will register on the next iteration.
-        for builder in builders:
-            builder.delete()
-            LOG.debug(
-                "The builder %s has been deleted for rebalancing", builder.uuid
-            )
+    # def _rebalance_builders(self, builders: list[models.Builder]) -> None:
+    #     """Rebalances builders.
+
+    #     There are two reasons why we would like to rebalance builders:
+    #     1. The build procedure may be pretty long and some machines may
+    #        get stuck waiting for others to be built. A possible solution is
+    #        to rebalance loads between the builders.
+    #     2. Drop "dead" builders. A builder may receive machines
+    #        to build and then become inactive for some reason. In this case,
+    #        the machines will be built indefinitely. To handle this case, we
+    #        need to "drop" all builders from time to time. All active builders
+    #        will register themselves on a new iteration, and all inactive builders
+    #        are removed.
+    #     """
+    #     # Check if the current iteration is a rebalancing point
+    #     if self._iteration_number % BUILDER_REBALANCE_RATE != 0:
+    #         return
+
+    #     # Delete all builders. They will register on the next iteration.
+    #     for builder in builders:
+    #         builder.delete()
+    #         LOG.debug(
+    #             "The builder %s has been deleted for rebalancing", builder.uuid
+    #         )
 
     def _iteration(self):
         with contexts.Context().session_manager():
-            builders = self._get_builders()
-            unscheduled_machines = self._get_unscheduled_machines()
+            pool_builders = self._get_pool_builders()
+            pools = self._get_pools()
+
+            # It's not obvious case when there are unscheduled machines
+            # How it can happen?
+            # unscheduled_machines = self._get_unscheduled_machines()
+
+            if not pool_builders:
+                LOG.error("No pool builders found!")
+                return
 
             # Pools
             try:
-                self._schedule_pools()
+                self._schedule_pools(pool_builders)
             except Exception:
                 LOG.exception("Error scheduling pools:")
 
-            if not builders:
-                LOG.warning("No builders found!")
-                return
-
             # Nodes
+            # The first step is to schedule nodes to existing machines
+            # If there are no available machines for a node,
+            # the nodes just return
             try:
-                new_machines = self._schedule_nodes()
+                unscheduled_nodes = self._schedule_on_existing_machines()
             except Exception:
                 LOG.exception("Error scheduling nodes:")
-                new_machines = []
+                unscheduled_nodes = []
 
-            # Machines. All machines without pools will be scheduled
-            machines = set(unscheduled_machines + new_machines)
+            # The second step is to schedule unscheduled nodes to pools.
             try:
-                self._schedule_machines(machines, builders)
+                self._schedule_on_pools(unscheduled_nodes, pools)
             except Exception:
-                LOG.exception("Error scheduling machines:")
+                LOG.exception("Error scheduling nodes:")
+
+            # Volumes
+            try:
+                self._schedule_volume_on_pools(pools)
+            except Exception:
+                LOG.exception("Error scheduling volumes:")
 
             # Reschedule in update machines.
             # A machine may be updated during its lifetime. For instance,
             # additional volumes will be added or cores will be changes.
             # In such case we need to repeat the scheduling procedure
             # to choose a builder that prepare and reserve all new resources.
-            try:
-                self._schedule_in_update(builders)
-            except Exception:
-                LOG.exception("Error scheduling nodes:")
+            # try:
+            #     self._schedule_in_update(builders)
+            # except Exception:
+            #     LOG.exception("Error scheduling nodes:")
 
             # There are two reasons why we would like to rebalance builders:
             # 1. The build procedure may be pretty long and some machines may
@@ -468,4 +764,4 @@ class NodeSchedulerService(basic.BasicService):
             #    need to "drop" all builders time to time. All active builders
             #    will register itself on a new iteration, all dead builders
             #    are removed.
-            self._rebalance_builders(builders)
+            # self._rebalance_builders(builders)

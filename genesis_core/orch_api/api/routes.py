@@ -34,16 +34,16 @@ class NetbootRoute(routes.Route):
     __allow_methods__ = [routes.GET]
 
 
-class NodeRoute(routes.Route):
-    """Handler for /v1/nodes/ endpoint"""
+# class NodeRoute(routes.Route):
+#     """Handler for /v1/nodes/ endpoint"""
 
-    __controller__ = controllers.NodesController
+#     __controller__ = controllers.NodesController
 
 
-class MachineRoute(routes.Route):
-    """Handler for /v1/machines/ endpoint"""
+# class MachineRoute(routes.Route):
+#     """Handler for /v1/machines/ endpoint"""
 
-    __controller__ = controllers.MachinesController
+#     __controller__ = controllers.MachinesController
 
 
 class ApiEndpointRoute(routes.Route):
@@ -54,6 +54,6 @@ class ApiEndpointRoute(routes.Route):
 
     health = routes.route(HealthRoute)
     boots = routes.route(NetbootRoute)
-    nodes = routes.route(NodeRoute)
-    machines = routes.route(MachineRoute)
+    # nodes = routes.route(NodeRoute)
+    # machines = routes.route(MachineRoute)
     agents = routes.route(orch_routes.UniversalAgentsRoute)

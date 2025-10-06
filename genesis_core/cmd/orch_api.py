@@ -46,13 +46,18 @@ api_cli_opts = [
     ),
     cfg.StrOpt(
         "gc_host",
-        default="10.20.0.2",
+        default="core.local.genesis-core.tech",
         help="GC host",
     ),
-    cfg.IntOpt(
-        "gc_port",
-        default=11011,
-        help="GC port",
+    cfg.StrOpt(
+        "gc_orch_api",
+        default="http://core.local.genesis-core.tech:11011",
+        help="GC orchestrator API",
+    ),
+    cfg.StrOpt(
+        "gc_status_api",
+        default="http://core.local.genesis-core.tech:11012",
+        help="GC status API",
     ),
     cfg.StrOpt(
         "kernel",

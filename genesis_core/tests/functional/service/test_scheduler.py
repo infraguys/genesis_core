@@ -42,7 +42,7 @@ class TestSchedulerService:
         machine_weighters = [
             relative.SimpleMachineWeighter(),
         ]
-        self._service = service.NodeSchedulerService(
+        self._service = service.SchedulerService(
             pool_filters=pool_filters,
             pool_weighters=pool_weighters,
             machine_filters=machine_filters,

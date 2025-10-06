@@ -17,16 +17,18 @@ from __future__ import annotations
 
 from restalchemy.dm import types
 
-from genesis_core.compute.dm import models as node_models
+from genesis_core.compute.dm import models
 
-LOCAL_GC_HOST = "localhost"
-LOCAL_GC_PORT = 11011
+LOCAL_GC_HOST = "core.local.genesis-core.tech"
+LOCAL_GC_ORCH_API = "http://core.local.genesis-core.tech:11011"
+LOCAL_GC_STATUS_API = "http://core.local.genesis-core.tech:11012"
 
 
-class Netboot(node_models.Netboot):
+class MachineNetboot(models.Machine):
     __custom_properties__ = {
         "gc_host": types.String(max_length=255),
-        "gc_port": types.Integer(),
+        "gc_orch_api": types.String(max_length=255),
+        "gc_status_api": types.String(max_length=255),
         "kernel": types.AllowNone(types.String(max_length=255)),
         "initrd": types.AllowNone(types.String(max_length=255)),
     }
@@ -34,37 +36,45 @@ class Netboot(node_models.Netboot):
     def __init__(
         self,
         gc_host: str = LOCAL_GC_HOST,
-        gc_port: int = LOCAL_GC_PORT,
+        gc_orch_api: str = LOCAL_GC_ORCH_API,
+        gc_status_api: str = LOCAL_GC_STATUS_API,
         kernel: str | None = None,
         initrd: str | None = None,
         *args,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
-        self.set_netboot_params(gc_host, gc_port, kernel, initrd)
+        self.set_netboot_params(
+            gc_host, gc_orch_api, gc_status_api, kernel, initrd
+        )
 
     @classmethod
     def restore_from_storage(
         cls,
         gc_host: str = LOCAL_GC_HOST,
-        gc_port: int = LOCAL_GC_PORT,
+        gc_orch_api: str = LOCAL_GC_ORCH_API,
+        gc_status_api: str = LOCAL_GC_STATUS_API,
         kernel: str | None = None,
         initrd: str | None = None,
         **kwargs,
     ):
         obj = super().restore_from_storage(**kwargs)
-        obj.set_netboot_params(gc_host, gc_port, kernel, initrd)
+        obj.set_netboot_params(
+            gc_host, gc_orch_api, gc_status_api, kernel, initrd
+        )
         return obj
 
     def set_netboot_params(
         self,
         gc_host: str,
-        gc_port: int,
+        gc_orch_api: str,
+        gc_status_api: str,
         kernel: str | None,
         initrd: str | None,
     ) -> None:
         self.gc_host = gc_host
-        self.gc_port = gc_port
+        self.gc_orch_api = gc_orch_api
+        self.gc_status_api = gc_status_api
 
         # Use tftp by default
         if kernel is None:
@@ -76,9 +86,9 @@ class Netboot(node_models.Netboot):
         self.initrd = initrd
 
 
-class Node(node_models.Node):
-    pass
+# class Node(node_models.Node):
+#     pass
 
 
-class Machine(node_models.Machine):
-    pass
+# class Machine(node_models.Machine):
+#     pass

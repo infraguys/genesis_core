@@ -55,10 +55,10 @@ class HypervisorRoute(routes.Route):
 
 
 # DEPRECATED(akremenetsky): Use compute route
-class MachineAgentRoute(routes.Route):
-    """Handler for /v1/machine_agents/ endpoint"""
+# class MachineAgentRoute(routes.Route):
+#     """Handler for /v1/machine_agents/ endpoint"""
 
-    __controller__ = controllers.MachineAgentController
+#     __controller__ = controllers.MachineAgentController
 
 
 # DEPRECATED(akremenetsky): Use compute route
@@ -86,5 +86,5 @@ class ApiEndpointRoute(routes.Route):
     nodes = routes.route(NodeRoute)
     machines = routes.route(MachineRoute)
     hypervisors = routes.route(HypervisorRoute)
-    machine_agents = routes.route(MachineAgentRoute)
+    # machine_agents = routes.route(MachineAgentRoute)
     sets = routes.route(NodeSetsRoute)

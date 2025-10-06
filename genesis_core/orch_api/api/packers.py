@@ -23,7 +23,7 @@ from genesis_core.orch_api.dm import models
 
 _from_net_template = """#!ipxe
 :kernel
-kernel {kernel} showopts ip=dhcp net.ifnames=0 biosdevname=0 gc_base_url=http://{gc_host}:{gc_port} || goto kernel
+kernel {kernel} showopts ip=dhcp net.ifnames=0 biosdevname=0 gc_orch_api={gc_orch_api} gc_status_api={gc_status_api} || goto kernel
 
 :initrd
 initrd {initrd} || goto initrd
@@ -40,13 +40,13 @@ sanboot --no-describe --drive 0x8{disk_number}
 
 class IPXEPacker(packers.JSONPacker):
 
-    def pack(self, obj: models.Netboot):
+    def pack(self, obj: models.MachineNetboot):
         boot = nc.BootAlternative[obj.boot]
 
         if boot == nc.BootAlternative.network:
             return _from_net_template.format(
-                gc_host=obj.gc_host,
-                gc_port=obj.gc_port,
+                gc_orch_api=obj.gc_orch_api,
+                gc_status_api=obj.gc_status_api,
                 kernel=obj.kernel,
                 initrd=obj.initrd,
             )
