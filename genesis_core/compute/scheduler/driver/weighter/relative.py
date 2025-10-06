@@ -47,7 +47,7 @@ class RelativeCoreRamWeighter(base.MachinePoolAbstractWeighter):
 
     def weight(
         self,
-        pools: tp.List[models.MachinePool],
+        pools: tp.List[base.MachinePoolBundle],
     ) -> tp.Iterable[float]:
         """Assign weights to machine pools.
 
@@ -57,7 +57,7 @@ class RelativeCoreRamWeighter(base.MachinePoolAbstractWeighter):
         """
 
         # Maximum weight gets a pool with relative maximal cores and ram
-        usages = tuple(self._usage_ratio(p) for p in pools)
+        usages = tuple(self._usage_ratio(p.pool) for p in pools)
 
         # The system is empty, all pools have equal weight
         if sum(usages) == 0:
@@ -75,7 +75,7 @@ class SimpleMachineWeighter(base.MachineAbstractWeighter):
 
     def weight(
         self,
-        machines: tp.List[models.MachinePool],
+        machines: tp.List[base.MachineBundle],
     ) -> tp.Iterable[float]:
         """Assign weights to machines.
 
@@ -86,7 +86,7 @@ class SimpleMachineWeighter(base.MachineAbstractWeighter):
         if not machines:
             return tuple()
 
-        ratios = tuple(self._ratio(m) for m in machines)
+        ratios = tuple(self._ratio(m.machine) for m in machines)
 
         # Normalize ratios
         sum_ratios = sum(ratios)

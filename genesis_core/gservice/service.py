@@ -33,9 +33,13 @@ from genesis_core.compute.scheduler.driver.filters import available
 from genesis_core.compute.scheduler.driver.filters import affinity
 from genesis_core.compute.scheduler.driver.weighter import relative
 from genesis_core.compute.scheduler import service as n_scheduler_service
-from genesis_core.compute.builder import service as n_builder_service
-from genesis_core.compute.machine import service as n_machine_service
-from genesis_core.compute.node_set.builders import service as set_builder_svc
+from genesis_core.compute.builders import node as node_builder_svc
+from genesis_core.compute.builders import volume as volume_builder_svc
+from genesis_core.compute.builders import pool as pool_builder_svc
+from genesis_core.compute.builders import node_set as set_builder_svc
+from genesis_core.compute.agents.universal.drivers import (
+    pool as ua_pool_drivers,
+)
 from genesis_core.compute.dm import models as compute_models
 from genesis_core.network import service as n_network_service
 from genesis_core.network.lb.builders import iaas as net_lb_iaas
@@ -80,7 +84,7 @@ class GeneralService(basic.BasicService):
 
         # The simplest way to enable the nested services
         # It will be reworked in the future
-        n_scheduler = n_scheduler_service.NodeSchedulerService(
+        n_scheduler = n_scheduler_service.SchedulerService(
             pool_filters=pool_filters,
             pool_weighters=pool_weighters,
             machine_filters=machine_filters,
@@ -91,13 +95,28 @@ class GeneralService(basic.BasicService):
         n_network = n_network_service.NetworkService(
             iter_min_period=1, iter_pause=0.1
         )
-        n_builder = n_builder_service.NodeBuilderService(
+        node_builder = node_builder_svc.NodeBuilderService(
             iter_min_period=1, iter_pause=0.1
         )
-        n_machine = n_machine_service.MachineAgentService(
+        volume_builder = volume_builder_svc.VolumeBuilderService(
             iter_min_period=1, iter_pause=0.1
         )
-        set_builder = set_builder_svc.NodeSetBuilder(
+        pool_driver = ua_pool_drivers.PoolAgentDriver(
+            meta_file="/var/lib/genesis/genesis_core/pool_agent_meta.json"
+        )
+        agent_uuid = sys_uuid.uuid5(
+            ua_utils.system_uuid(), "machine_pool_agent"
+        )
+        machine_pool_agent = ua_agent_service.UniversalAgentService(
+            agent_uuid=agent_uuid,
+            orch_client=orch_db.DatabaseOrchClient(),
+            caps_drivers=[pool_driver],
+            facts_drivers=[],
+            iter_min_period=iter_min_period,
+            payload_path=None,
+        )
+
+        set_builder = set_builder_svc.NodeSetBuilderService(
             instance_model=node_set_models.NodeSet,
             project_id=nc.NODE_SET_PROJECT,
         )
@@ -153,6 +172,11 @@ class GeneralService(basic.BasicService):
             payload_path=None,
         )
 
+        pool_builder_service = pool_builder_svc.PoolBuilderService(
+            uuid=sys_uuid.uuid5(ua_utils.system_uuid(), "pool_builder"),
+            orch_client=orch_db.DatabaseOrchClient(),
+        )
+
         cfg_service = config_service.ConfigServiceBuilder()
         secret_svc = secret_service.SecretServiceBuilder()
         event_sender = senders.EventSenderService.build_from_config()
@@ -170,8 +194,10 @@ class GeneralService(basic.BasicService):
             infra_agent,
             n_scheduler,
             n_network,
-            n_builder,
-            n_machine,
+            pool_builder_service,
+            node_builder,
+            volume_builder,
+            machine_pool_agent,
             cfg_service,
             service_builder,
             net_lb_iaas_builder,

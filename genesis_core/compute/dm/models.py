@@ -25,16 +25,18 @@ from restalchemy.dm import models
 from restalchemy.dm import properties
 from restalchemy.dm import relationships
 from restalchemy.dm import types
+from restalchemy.dm import types_dynamic
 from restalchemy.dm import types_network as types_net
 from restalchemy.dm import filters as dm_filters
 from restalchemy.storage.sql import orm
 from gcl_sdk.infra.dm import models as infra_models
 from gcl_sdk.agents.universal.dm import models as ua_models
 
-from genesis_core.compute import constants as nc
 from genesis_core.common import utils
 from genesis_core.common import system
+from genesis_core.common import constants as cc
 from genesis_core.common.dm import models as cm
+from genesis_core.compute import constants as nc
 
 
 class IPRange(types.BaseType):
@@ -56,35 +58,91 @@ class IPRange(types.BaseType):
         return self.from_simple_type(value)
 
 
-class MachineAgent(
-    models.ModelWithUUID,
-    models.ModelWithNameDesc,
-    orm.SQLStorableMixin,
+class AbstractStoragePool(
     models.SimpleViewMixin,
+    types_dynamic.AbstractKindModel,
 ):
-    __tablename__ = "machine_agents"
+    """The abstract model for storage pool.
 
-    status = properties.property(
-        types.Enum([s.value for s in nc.MachineAgentStatus]),
-        default=nc.MachineAgentStatus.DISABLED.value,
+    This model is used to represent the storage pool and determine
+    the its interfaces.
+    """
+
+    uuid = properties.property(
+        types.UUID(),
+        read_only=True,
+        id_property=True,
+        default=lambda: sys_uuid.uuid4(),
+    )
+    pool_type = properties.property(types.String(), required=True)
+
+    @property
+    def capacity(self) -> int:
+        """Storage pool capacity."""
+        return 0
+
+    @property
+    def available(self) -> int:
+        """Storage pool available space."""
+        return 0
+
+    def allocate_capacity(self, size: int) -> None:
+        """Allocate capacity."""
+        raise NotImplementedError()
+
+    def free_capacity(self, size: int) -> None:
+        """Free capacity."""
+        raise NotImplementedError()
+
+    def has_capacity(self, size: int) -> bool:
+        """Check if the storage pool has enough capacity."""
+        return self.available >= size
+
+
+class ThinStoragePool(
+    AbstractStoragePool,
+    models.ModelWithNameDesc,
+):
+    """The model represents thin provisioned storage pool."""
+
+    KIND = "thin_storage_pool"
+
+    capacity_usable = properties.property(
+        types.Integer(min_value=0), default=0
+    )
+    capacity_provisioned = properties.property(
+        types.Integer(min_value=0), default=0
+    )
+    oversubscription_ratio = properties.property(
+        types.Float(min_value=0.0), default=1.0
+    )
+    available_actual = properties.property(
+        types.Integer(min_value=0), default=0
     )
 
-    @classmethod
-    def all_active(
-        cls, limit: int | None = nc.DEF_SQL_LIMIT
-    ) -> tp.List["MachineAgent"]:
-        """Get all active machine agents."""
-        return cls.objects.get_all(
-            filters={
-                "status": dm_filters.EQ(nc.MachineAgentStatus.ACTIVE.value),
-            },
-            limit=limit,
-        )
+    @property
+    def capacity(self) -> int:
+        """Storage pool capacity."""
+        return int(self.capacity_usable * self.oversubscription_ratio)
+
+    @property
+    def available(self) -> int:
+        """Storage pool available space."""
+        return self.capacity - self.capacity_provisioned
+
+    def allocate_capacity(self, size: int) -> None:
+        """Allocate capacity."""
+        self.capacity_provisioned += size
+
+    def free_capacity(self, size: int) -> None:
+        """Free capacity."""
+        self.capacity_provisioned -= size
 
 
 class MachinePool(
     models.ModelWithUUID,
     models.ModelWithNameDesc,
+    models.ModelWithTimestamp,
     orm.SQLStorableWithJSONFieldsMixin,
     models.SimpleViewMixin,
 ):
@@ -92,8 +150,9 @@ class MachinePool(
     __jsonfields__ = ["driver_spec"]
     __driver_map__ = {}
 
-    driver_spec = properties.property(types.Dict(), default=lambda: {})
+    driver_spec = properties.property(types.Dict(), default=dict)
     agent = properties.property(types.AllowNone(types.UUID()), default=None)
+    builder = properties.property(types.AllowNone(types.UUID()), default=None)
     machine_type = properties.property(
         types.Enum([t.value for t in nc.NodeType]),
         default=nc.NodeType.VM.value,
@@ -107,6 +166,17 @@ class MachinePool(
     avail_ram = properties.property(types.Integer(), default=0)
     all_cores = properties.property(types.Integer(), default=0)
     all_ram = properties.property(types.Integer(), default=0)
+    cores_ratio = properties.property(types.Float(min_value=0.0), default=1.0)
+    ram_ratio = properties.property(types.Float(min_value=0.0), default=1.0)
+
+    storage_pools = properties.property(
+        types.TypedList(
+            types_dynamic.KindModelSelectorType(
+                types_dynamic.KindModelType(ThinStoragePool),
+            ),
+        ),
+        default=list,
+    )
 
     @property
     def has_driver(self) -> bool:
@@ -163,9 +233,41 @@ class MachinePool(
         raise ValueError(f"Driver for spec '{self.driver_spec}' not found")
 
 
+class Volume(
+    infra_models.Volume,
+    orm.SQLStorableMixin,
+):
+    __tablename__ = "node_volumes"
+
+    uuid = properties.property(
+        types.UUID(),
+        read_only=True,
+        id_property=True,
+        default=lambda: sys_uuid.uuid4(),
+    )
+    status = properties.property(
+        types.Enum([s.value for s in nc.VolumeStatus]),
+        default=nc.VolumeStatus.NEW.value,
+    )
+
+    # Internal field for scheduling purposes
+    pool = properties.property(types.AllowNone(types.UUID()), default=None)
+
+
+class UnscheduledVolume(models.ModelWithUUID, orm.SQLStorableMixin):
+    __tablename__ = "compute_unscheduled_volumes"
+
+    volume = relationships.relationship(
+        Volume,
+        prefetch=True,
+        required=True,
+    )
+
+
 class NodeSet(
     infra_models.NodeSet,
     ua_models.InstanceWithDerivativesMixin,
+    orm.SQLStorableMixin,
 ):
     __tablename__ = "compute_sets"
 
@@ -203,15 +305,9 @@ class Node(
 
     node_set = properties.property(types.AllowNone(types.UUID()), default=None)
 
-    def insert(self, session=None):
-        super().insert(session=session)
-
-        for policy in self.placement_policies:
-            allocation = FlatPlacementPolicyAllocation(
-                node=self.uuid,
-                policy=policy,
-            )
-            allocation.insert(session=session)
+    def volumes(self) -> tp.Collection[Volume]:
+        """Return the list of volumes for this node."""
+        return self.disk_spec.volumes(self)
 
     def update_default_network(self, port: Port) -> None:
         self.default_network = {
@@ -235,14 +331,41 @@ class Node(
                 "name",
                 "cores",
                 "ram",
-                "root_disk_size",
                 "node_type",
-                "image",
                 "project_id",
                 "node_set",
                 "placement_policies",
+                "disk_spec",
             )
         )
+
+    def insert(self, session=None):
+        super().insert(session=session)
+
+        for policy in self.placement_policies:
+            allocation = FlatPlacementPolicyAllocation(
+                node=self.uuid,
+                policy=policy,
+            )
+            allocation.insert(session=session)
+
+        # Handle a special case for EM. We cannot put volumes in the same
+        # project as the node because the volumes are created as children
+        # of the node and they aren't present in the manifest. So EM
+        # doesn't know about the volumes.
+        volume_project_id = (
+            self.project_id
+            if self.project_id != cc.EM_PROJECT_ID
+            else cc.EM_HIDDEN_PROJECT_ID
+        )
+
+        # Update or create volumes for the node
+        volumes = self.disk_spec.volumes(self, project_id=volume_project_id)
+        for sdk_volume in volumes:
+            # Need to convert as they are different types (SDK vs DM)
+            view = sdk_volume.dump_to_simple_view()
+            volume = Volume.restore_from_simple_view(**view)
+            volume.insert(session=session)
 
 
 class Machine(
@@ -256,7 +379,7 @@ class Machine(
     ram = properties.property(types.Integer(min_value=0), required=True)
     status = properties.property(
         types.Enum([s.value for s in nc.MachineStatus]),
-        default=nc.MachineStatus.ACTIVE.value,
+        default=nc.MachineStatus.NEW.value,
     )
     machine_type = properties.property(
         types.Enum([t.value for t in nc.NodeType]),
@@ -268,6 +391,9 @@ class Machine(
         types.Enum([b.value for b in nc.BootAlternative]),
         default=nc.BootAlternative.network.value,
     )
+    image = properties.property(
+        types.AllowNone(types.String(max_length=255)), default=None
+    )
 
     # UUID from the firmware of the machine
     firmware_uuid = properties.property(
@@ -275,47 +401,40 @@ class Machine(
         default=None,
     )
 
-    builder = properties.property(types.AllowNone(types.UUID()), default=None)
-    build_status = properties.property(
-        types.Enum([s.value for s in nc.MachineBuildStatus]),
-        default=nc.MachineBuildStatus.IN_BUILD.value,
-    )
+    # TODO(akremenetsky): Use a custom type for this field
+    # It's a `fact` field
+    block_devices = properties.property(types.Dict(), default=dict)
 
-    # Actual image of the machine
+
+class MachineVolume(
+    cm.ModelWithFullAsset,
+    orm.SQLStorableMixin,
+    models.SimpleViewMixin,
+):
+    __tablename__ = "compute_machine_volumes"
+
+    pool = properties.property(types.AllowNone(types.UUID()), default=None)
+    machine = properties.property(types.AllowNone(types.UUID()), default=None)
+    node_volume = properties.property(
+        types.AllowNone(types.UUID()), default=None
+    )
+    size = properties.property(types.Integer(min_value=1, max_value=1000000))
     image = properties.property(
         types.AllowNone(types.String(max_length=255)), default=None
     )
-
-
-class Volume(
-    cm.ModelWithFullAsset, orm.SQLStorableMixin, models.SimpleViewMixin
-):
-    __tablename__ = "node_volumes"
-
-    node = properties.property(types.AllowNone(types.UUID()))
-    size = properties.property(types.Integer(min_value=1, max_value=1000000))
     boot = properties.property(types.Boolean(), default=True)
     label = properties.property(
         types.AllowNone(types.String(max_length=127)), default=None
     )
     # TODO(g.melikov): DON'T USE! Should be dropped.
-    device_type = properties.property(
-        types.Enum([t.value for t in nc.VolumeType]),
-        default=nc.VolumeType.QCOW2.value,
+    device_type = properties.property(types.String(max_length=64), default="")
+    status = properties.property(
+        types.Enum([s.value for s in nc.VolumeStatus]),
+        default=nc.VolumeStatus.NEW.value,
     )
-
-
-class MachineVolume(Volume):
-    __tablename__ = "machine_volumes"
-    __custom_properties__ = {
-        "path": types.AllowNone(types.String(max_length=255)),
-    }
-
-    def __init__(self, path: str | None = None, *args, **kwargs):
-        self.path = path
-        super().__init__(*args, **kwargs)
-
-    machine = properties.property(types.AllowNone(types.UUID()))
+    index = properties.property(
+        types.Integer(min_value=0, max_value=4096), default=4096
+    )
 
 
 class UnscheduledNode(models.ModelWithUUID, orm.SQLStorableMixin):

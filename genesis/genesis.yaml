@@ -66,7 +66,8 @@ build:
 
         # Override image build parameters, for instance Packer parameters
         override:
-          disk_size: "6G"
+          # For development purposes it's handy to have more space.
+          disk_size: "10G"
       # manifest: manifests/genesis-core.yaml
 
         envs:
