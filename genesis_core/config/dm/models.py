@@ -166,14 +166,16 @@ class Config(
     def get_new_configs(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list["Config"]:
-        return cls.get_new_entities(cls.__tablename__, cc.CONFIG_KIND, limit)
+        return cls.get_new_entities(
+            cls.__tablename__, cc.CONFIG_KIND, limit=limit
+        )
 
     @classmethod
     def get_updated_configs(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list["Config"]:
         return cls.get_updated_entities(
-            cls.__tablename__, cc.CONFIG_KIND, limit
+            cls.__tablename__, cc.CONFIG_KIND, limit=limit
         )
 
     @classmethod
@@ -181,7 +183,7 @@ class Config(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list[ua_models.TargetResource]:
         return cls.get_deleted_target_resources(
-            cls.__tablename__, cc.CONFIG_KIND, limit
+            cls.__tablename__, cc.CONFIG_KIND, limit=limit
         )
 
 

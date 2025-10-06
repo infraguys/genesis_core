@@ -34,41 +34,6 @@ class HealthRoute(routes.Route):
     __allow_methods__ = [routes.FILTER]
 
 
-# DEPRECATED(akremenetsky): Use compute route
-class NodeRoute(routes.Route):
-    """Handler for /v1/nodes/ endpoint"""
-
-    __controller__ = controllers.NodesController
-
-
-# DEPRECATED(akremenetsky): Use compute route
-class MachineRoute(routes.Route):
-    """Handler for /v1/machines/ endpoint"""
-
-    __controller__ = controllers.MachinesController
-
-
-# DEPRECATED(akremenetsky): Use compute route
-class HypervisorRoute(routes.Route):
-    """Handler for /v1/hypervisors/ endpoint"""
-
-    __controller__ = controllers.HypervisorsController
-
-
-# DEPRECATED(akremenetsky): Use compute route
-class MachineAgentRoute(routes.Route):
-    """Handler for /v1/machine_agents/ endpoint"""
-
-    __controller__ = controllers.MachineAgentController
-
-
-# DEPRECATED(akremenetsky): Use compute route
-class NodeSetsRoute(routes.Route):
-    """Handler for /v1/sets/ endpoint"""
-
-    __controller__ = controllers.NodeSetsController
-
-
 class ApiEndpointRoute(routes.Route):
     """Handler for /v1/ endpoint"""
 
@@ -83,10 +48,3 @@ class ApiEndpointRoute(routes.Route):
     secret = routes.route(secret_routes.SecretRoute)
     compute = routes.route(compute_routes.ComputeRoute)
     network = routes.route(network_routes.NetworkRoute)
-
-    # DEPRECATED(akremenetsky): Use compute route
-    nodes = routes.route(NodeRoute)
-    machines = routes.route(MachineRoute)
-    hypervisors = routes.route(HypervisorRoute)
-    machine_agents = routes.route(MachineAgentRoute)
-    sets = routes.route(NodeSetsRoute)

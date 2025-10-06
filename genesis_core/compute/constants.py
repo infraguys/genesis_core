@@ -47,6 +47,15 @@ class MachineStatus(str, enum.Enum):
     ACTIVE = "ACTIVE"
     IDLE = "IDLE"
     ERROR = "ERROR"
+    FLASHED = "FLASHED"
+    NEED_RESCHEDULE = "NEED_RESCHEDULE"
+
+
+class VolumeStatus(str, enum.Enum):
+    NEW = "NEW"
+    IN_PROGRESS = "IN_PROGRESS"
+    ACTIVE = "ACTIVE"
+    ERROR = "ERROR"
 
 
 class NodeType(str, enum.Enum):
@@ -56,11 +65,6 @@ class NodeType(str, enum.Enum):
 
 class VolumeType(str, enum.Enum):
     QCOW2 = "QCOW2"
-
-
-class MachineAgentStatus(str, enum.Enum):
-    ACTIVE = "ACTIVE"
-    DISABLED = "DISABLED"
 
 
 class BuilderStatus(str, enum.Enum):
@@ -77,6 +81,7 @@ class MachinePoolStatus(str, enum.Enum):
     ACTIVE = "ACTIVE"
     DISABLED = "DISABLED"
     MAINTENANCE = "MAINTENANCE"
+    IN_PROGRESS = "IN_PROGRESS"
 
 
 class BootAlternative(str, enum.Enum):

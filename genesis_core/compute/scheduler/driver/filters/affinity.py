@@ -25,19 +25,14 @@ class DummySoftAntiAffinityFilter(base.MachinePoolAbstractFilter):
 
     def filter(
         self,
-        machine: models.Machine,
-        pools: tp.List[models.MachinePool],
-    ) -> tp.Iterable[models.MachinePool]:
+        node: base.NodeBundle,
+        pools: tp.List[base.MachinePoolBundle],
+    ) -> tp.Iterable[base.MachinePoolBundle]:
         """Filter out pools that are not suitable for the node."""
-
-        # If no nodes, we don't have any constraints
-        if machine.node is None:
-            return pools
-
         # Get all policies for the node
         allocations = models.PlacementPolicyAllocation.objects.get_all(
             filters={
-                "node": dm_filters.EQ(machine.node),
+                "node": dm_filters.EQ(node.node.uuid),
             }
         )
 
@@ -60,12 +55,12 @@ class DummySoftAntiAffinityFilter(base.MachinePoolAbstractFilter):
                 "node": dm_filters.In(
                     a.node.uuid
                     for a in nodes_in_allocations
-                    if a.node.uuid != machine.node
+                    if a.node.uuid != node.node.uuid
                 ),
             }
         )
 
-        avail_pools = {p.uuid for p in pools} - {
+        avail_pools = {p.pool.uuid for p in pools} - {
             m.pool for m in machines_in_policy
         }
 
@@ -74,4 +69,4 @@ class DummySoftAntiAffinityFilter(base.MachinePoolAbstractFilter):
         if not avail_pools:
             return pools
 
-        return tuple(p for p in pools if p.uuid in avail_pools)
+        return tuple(p for p in pools if p.pool.uuid in avail_pools)

@@ -28,7 +28,7 @@ from genesis_core.compute import constants as nc
 LOG = logging.getLogger(__name__)
 
 
-class NodeSetBuilder(builder.CoreInfraBuilder):
+class NodeSetBuilderService(builder.CoreInfraBuilder):
 
     def __init__(
         self,
@@ -73,22 +73,25 @@ class NodeSetBuilder(builder.CoreInfraBuilder):
 
     def create_infra(
         self, instance: models.NodeSet
-    ) -> tp.Collection[models.Node]:
+    ) -> tp.Collection[models.Node | models.Volume]:
         """Create a list of infrastructure objects.
 
         The method returns a list of infrastructure objects that are required
         for the instance. For example, nodes, sets, configs, etc.
         """
         soft_anti_affinity = self._get_or_create_placement_policy(instance)
-        return instance.create_nodes(
+        nodes = instance.gen_nodes(
             self._project_id, placement_policies=[soft_anti_affinity]
         )
+        volumes = instance.gen_volumes(self._project_id)
+
+        return tuple(nodes) + tuple(volumes)
 
     def actualize_infra(
         self,
         instance: models.NodeSet,
         infra: builder.InfraCollection,
-    ) -> tp.Collection[models.Node]:
+    ) -> tp.Collection[models.Node | models.Volume]:
         """Actualize the infrastructure objects.
 
         The method is called when the instance is outdated. For example,
@@ -101,7 +104,7 @@ class NodeSetBuilder(builder.CoreInfraBuilder):
             infra: The infrastructure objects.
         """
         actual_nodes = {}
-        statuses = []
+        nodes_status = []
         status = instance.status
 
         soft_anti_affinity = self._get_or_create_placement_policy(instance)
@@ -109,15 +112,24 @@ class NodeSetBuilder(builder.CoreInfraBuilder):
         # Get the target nodes for the node set based on the current
         # configuration. This will be used to filter out nodes that are
         # being deleted during a shrink operation.
-        nodes = instance.create_nodes(
+        nodes = instance.gen_nodes(
             self._project_id, placement_policies=[soft_anti_affinity]
         )
+        volumes = instance.gen_volumes(self._project_id)
 
         new_target_nodes = {n.uuid: n for n in nodes}
 
         for _, actual in infra.infra_objects:
             if actual is None:
                 continue
+
+            # Volume part
+            # FIXME(akremenetsky): So far all volumes are handled
+            # at node level, skip here.
+            if isinstance(actual, models.Volume):
+                continue
+
+            # Node part
 
             # Skip the nodes that are not in the target nodes.
             # They will be deleted.
@@ -130,25 +142,25 @@ class NodeSetBuilder(builder.CoreInfraBuilder):
             if ipv4 := actual.default_network.get("ipv4"):
                 actual_nodes[uuid_str]["ipv4"] = ipv4
 
-            statuses.append(actual.status)
+            nodes_status.append(actual.status)
 
         instance.nodes = actual_nodes
 
         # Set the status to active if all nodes are active.
-        # It's normal to compare the length of statuses with replicas
+        # It's normal to compare the length of nodes_status with replicas
         # for the default node set type.
-        if len(statuses) >= instance.replicas and all(
-            s == nc.NodeStatus.ACTIVE for s in statuses
+        if len(nodes_status) >= instance.replicas and all(
+            s == nc.NodeStatus.ACTIVE for s in nodes_status
         ):
             status = nc.NodeStatus.ACTIVE.value
-        elif any(s == nc.NodeStatus.ERROR for s in statuses):
+        elif any(s == nc.NodeStatus.ERROR for s in nodes_status):
             status = nc.NodeStatus.ERROR.value
-        elif any(s == nc.NodeStatus.NEW for s in statuses):
+        elif any(s == nc.NodeStatus.NEW for s in nodes_status):
             status = nc.NodeStatus.NEW.value
-        elif any(s == nc.NodeStatus.IN_PROGRESS for s in statuses):
+        elif any(s == nc.NodeStatus.IN_PROGRESS for s in nodes_status):
             status = nc.NodeStatus.IN_PROGRESS.value
 
         if status != instance.status:
             instance.status = status
 
-        return tuple(new_target_nodes.values())
+        return tuple(new_target_nodes.values()) + tuple(volumes)

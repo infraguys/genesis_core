@@ -50,7 +50,9 @@ class LBTypeKind(types_dynamic.AbstractKindModel, models.SimpleViewMixin):
         types.Integer(min_value=512, max_value=1024**3), default=512
     )
     disk_size = properties.property(
-        types.Integer(min_value=8, max_value=1024**3), default=8
+        # The original value was 8 but Libvirt on ZFS considers it as 10Gb.
+        types.Integer(min_value=10, max_value=1024**3),
+        default=10,
     )
     nodes_number = properties.property(
         types.Integer(min_value=1, max_value=16), default=1

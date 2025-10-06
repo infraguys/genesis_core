@@ -16,6 +16,7 @@
 
 import pytest
 from genesis_core.compute.dm import models
+from genesis_core.compute.scheduler.driver import base
 from genesis_core.compute.scheduler.driver.weighter import relative
 
 
@@ -29,27 +30,45 @@ class TestSchedulerWeighter:
     def pools(self):
         return [
             # 50% used
-            models.MachinePool(
-                all_cores=100, avail_cores=50, all_ram=100000, avail_ram=50000
+            base.MachinePoolBundle(
+                pool=models.MachinePool(
+                    all_cores=100,
+                    avail_cores=50,
+                    all_ram=100000,
+                    avail_ram=50000,
+                ),
+                volumes=[],
             ),
             # 20% used
-            models.MachinePool(
-                all_cores=100, avail_cores=80, all_ram=100000, avail_ram=80000
+            base.MachinePoolBundle(
+                pool=models.MachinePool(
+                    all_cores=100,
+                    avail_cores=80,
+                    all_ram=100000,
+                    avail_ram=80000,
+                ),
+                volumes=[],
             ),
             # Fully used
-            models.MachinePool(
-                all_cores=100, avail_cores=0, all_ram=100000, avail_ram=0
+            base.MachinePoolBundle(
+                pool=models.MachinePool(
+                    all_cores=100, avail_cores=0, all_ram=100000, avail_ram=0
+                ),
+                volumes=[],
             ),
         ]
 
     def test_weight_empty_system(self, weighter):
         """Test weighting when the system is empty (no usage)."""
         empty_pools = [
-            models.MachinePool(
-                all_cores=100,
-                avail_cores=100,
-                all_ram=100000,
-                avail_ram=100000,
+            base.MachinePoolBundle(
+                pool=models.MachinePool(
+                    all_cores=100,
+                    avail_cores=100,
+                    all_ram=100000,
+                    avail_ram=100000,
+                ),
+                volumes=[],
             )
         ]
         weights = list(weighter.weight(empty_pools))
@@ -66,8 +85,14 @@ class TestSchedulerWeighter:
     def test_weight_with_overused_pool(self, weighter):
         """Test weighting with a pool that is overused."""
         overused_pools = [
-            models.MachinePool(
-                all_cores=100, avail_cores=-10, all_ram=100000, avail_ram=-5000
+            base.MachinePoolBundle(
+                pool=models.MachinePool(
+                    all_cores=100,
+                    avail_cores=-10,
+                    all_ram=100000,
+                    avail_ram=-5000,
+                ),
+                volumes=[],
             )
         ]
         weights = list(weighter.weight(overused_pools))

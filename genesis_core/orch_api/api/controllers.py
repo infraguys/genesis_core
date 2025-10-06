@@ -19,8 +19,9 @@ from restalchemy.api import controllers
 from restalchemy.api import resources
 from restalchemy.storage import exceptions as ra_storage_exceptions
 
+from genesis_core.common import constants as c
 from genesis_core.compute import constants as nc
-from genesis_core.orch_api.dm import models as node_models
+from genesis_core.orch_api.dm import models
 from genesis_core.orch_api.api import packers
 
 DOMAIN = "orch_api"
@@ -41,31 +42,11 @@ class HealthController(controllers.Controller):
         return "OK"
 
 
-class NodesController(controllers.BaseResourceControllerPaginated):
-    """Controller for /v1/nodes/ endpoint"""
-
-    __resource__ = resources.ResourceByRAModel(
-        model_class=node_models.Node,
-        process_filters=True,
-        convert_underscore=False,
-    )
-
-
-class MachinesController(controllers.BaseResourceControllerPaginated):
-    """Controller for /v1/machines/ endpoint"""
-
-    __resource__ = resources.ResourceByRAModel(
-        model_class=node_models.Machine,
-        process_filters=True,
-        convert_underscore=False,
-    )
-
-
 class NetBootController(controllers.BaseResourceControllerPaginated):
     """Controller for /v1/boots/ endpoint"""
 
     __resource__ = resources.ResourceByRAModel(
-        model_class=node_models.Netboot,
+        model_class=models.MachineNetboot,
         process_filters=True,
         convert_underscore=False,
     )
@@ -79,15 +60,19 @@ class NetBootController(controllers.BaseResourceControllerPaginated):
             # Generate a dummy netboot object for netboot
             # configuration. Network is default option
             # for such machines.
-            netboot = node_models.Netboot(
+            netboot = models.MachineNetboot(
                 uuid=uuid,
+                cores=0,
+                ram=0,
                 boot=nc.BootAlternative.network.value,
+                project_id=c.SERVICE_PROJECT_ID,
             )
 
         # Set netboot configuration
         netboot.set_netboot_params(
             CONF[DOMAIN].gc_host,
-            CONF[DOMAIN].gc_port,
+            CONF[DOMAIN].gc_orch_api,
+            CONF[DOMAIN].gc_status_api,
             CONF[DOMAIN].kernel,
             CONF[DOMAIN].initrd,
         )

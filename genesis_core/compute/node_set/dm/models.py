@@ -18,6 +18,8 @@ from __future__ import annotations
 import typing as tp
 import uuid as sys_uuid
 
+from restalchemy.dm import types_dynamic
+
 from genesis_core.compute import constants as nc
 from genesis_core.compute.dm import models as compute_models
 
@@ -29,23 +31,34 @@ class Node(compute_models.Node):
         return "set_agent_node"
 
 
+class Volume(compute_models.Volume):
+    @classmethod
+    def get_resource_kind(cls) -> str:
+        """Return the resource kind."""
+        return "set_agent_volume"
+
+
 class NodeSet(compute_models.NodeSet):
     __derivative_model_map__ = {
         "set_agent_node": Node,
+        "set_agent_volume": Volume,
     }
 
-    def create_nodes(
+    def gen_nodes(
         self,
         project_id: sys_uuid.UUID,
         placement_policies: tp.Collection[
             compute_models.PlacementPolicy
         ] = tuple(),
     ) -> tp.Collection[Node]:
-        """Create nodes for the node set."""
+        """Generate nodes for the node set."""
+        # FIXME(akremenetsky): Perhaps this method should be moved to
+        # the parent models but I'm not sure we need the logic of node
+        # generation anywhere else.
         nodes = []
 
-        # NOTE(akremenetsky): Use the simplest implementation since we don't have
-        # any node set type except the default one.
+        # NOTE(akremenetsky): Use the simplest implementation as
+        # we don't have any node set type except the default one.
         for i in range(self.replicas):
             # This behavior is expected for the default node set type
             # but for other node set types it may need to be changed.
@@ -56,13 +69,25 @@ class NodeSet(compute_models.NodeSet):
                 name=f"{self.name}-node-{str(node_uuid)[:4]}",
                 cores=self.cores,
                 ram=self.ram,
-                root_disk_size=self.root_disk_size,
-                image=self.image,
                 project_id=project_id,
                 node_type=self.node_type,
                 status=nc.NodeStatus.NEW.value,
                 placement_policies=[p.uuid for p in placement_policies],
+                disk_spec=self.disk_spec.node_spec(self, node_uuid),
             )
             nodes.append(node)
 
         return nodes
+
+    def gen_volumes(
+        self,
+        project_id: sys_uuid.UUID,
+    ) -> tp.Collection[Volume]:
+        """Create volumes for the node set."""
+        # TODO(akremenetsky): The implementation is not correct since we
+        # need to return right volume class. Rework this part later.
+        volumes = self.disk_spec.volumes(self)
+        for volume in volumes:
+            volume.project_id = project_id
+
+        return volumes

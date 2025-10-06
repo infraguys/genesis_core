@@ -54,11 +54,13 @@ class LBBuilder(builder.CoreInfraBuilder):
             name=f"{self._name_prefix}-{instance.name}",
             cores=instance.type.cpu,
             ram=instance.type.ram,
-            root_disk_size=instance.type.disk_size,
-            image=CONF.gservice.lb_image,
             replicas=instance.type.nodes_number,
             project_id=self._project_id,
             status=sdk_c.NodeStatus.NEW.value,
+            disk_spec=sdk_models.SetDisksSpec(
+                size=instance.type.disk_size,
+                image=CONF.gservice.lb_image,
+            ),
         )
         infra_objects.append(node_set)
 

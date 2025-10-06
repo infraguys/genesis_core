@@ -23,6 +23,11 @@ class MachineAlreadyExistsError(exceptions.GCException):
     machine: sys_uuid.UUID
 
 
+class MachineNotFoundError(exceptions.GCException):
+    __template__ = "The machine {machine} not found."
+    machine: sys_uuid.UUID
+
+
 class VolumeAlreadyExistsError(exceptions.GCException):
     __template__ = "The volume {volume} already exists."
     volume: sys_uuid.UUID
@@ -31,3 +36,17 @@ class VolumeAlreadyExistsError(exceptions.GCException):
 class VolumeNotFoundError(exceptions.GCException):
     __template__ = "The volume {volume} not found."
     volume: sys_uuid.UUID
+
+
+class VolumeAlreadyAttachedError(exceptions.GCException):
+    __template__ = (
+        "The volume {volume} is already attached to machine {machine}."
+    )
+    volume: sys_uuid.UUID
+    machine: sys_uuid.UUID
+
+
+class VolumeNotAttachedError(exceptions.GCException):
+    __template__ = "The volume {volume} is not attached to machine {machine}."
+    volume: sys_uuid.UUID
+    machine: sys_uuid.UUID
