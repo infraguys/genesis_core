@@ -22,14 +22,28 @@ import typing as tp
 from genesis_core.compute.dm import models
 
 
-class MachinePoolAbstractFilter(abc.ABC):
+class NodeBundle(tp.NamedTuple):
+    node: models.Node
+    volumes: tp.Collection[models.Volume]
 
+
+class MachineBundle(tp.NamedTuple):
+    machine: models.Machine
+    volumes: tp.Collection[models.MachineVolume]
+
+
+class MachinePoolBundle(tp.NamedTuple):
+    pool: models.MachinePool
+    volumes: tp.Collection[models.MachineVolume]
+
+
+class MachinePoolAbstractFilter(abc.ABC):
     @abc.abstractmethod
     def filter(
         self,
-        machine: models.Machine,
-        pools: tp.List[models.MachinePool],
-    ) -> tp.Iterable[models.MachinePool]:
+        node: NodeBundle,
+        pools: tp.List[MachinePoolBundle],
+    ) -> tp.Iterable[MachinePoolBundle]:
         """Filter out pools that are not suitable for the node."""
 
 
@@ -37,7 +51,7 @@ class MachinePoolAbstractWeighter(abc.ABC):
     @abc.abstractmethod
     def weight(
         self,
-        pools: tp.List[models.MachinePool],
+        pools: tp.List[MachinePoolBundle],
     ) -> tp.Iterable[float]:
         """Assign weights to machine pools.
 
@@ -48,19 +62,20 @@ class MachinePoolAbstractWeighter(abc.ABC):
 
 
 class MachineAbstractFilter(abc.ABC):
-
+    @abc.abstractmethod
     def filter(
         self,
-        node: models.Node,
-        machines: tp.List[models.Machine],
-    ) -> tp.Iterable[models.Machine]:
+        node: NodeBundle,
+        machines: tp.List[MachineBundle],
+    ) -> tp.Iterable[MachineBundle]:
         """Filter out machines that are not suitable for the node."""
 
 
 class MachineAbstractWeighter(abc.ABC):
+    @abc.abstractmethod
     def weight(
         self,
-        machines: tp.List[models.MachinePool],
+        machines: tp.List[MachineBundle],
     ) -> tp.Iterable[float]:
         """Assign weights to machines.
 
