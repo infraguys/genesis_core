@@ -21,6 +21,7 @@ from unittest import mock
 import pytest
 import netaddr
 from restalchemy.dm import filters as dm_filters
+from gcl_sdk.infra.dm import models as sdk_models
 
 from genesis_core.network.driver import base as driver_base
 from genesis_core.network import service
@@ -76,7 +77,9 @@ class TestNetworkService:
             name="foo-node",
             cores=1,
             ram=1024,
-            image="ubuntu_24.04",
+            disk_spec=sdk_models.RootDiskSpec(
+                image="ubuntu_24.04",
+            ),
             project_id=c.SERVICE_PROJECT_ID,
             **kwargs,
         )

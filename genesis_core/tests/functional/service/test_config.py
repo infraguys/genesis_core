@@ -203,7 +203,7 @@ class TestConfigServiceBuilder:
     #     client = user_api_client(auth_user_admin)
     #     default_node = node_factory()
 
-    #     url = client.build_collection_uri(["nodes"])
+    #     url = client.build_collection_uri(["compute", "nodes"])
     #     client.post(url, json=default_node)
 
     #     config = config_factory(

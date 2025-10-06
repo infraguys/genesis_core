@@ -100,14 +100,16 @@ class Password(
     def get_new_passwords(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list["Password"]:
-        return cls.get_new_entities(cls.__tablename__, sc.PASSWORD_KIND, limit)
+        return cls.get_new_entities(
+            cls.__tablename__, sc.PASSWORD_KIND, limit=limit
+        )
 
     @classmethod
     def get_updated_passwords(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list["Password"]:
         return cls.get_updated_entities(
-            cls.__tablename__, sc.PASSWORD_KIND, limit
+            cls.__tablename__, sc.PASSWORD_KIND, limit=limit
         )
 
     @classmethod
@@ -115,7 +117,7 @@ class Password(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list[ua_models.TargetResource]:
         return cls.get_deleted_target_resources(
-            cls.__tablename__, sc.PASSWORD_KIND, limit
+            cls.__tablename__, sc.PASSWORD_KIND, limit=limit
         )
 
 
@@ -194,7 +196,7 @@ class Certificate(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list["Certificate"]:
         return cls.get_new_entities(
-            cls.__tablename__, sc.CERTIFICATE_KIND, limit
+            cls.__tablename__, sc.CERTIFICATE_KIND, limit=limit
         )
 
     @classmethod
@@ -202,7 +204,7 @@ class Certificate(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list["Certificate"]:
         return cls.get_updated_entities(
-            cls.__tablename__, sc.CERTIFICATE_KIND, limit
+            cls.__tablename__, sc.CERTIFICATE_KIND, limit=limit
         )
 
     @classmethod
@@ -210,7 +212,7 @@ class Certificate(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list[ua_models.TargetResource]:
         return cls.get_deleted_target_resources(
-            cls.__tablename__, sc.CERTIFICATE_KIND, limit
+            cls.__tablename__, sc.CERTIFICATE_KIND, limit=limit
         )
 
 
@@ -380,15 +382,16 @@ class SSHKey(
 
     @classmethod
     def get_new_keys(cls, limit: int = c.DEFAULT_SQL_LIMIT) -> list["SSHKey"]:
-
-        return cls.get_new_entities(cls.__tablename__, sc.SSH_KEY_KIND, limit)
+        return cls.get_new_entities(
+            cls.__tablename__, sc.SSH_KEY_KIND, limit=limit
+        )
 
     @classmethod
     def get_updated_keys(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list["SSHKey"]:
         return cls.get_updated_entities(
-            cls.__tablename__, sc.SSH_KEY_KIND, limit
+            cls.__tablename__, sc.SSH_KEY_KIND, limit=limit
         )
 
     @classmethod
@@ -396,7 +399,7 @@ class SSHKey(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list[ua_models.TargetResource]:
         return cls.get_deleted_target_resources(
-            cls.__tablename__, sc.SSH_KEY_KIND, limit
+            cls.__tablename__, sc.SSH_KEY_KIND, limit=limit
         )
 
 

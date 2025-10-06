@@ -18,7 +18,14 @@ from __future__ import annotations
 from restalchemy.dm import relationships
 
 from genesis_core.compute.dm import models
+from genesis_core.common.dm import models as common_models
 
 
 class Node(models.Node):
     node_set = relationships.relationship(models.NodeSet, read_only=True)
+
+
+class Volume(models.Volume, common_models.CastToBaseMixin):
+    __cast_fields__ = ("node",)
+
+    node = relationships.relationship(Node, prefetch=True)
