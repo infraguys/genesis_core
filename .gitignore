@@ -12,6 +12,9 @@ __pycache__/
 # IDE
 .idea/
 .vscode
+.kilocode/
+.kilocodemodes
+.roo/
 
 # Distribution / packaging
 .Python

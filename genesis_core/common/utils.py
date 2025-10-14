@@ -83,3 +83,7 @@ def remove_nested_dm(
         session=session,
         **kwargs,
     )
+
+
+def get_or_create_uuid_from_dict(data: tp.Dict[str, tp.Any]) -> sys_uuid.UUID:
+    return sys_uuid.UUID(data.get("uuid", str(sys_uuid.uuid4())))

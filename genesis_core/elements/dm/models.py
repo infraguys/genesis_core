@@ -30,6 +30,7 @@ from restalchemy.storage.sql import orm
 from restalchemy.storage.sql import engines
 
 from genesis_core.common import exceptions
+from genesis_core.common import utils as cm_utils
 from genesis_core.elements.dm import utils
 
 
@@ -53,6 +54,54 @@ class AlwaysActiveStatus(str, enum.Enum):
 class InstallTypes(str, enum.Enum):
     MANUAL = "MANUAL"
     AUTO_AS_DEPENDENCY = "AUTO_AS_DEPENDENCY"
+
+
+class LinkResolver:
+    """
+    Resolves and transforms resource links by parsing link patterns
+    and retrieving appropriate resources from the element engine.
+    """
+
+    def __init__(self, element_engine, element, full_link: str):
+        super().__init__()
+        self._element_engine = element_engine
+        self._element = element
+        self._full_link = full_link
+        link = self._extract_resource_link(self._full_link)
+        self._resource = (
+            self._element_engine.get_resource_by_link(
+                element=self._element,
+                link=link,
+            )
+            if "." in link
+            else self._element_engine.get_element(link)
+        )
+        self._discarded_part = self._full_link[len(link) :]
+
+    def _extract_resource_link(self, full_link):
+
+        full_link = full_link.split(":", 1)[0]
+
+        parts = full_link.split(".")
+        result_parts = []
+
+        for part in parts:
+            if part.startswith("$"):
+                # When we encounter a part with a $, we add all the preceding
+                #     parts.
+                result_parts = parts[: parts.index(part) + 1]
+
+        return ".".join(result_parts) if result_parts else None
+
+    @property
+    def full_link_original(self):
+        """Returns resource.original.link + discarded part"""
+        return self._resource.original.link + self._discarded_part
+
+    @property
+    def full_link(self):
+        """Returns resource.link + discarded part"""
+        return self._resource.link + self._discarded_part
 
 
 class Manifest(
@@ -100,8 +149,22 @@ class Manifest(
         mutable=True,
         default=dict,
     )
+    exports = properties.property(
+        ra_types.Dict(),
+        read_only=True,
+        mutable=True,
+        default=dict,
+    )
+    imports = properties.property(
+        ra_types.Dict(),
+        read_only=True,
+        mutable=True,
+        default=dict,
+    )
 
     def install(self):
+        element_engine.load_from_database()
+
         element = Element(
             uuid=utils.get_element_uuid(self.name, self.version),
             name=self.name,
@@ -113,17 +176,49 @@ class Manifest(
         element.insert()
         element_engine.add_element(element)
 
+        for import_name, import_data in self.imports.items():
+            import_kwargs = {}
+
+            if "kind" in import_data:
+                import_kwargs["kind"] = import_data["kind"]
+
+            from_element = element_engine.get_element(
+                link=import_data["element"],
+            )
+            from_resource = element_engine.get_export_resource(
+                from_element=from_element,
+                link=import_data["link"],
+            )
+            import_model = Import(
+                uuid=cm_utils.get_or_create_uuid_from_dict(import_data),
+                name=import_name,
+                element=element,
+                from_element=from_element,
+                from_resource=from_resource,
+                **import_kwargs,
+            )
+
+            import_model.insert()
+            resource = ImportedResource(
+                element=import_model.element,
+                resource=import_model.from_resource,
+                name=import_model.name,
+            )
+            element_engine.add_resource(resource)
+
         # prepare resources:
         for resource_link_prefix, resource in self.resources.items():
+            link_resolver = LinkResolver(
+                element=element,
+                element_engine=element_engine,
+                full_link=resource_link_prefix,
+            )
             for resource_name, resource_value in resource.items():
-                uuid = sys_uuid.UUID(
-                    resource_value.get("uuid", str(sys_uuid.uuid4()))
-                )
                 resource = Resource(
-                    uuid=uuid,
+                    uuid=cm_utils.get_or_create_uuid_from_dict(resource_value),
                     name=resource_name,
                     element=element,
-                    resource_link_prefix=resource_link_prefix,
+                    resource_link_prefix=link_resolver.full_link_original,
                     value=resource_value,
                 )
 
@@ -133,9 +228,29 @@ class Manifest(
                 # resource.get_provider_element()
 
                 resource.insert()
+                element_engine.add_resource(resource)
+
+        for export_name, export_data in self.exports.items():
+            export_kwargs = {}
+            if "kind" in export_data:
+                export_kwargs["kind"] = export_data["kind"]
+
+            export_model = Export(
+                uuid=cm_utils.get_or_create_uuid_from_dict(export_data),
+                name=export_name,
+                element=element,
+                link=export_data["link"],
+                **export_kwargs,
+            )
+
+            export_model.insert()
+            element_engine.add_resource_export(export_model)
+
         return self
 
     def uninstall(self):
+        element_engine.load_from_database()
+
         elements = Element.objects.get_all(
             filters={
                 "uuid": ra_filters.EQ(
@@ -226,6 +341,10 @@ class Element(
         ):
             resource.delete(session=session)
         super().delete(session=session)
+
+    @property
+    def original(self):
+        return self
 
 
 class ElementIncorrectStatusesView(
@@ -548,6 +667,107 @@ class Resource(
         ):
             ts.delete(session=session)
 
+    @property
+    def original(self):
+        return self
+
+
+class ExportEnum(str, enum.Enum):
+    RESOURCE = "resource"
+
+
+class Export(
+    models.ModelWithUUID,
+    models.ModelWithTimestamp,
+    orm.SQLStorableMixin,
+):
+    __tablename__ = "em_exports"
+
+    element = relationships.relationship(
+        Element,
+        required=True,
+    )
+    name = properties.property(
+        ra_types.String(min_length=1, max_length=255),
+        read_only=True,
+    )
+    kind = properties.property(
+        ra_types.Enum([s.value for s in ExportEnum]),
+        default=ExportEnum.RESOURCE.value,
+    )
+    link = properties.property(
+        ra_types.String(min_length=2, max_length=255),
+        required=True,
+    )
+
+
+class ImportEnum(str, enum.Enum):
+    RESOURCE = "resource"
+
+
+class Import(
+    models.ModelWithUUID,
+    models.ModelWithTimestamp,
+    orm.SQLStorableMixin,
+):
+    __tablename__ = "em_imports"
+
+    __custom_properties__ = {
+        "link": ra_types.String(min_length=2, max_length=256),
+    }
+
+    element = relationships.relationship(
+        Element,
+        required=True,
+    )
+    from_element = relationships.relationship(
+        Element,
+        required=True,
+    )
+    from_resource = relationships.relationship(
+        Resource,
+        required=True,
+    )
+    name = properties.property(
+        ra_types.String(min_length=1, max_length=255),
+        read_only=True,
+    )
+    kind = properties.property(
+        ra_types.Enum([s.value for s in ImportEnum]),
+        default=ImportEnum.RESOURCE.value,
+    )
+
+    @property
+    def link(self):
+        return f"{self.element.link}.imports.${self.name}"
+
+
+class ImportedResource:
+
+    def __init__(self, element, resource, name):
+        super().__init__()
+        self._element = element
+        self._resource = resource
+        self._name = name
+
+    def __getattr__(self, name):
+        return getattr(self._resource, name)
+
+    def get_parameter_value(self, parameter):
+        return type(self._resource).get_parameter_value(self, parameter)
+
+    @property
+    def element(self):
+        return self._element
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def link(self):
+        return f"{self.element.link}.imports.${self.name}"
+
 
 class OutdatedResources(models.ModelWithUUID, orm.SQLStorableMixin):
 
@@ -699,6 +919,7 @@ class ElementEngine:
     def __init__(self):
         super().__init__()
         self._namespaces = {}
+        self._resource_exports = {}
 
     def load_element_from_manifest(self, manifest):
         schema_version = utils.get_required_field(manifest, "SchemaVersion")
@@ -720,11 +941,37 @@ class ElementEngine:
 
     def load_from_database(self):
         self._namespaces = {}
+        self._resource_exports = {}
         for element in Element.objects.get_all():
             self.add_element(element)
 
+        for import_ in Import.objects.get_all():
+            if import_.kind == ImportEnum.RESOURCE.value:
+                resource = ImportedResource(
+                    element=import_.element,
+                    resource=import_.from_resource,
+                    name=import_.name,
+                )
+                self.add_resource(resource)
+            else:
+                raise ValueError(
+                    f"Unsupported import type '{import_.kind}' for import "
+                    f"'{import_.name}'. Only '{ImportEnum.RESOURCE.value}' "
+                    f"imports are currently supported."
+                )
+
         for resource in Resource.objects.get_all():
             self.add_resource(resource)
+
+        for export in Export.objects.get_all():
+            if export.kind == ExportEnum.RESOURCE.value:
+                self.add_resource_export(export)
+            else:
+                raise ValueError(
+                    f"Unsupported export type '{export.kind}' for export "
+                    f"'{export.name}'. Only '{ExportEnum.RESOURCE.value}' "
+                    f"exports are currently supported."
+                )
 
     def load_element_from_manifest_file(self, manifest_file_path):
         with open(manifest_file_path, "r") as file:
@@ -765,6 +1012,9 @@ class ElementEngine:
             )
         self._namespaces[element.link] = Namespace(element)
 
+    def get_element(self, link):
+        return self.get_namespace(name=link).element
+
     def remove_element(self, element):
         if element.link not in self._namespaces:
             raise ValueError(
@@ -772,6 +1022,26 @@ class ElementEngine:
             )
 
         del self._namespaces[element.link]
+
+    def add_resource_export(self, export_resource):
+        element = export_resource.element
+        resource = self.get_resource_by_link(
+            element=element,
+            link=export_resource.link,
+        )
+
+        if export_resource.link in self._resource_exports:
+            raise ValueError(
+                f"Resource export with link '{export_resource.link}' "
+                "already exists."
+            )
+        self._resource_exports[export_resource.link] = resource
+
+    def get_export_resource(self, from_element, link):
+        # Implement check element here for export resources
+        if link not in self._resource_exports:
+            raise ValueError(f"Resource {link} is not in export list")
+        return self._resource_exports[link]
 
     def save_to_database(self):
         pass
