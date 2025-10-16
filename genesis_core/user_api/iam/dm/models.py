@@ -22,6 +22,7 @@ import uuid as sys_uuid
 
 from gcl_iam import exceptions as iam_e
 from gcl_iam import tokens
+from gcl_sdk.agents.universal.dm import models as ua_models
 import jinja2
 from restalchemy.dm import models
 from restalchemy.dm import properties
@@ -159,6 +160,7 @@ class User(
     models.ModelWithTimestamp,
     ModelWithSecret,
     ModelWithAlwaysActiveStatus,
+    ua_models.TargetResourceMixin,
     orm.SQLStorableMixin,
 ):
     __tablename__ = "iam_users"
@@ -387,6 +389,7 @@ class Role(
     models.ModelWithRequiredNameDesc,
     models.ModelWithTimestamp,
     ModelWithAlwaysActiveStatus,
+    ua_models.TargetResourceMixin,
     orm.SQLStorableMixin,
 ):
     __tablename__ = "iam_roles"
@@ -403,6 +406,7 @@ class Permission(
     models.ModelWithRequiredNameDesc,
     models.ModelWithTimestamp,
     ModelWithAlwaysActiveStatus,
+    ua_models.TargetResourceMixin,
     orm.SQLStorableMixin,
 ):
     __tablename__ = "iam_permissions"
@@ -411,6 +415,7 @@ class Permission(
 class PermissionBinding(
     models.ModelWithUUID,
     models.ModelWithTimestamp,
+    ua_models.TargetResourceMixin,
     orm.SQLStorableMixin,
 ):
     __tablename__ = "iam_binding_permissions"
@@ -436,6 +441,7 @@ class Organization(
     models.ModelWithRequiredNameDesc,
     models.ModelWithTimestamp,
     ModelWithAlwaysActiveStatus,
+    ua_models.TargetResourceMixin,
     orm.SQLStorableWithJSONFieldsMixin,
 ):
     __tablename__ = "iam_organizations"
@@ -523,10 +529,15 @@ class Project(
     models.ModelWithUUID,
     models.ModelWithRequiredNameDesc,
     models.ModelWithTimestamp,
-    ModelWithStatus,
+    ua_models.TargetResourceMixin,
     orm.SQLStorableMixin,
 ):
     __tablename__ = "iam_projects"
+
+    status = properties.property(
+        ra_types.Enum([s.value for s in iam_c.Status]),
+        default=iam_c.Status.ACTIVE.value,
+    )
 
     organization = relationships.relationship(
         Organization,
@@ -616,6 +627,7 @@ class RoleBinding(
     models.ModelWithUUID,
     models.ModelWithTimestamp,
     ModelWithAlwaysActiveStatus,
+    ua_models.TargetResourceMixin,
     orm.SQLStorableMixin,
 ):
     __tablename__ = "iam_binding_roles"

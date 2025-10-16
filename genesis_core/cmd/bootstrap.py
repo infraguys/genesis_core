@@ -14,6 +14,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import os
 import sys
 import time
 import logging
@@ -32,6 +33,7 @@ from genesis_core.common import constants as c
 
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
+GCTL_CFG_DIR = "/home/ubuntu/.genesis"
 
 cli_opts = [
     cfg.BoolOpt(
@@ -150,6 +152,18 @@ def _install_core_manifest():
 
     manifest = elements.add_manifest(client, manifest)
     elements.install_manifest(client, manifest["uuid"])
+
+    # Create a configuration file for gctl
+    os.makedirs(GCTL_CFG_DIR, exist_ok=True)
+    with open(os.path.join(GCTL_CFG_DIR, "genesisctl.yaml"), "w") as f:
+        yaml.safe_dump(
+            {
+                "endpoint": CONF.core_endpoint,
+                "user": CONF.core_user,
+                "password": CONF.core_password,
+            },
+            f,
+        )
 
 
 def main() -> None:

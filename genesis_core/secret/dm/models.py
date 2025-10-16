@@ -223,6 +223,7 @@ class SSHKey(
     target = properties.property(
         types_dynamic.KindModelSelectorType(
             types_dynamic.KindModelType(cfg_models.NodeTarget),
+            types_dynamic.KindModelType(cfg_models.NodeSetTarget),
         ),
         required=True,
     )

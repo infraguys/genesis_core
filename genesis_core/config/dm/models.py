@@ -22,6 +22,7 @@ from restalchemy.dm import models
 from restalchemy.dm import properties
 from restalchemy.dm import types
 from restalchemy.dm import types_dynamic
+from restalchemy.dm import filters as dm_filters
 from restalchemy.storage.sql import orm
 
 from gcl_sdk.agents.universal.dm import models as ua_models
@@ -88,6 +89,35 @@ class NodeTarget(AbstractTarget):
         return bool(self._fetch_nodes())
 
 
+class NodeSetTarget(AbstractTarget):
+    KIND = "node_set"
+
+    node_set = properties.property(types.UUID(), required=True)
+
+    @classmethod
+    def from_node_set(cls, node_set: sys_uuid.UUID) -> "NodeSetTarget":
+        return cls(node_set=node_set)
+
+    def target_nodes(self) -> list[sys_uuid.UUID]:
+        return [node.uuid for node in self._fetch_nodes()]
+
+    def owners(self) -> list[sys_uuid.UUID]:
+        """It's the simplest case with an ordinary node config.
+
+        In that case, the owner and target is the node itself.
+        If owners are deleted, the config will be deleted as well.
+        """
+        return [self.node_set]
+
+    def _fetch_nodes(self) -> list[nm.Node]:
+        return nm.Node.objects.get_all(
+            filters={"node_set": dm_filters.EQ(str(self.node_set))}
+        )
+
+    def are_owners_alive(self) -> bool:
+        return bool(self._fetch_nodes())
+
+
 class TextBodyConfig(AbstractContentor):
     KIND = "text"
 
@@ -149,6 +179,7 @@ class Config(
     target = properties.property(
         types_dynamic.KindModelSelectorType(
             types_dynamic.KindModelType(NodeTarget),
+            types_dynamic.KindModelType(NodeSetTarget),
         ),
         required=True,
     )

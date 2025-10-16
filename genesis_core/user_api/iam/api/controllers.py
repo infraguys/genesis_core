@@ -124,6 +124,7 @@ class UserController(
     __resource__ = resources.ResourceByModelWithCustomProps(
         models.User,
         convert_underscore=False,
+        process_filters=True,
         hidden_fields=resources.HiddenFieldMap(
             get=[
                 "salt",
