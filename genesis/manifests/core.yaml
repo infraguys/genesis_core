@@ -37,3 +37,7 @@ resources:
         name: "core"
         # TODO: Take the IP from the node resource
         address: "10.20.0.2"
+
+exports:
+  local_domain:
+    link: "$core.dns.domains.$local_domain"

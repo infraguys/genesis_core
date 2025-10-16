@@ -243,6 +243,7 @@ class ConfigServiceBuilder(basic.BasicService):
             config.status = status.value
             config.update()
             config_resource.tracked_at = config.updated_at
+            config_resource.status = config.status
             config_resource.update()
 
     def _actualize_outdated_configs(self) -> None:
@@ -286,7 +287,9 @@ class ConfigServiceBuilder(basic.BasicService):
         for resource in render_resources + deleted_config_resources:
             try:
                 resource.delete()
-                LOG.debug("Outdated resource %s deleted", resource.uuid)
+                LOG.debug(
+                    "Resource(%s) %s deleted", resource.kind, resource.uuid
+                )
             except Exception:
                 LOG.exception("Error deleting resource %s", resource.uuid)
 

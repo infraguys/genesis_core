@@ -14,6 +14,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import re
 import logging
 import enum
 import yaml
@@ -426,6 +427,7 @@ class Resource(
     }
     __allowed_methods_from_manifest__ = [
         "get_uri",
+        "to_str",
     ]
 
     element = relationships.relationship(
@@ -472,6 +474,11 @@ class Resource(
         parts = self.link.split(".")
         return f"{version_prefix}/{'/'.join(parts[1:-1])}/{self.uuid}"
 
+    def to_str(self, field: str) -> str:
+        if not self.actual_resource or not self.actual_resource.value:
+            return ""
+        return str(self.actual_resource.value[field])
+
     def get_parameter_value(self, parameter):
         parts = parameter.split(":")
         resource_name = parts[0][1:]
@@ -484,10 +491,15 @@ class Resource(
         if len(resource_parameter_path) == 0:
             return self.actual_resource.value
         elif len(resource_parameter_path) == 1:
-            if resource_parameter_path[0][-2:] == "()":
-                func_name = resource_parameter_path[0][:-2]
+            if match := re.match(
+                r"^(\w+)\s*\(([^)]*(?:,([^)]*))?\)$",
+                resource_parameter_path[0],
+            ):
+                func_name = match.group(1)
                 if func_name in self.__allowed_methods_from_manifest__:
                     func = getattr(self, func_name)
+                    if match.group(2):
+                        return func(match.group(2))
                     return func()
 
         result_value = self.get_actual_state_safe()
@@ -663,7 +675,10 @@ class Resource(
     def delete(self, session=None):
         super().delete(session=session)
         for ts in sdk_models.TargetResource.objects.get_all(
-            filters={"uuid": ra_filters.EQ(self.uuid)}
+            filters={
+                "uuid": ra_filters.EQ(self.uuid),
+                "kind": ra_filters.EQ(self.kind),
+            }
         ):
             ts.delete(session=session)
 
