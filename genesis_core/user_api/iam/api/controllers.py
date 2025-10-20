@@ -14,13 +14,16 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import datetime
 import errno
+import json
 from os import path as os_path
 import mimetypes
 import re
 import string
 from urllib import parse as urllib_parse
 
+import altcha
 from authlib.integrations import requests_client
 import jinja2
 from gcl_iam import controllers as iam_controllers
@@ -38,6 +41,8 @@ from genesis_core.user_api.iam.clients import idp
 from genesis_core.user_api.iam.dm import models
 from genesis_core.user_api.iam import constants as c
 from genesis_core.user_api.iam import exceptions as iam_e
+from genesis_core.cmd.user_api import CONF
+from genesis_core.cmd.user_api import DOMAIN_IAM
 
 
 class EnforceMixin:
@@ -45,6 +50,29 @@ class EnforceMixin:
     def enforce(self, rule, do_raise=False, exc=None):
         iam = contexts.get_context().iam_context
         return iam.enforcer.enforce(rule, do_raise, exc)
+
+
+class CaptchaMixin:
+
+    def check_captcha(self):
+        if not CONF[
+            DOMAIN_IAM
+        ].captcha_required_default:  # TODO get from client first
+            return
+        if not (payload := self.request.headers.get("payload")):
+            raise iam_e.CaptchaRequired()
+        try:
+            payload_json = json.loads(payload)
+        except (json.JSONDecodeError, TypeError):
+            raise iam_e.CaptchaInvalid(error="Invalid captcha payload.")
+        verified, error = altcha.verify_solution(
+            payload_json,
+            hmac_key=CONF[DOMAIN_IAM].captcha_key,
+            check_expires=True,
+        )
+        if not verified:
+            raise iam_e.CaptchaInvalid(error=error or "")
+        return True
 
 
 class ValidationException(ra_e.RestAlchemyException):
@@ -120,6 +148,7 @@ class UserController(
     controllers.BaseResourceControllerPaginated,
     EnforceMixin,
     ValidateSecretMixin,
+    CaptchaMixin,
 ):
     __resource__ = resources.ResourceByModelWithCustomProps(
         models.User,
@@ -169,6 +198,7 @@ class UserController(
     )
 
     def create(self, **kwargs):
+        self.check_captcha()
         self.validate_secret(kwargs)
         kwargs.pop("email_verified", None)
         user = super().create(**kwargs)
@@ -667,6 +697,18 @@ class ClientsController(
         resource.send_reset_password_event(
             email=email, app_endpoint=app_endpoint
         )
+
+    @actions.get
+    def get_captcha(self, resource):
+        options = altcha.ChallengeOptions(
+            algorithm="SHA-512",
+            expires=datetime.datetime.now()
+            + datetime.timedelta(minutes=CONF[DOMAIN_IAM].captcha_expires),
+            max_number=CONF[DOMAIN_IAM].captcha_max_number,
+            hmac_key=CONF[DOMAIN_IAM].captcha_key,
+        )
+        challenge = altcha.create_challenge(options)
+        return challenge.to_dict()
 
 
 class WebController:
