@@ -31,8 +31,14 @@ from genesis_core.elements.services import builders as em_builders
 from genesis_core.compute.scheduler.driver.filters import available
 from genesis_core.compute.scheduler.driver.weighter import relative
 from genesis_core.compute.scheduler import service as n_scheduler_service
-from genesis_core.compute.builder import service as n_builder_service
-from genesis_core.compute.machine import service as n_machine_service
+from genesis_core.compute.node.builders import service as node_builder_svc
+from genesis_core.compute.machine.builders import (
+    service as machine_builder_svc,
+)
+from genesis_core.compute.machine import service as machine_svc
+from genesis_core.compute.agents.universal.drivers import (
+    pool as ua_pool_drivers,
+)
 from genesis_core.compute.node_set.builders import service as set_builder_svc
 from genesis_core.compute.dm import models as compute_models
 from genesis_core.network import service as n_network_service
@@ -82,12 +88,28 @@ class GeneralService(basic.BasicService):
         n_network = n_network_service.NetworkService(
             iter_min_period=1, iter_pause=0.1
         )
-        n_builder = n_builder_service.NodeBuilderService(
+        node_builder = node_builder_svc.NodeBuilderService(
             iter_min_period=1, iter_pause=0.1
         )
-        n_machine = n_machine_service.MachineAgentService(
+        machine_builder = machine_builder_svc.MachineBuilderService(
             iter_min_period=1, iter_pause=0.1
         )
+        # n_machine = machine_svc.MachineAgentService(
+        #     iter_min_period=1, iter_pause=0.1
+        # )
+        pool_driver = ua_pool_drivers.PoolAgentDriver()
+        agent_uuid = sys_uuid.uuid5(
+            ua_utils.system_uuid(), "machine_pool_agent"
+        )
+        machine_pool_agent = ua_agent_service.UniversalAgentService(
+            agent_uuid=agent_uuid,
+            orch_client=orch_db.DatabaseOrchClient(),
+            caps_drivers=[pool_driver],
+            facts_drivers=[],
+            iter_min_period=iter_min_period,
+            payload_path=None,
+        )
+
         set_builder = set_builder_svc.NodeSetBuilder(
             instance_model=node_set_models.NodeSet,
             project_id=nc.NODE_SET_PROJECT,
@@ -144,8 +166,9 @@ class GeneralService(basic.BasicService):
             infra_agent,
             n_scheduler,
             n_network,
-            n_builder,
-            n_machine,
+            node_builder,
+            machine_builder,
+            machine_pool_agent,
             cfg_service,
             secret_svc,
             event_sender,

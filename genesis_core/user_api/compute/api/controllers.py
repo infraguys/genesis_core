@@ -115,17 +115,17 @@ class HypervisorsController(
         return hyper
 
 
-class MachineAgentController(
-    iam_controllers.PolicyBasedController,
-    controllers.BaseResourceControllerPaginated,
-):
-    """Controller for /v1/compute/machine_agents/ endpoint"""
+# class MachineAgentController(
+#     iam_controllers.PolicyBasedController,
+#     controllers.BaseResourceControllerPaginated,
+# ):
+#     """Controller for /v1/compute/machine_agents/ endpoint"""
 
-    __policy_name__ = "machine_agent"
-    __policy_service_name__ = nc.POLICY_SERVICE_NAME
+#     __policy_name__ = "machine_agent"
+#     __policy_service_name__ = nc.POLICY_SERVICE_NAME
 
-    __resource__ = resources.ResourceByRAModel(
-        model_class=node_models.MachineAgent,
-        process_filters=True,
-        convert_underscore=False,
-    )
+#     __resource__ = resources.ResourceByRAModel(
+#         model_class=node_models.MachineAgent,
+#         process_filters=True,
+#         convert_underscore=False,
+#     )
