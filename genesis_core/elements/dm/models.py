@@ -14,6 +14,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import abc
 import re
 import logging
 import enum
@@ -410,7 +411,62 @@ class Requirement(
     )
 
 
+class AbstractResource(metaclass=abc.ABCMeta):
+
+    @abc.abstractmethod
+    def get_uri(self):
+        raise NotImplementedError("Not implemented")
+
+    @abc.abstractmethod
+    def to_str(self, field: str) -> str:
+        raise NotImplementedError("Not implemented")
+
+    @abc.abstractmethod
+    def get_parameter_value(self, parameter):
+        raise NotImplementedError("Not implemented")
+
+    @abc.abstractmethod
+    def get_actual_state_safe(self):
+        raise NotImplementedError("Not implemented")
+
+    @abc.abstractmethod
+    def render_target_state(self, engine=None):
+        raise NotImplementedError("Not implemented")
+
+    @property
+    @abc.abstractmethod
+    def link(self):
+        raise NotImplementedError("Not implemented")
+
+    @abc.abstractmethod
+    def get_provider_element(self):
+        raise NotImplementedError("Not implemented")
+
+    @property
+    @abc.abstractmethod
+    def kind(self):
+        raise NotImplementedError("Not implemented")
+
+    @abc.abstractmethod
+    def calculate_full_hash(self):
+        raise NotImplementedError("Not implemented")
+
+    @abc.abstractmethod
+    def actualize(self):
+        raise NotImplementedError("Not implemented")
+
+    @abc.abstractmethod
+    def delete(self, session=None):
+        raise NotImplementedError("Not implemented")
+
+    @property
+    @abc.abstractmethod
+    def original(self):
+        raise NotImplementedError("Not implemented")
+
+
 class Resource(
+    AbstractResource,
     models.ModelWithUUID,
     models.ModelWithTimestamp,
     models.CustomPropertiesMixin,
@@ -757,16 +813,13 @@ class Import(
         return f"{self.element.link}.imports.${self.name}"
 
 
-class ImportedResource:
+class ImportedResource(AbstractResource):
 
     def __init__(self, element, resource, name):
         super().__init__()
         self._element = element
         self._resource = resource
         self._name = name
-
-    def __getattr__(self, name):
-        return getattr(self._resource, name)
 
     def get_parameter_value(self, parameter):
         return type(self._resource).get_parameter_value(self, parameter)
@@ -782,6 +835,38 @@ class ImportedResource:
     @property
     def link(self):
         return f"{self.element.link}.imports.${self.name}"
+
+    def get_uri(self):
+        return self._resource.get_uri()
+
+    def to_str(self, field: str) -> str:
+        return self._resource.to_str(field)
+
+    def get_actual_state_safe(self):
+        return self._resource.get_actual_state_safe()
+
+    def render_target_state(self, engine=None):
+        return self._resource.render_target_state(engine)
+
+    def get_provider_element(self):
+        return self._resource.get_provider_element()
+
+    @property
+    def kind(self):
+        return self._resource.kind
+
+    def calculate_full_hash(self):
+        return self._resource.calculate_full_hash()
+
+    def actualize(self):
+        return self._resource.actualize()
+
+    def delete(self, session=None):
+        return self._resource.delete(session)
+
+    @property
+    def original(self):
+        return self._resource
 
 
 class OutdatedResources(models.ModelWithUUID, orm.SQLStorableMixin):
