@@ -203,6 +203,16 @@ class Node(
 
     node_set = properties.property(types.AllowNone(types.UUID()), default=None)
 
+    def insert(self, session=None):
+        super().insert(session=session)
+
+        for policy in self.placement_policies:
+            allocation = FlatPlacementPolicyAllocation(
+                node=self.uuid,
+                policy=policy,
+            )
+            allocation.insert(session=session)
+
     def update_default_network(self, port: Port) -> None:
         self.default_network = {
             "subnet": str(port.subnet),
@@ -230,6 +240,7 @@ class Node(
                 "image",
                 "project_id",
                 "node_set",
+                "placement_policies",
             )
         )
 
@@ -609,3 +620,84 @@ class Interface(
             )
 
         return ifaces
+
+
+# Placement
+
+
+class PlacementDomain(
+    models.SimpleViewMixin,
+    models.ModelWithUUID,
+    models.ModelWithNameDesc,
+    models.ModelWithTimestamp,
+    orm.SQLStorableMixin,
+):
+    __tablename__ = "compute_placement_domains"
+
+
+class PlacementZone(
+    models.SimpleViewMixin,
+    models.ModelWithUUID,
+    models.ModelWithNameDesc,
+    models.ModelWithTimestamp,
+    orm.SQLStorableMixin,
+):
+    __tablename__ = "compute_placement_zones"
+
+    domain = relationships.relationship(
+        PlacementDomain,
+        prefetch=True,
+        required=True,
+    )
+
+
+class PlacementPolicy(
+    models.SimpleViewMixin,
+    cm.ModelWithFullAsset,
+    orm.SQLStorableMixin,
+):
+    __tablename__ = "compute_placement_policies"
+
+    domain = relationships.relationship(
+        PlacementDomain,
+        prefetch=True,
+    )
+    zone = relationships.relationship(
+        PlacementZone,
+        prefetch=True,
+    )
+    kind = properties.property(
+        types.Enum([p.value for p in nc.PlacementPolicyKind]),
+        required=True,
+        default=nc.PlacementPolicyKind.SOFT_ANTI_AFFINITY.value,
+    )
+
+
+class FlatPlacementPolicyAllocation(
+    models.ModelWithUUID,
+    models.SimpleViewMixin,
+    orm.SQLStorableMixin,
+):
+    __tablename__ = "compute_placement_policy_allocations"
+
+    node = properties.property(
+        types.UUID(),
+        required=True,
+    )
+    policy = properties.property(
+        types.UUID(),
+        required=True,
+    )
+
+
+class PlacementPolicyAllocation(FlatPlacementPolicyAllocation):
+    node = relationships.relationship(
+        Node,
+        prefetch=True,
+        required=True,
+    )
+    policy = relationships.relationship(
+        PlacementPolicy,
+        prefetch=True,
+        required=True,
+    )
