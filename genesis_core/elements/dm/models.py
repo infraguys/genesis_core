@@ -492,7 +492,7 @@ class Resource(
             return self.actual_resource.value
         elif len(resource_parameter_path) == 1:
             if match := re.match(
-                r"^(\w+)\s*\(([^)]*(?:,([^)]*))?\)$",
+                r"^(\w+)(?:\s*\(([^)]*)\))?$",
                 resource_parameter_path[0],
             ):
                 func_name = match.group(1)

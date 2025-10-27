@@ -116,3 +116,7 @@ class PortStatus(str, enum.Enum):
     IN_PROGRESS = "IN_PROGRESS"
     ACTIVE = "ACTIVE"
     ERROR = "ERROR"
+
+
+class PlacementPolicyKind(str, enum.Enum):
+    SOFT_ANTI_AFFINITY = "soft-anti-affinity"

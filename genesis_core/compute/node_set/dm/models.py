@@ -34,7 +34,13 @@ class NodeSet(compute_models.NodeSet):
         "set_agent_node": Node,
     }
 
-    def create_nodes(self, project_id: sys_uuid.UUID) -> tp.Collection[Node]:
+    def create_nodes(
+        self,
+        project_id: sys_uuid.UUID,
+        placement_policies: tp.Collection[
+            compute_models.PlacementPolicy
+        ] = tuple(),
+    ) -> tp.Collection[Node]:
         """Create nodes for the node set."""
         nodes = []
 
@@ -55,6 +61,7 @@ class NodeSet(compute_models.NodeSet):
                 project_id=project_id,
                 node_type=self.node_type,
                 status=nc.NodeStatus.NEW.value,
+                placement_policies=[p.uuid for p in placement_policies],
             )
             nodes.append(node)
 
