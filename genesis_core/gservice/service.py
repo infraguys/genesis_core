@@ -29,6 +29,7 @@ from gcl_sdk.agents.universal.drivers import core as ua_core_drivers
 
 from genesis_core.elements.services import builders as em_builders
 from genesis_core.compute.scheduler.driver.filters import available
+from genesis_core.compute.scheduler.driver.filters import affinity
 from genesis_core.compute.scheduler.driver.weighter import relative
 from genesis_core.compute.scheduler import service as n_scheduler_service
 from genesis_core.compute.builder import service as n_builder_service
@@ -58,6 +59,7 @@ class GeneralService(basic.BasicService):
         # and entry points
         pool_filters = [
             available.CoresRamAvailableFilter(),
+            affinity.DummySoftAntiAffinityFilter(),
         ]
         pool_weighters = [
             relative.RelativeCoreRamWeighter(),
