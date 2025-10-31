@@ -54,8 +54,8 @@ class Machine(node_models.Machine):
     pass
 
 
-class MachineAgent(node_models.MachineAgent):
-    pass
+# class MachineAgent(node_models.MachineAgent):
+#     pass
 
 
 class MachinePool(node_models.MachinePool):
@@ -146,17 +146,17 @@ class HypervisorsController(
         return hyper
 
 
-class MachineAgentController(
-    iam_controllers.PolicyBasedController,
-    controllers.BaseResourceControllerPaginated,
-):
-    """Controller for /v1/machine_agents/ endpoint"""
+# class MachineAgentController(
+#     iam_controllers.PolicyBasedController,
+#     controllers.BaseResourceControllerPaginated,
+# ):
+#     """Controller for /v1/machine_agents/ endpoint"""
 
-    __policy_name__ = "machine_agent"
-    __policy_service_name__ = nc.POLICY_SERVICE_NAME
+#     __policy_name__ = "machine_agent"
+#     __policy_service_name__ = nc.POLICY_SERVICE_NAME
 
-    __resource__ = resources.ResourceByRAModel(
-        model_class=MachineAgent,
-        process_filters=True,
-        convert_underscore=False,
-    )
+#     __resource__ = resources.ResourceByRAModel(
+#         model_class=MachineAgent,
+#         process_filters=True,
+#         convert_underscore=False,
+#     )

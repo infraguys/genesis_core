@@ -53,8 +53,20 @@ class AbstractPoolDriver(abc.ABC):
         """Delete the volume from data plane."""
 
     @abc.abstractmethod
+    def resize_volume(self, volume: models.MachineVolume) -> None:
+        """Resize the volume."""
+
+    @abc.abstractmethod
+    def attach_volume(self, volume: models.MachineVolume) -> None:
+        """Attach the volume."""
+
+    @abc.abstractmethod
+    def detach_volume(self, volume: models.MachineVolume) -> None:
+        """Detach the volume."""
+
+    @abc.abstractmethod
     def list_volumes(
-        self, machine: models.Machine
+        self, machine: models.Machine | None = None
     ) -> tp.Iterable[models.MachineVolume]:
         """Return volume list from data plane."""
 
@@ -113,7 +125,7 @@ class DummyPoolDriver(AbstractPoolDriver):
         pass
 
     def list_volumes(
-        self, machine: models.Machine
+        self, machine: models.Machine | None = None
     ) -> tp.Iterable[models.MachineVolume]:
         """Return volume list from data plane."""
         return []
@@ -122,6 +134,15 @@ class DummyPoolDriver(AbstractPoolDriver):
         self, machine: sys_uuid.UUID, uuid: sys_uuid.UUID
     ) -> models.MachineVolume:
         """Get the machine volume by uuid."""
+
+    def resize_volume(self, volume: models.MachineVolume) -> None:
+        """Resize the volume."""
+
+    def attach_volume(self, volume: models.MachineVolume) -> None:
+        """Attach the volume."""
+
+    def detach_volume(self, volume: models.MachineVolume) -> None:
+        """Detach the volume."""
 
     def set_machine_cores(self, machine: models.Machine, cores: int) -> None:
         """Set machine cores."""

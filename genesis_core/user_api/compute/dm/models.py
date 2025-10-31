@@ -22,3 +22,7 @@ from genesis_core.compute.dm import models
 
 class Node(models.Node):
     node_set = relationships.relationship(models.NodeSet, read_only=True)
+
+
+class Volume(models.Volume):
+    node = relationships.relationship(Node, read_only=True)

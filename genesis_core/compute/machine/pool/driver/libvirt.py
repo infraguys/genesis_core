@@ -20,10 +20,8 @@ import time
 import typing as tp
 import uuid as sys_uuid
 from xml.dom import minidom
-import contextlib as ctxlib
 
 import libvirt
-import netaddr
 
 from genesis_core.compute.dm import models
 from genesis_core.common import constants as c
@@ -508,7 +506,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         return ports
 
     def list_volumes(
-        self, machine: models.Machine
+        self, machine: models.Machine | None = None
     ) -> tp.Iterable[models.MachineVolume]:
         storage_pool = self._client.storagePoolLookupByName(
             self._spec.storage_pool
@@ -520,8 +518,10 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
             except Exception:
                 LOG.warning("Failed to parse volume %s", v.name())
 
+        if machine is None:
+            return volumes
+
         result = [v for v in volumes if v.machine == machine.uuid]
-        LOG.debug("Volumes: %s", result)
         return result
 
     def get_volume(
@@ -607,6 +607,18 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
                 break
         LOG.debug("The volume %s has been deleted", v.name())
         return
+
+    def attach_volume(self, volume: models.MachineVolume) -> None:
+        """Attach the volume."""
+        pass
+
+    def detach_volume(self, volume: models.MachineVolume) -> None:
+        """Detach the volume."""
+        pass
+
+    def resize_volume(self, volume: models.MachineVolume) -> None:
+        """Resize the volume."""
+        pass
 
     def list_machines(self) -> tp.List[models.Machine]:
         """Return machine list from data plane."""

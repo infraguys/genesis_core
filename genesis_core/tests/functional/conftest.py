@@ -317,25 +317,25 @@ def user_api_noauth_client(user_api):
     )
 
 
-@pytest.fixture
-def machine_agent_factory():
-    def factory(
-        uuid: sys_uuid.UUID | None = None,
-        name: str = "agent",
-        status: str = nc.MachineAgentStatus.ACTIVE.value,
-        **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
-        uuid = uuid or sys_uuid.uuid4()
-        obj = node_models.MachineAgent(
-            uuid=uuid,
-            name=name,
-            status=status,
-            **kwargs,
-        )
-        view = obj.dump_to_simple_view()
-        return view
+# @pytest.fixture
+# def machine_agent_factory():
+#     def factory(
+#         uuid: sys_uuid.UUID | None = None,
+#         name: str = "agent",
+#         status: str = nc.MachineAgentStatus.ACTIVE.value,
+#         **kwargs,
+#     ) -> tp.Dict[str, tp.Any]:
+#         uuid = uuid or sys_uuid.uuid4()
+#         obj = node_models.MachineAgent(
+#             uuid=uuid,
+#             name=name,
+#             status=status,
+#             **kwargs,
+#         )
+#         view = obj.dump_to_simple_view()
+#         return view
 
-    return factory
+#     return factory
 
 
 @pytest.fixture

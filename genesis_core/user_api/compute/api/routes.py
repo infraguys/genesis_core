@@ -19,6 +19,12 @@ from restalchemy.api import routes
 from genesis_core.user_api.compute.api import controllers
 
 
+class VolumesRoute(routes.Route):
+    """Handler for /v1/compute/volumes/ endpoint"""
+
+    __controller__ = controllers.VolumesController
+
+
 class NodeRoute(routes.Route):
     """Handler for /v1/compute/nodes/ endpoint"""
 
@@ -37,10 +43,10 @@ class HypervisorRoute(routes.Route):
     __controller__ = controllers.HypervisorsController
 
 
-class MachineAgentRoute(routes.Route):
-    """Handler for /v1/compute/machine_agents/ endpoint"""
+# class MachineAgentRoute(routes.Route):
+#     """Handler for /v1/compute/machine_agents/ endpoint"""
 
-    __controller__ = controllers.MachineAgentController
+#     __controller__ = controllers.MachineAgentController
 
 
 class NodeSetsRoute(routes.Route):
@@ -55,8 +61,9 @@ class ComputeRoute(routes.Route):
     __allow_methods__ = [routes.FILTER]
     __controller__ = controllers.ComputeController
 
+    volumes = routes.route(VolumesRoute)
     nodes = routes.route(NodeRoute)
     machines = routes.route(MachineRoute)
     hypervisors = routes.route(HypervisorRoute)
-    machine_agents = routes.route(MachineAgentRoute)
+    # machine_agents = routes.route(MachineAgentRoute)
     sets = routes.route(NodeSetsRoute)
