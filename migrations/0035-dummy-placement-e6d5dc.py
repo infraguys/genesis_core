@@ -99,7 +99,7 @@ class MigrationStep(migrations.AbstractMigrationStep):
             """,
             """
             ALTER TABLE nodes
-                ADD COLUMN IF NOT EXISTS placement_policies UUID[] NOT NULL;
+                ADD COLUMN IF NOT EXISTS placement_policies UUID[] NOT NULL DEFAULT '{}';
             """,
             # View
             """
@@ -133,22 +133,6 @@ class MigrationStep(migrations.AbstractMigrationStep):
 
     def downgrade(self, session):
         expressions = [
-            """
-            ALTER TABLE nodes
-                DROP COLUMN IF EXISTS placement_policies;
-            """,
-            """
-            DROP TABLE IF EXISTS compute_placement_policy_allocations;
-            """,
-            """
-            DROP TABLE IF EXISTS compute_placement_policies;
-            """,
-            """
-            DROP TABLE IF EXISTS compute_placement_zones;
-            """,
-            """
-            DROP TABLE IF EXISTS compute_placement_domains;
-            """,
             # View
             """
             DROP VIEW IF EXISTS compute_nodes_without_ports;
@@ -172,6 +156,22 @@ class MigrationStep(migrations.AbstractMigrationStep):
                     nodes.node_set
                 FROM nodes LEFT JOIN compute_ports as ports ON 
                     nodes.uuid = ports.node WHERE ports.uuid is NULL;
+            """,
+            """
+            ALTER TABLE nodes
+                DROP COLUMN IF EXISTS placement_policies;
+            """,
+            """
+            DROP TABLE IF EXISTS compute_placement_policy_allocations;
+            """,
+            """
+            DROP TABLE IF EXISTS compute_placement_policies;
+            """,
+            """
+            DROP TABLE IF EXISTS compute_placement_zones;
+            """,
+            """
+            DROP TABLE IF EXISTS compute_placement_domains;
             """,
         ]
 
