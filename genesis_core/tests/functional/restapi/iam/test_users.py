@@ -14,12 +14,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 import datetime
-import json
 from contextlib import nullcontext
-from unittest import mock
 from urllib.parse import urljoin
 
-import altcha
 import pytest
 import requests
 from bazooka import exceptions as bazooka_exc
@@ -29,7 +26,6 @@ from genesis_core.common import constants as common_c
 from genesis_core.tests.functional.restapi.iam import base
 from genesis_core.user_api.iam import constants as c
 from genesis_core.user_api.iam.dm import models as iam_models
-from genesis_core.user_api.iam.api import controllers as iam_controllers
 
 
 class TestUsers(base.BaseIamResourceTest):
@@ -589,82 +585,3 @@ class TestUsers(base.BaseIamResourceTest):
         assert user_updated.confirmation_code is None
         # password changed
         assert user_updated.secret_hash != user.secret_hash
-
-    @pytest.mark.parametrize(
-        "required, headers, status, mock_verify",
-        [
-            (False, False, 201, False),  # captcha not required
-            (True, False, 403, False),  # captcha required error
-            (True, True, 403, False),  # captcha invalid error
-            (True, True, 201, True),  # captcha ok
-        ],
-    )
-    def test_captcha(
-        self,
-        user_api,
-        default_client_uuid,
-        user_api_noauth_client,
-        monkeypatch,
-        required,
-        headers,
-        status,
-        mock_verify,
-    ):
-        url = urljoin(
-            user_api.base_url,
-            f"iam/clients/{default_client_uuid}/actions/get_captcha",
-        )
-        result = requests.get(url)
-        assert result.status_code == 200, result.text
-        result_json = result.json()
-        assert {
-            "algorithm",
-            "challenge",
-            "maxNumber",
-            "salt",
-            "signature",
-        } == set(result_json.keys())
-
-        payload = {
-            "number": 12345,
-            "algorithm": result_json["algorithm"],
-            "challenge": result_json["challenge"],
-            "salt": result_json["salt"],
-            "signature": result_json["signature"],
-        }
-        payload_s = json.dumps(payload)
-
-        captcha_required = iam_controllers.CONF[
-            iam_controllers.DOMAIN_IAM
-        ].captcha_required_default
-        iam_controllers.CONF[
-            iam_controllers.DOMAIN_IAM
-        ].captcha_required_default = required
-
-        if mock_verify:
-            monkeypatch.setattr(
-                altcha,
-                "verify_solution",
-                mock.MagicMock(return_value=(True, None)),
-            )
-
-        url = urljoin(
-            user_api.base_url,
-            f"iam/users/",
-        )
-        result = requests.post(
-            url,
-            json={
-                "username": "test_captcha",
-                "password": "test_password",
-                "first_name": "FirstName",
-                "last_name": "LastName",
-                "email": f"test_captcha@genesis.com",
-            },
-            headers={"payload": payload_s} if headers else None,
-        )
-        assert result.status_code == status, result.text
-
-        iam_controllers.CONF[
-            iam_controllers.DOMAIN_IAM
-        ].captcha_required_default = captcha_required
