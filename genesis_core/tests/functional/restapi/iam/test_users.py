@@ -610,6 +610,8 @@ class TestUsers(base.BaseIamResourceTest):
         status,
         mock_verify,
     ):
+        from genesis_core.cmd.user_api import CONF, DOMAIN_IAM
+
         url = urljoin(
             user_api.base_url,
             f"iam/clients/{default_client_uuid}/actions/get_captcha",
@@ -634,12 +636,8 @@ class TestUsers(base.BaseIamResourceTest):
         }
         payload_s = json.dumps(payload)
 
-        captcha_required = iam_controllers.CONF[
-            iam_controllers.DOMAIN_IAM
-        ].captcha_required_default
-        iam_controllers.CONF[
-            iam_controllers.DOMAIN_IAM
-        ].captcha_required_default = required
+        captcha_required = CONF[DOMAIN_IAM].captcha_required_default
+        CONF[DOMAIN_IAM].captcha_required_default = required
 
         if mock_verify:
             monkeypatch.setattr(
@@ -665,6 +663,4 @@ class TestUsers(base.BaseIamResourceTest):
         )
         assert result.status_code == status, result.text
 
-        iam_controllers.CONF[
-            iam_controllers.DOMAIN_IAM
-        ].captcha_required_default = captcha_required
+        CONF[DOMAIN_IAM].captcha_required_default = captcha_required
