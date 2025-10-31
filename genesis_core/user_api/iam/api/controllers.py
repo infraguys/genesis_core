@@ -41,8 +41,6 @@ from genesis_core.user_api.iam.clients import idp
 from genesis_core.user_api.iam.dm import models
 from genesis_core.user_api.iam import constants as c
 from genesis_core.user_api.iam import exceptions as iam_e
-from genesis_core.cmd.user_api import CONF
-from genesis_core.cmd.user_api import DOMAIN_IAM
 
 
 class EnforceMixin:
@@ -55,9 +53,9 @@ class EnforceMixin:
 class CaptchaMixin:
 
     def check_captcha(self):
-        if not CONF[
-            DOMAIN_IAM
-        ].captcha_required_default:  # TODO get from client first
+        from genesis_core.cmd.user_api import CONF, DOMAIN_IAM
+
+        if not CONF[DOMAIN_IAM].captcha_required_default:
             return
         if not (payload := self.request.headers.get("payload")):
             raise iam_e.CaptchaRequired()
@@ -701,6 +699,8 @@ class ClientsController(
 
     @actions.get
     def get_captcha(self, resource):
+        from genesis_core.cmd.user_api import CONF, DOMAIN_IAM
+
         options = altcha.ChallengeOptions(
             algorithm="SHA-512",
             expires=datetime.datetime.now()
