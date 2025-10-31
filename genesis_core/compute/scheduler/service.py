@@ -290,7 +290,11 @@ class NodeSchedulerService(basic.BasicService):
             LOG.warning("No pools found to schedule machines %s", _machines)
             return
 
+        # Save origin pools to filter them out for each machine
+        origin_pools = pools
+
         for machine in machines:
+            pools = origin_pools
             # Filtering. We filter out unsuitable pools. For instance, pools
             # that doesn't have enough cores or ram or some placement
             # constraints.
