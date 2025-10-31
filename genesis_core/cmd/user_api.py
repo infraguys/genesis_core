@@ -66,31 +66,6 @@ iam_cli_opts = [
         choices=("HS256",),
         help="Token encryption algorithm",
     ),
-    cfg.BoolOpt(
-        "captcha_required_default",
-        default=False,
-        help="Captcha required default option",
-    ),
-    cfg.StrOpt(
-        "captcha_salt",
-        default="DEFAULT_CAPTCHA_SALT",
-        help="Captcha salt",
-    ),
-    cfg.StrOpt(
-        "captcha_key",
-        default="DEFAULT_CAPTCHA_KEY",
-        help="Captcha key",
-    ),
-    cfg.IntOpt(
-        "captcha_expires",
-        default=10,
-        help="Captcha expires minutes",
-    ),
-    cfg.IntOpt(
-        "captcha_max_number",
-        default=100000,
-        help="Captcha max number",
-    ),
 ]
 
 iam_token_encryption_algorithms = [

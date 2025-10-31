@@ -199,12 +199,6 @@ class ResetPasswordEventAction(routes.Action):
     __controller__ = controllers.ClientsController
 
 
-class GetCaptchaAction(routes.Action):
-    """Handler for /v1/iam/clients/<uuid>/actions/get_captcha endpoint"""
-
-    __controller__ = controllers.ClientsController
-
-
 class IamClientsRoute(routes.Route):
     """Handler for /v1/iam/clients/ endpoint"""
 
@@ -216,7 +210,6 @@ class IamClientsRoute(routes.Route):
     introspect = routes.action(IntrospectAction)
     me = routes.action(MeAction)
     reset_password = routes.action(ResetPasswordEventAction, invoke=True)
-    get_captcha = routes.action(GetCaptchaAction)
 
 
 class IamWebRoute(WebRoute):
