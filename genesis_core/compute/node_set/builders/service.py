@@ -19,7 +19,9 @@ import uuid as sys_uuid
 import typing as tp
 
 from gcl_sdk.infra.services import builder
+from restalchemy.dm import filters as dm_filters
 
+from genesis_core.compute.dm import models as compute_models
 from genesis_core.compute.node_set.dm import models
 from genesis_core.compute import constants as nc
 
@@ -36,6 +38,39 @@ class NodeSetBuilder(builder.CoreInfraBuilder):
         super().__init__(instance_model)
         self._project_id = project_id
 
+    def _get_or_create_placement_policy(
+        self,
+        instance: models.NodeSet,
+    ) -> compute_models.PlacementPolicy:
+        # TODO(akremenetsky): Rework default placement policy creation
+        # NOTE(akremenetsky): Default placement policy is soft-anti-affinity
+        policy_uuid = sys_uuid.uuid5(instance.uuid, "soft-anti-affinity")
+
+        soft_anti_affinity = (
+            compute_models.PlacementPolicy.objects.get_one_or_none(
+                filters={
+                    "uuid": dm_filters.EQ(policy_uuid),
+                },
+            )
+        )
+
+        if not soft_anti_affinity:
+            soft_anti_affinity = compute_models.PlacementPolicy(
+                uuid=policy_uuid,
+                name="soft-anti-affinity",
+                description=(
+                    "Soft anti-affinity placement policy "
+                    f"for node set {instance.uuid}"
+                ),
+                kind=nc.PlacementPolicyKind.SOFT_ANTI_AFFINITY.value,
+                domain=None,
+                zone=None,
+                project_id=self._project_id,
+            )
+            soft_anti_affinity.save()
+
+        return soft_anti_affinity
+
     def create_infra(
         self, instance: models.NodeSet
     ) -> tp.Collection[models.Node]:
@@ -44,7 +79,10 @@ class NodeSetBuilder(builder.CoreInfraBuilder):
         The method returns a list of infrastructure objects that are required
         for the instance. For example, nodes, sets, configs, etc.
         """
-        return instance.create_nodes(self._project_id)
+        soft_anti_affinity = self._get_or_create_placement_policy(instance)
+        return instance.create_nodes(
+            self._project_id, placement_policies=[soft_anti_affinity]
+        )
 
     def actualize_infra(
         self,
@@ -66,12 +104,16 @@ class NodeSetBuilder(builder.CoreInfraBuilder):
         statuses = []
         status = instance.status
 
+        soft_anti_affinity = self._get_or_create_placement_policy(instance)
+
         # Get the target nodes for the node set based on the current
         # configuration. This will be used to filter out nodes that are
         # being deleted during a shrink operation.
-        new_target_nodes = {
-            n.uuid: n for n in instance.create_nodes(self._project_id)
-        }
+        nodes = instance.create_nodes(
+            self._project_id, placement_policies=[soft_anti_affinity]
+        )
+
+        new_target_nodes = {n.uuid: n for n in nodes}
 
         for _, actual in infra.infra_objects:
             if actual is None:
