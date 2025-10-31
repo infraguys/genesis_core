@@ -175,3 +175,17 @@ class InvalidGrantType(
     iam_exc.InvalidGrantTypeError,
 ):
     __template__ = "Invalid grant type: {grant_type}"
+
+
+class CaptchaInvalid(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = "Captcha invalid {error}"
+
+
+class CaptchaRequired(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = "Captcha required."
