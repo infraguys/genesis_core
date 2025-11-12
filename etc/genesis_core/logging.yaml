@@ -17,10 +17,6 @@ loggers:
 # by default all existing loggers are disabled upon the application
 # of this config. To re-enable a logger and it's childer just add it
 # to the loggers section with any even empty fields.
-  camel:
-    handlers: [console]
-    level: WARNING
-    propagate: False
 
   genesis_core: {}
   bjoern: {}
