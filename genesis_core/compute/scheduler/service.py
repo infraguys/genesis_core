@@ -171,15 +171,19 @@ class NodeSchedulerService(basic.BasicService):
             # TODO(akremenetsky): It's a builder work.
             # Move to the builder service.
             if node.root_disk_size:
-                try:
-                    volume = self._build_root_volume(node)
+                volume = self._build_root_volume(node)
+                if models.Volume.objects.get_one_or_none(
+                    filters={"uuid": dm_filters.EQ(volume.uuid)}
+                ):
+                    LOG.warning(
+                        "The root volume %s already exists, do nothing",
+                        volume.uuid,
+                    )
+                else:
                     volume.insert()
                     LOG.info(
                         "The root volume %s has been created", volume.uuid
                     )
-                except ra_exceptions.ConflictRecords:
-                    # It's ok, the volume is already created
-                    pass
 
             machines.append(self._build_vm(node))
 
