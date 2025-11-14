@@ -33,6 +33,7 @@ from genesis_core.common import config
 from genesis_core.common import constants as c
 from genesis_core.common import log as infra_log
 from genesis_core.common import utils
+from genesis_core.security import config as security_config
 from genesis_core.user_api.iam import constants as iam_c
 
 
@@ -90,6 +91,7 @@ CONF.register_cli_opts(
 )
 ra_config_opts.register_posgresql_db_opts(CONF)
 sdk_opts.register_event_opts(CONF)
+security_config.register_opts(CONF)
 
 
 def get_token_encryption_algorithm(conf=CONF):
