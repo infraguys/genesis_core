@@ -16,10 +16,10 @@
 
 import logging
 
-from http import client as http_client
 from restalchemy.api import constants as ra_c
 from restalchemy.api.middlewares import Middleware
 
+from genesis_core.common import exceptions as common_exc
 from genesis_core.security.policy import SecurityPolicy
 from genesis_core.security.registry import VerifierRegistry
 
@@ -81,6 +81,7 @@ class RequestVerificationMiddleware(Middleware):
             return None
         
         log.info(f"RequestVerificationMiddleware: processing {method} {path}")
+        log.debug(f"RequestVerificationMiddleware: headers: Authorization={bool(req.headers.get('Authorization'))}")
 
         # Determine which verifiers are needed
         bypass, verifier_names = self.policy.get_required_verifiers(
@@ -90,6 +91,10 @@ class RequestVerificationMiddleware(Middleware):
         if bypass:
             log.info(f"Bypassing verification for {method} {path} (admin token detected)")
             return None
+
+        if not verifier_names:
+            log.warning(f"Request rejected: no verifiers and bypass=False for {method} {path}")
+            raise common_exc.CommonForbiddenException()
 
         # Run required verifiers
         for verifier_name in verifier_names:
@@ -111,15 +116,7 @@ class RequestVerificationMiddleware(Middleware):
                     f"Verification failed for {method} {path}: "
                     f"verifier={verifier_name}, reason={reason}"
                 )
-                # Return 403 Forbidden
-                return req.ResponseClass(
-                    status=http_client.FORBIDDEN,
-                    json={
-                        "error": "Verification failed",
-                        "verifier": verifier_name,
-                        "reason": reason,
-                    },
-                )
+                raise common_exc.CommonForbiddenException()
 
         # All verifications passed
         log.debug(f"Verification passed for {method} {path}")

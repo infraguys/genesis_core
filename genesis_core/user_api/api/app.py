@@ -122,7 +122,10 @@ def build_wsgi_application(context_storage, token_algorithm, conf=None):
         log.info("Security verification enabled, loading verifiers...")
         security_cfg = security_config.get_security_config(conf)
         registry = VerifierRegistry(config=security_cfg)
-        policy = SecurityPolicy(registry)
+        policy = SecurityPolicy(
+            registry,
+            token_algorithm=token_algorithm,
+        )
         log.info(f"Loaded verifiers: {registry.list()}")
         middleware_list.append(
             middlewares.configure_middleware(

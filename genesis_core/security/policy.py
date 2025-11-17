@@ -17,7 +17,7 @@
 import logging
 import typing as tp
 
-from restalchemy.common import contexts
+from gcl_iam import tokens
 
 
 log = logging.getLogger(__name__)
@@ -37,54 +37,66 @@ class SecurityPolicy:
     the request characteristics (admin token, Firebase token, etc.).
     """
 
-    def __init__(self, registry):
+    def __init__(self, registry, token_algorithm=None):
         """
         Initialize SecurityPolicy.
 
         :param registry: VerifierRegistry instance
+        :param token_algorithm: Token algorithm for validating tokens (optional)
         """
         self.registry = registry
+        self.token_algorithm = token_algorithm
 
     def _has_admin_token(self, request) -> bool:
         """
         Check if request has valid admin IAM token.
 
+        Since /v1/iam/users/ POST is always skip_auth_endpoint,
+        IAM context is never set. We validate token directly from DB.
+
         :param request: The request object
         :return: True if admin token is present and valid
         """
+        if not self.token_algorithm:
+            log.warning("Token algorithm not set, cannot validate admin token")
+            return False
+
+        auth_header = request.headers.get("Authorization", "")
+        if not auth_header.startswith("Bearer "):
+            return False
+
+        token_string = auth_header[7:].strip()
+
         try:
-            # Check if Authorization header is present
-            auth_header = request.headers.get("Authorization", "")
-            if not auth_header.startswith("Bearer "):
-                return False
+            # Decode token - this will raise exception if token is invalid
+            # ignore_audience=True to allow tokens from any client
+            auth_token = tokens.AuthToken(
+                token=token_string,
+                algorithm=self.token_algorithm,
+                ignore_audience=True,
+            )
+            token_uuid = auth_token.uuid
 
-            # Try to get IAM context
-            # Note: For endpoints in skip_auth_endpoints, the auth middleware
-            # may still validate the token if it's provided, but may not set
-            # iam_context. We check both cases.
-            try:
-                ctx = contexts.get_context()
-                if hasattr(ctx, "iam_context"):
-                    iam_context = ctx.iam_context
-                    if hasattr(iam_context, "token_info"):
-                        token_info = iam_context.token_info
-                        if token_info and hasattr(token_info, "uuid"):
-                            # Token is present and valid in context
-                            log.debug("Valid admin token detected in request (from context)")
-                            return True
-            except Exception:
-                # Context may not be available for skip_auth_endpoints
-                pass
+            # Check if token exists in database and is valid
+            from genesis_core.user_api.iam.dm import models as iam_models
+            from restalchemy.dm import filters as ra_filters
 
-            # If we have Authorization header with Bearer token, and the request
-            # reached this middleware (meaning it wasn't rejected by auth middleware),
-            # we consider it a valid admin token for service-to-service calls.
-            # The auth middleware would have rejected invalid tokens.
-            log.debug("Admin token detected in Authorization header")
-            return True
+            # CRITICAL: Token must exist in DB, otherwise it's fake
+            for token in iam_models.Token.objects.get_all(
+                filters={"uuid": ra_filters.EQ(token_uuid)},
+                limit=1,
+            ):
+                token.validate_expiration()
+                log.info(f"Valid admin token detected: {token_uuid}")
+                return True
+
+            # Token decoded but not found in DB = fake token
+            log.warning(f"Token decoded but not found in database: {token_uuid}")
+            return False
 
         except Exception as e:
-            log.debug(f"Error checking admin token: {e}")
+            # Token decode failed or validation failed = invalid token
+            log.warning(f"Token validation failed: {type(e).__name__}: {e}")
             return False
 
     def _has_firebase_app_check(self, request) -> bool:
@@ -113,16 +125,24 @@ class SecurityPolicy:
             - verifiers: List of verifier names to run
         """
         # Check for admin token first
-        if self._has_admin_token(request):
-            log.debug("Admin token detected, bypassing verification")
-            return True, []
+        # If Authorization header is present but token is invalid, reject immediately
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            # Token header present - must be valid admin token
+            if self._has_admin_token(request):
+                log.debug("Admin token detected, bypassing verification")
+                return True, []
+            else:
+                # Invalid token with Authorization header - reject
+                log.warning("Authorization header present but token is invalid")
+                return False, []  # Empty verifiers = reject
 
         # Check for Firebase App Check token
         if self._has_firebase_app_check(request):
             log.debug("Firebase App Check token detected")
             return False, ["firebase_app_check"]
 
-        # Default: require CAPTCHA for web clients
+        # Default: require CAPTCHA for web clients (no Authorization header)
         log.debug("No Firebase token, requiring CAPTCHA")
         return False, ["captcha"]
 

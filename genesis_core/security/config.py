@@ -98,9 +98,7 @@ def get_security_config(conf) -> dict:
         firebase_config = {}
         firebase_section = conf["verifiers.firebase_app_check"]
         if firebase_section.credentials_path:
-            firebase_config["credentials_path"] = os.path.abspath(
-                firebase_section.credentials_path
-            )
+            firebase_config["credentials_path"] = os.path.abspath(firebase_section.credentials_path)
         if firebase_section.allowed_app_ids:
             firebase_config["allowed_app_ids"] = (
                 firebase_section.allowed_app_ids
