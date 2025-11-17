@@ -316,7 +316,7 @@ class User(
         ctx = contexts.get_context()
         event_client = ctx.context_storage.get(iam_c.STORAGE_KEY_EVENTS_CLIENT)
 
-        self.reset_confirmation_code()
+        self.create_confirmation_code()
 
         registration_event_payload = event_payloads.ResetPasswordEventPayload(
             site_endpoint=app_endpoint,
@@ -332,7 +332,7 @@ class User(
         )
 
     def resend_confirmation_event(self, app_endpoint="http://localhost/"):
-        self.reset_confirmation_code()
+        self.create_confirmation_code()
         self.save()
         self.send_registration_event(app_endpoint=app_endpoint)
 
@@ -348,8 +348,11 @@ class User(
             return self.confirm_email()
         raise iam_exceptions.CanNotConfirmUser(code=code)
 
-    def reset_confirmation_code(self):
-        self.confirmation_code = sys_uuid.uuid4()
+    def create_confirmation_code(self):
+        # Janitor service will call .clear_confirmation_code()
+        # to set confirmation_code and confirmation_code_made_at to nulls,
+        # hourly, for all expired codes.
+        self.confirmation_code = self.confirmation_code or sys_uuid.uuid4()
         self.confirmation_code_made_at = datetime.datetime.now(
             datetime.timezone.utc
         )
