@@ -17,6 +17,8 @@
 import logging
 
 from gcl_iam import tokens
+from genesis_core.user_api.iam.dm import models as iam_models
+from restalchemy.dm import filters as ra_filters
 
 
 log = logging.getLogger(__name__)
@@ -46,9 +48,6 @@ class SecurityPolicy:
                 algorithm=self.token_algorithm,
                 ignore_audience=True,
             )
-            from genesis_core.user_api.iam.dm import models as iam_models
-            from restalchemy.dm import filters as ra_filters
-
             for token in iam_models.Token.objects.get_all(
                 filters={"uuid": ra_filters.EQ(auth_token.uuid)},
                 limit=1,
