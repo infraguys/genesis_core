@@ -82,35 +82,23 @@ def register_opts(conf):
 
 
 def get_security_config(conf) -> dict:
-    """
-    Get security configuration as dictionary.
+    if not conf.security.enabled:
+        return {}
 
-    :param conf: oslo_config.CONF instance
-    :return: Configuration dictionary
-    """
-    config = {}
+    config = {"enabled": True}
 
-    # Security group
-    if conf.security.enabled:
-        config["enabled"] = True
+    firebase_section = conf["verifiers.firebase_app_check"]
+    firebase_config = {"mode": firebase_section.mode}
+    if firebase_section.credentials_path:
+        firebase_config["credentials_path"] = os.path.abspath(
+            firebase_section.credentials_path
+        )
+    if firebase_section.allowed_app_ids:
+        firebase_config["allowed_app_ids"] = firebase_section.allowed_app_ids
+    config["verifiers.firebase_app_check"] = firebase_config
 
-        # Firebase App Check config
-        firebase_config = {}
-        firebase_section = conf["verifiers.firebase_app_check"]
-        if firebase_section.credentials_path:
-            firebase_config["credentials_path"] = os.path.abspath(firebase_section.credentials_path)
-        if firebase_section.allowed_app_ids:
-            firebase_config["allowed_app_ids"] = (
-                firebase_section.allowed_app_ids
-            )
-        firebase_config["mode"] = firebase_section.mode
-        config["verifiers.firebase_app_check"] = firebase_config
-
-        # CAPTCHA config
-        captcha_config = {}
-        captcha_section = conf["verifiers.captcha"]
-        captcha_config["mode"] = captcha_section.mode
-        config["verifiers.captcha"] = captcha_config
+    captcha_section = conf["verifiers.captcha"]
+    config["verifiers.captcha"] = {"mode": captcha_section.mode}
 
     return config
 

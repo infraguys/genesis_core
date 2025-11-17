@@ -14,34 +14,15 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import typing as tp
+from typing import Any
 
 from genesis_core.security.interfaces import AbstractVerifier
 
 
 class CaptchaVerifier(AbstractVerifier):
-    """
-    Captcha verifier stub.
-
-    This is a placeholder implementation that always returns success.
-    In the future, this should be replaced with actual CAPTCHA verification.
-    """
-
-    def __init__(self, config: tp.Dict[str, tp.Any] = None):
-        """
-        Initialize CaptchaVerifier.
-
-        :param config: Configuration dictionary (currently unused)
-        """
+    def __init__(self, config: dict[str, Any] = None):
         self.config = config or {}
 
-    def verify(self, request) -> tp.Tuple[bool, tp.Optional[str]]:
-        """
-        Verify CAPTCHA (stub implementation).
-
-        :param request: The request object
-        :return: (True, None) - always succeeds
-        """
-        # TODO: Implement actual CAPTCHA verification
+    def verify(self, request) -> tuple[bool, str | None]:
         return True, None
 

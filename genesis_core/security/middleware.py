@@ -28,97 +28,42 @@ log = logging.getLogger(__name__)
 
 
 class RequestVerificationMiddleware(Middleware):
-    """
-    Middleware for request verification.
-
-    Applies security verifiers (CAPTCHA, Firebase App Check, etc.)
-    based on the request characteristics and policy.
-    """
-
-    # Endpoints that require verification
     VERIFICATION_ENDPOINTS = [
         ("/v1/iam/users/", [ra_c.POST]),
     ]
 
     def __init__(self, application, registry: VerifierRegistry = None, policy=None):
-        """
-        Initialize RequestVerificationMiddleware.
-
-        :param application: WSGI application
-        :param registry: VerifierRegistry instance (optional, will create if not provided)
-        :param policy: SecurityPolicy instance (optional, will create if not provided)
-        """
         super().__init__(application)
         self.registry = registry or VerifierRegistry()
         self.policy = policy or SecurityPolicy(self.registry)
 
     def _should_verify(self, path: str, method: str) -> bool:
-        """
-        Check if endpoint requires verification.
-
-        :param path: Request path
-        :param method: HTTP method
-        :return: True if verification is required
-        """
-        for endpoint_path, methods in self.VERIFICATION_ENDPOINTS:
-            if path.startswith(endpoint_path) and method in methods:
-                return True
-        return False
+        return any(
+            path.startswith(endpoint_path) and method in methods
+            for endpoint_path, methods in self.VERIFICATION_ENDPOINTS
+        )
 
     def process_request(self, req):
-        """
-        Process request before it reaches the controller.
-
-        :param req: Request object
-        :return: Response if verification failed, None to continue
-        """
-        path = req.path
-        method = req.method
-
-        # Check if this endpoint requires verification
-        if not self._should_verify(path, method):
-            log.debug(f"RequestVerificationMiddleware: endpoint {method} {path} does not require verification")
+        if not self._should_verify(req.path, req.method):
             return None
-        
-        log.info(f"RequestVerificationMiddleware: processing {method} {path}")
-        log.debug(f"RequestVerificationMiddleware: headers: Authorization={bool(req.headers.get('Authorization'))}")
 
-        # Determine which verifiers are needed
         bypass, verifier_names = self.policy.get_required_verifiers(
-            req, path, method
+            req, req.path, req.method
         )
 
         if bypass:
-            log.info(f"Bypassing verification for {method} {path} (admin token detected)")
             return None
 
         if not verifier_names:
-            log.warning(f"Request rejected: no verifiers and bypass=False for {method} {path}")
             raise common_exc.CommonForbiddenException()
 
-        # Run required verifiers
         for verifier_name in verifier_names:
             verifier = self.registry.get(verifier_name)
             if not verifier:
-                log.warning(
-                    f"Verifier '{verifier_name}' not found, "
-                    f"skipping verification"
-                )
                 continue
-
-            log.debug(
-                f"Running verifier '{verifier_name}' for {method} {path}"
-            )
-            ok, reason = verifier.verify(req)
-
+            ok, _ = verifier.verify(req)
             if not ok:
-                log.warning(
-                    f"Verification failed for {method} {path}: "
-                    f"verifier={verifier_name}, reason={reason}"
-                )
                 raise common_exc.CommonForbiddenException()
 
-        # All verifications passed
-        log.debug(f"Verification passed for {method} {path}")
         return None
 

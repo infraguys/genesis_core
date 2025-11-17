@@ -15,21 +15,10 @@
 #    under the License.
 
 import abc
-import typing as tp
 
 
 class AbstractVerifier(abc.ABC):
-    """Base interface for request verifiers."""
-
     @abc.abstractmethod
-    def verify(self, request) -> tp.Tuple[bool, tp.Optional[str]]:
-        """
-        Verify the request.
-
-        :param request: The request object
-        :return: Tuple of (ok: bool, reason: str | None)
-            - ok: True if verification passed, False otherwise
-            - reason: Error message if verification failed, None if passed
-        """
+    def verify(self, request) -> tuple[bool, str | None]:
         pass
 

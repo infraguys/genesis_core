@@ -117,16 +117,10 @@ def build_wsgi_application(context_storage, token_algorithm, conf=None):
         ),
     ]
 
-    # Add security verification middleware if enabled
     if conf.security.enabled:
-        log.info("Security verification enabled, loading verifiers...")
         security_cfg = security_config.get_security_config(conf)
         registry = VerifierRegistry(config=security_cfg)
-        policy = SecurityPolicy(
-            registry,
-            token_algorithm=token_algorithm,
-        )
-        log.info(f"Loaded verifiers: {registry.list()}")
+        policy = SecurityPolicy(registry, token_algorithm=token_algorithm)
         middleware_list.append(
             middlewares.configure_middleware(
                 RequestVerificationMiddleware,
@@ -134,7 +128,6 @@ def build_wsgi_application(context_storage, token_algorithm, conf=None):
                 policy=policy,
             )
         )
-        log.info("RequestVerificationMiddleware added to middleware chain")
 
     middleware_list.extend([
         errors_mw.ErrorsHandlerMiddleware,
