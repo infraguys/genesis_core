@@ -39,15 +39,14 @@ class VerifierRegistry:
             for ep in entry_points:
                 try:
                     verifier_class = ep.load()
-                    verifier_config = self.config.get(
-                        f"verifiers.{ep.name}", self.config.get(ep.name, {})
-                    )
+                    verifier_config = self.config.get(f"verifiers.{ep.name}", {})
+
                     self._verifiers[ep.name] = verifier_class(config=verifier_config)
-                    log.info(f"Loaded verifier '{ep.name}' from {ep.value}")
-                except Exception as e:
-                    log.error(f"Failed to load verifier '{ep.name}': {e}", exc_info=True)
-        except Exception as e:
-            log.error(f"Failed to load verifiers from entry points: {e}")
+                    log.info("Loaded verifier %s from %s", ep.name, ep.module_name)
+                except Exception:
+                    log.exception("Failed to load verifier %s", ep.name)
+        except Exception:
+            log.exception("Failed to load verifiers from entry points")
 
     def get(self, name: str) -> AbstractVerifier | None:
         return self._verifiers.get(name)
