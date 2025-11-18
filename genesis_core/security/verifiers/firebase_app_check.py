@@ -54,7 +54,7 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
             raise RuntimeError("firebase-admin package is not installed")
 
         try:
-            firebase_admin.get_app()
+            self._app = firebase_admin.get_app()
             self._initialized = True
             return
         except ValueError:
@@ -89,7 +89,7 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
             return False, "Firebase App Check token not found"
 
         try:
-            app_check_token = app_check.verify_token(token)
+            app_check_token = app_check.verify_token(token, app=self._app)
             allowed_app_ids = self.config.get("allowed_app_ids")
             if allowed_app_ids:
                 app_id = app_check_token.get("app_id")
