@@ -45,7 +45,7 @@ class TestExpiredEmailConfirmationCodeJanitorService:
         user = models.User.objects.get_one(
             filters={"uuid": auth_test1_user.uuid}
         )
-        user.reset_confirmation_code()
+        user.create_confirmation_code()
         user.confirmation_code_made_at = code_made_at
         user.save()
 
@@ -61,7 +61,7 @@ class TestExpiredEmailConfirmationCodeJanitorService:
         user = models.User.objects.get_one(
             filters={"uuid": auth_test1_user.uuid}
         )
-        user.reset_confirmation_code()
+        user.create_confirmation_code()
         # Check the code is valid right now:
         assert user.check_confirmation_code(user.confirmation_code)
 
