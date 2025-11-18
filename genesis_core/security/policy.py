@@ -53,9 +53,15 @@ class SecurityPolicy:
                 limit=1,
             ):
                 token.validate_expiration()
-                return True
+                user = token.user
+                roles = user.get_my_roles()
+                for role in roles._roles:
+                    if role.name.lower() == "admin":
+                        return True
+                return False
             return False
         except Exception:
+            log.exception(f"Admin token check failed")
             return False
 
     def _has_firebase_app_check(self, request) -> bool:
@@ -66,10 +72,16 @@ class SecurityPolicy:
     ) -> tuple[bool, list[str]]:
         auth_header = request.headers.get("Authorization", "")
         if auth_header.startswith("Bearer "):
-            return (True, []) if self._has_admin_token(request) else (False, [])
+            if self._has_admin_token(request):
+                log.debug("admin token detected – bypass verification")
+                return True, []
+            log.debug("Authorization Bearer present but not admin token – reject")
+            return False, []
 
         if self._has_firebase_app_check(request):
+            log.debug("Firebase App Check detected – using firebase_app_check verifier")
             return False, ["firebase_app_check"]
 
+        log.debug("No Firebase headers – using captcha verifier")
         return False, ["captcha"]
 
