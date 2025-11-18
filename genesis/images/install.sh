@@ -100,6 +100,9 @@ sudo cp "$GC_ART_DIR/initrd.img" /srv/tftp/bios/initrd.img
 sudo cp "$GC_ART_DIR/vmlinuz" /srv/tftp/bios/vmlinuz
 
 sudo rm /etc/nginx/sites-enabled/default
+sudo rm -fr /var/www/html
+sudo tar -xf "$GC_ART_DIR/html.tgz" -C /var/www/
+sudo chown -R www-data:www-data /var/www/html
 
 sudo cp "$GC_PATH/etc/nginx/sites-available/genesis.conf" /etc/nginx/sites-available/genesis.conf
 sudo ln -s /etc/nginx/sites-available/genesis.conf /etc/nginx/sites-enabled/genesis.conf
