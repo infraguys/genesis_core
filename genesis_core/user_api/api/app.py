@@ -14,6 +14,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import logging
+
+from oslo_config import cfg
 from gcl_iam import middlewares as iam_mw
 from restalchemy.api import applications
 from restalchemy.api import constants as ra_c
@@ -97,8 +100,6 @@ def get_openapi_engine():
 
 
 def build_wsgi_application(context_storage, token_algorithm, conf=None):
-    from oslo_config import cfg
-    import logging
     if conf is None:
         conf = cfg.CONF
 
