@@ -60,9 +60,10 @@ class RequestVerificationMiddleware(Middleware):
         for verifier_name in verifier_names:
             verifier = self.registry.get(verifier_name)
             if not verifier:
-                continue
-            ok, _ = verifier.verify(req)
+                raise common_exc.CommonForbiddenException()
+            ok, reason = verifier.verify(req)
             if not ok:
+                log.warning("Verification failed in %s: %s", verifier_name, reason)
                 raise common_exc.CommonForbiddenException()
 
         return None
