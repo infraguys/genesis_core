@@ -64,13 +64,9 @@ class SecurityPolicy:
     def get_required_verifiers(
         self, request
     ) -> tuple[bool, list[str]]:
-        auth_header = request.headers.get("Authorization", "")
-        if auth_header.startswith("Bearer "):
-            if self._has_admin_token(request):
-                log.debug("admin token detected – bypass verification")
-                return True, []
-            log.debug("Authorization Bearer present but not admin token – reject")
-            return False, []
+        if self._has_admin_token(request):
+            log.debug("admin token detected – bypass verification")
+            return True, []
 
         if self._has_firebase_app_check(request):
             log.debug("Firebase App Check detected – using firebase_app_check verifier")
