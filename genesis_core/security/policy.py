@@ -48,20 +48,14 @@ class SecurityPolicy:
                 algorithm=self.token_algorithm,
                 ignore_audience=True,
             )
-            for token in iam_models.Token.objects.get_all(
+            token = iam_models.Token.objects.get_one(
                 filters={"uuid": ra_filters.EQ(auth_token.uuid)},
-                limit=1,
-            ):
-                token.validate_expiration()
-                user = token.user
-                roles = user.get_my_roles()
-                for role in roles._roles:
-                    if role.name.lower() == "admin":
-                        return True
-                return False
-            return False
+            )
+            token.validate_expiration()
+            roles = token.user.get_my_roles()
+            return any(role.name.lower() == "admin" for role in roles._roles)
         except Exception:
-            log.exception(f"Admin token check failed")
+            log.exception("Admin token check failed")
             return False
 
     def _has_firebase_app_check(self, request) -> bool:
