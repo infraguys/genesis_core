@@ -53,11 +53,13 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
         if firebase_admin is None:
             raise RuntimeError("firebase-admin package is not installed")
 
+        # Try to reuse existing Firebase app if already initialized (e.g., by another verifier)
         try:
             self._app = firebase_admin.get_app()
             self._initialized = True
             return
         except ValueError:
+            # Firebase app not initialized yet, initialize it ourselves
             pass
 
         credentials_path = self.config.get("credentials_path")
@@ -79,10 +81,8 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
         return None
 
     def verify(self, request) -> tuple[bool, str | None]:
-        try:
-            self._initialize_firebase()
-        except Exception as e:
-            return False, f"Firebase initialization error: {str(e)}"
+        # Initialize Firebase - if this fails, it's a configuration error and should crash
+        self._initialize_firebase()
 
         token = self._get_token_from_request(request)
         if not token:
