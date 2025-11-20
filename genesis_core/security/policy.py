@@ -61,6 +61,9 @@ class SecurityPolicy:
     def _has_firebase_app_check(self, request) -> bool:
         return any(request.headers.get(h) for h in FIREBASE_HEADERS)
 
+    def _has_captcha(self, request) -> bool:
+        return bool(request.headers.get("X-Captcha"))
+
     def get_required_verifiers(
         self, request
     ) -> tuple[bool, list[str]]:
@@ -72,6 +75,9 @@ class SecurityPolicy:
             log.debug("Firebase App Check detected – using firebase_app_check verifier")
             return False, ["firebase_app_check"]
 
-        log.debug("No Firebase headers – using captcha verifier")
-        return False, ["captcha"]
+        if self._has_captcha(request):
+            log.debug("Captcha header detected – using captcha verifier")
+            return False, ["captcha"]
+
+        return False, []
 
