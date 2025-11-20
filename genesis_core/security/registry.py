@@ -25,6 +25,7 @@ log = logging.getLogger(__name__)
 
 # Entry point group name for verifiers
 ENTRY_POINT_GROUP = "genesys_core.verifiers"
+VERIFIER_CONFIG_PREFIX = "verifiers."
 
 
 class VerifierRegistry:
@@ -32,6 +33,7 @@ class VerifierRegistry:
         self.config = config or {}
         self._verifiers: dict[str, AbstractVerifier] = {}
         self._load_verifiers()
+        self._validate_verifiers()
 
     def _load_verifiers(self):
         try:
@@ -39,14 +41,32 @@ class VerifierRegistry:
             for ep in entry_points:
                 try:
                     verifier_class = ep.load()
-                    verifier_config = self.config.get(f"verifiers.{ep.name}", {})
+                    verifier_config = self.config.get(f"{VERIFIER_CONFIG_PREFIX}{ep.name}", {})
 
                     self._verifiers[ep.name] = verifier_class(config=verifier_config)
-                    log.info("Loaded verifier %s from %s", ep.name, ep.module_name)
+                    log.info("Loaded verifier %s from %s", ep.name, ep.value)
                 except Exception:
                     log.exception("Failed to load verifier %s", ep.name)
         except Exception:
             log.exception("Failed to load verifiers from entry points")
+
+    def _validate_verifiers(self) -> None:
+        """Validate that all verifiers with mode=enforce are loaded."""
+        if not self.config.get("enabled", False):
+            return
+
+        missing = []
+        for key, verifier_config in self.config.items():
+            if not key.startswith(VERIFIER_CONFIG_PREFIX):
+                continue
+            verifier_name = key.removeprefix(VERIFIER_CONFIG_PREFIX)
+            if verifier_config.get("mode", "enforce") == "enforce" and verifier_name not in self._verifiers:
+                missing.append(verifier_name)
+
+        if missing:
+            error_msg = f"Verifiers with mode=enforce failed to load: {', '.join(missing)}"
+            log.error(error_msg)
+            raise ValueError(error_msg)
 
     def get(self, name: str) -> AbstractVerifier | None:
         return self._verifiers.get(name)

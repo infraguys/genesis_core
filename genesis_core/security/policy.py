@@ -68,7 +68,7 @@ class SecurityPolicy:
         return any(request.headers.get(h) for h in FIREBASE_HEADERS)
 
     def get_required_verifiers(
-        self, request, path: str, method: str
+        self, request
     ) -> tuple[bool, list[str]]:
         auth_header = request.headers.get("Authorization", "")
         if auth_header.startswith("Bearer "):

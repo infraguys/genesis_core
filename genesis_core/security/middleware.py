@@ -47,9 +47,7 @@ class RequestVerificationMiddleware(Middleware):
         if not self._should_verify(req.path, req.method):
             return None
 
-        bypass, verifier_names = self.policy.get_required_verifiers(
-            req, req.path, req.method
-        )
+        bypass, verifier_names = self.policy.get_required_verifiers(req)
 
         if bypass:
             return None

@@ -25,7 +25,7 @@ SECURITY_GROUP = cfg.OptGroup(
 security_opts = [
     cfg.BoolOpt(
         "enabled",
-        default=True,
+        default=False,
         help="Enable security verification middleware",
     ),
 ]
