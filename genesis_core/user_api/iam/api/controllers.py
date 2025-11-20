@@ -196,14 +196,14 @@ class UserController(
         name_map={"secret": "password", "name": "username"},
     )
 
-    def create(self, _send_confirmation_email=True, **kwargs):
+    def create(self, **kwargs):
         self.check_captcha()
         self.validate_secret(kwargs)
         kwargs.pop("email_verified", None)
 
         user = super().create(**kwargs)
-
-        if _send_confirmation_email:
+        
+        if not self.request.headers.get("skip_confirmation_email"):
             app_endpoint = _get_app_endpoint(req=self._req)
             user.resend_confirmation_event(app_endpoint=app_endpoint)
 
