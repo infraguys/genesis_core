@@ -597,10 +597,10 @@ class Resource(
         provider_element = self.get_provider_element()
         return f"em_{provider_element.name}_{'_'.join(parts)}"
 
-    def calculate_full_hash(self):
+    def calculate_full_hash(self, target_state=None):
         if self.actual_resource is not None:
             return self.actual_resource.full_hash
-        target_state = self.render_target_state()
+        target_state = target_state or self.render_target_state()
         return sdk_utils.calculate_hash(target_state)
 
     def _find_actual_resource(self):
@@ -627,7 +627,7 @@ class Resource(
             return
         self.actual_resource = self._find_actual_resource()
         hash = sdk_utils.calculate_hash(target_state)
-        self.full_hash = self.calculate_full_hash()
+        self.full_hash = self.calculate_full_hash(target_state)
         if self.target_resource is None:
             res_uuid = sdk_models.TargetResource.gen_res_uuid(
                 self.uuid, self.kind
