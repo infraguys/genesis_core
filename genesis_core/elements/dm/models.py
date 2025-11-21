@@ -571,7 +571,11 @@ class Resource(
                 result = data
             return result
 
-        return recursive_render(self.value)
+        res = recursive_render(self.value)
+        # uuid is mandatory to find already created resources in services
+        if "uuid" not in res:
+            res["uuid"] = str(self.uuid)
+        return res
 
     @property
     def link(self):
