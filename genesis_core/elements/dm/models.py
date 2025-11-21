@@ -18,6 +18,7 @@ import re
 import logging
 import enum
 import yaml
+import typing as tp
 import uuid as sys_uuid
 
 from gcl_sdk.agents.universal.dm import models as sdk_models
@@ -27,12 +28,19 @@ from restalchemy.dm import models
 from restalchemy.dm import properties
 from restalchemy.dm import relationships
 from restalchemy.dm import types as ra_types
+from restalchemy.dm import types_dynamic as ra_types_dyn
 from restalchemy.storage.sql import orm
 from restalchemy.storage.sql import engines
 
+from gcl_sdk.agents.universal.dm import models as ua_models
+from gcl_sdk.paas.dm import services as srv_models
+
 from genesis_core.common import exceptions
+from genesis_core.common.dm import models as cm
+from genesis_core.common.dm import targets as ct
 from genesis_core.common import utils as cm_utils
 from genesis_core.elements.dm import utils
+from genesis_core.elements import constants as cc
 
 
 LOG = logging.getLogger(__name__)
@@ -1067,3 +1075,122 @@ class ElementEngine:
 
 
 element_engine = ElementEngine()
+
+
+class ServiceTarget(srv_models.ServiceTarget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Check for Service existence
+        if not Service.objects.get_one_or_none(
+            filters={"uuid": ra_filters.EQ(self.service)}
+        ):
+            raise ValueError(
+                "Service %s does not exist. Please create it first."
+                % self.service
+            )
+
+    @classmethod
+    def from_service(cls, service: sys_uuid.UUID) -> "ServiceTarget":
+        return cls(service=service)
+
+    def target_services(self) -> tp.List[sys_uuid.UUID]:
+        return [self.service]
+
+    def owners(self) -> tp.List[sys_uuid.UUID]:
+        """It's the simplest case with an ordinary service target.
+
+        In that case, the owner and target is the service itself.
+        If owners are deleted, the service will be deleted as well.
+        """
+        return [self.service]
+
+    def _fetch_services(self) -> tp.List["Service"]:
+        return Service.objects.get_all(filters={"uuid": str(self.service)})
+
+    def are_owners_alive(self) -> bool:
+        return bool(self._fetch_services())
+
+    def get_dp_obj(self):
+        service = Service.objects.get_one(
+            filters={"uuid": ra_filters.EQ(self.service)}
+        )
+        return srv_models.ServiceDPTarget(
+            service=self.service, service_name=service.name
+        )
+
+
+class Service(
+    cm.ModelWithFullAsset,
+    orm.SQLStorableMixin,
+    ua_models.TargetResourceMixin,
+    ua_models.TargetResourceSQLStorableMixin,
+):
+    __tablename__ = "em_services"
+
+    name = properties.property(
+        ra_types.BaseCompiledRegExpType(re.compile(r"^[A-Za-z0-9_-]{0,100}$")),
+        default="",
+    )
+    path = properties.property(
+        ra_types.String(min_length=1, max_length=255),
+        required=True,
+    )
+    status = properties.property(
+        ra_types.Enum([s.value for s in cc.ServiceStatus]),
+        default=cc.ServiceStatus.NEW.value,
+    )
+    target_status = properties.property(
+        ra_types.Enum([s.value for s in srv_models.ServiceTargetStatus]),
+        default=srv_models.ServiceTargetStatus.enabled.value,
+    )
+    target = properties.property(
+        ra_types_dyn.KindModelSelectorType(
+            ra_types_dyn.KindModelType(ct.NodeTarget),
+            ra_types_dyn.KindModelType(ct.NodeSetTarget),
+        ),
+        required=True,
+    )
+    user = properties.property(
+        ra_types.String(min_length=1, max_length=255),
+        required=True,
+        default="root",
+    )
+    group = properties.property(
+        ra_types.AllowNone(ra_types.String(min_length=1, max_length=255)),
+        default=None,
+    )
+    service_type = properties.property(
+        ra_types_dyn.KindModelSelectorType(
+            ra_types_dyn.KindModelType(srv_models.ServiceTypeSimple),
+            ra_types_dyn.KindModelType(srv_models.ServiceTypeOneshot),
+            ra_types_dyn.KindModelType(srv_models.ServiceTypeMonopoly),
+            ra_types_dyn.KindModelType(srv_models.ServiceTypeMonopolyOneshot),
+        ),
+        required=True,
+    )
+    before = properties.property(
+        ra_types.TypedList(
+            ra_types_dyn.KindModelSelectorType(
+                ra_types_dyn.KindModelType(srv_models.CmdShell),
+                ra_types_dyn.KindModelType(ServiceTarget),
+            ),
+        ),
+        required=True,
+        default=[],
+    )
+    after = properties.property(
+        ra_types.TypedList(
+            ra_types_dyn.KindModelSelectorType(
+                ra_types_dyn.KindModelType(srv_models.CmdShell),
+                ra_types_dyn.KindModelType(ServiceTarget),
+            ),
+        ),
+        required=True,
+        default=[],
+    )
+
+    def target_nodes(self) -> tp.List[sys_uuid.UUID]:
+        return self.target.target_nodes()
+
+    def target_owners(self) -> tp.List[sys_uuid.UUID]:
+        return self.target.owners()

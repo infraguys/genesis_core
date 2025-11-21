@@ -28,30 +28,9 @@ from restalchemy.storage.sql import orm
 from gcl_sdk.agents.universal.dm import models as ua_models
 
 from genesis_core.common.dm import models as cm
-from genesis_core.compute.dm import models as nm
+from genesis_core.common.dm import targets as ct
 from genesis_core.common import constants as c
 from genesis_core.config import constants as cc
-
-
-class AbstractTarget(types_dynamic.AbstractKindModel, models.SimpleViewMixin):
-
-    def target_nodes(self) -> tp.List[sys_uuid.UUID]:
-        """Returns list of target nodes where config should be deployed."""
-        return []
-
-    def owners(self) -> tp.List[sys_uuid.UUID]:
-        """Return list of owners objects where config bind to.
-
-        For instance, the simplest case if an ordinary node config.
-        In that case, the owner and target is the node itself.
-        A more complex case is when a config is bound to a node set.
-        In this case the owner is the set and the targets are all nodes
-        in this set.
-        """
-        return []
-
-    def are_owners_alive(self) -> bool:
-        raise NotImplementedError()
 
 
 class AbstractContentor(
@@ -60,62 +39,6 @@ class AbstractContentor(
 
     def render(self) -> str:
         return ""
-
-
-class NodeTarget(AbstractTarget):
-    KIND = "node"
-
-    node = properties.property(types.UUID(), required=True)
-
-    @classmethod
-    def from_node(cls, node: sys_uuid.UUID) -> "NodeTarget":
-        return cls(node=node)
-
-    def target_nodes(self) -> tp.List[sys_uuid.UUID]:
-        return [self.node]
-
-    def owners(self) -> tp.List[sys_uuid.UUID]:
-        """It's the simplest case with an ordinary node config.
-
-        In that case, the owner and target is the node itself.
-        If owners are deleted, the config will be deleted as well.
-        """
-        return [self.node]
-
-    def _fetch_nodes(self) -> tp.List[nm.Node]:
-        return nm.Node.objects.get_all(filters={"uuid": str(self.node)})
-
-    def are_owners_alive(self) -> bool:
-        return bool(self._fetch_nodes())
-
-
-class NodeSetTarget(AbstractTarget):
-    KIND = "node_set"
-
-    node_set = properties.property(types.UUID(), required=True)
-
-    @classmethod
-    def from_node_set(cls, node_set: sys_uuid.UUID) -> "NodeSetTarget":
-        return cls(node_set=node_set)
-
-    def target_nodes(self) -> list[sys_uuid.UUID]:
-        return [node.uuid for node in self._fetch_nodes()]
-
-    def owners(self) -> list[sys_uuid.UUID]:
-        """It's the simplest case with an ordinary node config.
-
-        In that case, the owner and target is the node itself.
-        If owners are deleted, the config will be deleted as well.
-        """
-        return [self.node_set]
-
-    def _fetch_nodes(self) -> list[nm.Node]:
-        return nm.Node.objects.get_all(
-            filters={"node_set": dm_filters.EQ(str(self.node_set))}
-        )
-
-    def are_owners_alive(self) -> bool:
-        return bool(self._fetch_nodes())
 
 
 class TextBodyConfig(AbstractContentor):
@@ -178,8 +101,8 @@ class Config(
     )
     target = properties.property(
         types_dynamic.KindModelSelectorType(
-            types_dynamic.KindModelType(NodeTarget),
-            types_dynamic.KindModelType(NodeSetTarget),
+            types_dynamic.KindModelType(ct.NodeTarget),
+            types_dynamic.KindModelType(ct.NodeSetTarget),
         ),
         required=True,
     )
