@@ -54,6 +54,12 @@ class ElementRoute(routes.Route):
     resources = routes.route(ElementResourceRoute, resource_route=True)
 
 
+class ServicesRoute(routes.Route):
+    """Handler for /v1/em/services/ endpoint"""
+
+    __controller__ = controllers.ServicesController
+
+
 class ElementManagerRoute(routes.Route):
     """Handler for /v1/em/ endpoint"""
 
@@ -62,3 +68,4 @@ class ElementManagerRoute(routes.Route):
 
     manifests = routes.route(ManifestRoute)
     elements = routes.route(ElementRoute)
+    services = routes.route(ServicesRoute)

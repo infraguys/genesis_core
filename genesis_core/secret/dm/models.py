@@ -29,7 +29,7 @@ from gcl_sdk.agents.universal.dm import models as ua_models
 
 from genesis_core.common import constants as c
 from genesis_core.common.dm import models as cm
-from genesis_core.config.dm import models as cfg_models
+from genesis_core.common.dm import targets as ct
 from genesis_core.secret import constants as sc
 
 
@@ -222,8 +222,8 @@ class SSHKey(
 
     target = properties.property(
         types_dynamic.KindModelSelectorType(
-            types_dynamic.KindModelType(cfg_models.NodeTarget),
-            types_dynamic.KindModelType(cfg_models.NodeSetTarget),
+            types_dynamic.KindModelType(ct.NodeTarget),
+            types_dynamic.KindModelType(ct.NodeSetTarget),
         ),
         required=True,
     )
