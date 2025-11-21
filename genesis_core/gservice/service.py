@@ -28,6 +28,7 @@ from gcl_sdk.agents.universal.clients.backend import db as db_back
 from gcl_sdk.agents.universal.drivers import core as ua_core_drivers
 
 from genesis_core.elements.services import builders as em_builders
+from genesis_core.elements.builders import service as service_builder_svc
 from genesis_core.compute.scheduler.driver.filters import available
 from genesis_core.compute.scheduler.driver.filters import affinity
 from genesis_core.compute.scheduler.driver.weighter import relative
@@ -94,6 +95,7 @@ class GeneralService(basic.BasicService):
             instance_model=node_set_models.NodeSet,
             project_id=nc.NODE_SET_PROJECT,
         )
+        service_builder = service_builder_svc.ServiceNodeBuilder()
 
         # Infra scheduler
         infra_scheduler = ua_scheduler_service.UniversalAgentSchedulerService(
@@ -149,6 +151,7 @@ class GeneralService(basic.BasicService):
             n_builder,
             n_machine,
             cfg_service,
+            service_builder,
             secret_svc,
             event_sender,
             em_builder,
