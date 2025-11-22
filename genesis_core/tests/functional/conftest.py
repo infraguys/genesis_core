@@ -27,6 +27,7 @@ from gcl_iam.tests.functional import clients as iam_clients
 from gcl_sdk.events import clients as sdk_clients
 
 from genesis_core.common import constants as c
+from genesis_core.common.dm import targets as ct
 from genesis_core.common import utils
 from genesis_core.compute import constants as nc
 from genesis_core.compute.dm import models as node_models
@@ -481,7 +482,7 @@ def config_factory():
         **kwargs,
     ) -> tp.Dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
-        target = conf_models.NodeTarget.from_node(target_node)
+        target = ct.NodeTarget.from_node(target_node)
         body = conf_models.TextBodyConfig.from_text(content_body)
         if on_change_cmd is None:
             on_change = conf_models.OnChangeNoAction()
@@ -617,7 +618,7 @@ def ssh_key_factory():
         **kwargs,
     ) -> tp.Dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
-        target = conf_models.NodeTarget.from_node(target_node)
+        target = ct.NodeTarget.from_node(target_node)
         constructor = (
             secret_models.PlainSecretConstructor()
             if constructor is None
