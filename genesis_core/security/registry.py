@@ -24,7 +24,7 @@ from genesis_core.security.interfaces import AbstractVerifier
 log = logging.getLogger(__name__)
 
 # Entry point group name for verifiers
-ENTRY_POINT_GROUP = "genesys_core.verifiers"
+ENTRY_POINT_GROUP = "genesis_core.verifiers"
 VERIFIER_CONFIG_PREFIX = "verifiers."
 
 
