@@ -14,6 +14,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import logging
+
+from oslo_config import cfg
 from gcl_iam import middlewares as iam_mw
 from restalchemy.api import applications
 from restalchemy.api import constants as ra_c
@@ -25,6 +28,10 @@ from restalchemy.openapi import structures as openapi_structures
 from restalchemy.openapi import engines as openapi_engines
 
 from genesis_core.common.api.middlewares import errors as errors_mw
+from genesis_core.security import config as security_config
+from genesis_core.security.middleware import RequestVerificationMiddleware
+from genesis_core.security.policy import SecurityPolicy
+from genesis_core.security.registry import VerifierRegistry
 from genesis_core.user_api.api import routes as app_routes
 from genesis_core.user_api.api import versions
 from genesis_core.user_api.iam import drivers
@@ -92,24 +99,46 @@ def get_openapi_engine():
     return openapi_engine
 
 
-def build_wsgi_application(context_storage, token_algorithm):
+def build_wsgi_application(context_storage, token_algorithm, conf=None):
+    if conf is None:
+        conf = cfg.CONF
+
+    log = logging.getLogger(__name__)
+
+    middleware_list = [
+        middlewares.configure_middleware(
+            iam_mw.GenesisCoreAuthMiddleware,
+            # service_name="iam",
+            token_algorithm=token_algorithm,
+            context_kwargs={
+                "context_storage": context_storage,
+            },
+            iam_engine_driver=drivers.DirectDriver(),
+            skip_auth_endpoints=skip_auth_endpoints,
+        ),
+    ]
+
+    if conf.security.enabled:
+        security_cfg = security_config.get_security_config(conf)
+        registry = VerifierRegistry(config=security_cfg)
+        policy = SecurityPolicy(registry, token_algorithm=token_algorithm)
+        middleware_list.append(
+            middlewares.configure_middleware(
+                RequestVerificationMiddleware,
+                registry=registry,
+                policy=policy,
+            )
+        )
+
+    middleware_list.extend([
+        errors_mw.ErrorsHandlerMiddleware,
+        logging_mw.LoggingMiddleware,
+    ])
+
     return middlewares.attach_middlewares(
         applications.OpenApiApplication(
             route_class=get_api_application(),
             openapi_engine=get_openapi_engine(),
         ),
-        [
-            middlewares.configure_middleware(
-                iam_mw.GenesisCoreAuthMiddleware,
-                # service_name="iam",
-                token_algorithm=token_algorithm,
-                context_kwargs={
-                    "context_storage": context_storage,
-                },
-                iam_engine_driver=drivers.DirectDriver(),
-                skip_auth_endpoints=skip_auth_endpoints,
-            ),
-            errors_mw.ErrorsHandlerMiddleware,
-            logging_mw.LoggingMiddleware,
-        ],
+        middleware_list,
     )
