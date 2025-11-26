@@ -46,6 +46,10 @@ class ManifestController(
         return resource.install()
 
     @actions.post
+    def upgrade(self, resource):
+        return resource.upgrade()
+
+    @actions.post
     def uninstall(self, resource):
         return resource.uninstall()
 

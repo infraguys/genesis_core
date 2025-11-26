@@ -172,25 +172,53 @@ class Manifest(
     )
 
     def install(self):
+        if element := Element.objects.get_one_or_none(
+            filters={"name": ra_filters.EQ(self.name)}
+        ):
+            raise ValueError(f"Element '{self.name}' already exists.")
+
         element_engine.load_from_database()
 
         element = Element(
-            uuid=utils.get_element_uuid(self.name, self.version),
+            uuid=self.uuid,
             name=self.name,
             version=self.version,
             api_version=self.api_version,
             description=self.description,
             project_id=utils.get_project_id(),
         )
-        element.insert()
+        element.save()
         element_engine.add_element(element)
 
+        return self.apply_element(element)
+
+    def upgrade(self):
+        element = Element.objects.get_one_or_none(
+            filters={"name": ra_filters.EQ(self.name)}
+        )
+        if not element:
+            raise ValueError(
+                f"Element '{self.name}' does not exist, please install it first."
+            )
+
+        element_engine.load_from_database()
+
+        element.version = self.version
+        element.api_version = self.api_version
+        element.description = self.description
+        element.save()
+        return self.apply_element(element)
+
+    def apply_element(self, element):
+        # Imports
+        existing_imports = {
+            i.name: i
+            for i in Import.objects.get_all(
+                filters={"element": ra_filters.EQ(element.uuid)}
+            )
+        }
+
         for import_name, import_data in self.imports.items():
-            import_kwargs = {}
-
-            if "kind" in import_data:
-                import_kwargs["kind"] = import_data["kind"]
-
             from_element = element_engine.get_element(
                 link=import_data["element"],
             )
@@ -198,24 +226,51 @@ class Manifest(
                 from_element=from_element,
                 link=import_data["link"],
             )
-            import_model = Import(
-                uuid=cm_utils.get_or_create_uuid_from_dict(import_data),
+            import_kwargs = dict(
                 name=import_name,
                 element=element,
                 from_element=from_element,
                 from_resource=from_resource,
-                **import_kwargs,
             )
 
-            import_model.insert()
+            if "kind" in import_data:
+                import_kwargs["kind"] = import_data["kind"]
+
+            if import_model := existing_imports.pop(import_name, None):
+                for k, v in import_kwargs.items():
+                    setattr(import_model, k, v)
+                import_model.save()
+            else:
+                import_model = Import(
+                    uuid=cm_utils.get_or_create_uuid_from_dict(import_data),
+                    **import_kwargs,
+                )
+
+                import_model.insert()
+                resource = ImportedResource(
+                    element=import_model.element,
+                    resource=import_model.from_resource,
+                    name=import_model.name,
+                )
+                element_engine.add_resource(resource)
+
+        for imp in existing_imports.values():
             resource = ImportedResource(
-                element=import_model.element,
-                resource=import_model.from_resource,
-                name=import_model.name,
+                element=imp.element,
+                resource=imp.from_resource,
+                name=imp.name,
             )
-            element_engine.add_resource(resource)
+            element_engine.delete_resource(resource)
+            imp.delete()
 
-        # prepare resources:
+        # Resources
+        existing_resources = {
+            i.name: i
+            for i in Resource.objects.get_all(
+                filters={"element": ra_filters.EQ(element.uuid)}
+            )
+        }
+
         for resource_link_prefix, resource in self.resources.items():
             link_resolver = LinkResolver(
                 element=element,
@@ -223,37 +278,69 @@ class Manifest(
                 full_link=resource_link_prefix,
             )
             for resource_name, resource_value in resource.items():
-                resource = Resource(
-                    uuid=cm_utils.get_or_create_uuid_from_dict(resource_value),
-                    name=resource_name,
+                res_kwargs = dict(
                     element=element,
                     resource_link_prefix=link_resolver.full_link_original,
                     value=resource_value,
                 )
+                if resource := existing_resources.pop(resource_name, None):
+                    for k, v in res_kwargs.items():
+                        setattr(resource, k, v)
+                    resource.save()
+                else:
+                    resource = Resource(
+                        uuid=cm_utils.get_or_create_uuid_from_dict(
+                            resource_value
+                        ),
+                        name=resource_name,
+                        **res_kwargs,
+                    )
 
-                # NOTE(efrolov): checks that the element providing this
-                #   resource is installed
-                # TODO(akremenetsky): Temporarily disabled this check
-                # resource.get_provider_element()
+                    # NOTE(efrolov): check that the element providing this
+                    #   resource is installed
+                    # TODO(akremenetsky): Temporarily disabled this check
+                    # resource.get_provider_element()
 
-                resource.insert()
-                element_engine.add_resource(resource)
+                    resource.insert()
+                    element_engine.add_resource(resource)
+
+        for res in existing_resources.values():
+            element_engine.delete_resource(res)
+            res.delete()
+
+        # Exports
+        existing_exports = {
+            i.name: i
+            for i in Export.objects.get_all(
+                filters={"element": ra_filters.EQ(element.uuid)}
+            )
+        }
 
         for export_name, export_data in self.exports.items():
-            export_kwargs = {}
-            if "kind" in export_data:
-                export_kwargs["kind"] = export_data["kind"]
-
-            export_model = Export(
-                uuid=cm_utils.get_or_create_uuid_from_dict(export_data),
+            export_kwargs = dict(
                 name=export_name,
                 element=element,
                 link=export_data["link"],
-                **export_kwargs,
             )
+            if "kind" in export_data:
+                export_kwargs["kind"] = export_data["kind"]
 
-            export_model.insert()
-            element_engine.add_resource_export(export_model)
+            if export_model := existing_exports.pop(export_name, None):
+                for k, v in export_kwargs.items():
+                    setattr(export_model, k, v)
+                export_model.save()
+            else:
+                export_model = Export(
+                    uuid=cm_utils.get_or_create_uuid_from_dict(export_data),
+                    **export_kwargs,
+                )
+
+                export_model.insert()
+                element_engine.add_resource_export(export_model)
+
+        for exp in existing_exports.values():
+            element_engine.delete_resource_export(exp)
+            exp.delete()
 
         return self
 
@@ -262,9 +349,8 @@ class Manifest(
 
         elements = Element.objects.get_all(
             filters={
-                "uuid": ra_filters.EQ(
-                    utils.get_element_uuid(self.name, self.version)
-                ),
+                "name": ra_filters.EQ(self.name),
+                "version": ra_filters.EQ(self.version),
             }
         )
         for element in elements:
@@ -1015,6 +1101,10 @@ class ElementEngine:
         namespace = self._namespaces[resource.element.link]
         namespace.add_resource(resource)
 
+    def delete_resource(self, resource):
+        namespace = self._namespaces[resource.element.link]
+        namespace.delete_resource(resource)
+
     def get_resources(self):
         result = []
         for namespace in self._namespaces.values():
@@ -1063,6 +1153,9 @@ class ElementEngine:
                 "already exists."
             )
         self._resource_exports[export_resource.link] = resource
+
+    def delete_resource_export(self, export_resource):
+        del self._resource_exports[export_resource.link]
 
     def get_export_resource(self, from_element, link):
         # Implement check element here for export resources

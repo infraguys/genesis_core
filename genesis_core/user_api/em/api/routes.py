@@ -19,6 +19,12 @@ from restalchemy.api import routes
 from genesis_core.user_api.em.api import controllers
 
 
+class ManifestUpgradeActionRoute(routes.Action):
+    """Handler for /v1/em/manifests/<uuid>/actions/upgrade/invoke endpoint"""
+
+    __controller__ = controllers.ManifestController
+
+
 class ManifestInstallActionRoute(routes.Action):
     """Handler for /v1/em/manifests/<uuid>/actions/install/invoke endpoint"""
 
@@ -37,6 +43,7 @@ class ManifestRoute(routes.Route):
     __controller__ = controllers.ManifestController
 
     install = routes.action(ManifestInstallActionRoute, invoke=True)
+    upgrade = routes.action(ManifestUpgradeActionRoute, invoke=True)
     uninstall = routes.action(ManifestUninstallActionRoute, invoke=True)
 
 
