@@ -15,14 +15,39 @@
 #    under the License.
 
 from typing import Any
+import logging
 
 from genesis_core.security.interfaces import AbstractVerifier
 
 
+log = logging.getLogger(__name__)
+
+
 class CaptchaVerifier(AbstractVerifier):
+    """Simple CAPTCHA verifier.
+
+    Expected request:
+      - Header 'X-Captcha' must be present.
+
+    Config (rule/global) options:
+      - mode: "enforce" | "report-only" (not used here directly, but kept
+        for a common contract with other verifiers).
+    """
+
     def __init__(self, config: dict[str, Any] = None):
         self.config = config or {}
 
+    def can_handle(self, request) -> bool:
+        """Check if request has X-Captcha header."""
+        return bool(request.headers.get("X-Captcha"))
+
     def verify(self, request) -> tuple[bool, str | None]:
+        token = request.headers.get("X-Captcha")
+        if not token:
+            log.warning("CAPTCHA token not found in headers")
+            return False, "CAPTCHA token not found"
+
+        # Here we could call a real CAPTCHA provider. For now we only check
+        # that the header is present and non-empty.
         return True, None
 

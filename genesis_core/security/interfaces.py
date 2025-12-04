@@ -19,6 +19,27 @@ import abc
 
 class AbstractVerifier(abc.ABC):
     @abc.abstractmethod
+    def can_handle(self, request) -> bool:
+        """Check if this verifier can handle the given request.
+        
+        This method should check if the request has the necessary headers/tokens
+        for this verifier type. It should NOT perform actual validation,
+        only determine if this verifier is applicable to the request.
+        
+        Returns:
+            True if this verifier can handle the request, False otherwise.
+        """
+        pass
+
+    @abc.abstractmethod
     def verify(self, request) -> tuple[bool, str | None]:
+        """Perform actual validation of the request.
+        
+        This method is only called if can_handle() returned True.
+        It should perform the actual validation logic.
+        
+        Returns:
+            Tuple of (success: bool, error_message: str | None)
+        """
         pass
 

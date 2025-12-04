@@ -73,6 +73,13 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
         self._app = firebase_admin.initialize_app(cred)
         self._initialized = True
 
+    def can_handle(self, request) -> bool:
+        """Check if request has Firebase App Check headers."""
+        for header_name in self.FIREBASE_HEADERS:
+            if request.headers.get(header_name):
+                return True
+        return False
+
     def _get_token_from_request(self, request) -> str | None:
         for header_name in self.FIREBASE_HEADERS:
             token = request.headers.get(header_name)
