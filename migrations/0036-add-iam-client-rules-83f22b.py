@@ -1,6 +1,6 @@
-#    Copyright 2025 Genesis Corporation.
+# Copyright 2016 Eugene Frolov <eugene@frolov.net.ru>
 #
-#    All Rights Reserved.
+# All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -20,14 +20,11 @@ from restalchemy.storage.sql import migrations
 class MigrationStep(migrations.AbstractMigrationStep):
 
     def __init__(self):
-        self._depends = [
-            "0034-add-export-adn-import-resources-a12854.py",
-            "0035-dummy-placement-e6d5dc.py",
-        ]
+        self._depends = ["0035-dummy-placement-e6d5dc.py"]
 
     @property
     def migration_id(self):
-        return "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        return "83f22b9e-fb2b-45bd-8237-aaf7705369f7"
 
     @property
     def is_manual(self):
@@ -59,3 +56,5 @@ class MigrationStep(migrations.AbstractMigrationStep):
         for expr in expressions:
             session.execute(expr, None)
 
+
+migration_step = MigrationStep()
