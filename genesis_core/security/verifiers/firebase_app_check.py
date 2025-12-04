@@ -36,6 +36,17 @@ log = logging.getLogger(__name__)
 
 
 class FirebaseAppCheckVerifier(AbstractVerifier):
+    """Firebase App Check verifier.
+
+    Rule format (IamClient.rules):
+      {
+        "kind": "firebase_app_check",
+        "credentials_path": "/path/to/firebase-credentials.json",
+        "allowed_app_ids": ["app-id-1", "app-id-2", ...],
+        "mode": "enforce"
+      }
+    """
+
     FIREBASE_HEADERS = [
         "X-Firebase-AppCheck",
         "X-Goog-Firebase-AppCheck",
@@ -53,13 +64,11 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
         if firebase_admin is None:
             raise RuntimeError("firebase-admin package is not installed")
 
-        # Try to reuse existing Firebase app if already initialized (e.g., by another verifier)
         try:
             self._app = firebase_admin.get_app()
             self._initialized = True
             return
         except ValueError:
-            # Firebase app not initialized yet, initialize it ourselves
             pass
 
         credentials_path = self.config.get("credentials_path")
@@ -74,11 +83,7 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
         self._initialized = True
 
     def can_handle(self, request) -> bool:
-        """Check if request has Firebase App Check headers."""
-        for header_name in self.FIREBASE_HEADERS:
-            if request.headers.get(header_name):
-                return True
-        return False
+        return any(request.headers.get(h) for h in self.FIREBASE_HEADERS)
 
     def _get_token_from_request(self, request) -> str | None:
         for header_name in self.FIREBASE_HEADERS:
@@ -88,9 +93,7 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
         return None
 
     def verify(self, request) -> tuple[bool, str | None]:
-        # Initialize Firebase - if this fails, it's a configuration error and should crash
         self._initialize_firebase()
-
         token = self._get_token_from_request(request)
         if not token:
             return False, "Firebase App Check token not found"

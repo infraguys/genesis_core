@@ -30,21 +30,17 @@ log = logging.getLogger(__name__)
 
 
 class AdminBypassVerifier(AbstractVerifier):
-    """Verifier that allows admin/bypass users to skip further validation.
+    """Allows admin/bypass users to skip validation.
 
-    Config (rule) format:
-      {
-        "bypass_users": ["admin@example.com", "<uuid>", ...]
-      }
+    Rule format (IamClient.rules):
+      {"kind": "admin_bypass", "bypass_users": ["admin@example.com", "<uuid>", ...]}
     """
 
     def __init__(self, config: dict[str, Any] = None):
         self.config = config or {}
 
     def can_handle(self, request) -> bool:
-        """Check if request has Authorization: Bearer header."""
-        auth_header = request.headers.get("Authorization", "")
-        return auth_header.startswith("Bearer ")
+        return request.headers.get("Authorization", "").startswith("Bearer ")
 
     def verify(self, request) -> tuple[bool, str | None]:
         ctx = contexts.get_context()
@@ -52,7 +48,6 @@ class AdminBypassVerifier(AbstractVerifier):
             iam_c.STORAGE_KEY_IAM_TOKEN_ENCRYPTION_ALGORITHM
         )
         if not token_algorithm:
-            # Nothing to check against – treat as no bypass
             return False, "Token algorithm is not configured"
 
         auth_header = request.headers.get("Authorization", "")
@@ -71,20 +66,12 @@ class AdminBypassVerifier(AbstractVerifier):
             token.validate_expiration()
             user = token.user
 
-            # Admins are always allowed to bypass
-            if any(
-                role.name.lower() == "admin"
-                for role in user.get_my_roles()._roles
-            ):
+            if any(role.name.lower() == "admin" for role in user.get_my_roles()._roles):
                 return True, None
 
-            # Explicit bypass list (emails / UUIDs)
             bypass_users = self.config.get("bypass_users", []) or []
             bypass_list = {str(u).lower() for u in bypass_users}
-            if (
-                user.email
-                and user.email.lower() in bypass_list
-            ) or str(user.uuid).lower() in bypass_list:
+            if (user.email and user.email.lower() in bypass_list) or str(user.uuid).lower() in bypass_list:
                 return True, None
 
             return False, "User is not allowed to bypass validation"

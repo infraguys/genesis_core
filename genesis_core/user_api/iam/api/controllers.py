@@ -710,19 +710,11 @@ class ClientsController(
 
     @actions.post
     def create_user(self, resource, **kwargs):
-        """Create a user with validation rules from client configuration."""
         self._apply_validation_rules(resource, self._req)
         return UserController(self._req)._create_user(**kwargs)
 
     def _apply_validation_rules(self, client, request):
-        """Apply validation rules configured for the client via entry points.
-        
-        Dynamically loads verifiers for each rule and lets them decide if they
-        can handle the request. First verifier that can handle and validates
-        successfully allows user creation.
-        
-        If no rules are configured, validation is skipped and user creation is allowed.
-        """
+        """Apply validation rules via entry points. First matching verifier validates."""
         if not client.rules:
             return
 
@@ -733,48 +725,33 @@ class ClientsController(
         def _get_rule_kind(rule):
             return rule.kind if hasattr(rule, "kind") else rule.get("kind")
 
-        handled_by_any = False  # Track if any verifier said "this is my case"
+        handled = False
 
-        # Iterate through all rules and let verifiers decide if they can handle the request
         for rule in rules_list:
             rule_kind = _get_rule_kind(rule)
             if not rule_kind:
-                log.warning("Rule without kind found, skipping")
                 continue
 
             try:
                 config = rule if isinstance(rule, dict) else rule.__dict__
-                verifier_cls = utils.load_from_entry_point(
-                    ENTRY_POINT_GROUP, rule_kind
-                )
+                verifier_cls = utils.load_from_entry_point(ENTRY_POINT_GROUP, rule_kind)
             except Exception as e:
-                log.warning(
-                    "Failed to load verifier '%s': %s, skipping", rule_kind, e
-                )
+                log.warning("Failed to load verifier '%s': %s", rule_kind, e)
                 continue
 
-            # Create verifier instance
             verifier = verifier_cls(config=config or {})
-
-            # Ask verifier if it can handle this request
             if not verifier.can_handle(request):
-                continue  # Not this verifier's case, try next rule
+                continue
 
-            handled_by_any = True  # At least one verifier said "this is my case"
-
-            # This verifier can handle the request - perform validation
+            handled = True
             ok, error_msg = verifier.verify(request)
             if ok:
-                # Validation passed - allow user creation
                 return
-            else:
-                # This verifier handled the request but validation failed
-                raise iam_e.CanNotCreateUser(
-                    message=error_msg or f"{rule_kind} validation failed"
-                )
+            raise iam_e.CanNotCreateUser(
+                message=error_msg or f"{rule_kind} validation failed"
+            )
 
-        # No verifier could handle the request, but rules were configured
-        if not handled_by_any:
+        if not handled:
             raise iam_e.CanNotCreateUser(message="No matching validation found")
 
 
