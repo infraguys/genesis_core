@@ -15,6 +15,7 @@
 #    under the License.
 
 import errno
+import logging
 from os import path as os_path
 import mimetypes
 import re
@@ -37,7 +38,11 @@ from genesis_core.user_api.iam.api import openapi_specs as oa_specs
 from genesis_core.user_api.iam.clients import idp
 from genesis_core.user_api.iam.dm import models
 from genesis_core.user_api.iam import constants as c
+from genesis_core.user_api.iam import constants as iam_c
 from genesis_core.user_api.iam import exceptions as iam_e
+from genesis_core.security.registry import ENTRY_POINT_GROUP
+from genesis_core.common import utils
+from gcl_iam import tokens
 
 
 class EnforceMixin:
@@ -169,13 +174,46 @@ class UserController(
         name_map={"secret": "password", "name": "username"},
     )
 
-    def create(self, **kwargs):
+    def _create_user(self, **kwargs):
+        """Shared logic for creating a user."""
+        # Convert password to secret (name_map conversion)
+        if "password" in kwargs and "secret" not in kwargs:
+            kwargs["secret"] = kwargs.pop("password")
+        # Convert username to name (name_map conversion)
+        if "username" in kwargs and "name" not in kwargs:
+            kwargs["name"] = kwargs.pop("username")
+        
         self.validate_secret(kwargs)
         kwargs.pop("email_verified", None)
         user = super().create(**kwargs)
         app_endpoint = _get_app_endpoint(req=self._req)
         user.resend_confirmation_event(app_endpoint=app_endpoint)
+
+        # Add required fields for TargetResourceMixin serialization
+        # Set all to None if not available from context/token
+        try:
+            ctx = contexts.get_context()
+            if hasattr(ctx, 'iam_context') and ctx.iam_context and ctx.iam_context.token:
+                token = ctx.iam_context.token
+                user.project_id = token.project.uuid if token.project else None
+                user.client_id = token.client.client_id if token.client else None
+                user.redirect_url = token.client.redirect_url if token.client else None
+            else:
+                user.project_id = None
+                user.client_id = None
+                user.redirect_url = None
+            # Set rules to None (not applicable for User)
+            user.rules = None
+        except Exception:
+            user.project_id = None
+            user.client_id = None
+            user.redirect_url = None
+            user.rules = None
+        
         return user
+
+    def create(self, **kwargs):
+        return self._create_user(**kwargs)
 
     def filter(self, filters, **kwargs):
         self.enforce(
@@ -668,6 +706,116 @@ class ClientsController(
         resource.send_reset_password_event(
             email=email, app_endpoint=app_endpoint
         )
+
+    @actions.post
+    def create_user(self, resource, **kwargs):
+        """Create a user with validation rules from client configuration."""
+        self._apply_validation_rules(resource, self._req)
+        return UserController(self._req)._create_user(**kwargs)
+
+    def _apply_validation_rules(self, client, request):
+        """Apply validation rules configured for the client."""
+        if not client.rules:
+            raise iam_e.CanNotCreateUser(message="No validation rules configured for this client")
+        
+        rules_list = client.rules if isinstance(client.rules, list) else [client.rules]
+        if not rules_list:
+            raise iam_e.CanNotCreateUser(message="No validation rules configured for this client")
+        
+        headers = request.headers
+        has_auth = headers.get("Authorization", "").startswith("Bearer ")
+        has_captcha = bool(headers.get("X-Captcha"))
+        has_firebase = bool(headers.get("X-Firebase-AppCheck") or headers.get("X-Goog-Firebase-AppCheck"))
+        
+        def _get_rule_kind(rule):
+            return rule.kind if hasattr(rule, 'kind') else rule.get('kind')
+        
+        admin_bypass_rule = None
+        for rule in rules_list:
+            if _get_rule_kind(rule) == "admin_bypass":
+                admin_bypass_rule = rule
+                if self._check_admin_bypass(request, rule):
+                    return
+        
+        if admin_bypass_rule and has_auth:
+            raise iam_e.CanNotCreateUser(message="Admin token validation failed")
+        
+        validation_passed = False
+        for rule in rules_list:
+            rule_kind = _get_rule_kind(rule)
+            if rule_kind == "admin_bypass":
+                continue
+            if rule_kind == "captcha" and has_captcha:
+                if not self._validate_captcha(request, rule):
+                    raise iam_e.CanNotCreateUser(message="CAPTCHA validation failed")
+                validation_passed = True
+            elif rule_kind == "firebase_app_check" and has_firebase:
+                if not self._validate_firebase_app_check(request, rule):
+                    raise iam_e.CanNotCreateUser(message="Firebase App Check validation failed")
+                validation_passed = True
+            elif rule_kind not in ("admin_bypass", "captcha", "firebase_app_check"):
+                log = logging.getLogger(__name__)
+                log.warning(f"Unknown validation rule type: {rule_kind}, skipping")
+        
+        if not validation_passed:
+            raise iam_e.CanNotCreateUser(message="No valid validation token provided")
+
+    def _check_admin_bypass(self, request, rule):
+        """Check if request should bypass validation based on admin rule."""
+        ctx = contexts.get_context()
+        token_algorithm = ctx.context_storage.get(iam_c.STORAGE_KEY_IAM_TOKEN_ENCRYPTION_ALGORITHM)
+        if not token_algorithm:
+            return False
+        
+        auth_header = request.headers.get("Authorization", "")
+        if not auth_header.startswith("Bearer "):
+            return False
+        
+        try:
+            auth_token = tokens.AuthToken(
+                token=auth_header[7:].strip(),
+                algorithm=token_algorithm,
+                ignore_audience=True,
+            )
+            token = models.Token.objects.get_one(
+                filters={"uuid": ra_filters.EQ(auth_token.uuid)},
+            )
+            token.validate_expiration()
+            user = token.user
+            
+            if any(role.name.lower() == "admin" for role in user.get_my_roles()._roles):
+                return True
+            
+            bypass_users = rule.get('bypass_users', []) if isinstance(rule, dict) else (rule.bypass_users or [])
+            bypass_list = {str(u).lower() for u in bypass_users}
+            if user.email.lower() in bypass_list or str(user.uuid) in bypass_list:
+                return True
+        except Exception as e:
+            log = logging.getLogger(__name__)
+            log.debug("Admin token check failed: %s", e)
+        
+        return False
+
+    def _validate_firebase_app_check(self, request, rule):
+        """Validate Firebase App Check token."""
+        config = {
+            "credentials_path": rule.get('credentials_path') if isinstance(rule, dict) else rule.credentials_path,
+            "allowed_app_ids": rule.get('allowed_app_ids', []) if isinstance(rule, dict) else rule.allowed_app_ids,
+            "mode": rule.get('mode', 'enforce') if isinstance(rule, dict) else rule.mode,
+        }
+        verifier = utils.load_from_entry_point(ENTRY_POINT_GROUP, "firebase_app_check")(config=config)
+        return verifier.verify(request)[0]
+
+    def _validate_captcha(self, request, rule):
+        """Validate CAPTCHA."""
+        if not request.headers.get("X-Captcha"):
+            log = logging.getLogger(__name__)
+            log.warning("CAPTCHA token not found in headers")
+            return False
+        
+        mode = rule.get('mode', 'enforce') if isinstance(rule, dict) else rule.mode
+        verifier = utils.load_from_entry_point(ENTRY_POINT_GROUP, "captcha")(config={"mode": mode})
+        return verifier.verify(request)[0]
 
 
 class WebController:

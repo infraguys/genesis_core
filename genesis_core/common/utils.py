@@ -34,8 +34,8 @@ def node_uuid(path: str = c.NODE_UUID_PATH) -> sys_uuid.UUID:
 
 def load_from_entry_point(group: str, name: str) -> tp.Any:
     """Load class from entry points."""
-    for ep in entry_points():
-        if ep.group == group and ep.name == name:
+    for ep in entry_points(group=group):
+        if ep.name == name:
             return ep.load()
 
     raise RuntimeError(f"No class '{name}' found in entry points {group}")

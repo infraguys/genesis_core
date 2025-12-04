@@ -199,6 +199,12 @@ class ResetPasswordEventAction(routes.Action):
     __controller__ = controllers.ClientsController
 
 
+class CreateUserAction(routes.Action):
+    """Handler for .../<uuid>/actions/create_user/invoke endpoint"""
+
+    __controller__ = controllers.ClientsController
+
+
 class IamClientsRoute(routes.Route):
     """Handler for /v1/iam/clients/ endpoint"""
 
@@ -210,6 +216,7 @@ class IamClientsRoute(routes.Route):
     introspect = routes.action(IntrospectAction)
     me = routes.action(MeAction)
     reset_password = routes.action(ResetPasswordEventAction, invoke=True)
+    create_user = routes.action(CreateUserAction, invoke=True)
 
 
 class IamWebRoute(WebRoute):

@@ -28,6 +28,7 @@ from restalchemy.dm import models
 from restalchemy.dm import properties
 from restalchemy.dm import relationships
 from restalchemy.dm import types as ra_types
+from restalchemy.dm import types_dynamic
 from restalchemy.common import contexts
 from restalchemy.dm import filters as ra_filters
 from restalchemy.storage.sql import orm
@@ -1006,6 +1007,51 @@ class MeInfo:
         }
 
 
+# Validation rules for user registration
+class AbstractValidationRule(types_dynamic.AbstractKindModel, models.SimpleViewMixin):
+    """Base class for user registration validation rules."""
+    pass
+
+
+class AdminBypassRule(AbstractValidationRule):
+    """Rule that allows admin users to bypass validation."""
+    KIND = "admin_bypass"
+    
+    # List of user UUIDs or emails that should bypass validation
+    bypass_users = properties.property(
+        ra_types.List(),
+        default=list,
+    )
+
+
+class FirebaseAppCheckRule(AbstractValidationRule):
+    """Rule that requires Firebase App Check token validation."""
+    KIND = "firebase_app_check"
+    
+    credentials_path = properties.property(
+        ra_types.String(),
+        required=True,
+    )
+    allowed_app_ids = properties.property(
+        ra_types.List(),
+        default=list,
+    )
+    mode = properties.property(
+        ra_types.Enum(["enforce", "report-only"]),
+        default="enforce",
+    )
+
+
+class CaptchaRule(AbstractValidationRule):
+    """Rule that requires CAPTCHA validation."""
+    KIND = "captcha"
+    
+    mode = properties.property(
+        ra_types.Enum(["enforce", "report-only"]),
+        default="enforce",
+    )
+
+
 class IamClient(
     models.ModelWithUUID,
     models.ModelWithRequiredNameDesc,
@@ -1028,6 +1074,11 @@ class IamClient(
     redirect_url = properties.property(
         ra_types.Url(),
         required=True,
+    )
+    rules = properties.property(
+        ra_types.List(),
+        default=None,
+        required=False,
     )
 
     def validate_client_creds(self, client_id, client_secret):

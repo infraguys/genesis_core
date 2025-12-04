@@ -27,6 +27,9 @@ log = logging.getLogger(__name__)
 ENTRY_POINT_GROUP = "genesis_core.verifiers"
 VERIFIER_CONFIG_PREFIX = "verifiers."
 
+# Export ENTRY_POINT_GROUP for use in other modules
+__all__ = ["ENTRY_POINT_GROUP", "VERIFIER_CONFIG_PREFIX"]
+
 
 class VerifierRegistry:
     def __init__(self, config: dict[str, Any] = None):

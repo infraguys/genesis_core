@@ -175,3 +175,10 @@ class InvalidGrantType(
     iam_exc.InvalidGrantTypeError,
 ):
     __template__ = "Invalid grant type: {grant_type}"
+
+
+class CanNotCreateUser(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = "User creation failed: {message}"

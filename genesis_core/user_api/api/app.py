@@ -28,10 +28,6 @@ from restalchemy.openapi import structures as openapi_structures
 from restalchemy.openapi import engines as openapi_engines
 
 from genesis_core.common.api.middlewares import errors as errors_mw
-from genesis_core.security import config as security_config
-from genesis_core.security.middleware import RequestVerificationMiddleware
-from genesis_core.security.policy import SecurityPolicy
-from genesis_core.security.registry import VerifierRegistry
 from genesis_core.user_api.api import routes as app_routes
 from genesis_core.user_api.api import versions
 from genesis_core.user_api.iam import drivers
@@ -60,6 +56,11 @@ skip_auth_endpoints = [
     iam_mw.EndpointComparator(
         f"/v1/iam/clients/({ra_types.UUID_RE_TEMPLATE})"
         "/actions/reset_password/invoke",
+        methods=[ra_c.POST],
+    ),
+    iam_mw.EndpointComparator(
+        f"/v1/iam/clients/({ra_types.UUID_RE_TEMPLATE})"
+        "/actions/create_user/invoke",
         methods=[ra_c.POST],
     ),
     iam_mw.EndpointComparator(
@@ -117,18 +118,6 @@ def build_wsgi_application(context_storage, token_algorithm, conf=None):
             skip_auth_endpoints=skip_auth_endpoints,
         ),
     ]
-
-    if conf.security.enabled:
-        security_cfg = security_config.get_security_config(conf)
-        registry = VerifierRegistry(config=security_cfg)
-        policy = SecurityPolicy(registry, token_algorithm=token_algorithm)
-        middleware_list.append(
-            middlewares.configure_middleware(
-                RequestVerificationMiddleware,
-                registry=registry,
-                policy=policy,
-            )
-        )
 
     middleware_list.extend([
         errors_mw.ErrorsHandlerMiddleware,
