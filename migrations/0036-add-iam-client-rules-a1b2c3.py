@@ -20,7 +20,10 @@ from restalchemy.storage.sql import migrations
 class MigrationStep(migrations.AbstractMigrationStep):
 
     def __init__(self):
-        self._depends = ["0034-add-export-adn-import-resources-a12854.py"]
+        self._depends = [
+            "0034-add-export-adn-import-resources-a12854.py",
+            "0035-dummy-placement-e6d5dc.py",
+        ]
 
     @property
     def migration_id(self):
