@@ -99,6 +99,28 @@ class TestClients(base.BaseIamResourceTest):
 
         assert result["name"] == new_name
 
+    def test_update_iam_clients_rules_by_admin(
+        self, user_api_client, auth_user_admin
+    ):
+        client = user_api_client(auth_user_admin)
+        iam_client = client.create_iam_client(
+            name="test_client_rules",
+            client_id=f"test_client_id_{sys_uuid.uuid4().hex[:8]}",
+            secret="12345678",
+            redirect_url="http://127.0.0.1/",
+        )
+
+        rules = [{
+            "kind": "admin_bypass",
+            "bypass_users": []
+        }]
+        result = client.update_iam_client(
+            uuid=iam_client["uuid"],
+            rules=rules,
+        )
+
+        assert result["rules"] == rules
+
     def test_update_iam_clients_by_user(
         self, user_api_client, auth_test1_user
     ):

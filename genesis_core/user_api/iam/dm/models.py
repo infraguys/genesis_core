@@ -1058,9 +1058,10 @@ class IamClient(
     models.ModelWithTimestamp,
     ModelWithSecret,
     ModelWithAlwaysActiveStatus,
-    orm.SQLStorableMixin,
+    orm.SQLStorableWithJSONFieldsMixin,
 ):
     __tablename__ = "iam_clients"
+    __jsonfields__ = ["rules"]
 
     project_id = properties.property(
         ra_types.AllowNone(ra_types.UUID()),
