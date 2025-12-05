@@ -1046,6 +1046,10 @@ class CaptchaRule(AbstractValidationRule):
     """Rule that requires CAPTCHA validation."""
     KIND = "captcha"
     
+    hmac_key = properties.property(
+        ra_types.String(),
+        required=True,
+    )
     mode = properties.property(
         ra_types.Enum(["enforce", "report-only"]),
         default="enforce",

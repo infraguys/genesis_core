@@ -14,24 +14,65 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import json
+import logging
 from typing import Any
+
+import altcha
 
 from genesis_core.security.interfaces import AbstractVerifier
 
 
+log = logging.getLogger(__name__)
+
+
 class CaptchaVerifier(AbstractVerifier):
-    """Stub CAPTCHA verifier. Will be implemented soon.
+    """CAPTCHA verifier using altcha. Requires X-Captcha header.
 
     Rule format (IamClient.rules):
-      {"kind": "captcha", "mode": "enforce"}
+      {
+        "kind": "captcha",
+        "hmac_key": "your-hmac-key-here",
+        "mode": "enforce"
+      }
     """
+
+    CAPTCHA_HEADER = "X-Captcha"
 
     def __init__(self, config: dict[str, Any] = None):
         self.config = config or {}
 
     def can_handle(self, request) -> bool:
-        return bool(request.headers.get("X-Captcha"))
+        return bool(request.headers.get(self.CAPTCHA_HEADER))
+
+    def _get_payload_from_request(self, request) -> dict | None:
+        """Extract and parse CAPTCHA payload from request header."""
+        captcha_header = request.headers.get(self.CAPTCHA_HEADER)
+        try:
+            return json.loads(captcha_header)
+        except (json.JSONDecodeError, TypeError) as e:
+            log.debug("Failed to parse CAPTCHA payload: %s", e)
+            return None
 
     def verify(self, request) -> tuple[bool, str | None]:
-        return True, None
+        payload = self._get_payload_from_request(request)
+        if not payload:
+            return False, "Invalid CAPTCHA payload"
+
+        hmac_key = self.config.get("hmac_key")
+        if not hmac_key:
+            return False, "CAPTCHA hmac_key not configured in rule"
+
+        try:
+            verified, error = altcha.verify_solution(
+                payload,
+                hmac_key=hmac_key,
+                check_expires=True,
+            )
+            if not verified:
+                return False, error or "CAPTCHA verification failed"
+            return True, None
+        except Exception as e:
+            log.debug("CAPTCHA verification failed: %s", e)
+            return False, f"CAPTCHA verification failed: {str(e)}"
 

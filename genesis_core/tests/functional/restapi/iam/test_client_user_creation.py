@@ -14,6 +14,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import json
 import uuid as sys_uuid
 from unittest import mock
 from urllib.parse import urljoin
@@ -109,6 +110,21 @@ class TestClientUserCreation(base.BaseIamResourceTest):
         }]
         return self._create_iam_client_with_rules(
             client, "firebase_app_check", rules
+        )
+
+    @pytest.fixture
+    def iam_client_with_captcha_rule(
+        self, user_api_client, auth_user_admin
+    ):
+        """Create IamClient with captcha rule."""
+        client = user_api_client(auth_user_admin)
+        rules = [{
+            "kind": "captcha",
+            "hmac_key": "test-hmac-key-12345",
+            "mode": "enforce"
+        }]
+        return self._create_iam_client_with_rules(
+            client, "captcha", rules
         )
 
     def _get_access_token(self, user_api, auth):
@@ -307,4 +323,85 @@ class TestClientUserCreation(base.BaseIamResourceTest):
         assert "CanNotCreateUser" in error_data.get("type", "")
         assert "firebase" in error_data.get("message", "").lower()
         mock_app_check.verify_token.assert_called_once()
+
+    @mock.patch("genesis_core.security.verifiers.captcha.altcha")
+    def test_create_user_captcha_success(
+        self, mock_altcha, user_api,
+        iam_client_with_captcha_rule
+    ):
+        mock_altcha.verify_solution.return_value = (True, None)
+        valid_captcha_payload = json.dumps({
+            "challenge": "test_challenge_123",
+            "number": 123456,
+            "signature": "test_signature_123",
+            "algorithm": "SHA-512",
+            "salt": "test_salt?expires=9999999999"
+        })
+        headers = {"X-Captcha": valid_captcha_payload}
+
+        response = self._create_user_via_action(
+            user_api,
+            iam_client_with_captcha_rule,
+            username=f"testuser_{sys_uuid.uuid4().hex[:8]}",
+            password="testpass123",
+            email=f"testuser_{sys_uuid.uuid4().hex[:8]}@example.com",
+            headers=headers,
+        )
+
+        assert response.status_code == 200
+        user_data = response.json()
+        assert "name" in user_data or "username" in user_data
+        assert "uuid" in user_data
+        mock_altcha.verify_solution.assert_called_once()
+
+    @mock.patch("genesis_core.security.verifiers.captcha.altcha")
+    def test_create_user_captcha_invalid_token_forbidden(
+        self, mock_altcha, user_api,
+        iam_client_with_captcha_rule
+    ):
+        mock_altcha.verify_solution.return_value = (False, "Invalid challenge")
+        invalid_captcha_payload = json.dumps({
+            "challenge": "invalid_challenge",
+            "number": 123456,
+            "signature": "invalid_signature",
+            "algorithm": "SHA-512",
+            "salt": "test_salt?expires=9999999999"
+        })
+        headers = {"X-Captcha": invalid_captcha_payload}
+
+        response = self._create_user_via_action(
+            user_api,
+            iam_client_with_captcha_rule,
+            username=f"testuser_{sys_uuid.uuid4().hex[:8]}",
+            password="testpass123",
+            email=f"testuser_{sys_uuid.uuid4().hex[:8]}@example.com",
+            headers=headers,
+        )
+
+        assert response.status_code == 403
+        error_data = response.json()
+        assert "CanNotCreateUser" in error_data.get("type", "")
+        error_message = error_data.get("message", "").lower()
+        assert "invalid" in error_message or "challenge" in error_message or "captcha" in error_message
+        mock_altcha.verify_solution.assert_called_once()
+
+    def test_create_user_captcha_invalid_payload_forbidden(
+        self, user_api,
+        iam_client_with_captcha_rule
+    ):
+        headers = {"X-Captcha": "not-a-valid-json"}
+
+        response = self._create_user_via_action(
+            user_api,
+            iam_client_with_captcha_rule,
+            username=f"testuser_{sys_uuid.uuid4().hex[:8]}",
+            password="testpass123",
+            email=f"testuser_{sys_uuid.uuid4().hex[:8]}@example.com",
+            headers=headers,
+        )
+
+        assert response.status_code == 403
+        error_data = response.json()
+        assert "CanNotCreateUser" in error_data.get("type", "")
+        assert "captcha" in error_data.get("message", "").lower()
 
