@@ -718,9 +718,7 @@ class ClientsController(
         if not client.rules:
             return
 
-        rules_list = client.rules if isinstance(client.rules, list) else [client.rules]
-        if not rules_list:
-            return
+        rules_list = client.rules
 
         def _get_rule_kind(rule):
             return rule.kind if hasattr(rule, "kind") else rule.get("kind")
