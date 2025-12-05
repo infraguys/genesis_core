@@ -127,6 +127,59 @@ class TestClientUserCreation(base.BaseIamResourceTest):
             client, "captcha", rules
         )
 
+    @pytest.fixture
+    def iam_client_without_rules(
+        self, user_api_client, auth_user_admin
+    ):
+        """Create IamClient without validation rules."""
+        client = user_api_client(auth_user_admin)
+        return self._create_iam_client_with_rules(
+            client, "no_rules", rules=None
+        )
+
+    @pytest.fixture
+    def iam_client_with_firebase_app_check_rule_no_allowed_apps(
+        self, user_api_client, auth_user_admin
+    ):
+        """Create IamClient with firebase_app_check rule without allowed_app_ids."""
+        client = user_api_client(auth_user_admin)
+        rules = [{
+            "kind": "firebase_app_check",
+            "credentials_path": "/tmp/fake-firebase-credentials.json",
+            "allowed_app_ids": [],
+            "mode": "enforce"
+        }]
+        return self._create_iam_client_with_rules(
+            client, "firebase_app_check_no_allowed", rules
+        )
+
+    @pytest.fixture
+    def iam_client_with_multiple_rules(
+        self, user_api_client, auth_user_admin
+    ):
+        """Create IamClient with multiple validation rules."""
+        client = user_api_client(auth_user_admin)
+        rules = [
+            {
+                "kind": "admin_bypass",
+                "bypass_users": []
+            },
+            {
+                "kind": "firebase_app_check",
+                "credentials_path": "/tmp/fake-firebase-credentials.json",
+                "allowed_app_ids": ["test-app-id"],
+                "mode": "enforce"
+            },
+            {
+                "kind": "captcha",
+                "hmac_key": "test-hmac-key-12345",
+                "mode": "enforce"
+            }
+        ]
+        return self._create_iam_client_with_rules(
+            client, "multiple_rules", rules
+        )
+
     def _get_access_token(self, user_api, auth):
         """Get access token from auth object."""
         client = iam_clients.GenesisCoreTestRESTClient(
@@ -404,4 +457,107 @@ class TestClientUserCreation(base.BaseIamResourceTest):
         error_data = response.json()
         assert "CanNotCreateUser" in error_data.get("type", "")
         assert "captcha" in error_data.get("message", "").lower()
+
+    @mock.patch("genesis_core.security.verifiers.firebase_app_check.app_check")
+    @mock.patch("genesis_core.security.verifiers.firebase_app_check.credentials")
+    @mock.patch("genesis_core.security.verifiers.firebase_app_check.os.path.exists")
+    @mock.patch("genesis_core.security.verifiers.firebase_app_check.firebase_admin")
+    def test_create_user_firebase_app_check_allowed_app_id_success(
+        self, mock_firebase_admin, mock_exists, mock_credentials, mock_app_check, user_api,
+        iam_client_with_firebase_app_check_rule
+    ):
+        mock_exists.return_value = True
+        mock_cred = mock.MagicMock()
+        mock_credentials.Certificate.return_value = mock_cred
+        mock_app = mock.MagicMock()
+        mock_firebase_admin.get_app.side_effect = ValueError("No app")
+        mock_firebase_admin.initialize_app.return_value = mock_app
+        mock_app_check.verify_token.return_value = {"app_id": "test-app-id"}
+        headers = {"X-Firebase-AppCheck": "fake_firebase_token_12345"}
+
+        response = self._create_user_via_action(
+            user_api,
+            iam_client_with_firebase_app_check_rule,
+            username=f"testuser_{sys_uuid.uuid4().hex[:8]}",
+            password="testpass123",
+            email=f"testuser_{sys_uuid.uuid4().hex[:8]}@example.com",
+            headers=headers,
+        )
+
+        assert response.status_code == 200
+        user_data = response.json()
+        assert "name" in user_data or "username" in user_data
+        assert "uuid" in user_data
+        mock_app_check.verify_token.assert_called_once()
+
+    @mock.patch("genesis_core.security.verifiers.firebase_app_check.app_check")
+    @mock.patch("genesis_core.security.verifiers.firebase_app_check.credentials")
+    @mock.patch("genesis_core.security.verifiers.firebase_app_check.os.path.exists")
+    @mock.patch("genesis_core.security.verifiers.firebase_app_check.firebase_admin")
+    def test_create_user_firebase_app_check_no_allowed_apps_success(
+        self, mock_firebase_admin, mock_exists, mock_credentials, mock_app_check, user_api,
+        iam_client_with_firebase_app_check_rule_no_allowed_apps
+    ):
+        mock_exists.return_value = True
+        mock_cred = mock.MagicMock()
+        mock_credentials.Certificate.return_value = mock_cred
+        mock_app = mock.MagicMock()
+        mock_firebase_admin.get_app.side_effect = ValueError("No app")
+        mock_firebase_admin.initialize_app.return_value = mock_app
+        mock_app_check.verify_token.return_value = {"app_id": "any-app-id"}
+        headers = {"X-Firebase-AppCheck": "fake_firebase_token_12345"}
+
+        response = self._create_user_via_action(
+            user_api,
+            iam_client_with_firebase_app_check_rule_no_allowed_apps,
+            username=f"testuser_{sys_uuid.uuid4().hex[:8]}",
+            password="testpass123",
+            email=f"testuser_{sys_uuid.uuid4().hex[:8]}@example.com",
+            headers=headers,
+        )
+
+        assert response.status_code == 200
+        user_data = response.json()
+        assert "name" in user_data or "username" in user_data
+        assert "uuid" in user_data
+        mock_app_check.verify_token.assert_called_once()
+
+    def test_create_user_no_rules_success(
+        self, user_api,
+        iam_client_without_rules
+    ):
+        response = self._create_user_via_action(
+            user_api,
+            iam_client_without_rules,
+            username=f"testuser_{sys_uuid.uuid4().hex[:8]}",
+            password="testpass123",
+            email=f"testuser_{sys_uuid.uuid4().hex[:8]}@example.com",
+            headers=None,
+        )
+
+        assert response.status_code == 200
+        user_data = response.json()
+        assert "name" in user_data or "username" in user_data
+        assert "uuid" in user_data
+
+    def test_create_user_multiple_rules_first_matching_applies(
+        self, user_api, auth_user_admin,
+        iam_client_with_multiple_rules
+    ):
+        token = self._get_access_token(user_api, auth_user_admin)
+        headers = {"Authorization": f"Bearer {token}"}
+
+        response = self._create_user_via_action(
+            user_api,
+            iam_client_with_multiple_rules,
+            username=f"testuser_{sys_uuid.uuid4().hex[:8]}",
+            password="testpass123",
+            email=f"testuser_{sys_uuid.uuid4().hex[:8]}@example.com",
+            headers=headers,
+        )
+
+        assert response.status_code == 200
+        user_data = response.json()
+        assert "name" in user_data or "username" in user_data
+        assert "uuid" in user_data
 
