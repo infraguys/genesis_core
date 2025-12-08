@@ -38,6 +38,9 @@ from genesis_core.compute.machine import service as n_machine_service
 from genesis_core.compute.node_set.builders import service as set_builder_svc
 from genesis_core.compute.dm import models as compute_models
 from genesis_core.network import service as n_network_service
+from genesis_core.network.lb.builders import iaas as net_lb_iaas
+from genesis_core.network.lb.builders import paas as net_lb_paas
+from genesis_core.network.lb.dm import models as lb_models
 from genesis_core.config import service as config_service
 from genesis_core.secret import service as secret_service
 from genesis_core.janitor import service as janitor_service
@@ -48,6 +51,9 @@ from genesis_core.compute import constants as nc
 LOG = logging.getLogger(__name__)
 NODE_SET_TF_STORAGE = (
     "/var/lib/genesis/genesis_core/node_set/target_fields.json"
+)
+NODE_SET_TARGET_TF_STORAGE = (
+    "/var/lib/genesis/genesis_core/target_node_set/target_fields.json"
 )
 
 
@@ -96,10 +102,15 @@ class GeneralService(basic.BasicService):
             project_id=nc.NODE_SET_PROJECT,
         )
         service_builder = service_builder_svc.ServiceNodeBuilder()
+        net_lb_iaas_builder = net_lb_iaas.LBBuilder(
+            instance_model=lb_models.IaasLB,
+            project_id=nc.NODE_SET_PROJECT,
+        )
+        net_lb_paas_builder = net_lb_paas.LBBuilder()
 
         # Infra scheduler
         infra_scheduler = ua_scheduler_service.UniversalAgentSchedulerService(
-            capabilities=["set_agent_node"]
+            capabilities=["set_agent_node", "target_node_set"]
         )
 
         # Infra agent
@@ -116,8 +127,19 @@ class GeneralService(basic.BasicService):
             target_fields_storage_path=NODE_SET_TF_STORAGE,
         )
 
+        node_spec = db_back.ModelSpec(
+            kind="target_node_set",
+            model=compute_models.NodeSet,
+            filters={"project_id": dm_filters.EQ(str(nc.NODE_SET_PROJECT))},
+        )
+        node_db_core_driver = ua_core_drivers.DatabaseCapabilityDriver(
+            model_specs=[node_spec],
+            target_fields_storage_path=NODE_SET_TARGET_TF_STORAGE,
+        )
+
         caps_drivers = [
             db_core_driver,
+            node_db_core_driver,
         ]
 
         facts_drivers = []
@@ -152,6 +174,8 @@ class GeneralService(basic.BasicService):
             n_machine,
             cfg_service,
             service_builder,
+            net_lb_iaas_builder,
+            net_lb_paas_builder,
             secret_svc,
             event_sender,
             em_builder,
