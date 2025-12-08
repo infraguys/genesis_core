@@ -687,13 +687,15 @@ class ClientsController(
     def _apply_validation_rules(self, client, request):
         """Applies validation rules, first matching rule validates the request."""
         rules = client.get_validation_rules()
+        if not rules:
+            return
         handled = False
         for rule in rules:
             if rule.verifier.can_handle(request):
                 handled = True
                 rule.verify(request)
                 return
-        if rules and not handled:
+        if not handled:
             raise iam_e.CanNotCreateUser(message="No matching validation found")
 
 

@@ -1138,7 +1138,7 @@ class IamClient(
     )
     rules = properties.property(
         ra_types.AllowNone(ra_types.List()),
-        default=None,
+        default=list,
         required=False,
     )
 
