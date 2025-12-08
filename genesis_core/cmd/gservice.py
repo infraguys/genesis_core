@@ -29,9 +29,20 @@ from genesis_core.gservice.service import GeneralService
 
 DOMAIN = "gservice"
 
+cli_opts = [
+    cfg.StrOpt(
+        "lb-image",
+        default="https://repository.genesis-core.tech/genesis-lbaas/latest/genesis-lbaas.raw.gz",
+        help="URL to get image for LB dataplane VM",
+    ),
+]
+
+
 CONF = cfg.CONF
 ra_config_opts.register_posgresql_db_opts(CONF)
 sdk_opts.register_event_opts(CONF)
+
+CONF.register_cli_opts(cli_opts, DOMAIN)
 
 
 def main():
