@@ -1046,7 +1046,29 @@ class MeInfo:
 # Validation rules for user registration
 class AbstractValidationRule(types_dynamic.AbstractKindModel, models.SimpleViewMixin):
     """Base class for user registration validation rules."""
-    pass
+    
+    _rule_selector = None
+    
+    @classmethod
+    def get_rule_selector(cls):
+        """Returns KindModelSelectorType for all rule types."""
+        if cls._rule_selector is None:
+            def find_subclasses(base):
+                subclasses = []
+                for subclass in base.__subclasses__():
+                    subclasses.append(subclass)
+                    subclasses.extend(find_subclasses(subclass))
+                return subclasses
+            
+            rule_classes = [
+                subcls for subcls in find_subclasses(cls)
+                if hasattr(subcls, 'KIND')
+            ]
+            
+            cls._rule_selector = types_dynamic.KindModelSelectorType(
+                *[types_dynamic.KindModelType(rule_cls) for rule_cls in rule_classes]
+            )
+        return cls._rule_selector
 
 
 class AdminBypassRule(AbstractValidationRule):
@@ -1147,15 +1169,18 @@ class IamClient(
         if not self.rules:
             return []
         
+        rule_selector = AbstractValidationRule.get_rule_selector()
+        
         rules = []
         for rule_dict in self.rules:
+            kind = rule_dict.get("kind")
             try:
-                rule_model = AbstractValidationRule.restore_from_simple_view(**rule_dict)
-                verifier_cls = u.load_from_entry_point(ENTRY_POINT_GROUP, rule_model.kind)
+                kind_type = rule_selector._kind_type_map.get(kind)
+                rule_model = kind_type.from_simple_type(rule_dict)
+                verifier_cls = u.load_from_entry_point(ENTRY_POINT_GROUP, kind)
                 rules.append(ValidationRule(rule_model, verifier_cls))
             except Exception as e:
-                rule_kind = rule_dict.get("kind", "unknown")
-                log.warning("Failed to load rule '%s': %s", rule_kind, e)
+                log.warning("Failed to load rule '%s': %s", kind, e)
                 continue
         
         return rules
