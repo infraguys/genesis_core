@@ -18,6 +18,7 @@ from restalchemy.api import routes
 
 from genesis_core.user_api.api import controllers
 from genesis_core.user_api.dns.api import routes as dns_routes
+from genesis_core.user_api.network.api import routes as network_routes
 from genesis_core.user_api.em.api import routes as em_routes
 from genesis_core.user_api.iam.api import routes as iam_routes
 from genesis_core.user_api.config.api import routes as config_routes
@@ -81,6 +82,7 @@ class ApiEndpointRoute(routes.Route):
     config = routes.route(config_routes.ConfigRoute)
     secret = routes.route(secret_routes.SecretRoute)
     compute = routes.route(compute_routes.ComputeRoute)
+    network = routes.route(network_routes.NetworkRoute)
 
     # DEPRECATED(akremenetsky): Use compute route
     nodes = routes.route(NodeRoute)
