@@ -39,8 +39,6 @@ from genesis_core.user_api.iam.clients import idp
 from genesis_core.user_api.iam.dm import models
 from genesis_core.user_api.iam import constants as c
 from genesis_core.user_api.iam import exceptions as iam_e
-from genesis_core.security.registry import ENTRY_POINT_GROUP
-from genesis_core.common import utils
 
 
 log = logging.getLogger(__name__)
@@ -177,40 +175,11 @@ class UserController(
 
     def _create_user(self, **kwargs):
         """Shared logic for creating a user."""
-        # Convert password to secret (name_map conversion)
-        if "password" in kwargs and "secret" not in kwargs:
-            kwargs["secret"] = kwargs.pop("password")
-        # Convert username to name (name_map conversion)
-        if "username" in kwargs and "name" not in kwargs:
-            kwargs["name"] = kwargs.pop("username")
-        
         self.validate_secret(kwargs)
         kwargs.pop("email_verified", None)
         user = super().create(**kwargs)
         app_endpoint = _get_app_endpoint(req=self._req)
         user.resend_confirmation_event(app_endpoint=app_endpoint)
-
-        # Add required fields for TargetResourceMixin serialization
-        # Set all to None if not available from context/token
-        try:
-            ctx = contexts.get_context()
-            if hasattr(ctx, 'iam_context') and ctx.iam_context and ctx.iam_context.token:
-                token = ctx.iam_context.token
-                user.project_id = token.project.uuid if token.project else None
-                user.client_id = token.client.client_id if token.client else None
-                user.redirect_url = token.client.redirect_url if token.client else None
-            else:
-                user.project_id = None
-                user.client_id = None
-                user.redirect_url = None
-            # Set rules to None (not applicable for User)
-            user.rules = None
-        except Exception:
-            user.project_id = None
-            user.client_id = None
-            user.redirect_url = None
-            user.rules = None
-        
         return user
 
     def create(self, **kwargs):
@@ -572,7 +541,7 @@ class IdpController(
 
 
 class ClientsController(
-    controllers.BaseResourceControllerPaginated, EnforceMixin
+    controllers.BaseResourceControllerPaginated, EnforceMixin, ValidateSecretMixin
 ):
     __resource__ = resources.ResourceByModelWithCustomProps(
         models.IamClient,
@@ -711,45 +680,20 @@ class ClientsController(
     @actions.post
     def create_user(self, resource, **kwargs):
         self._apply_validation_rules(resource, self._req)
-        return UserController(self._req)._create_user(**kwargs)
+        self.validate_secret(kwargs)
+        app_endpoint = _get_app_endpoint(req=self._req)
+        return resource.create_user(app_endpoint=app_endpoint, **kwargs)
 
     def _apply_validation_rules(self, client, request):
-        """Apply validation rules via entry points. First matching verifier validates."""
-        if not client.rules:
-            return
-
-        rules_list = client.rules
-
-        def _get_rule_kind(rule):
-            return rule.kind if hasattr(rule, "kind") else rule.get("kind")
-
+        """Applies validation rules, first matching rule validates the request."""
+        rules = client.get_validation_rules()
         handled = False
-
-        for rule in rules_list:
-            rule_kind = _get_rule_kind(rule)
-            if not rule_kind:
-                continue
-
-            try:
-                config = rule if isinstance(rule, dict) else rule.__dict__
-                verifier_cls = utils.load_from_entry_point(ENTRY_POINT_GROUP, rule_kind)
-            except Exception as e:
-                log.warning("Failed to load verifier '%s': %s", rule_kind, e)
-                continue
-
-            verifier = verifier_cls(config=config or {})
-            if not verifier.can_handle(request):
-                continue
-
-            handled = True
-            ok, error_msg = verifier.verify(request)
-            if ok:
+        for rule in rules:
+            if rule.verifier.can_handle(request):
+                handled = True
+                rule.verify(request)
                 return
-            raise iam_e.CanNotCreateUser(
-                message=error_msg or f"{rule_kind} validation failed"
-            )
-
-        if not handled:
+        if rules and not handled:
             raise iam_e.CanNotCreateUser(message="No matching validation found")
 
 

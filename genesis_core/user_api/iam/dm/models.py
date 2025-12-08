@@ -17,7 +17,9 @@
 import base64
 import datetime
 import hashlib
+import logging
 import secrets
+import string
 import uuid as sys_uuid
 
 from gcl_iam import exceptions as iam_e
@@ -30,6 +32,7 @@ from restalchemy.dm import relationships
 from restalchemy.dm import types as ra_types
 from restalchemy.dm import types_dynamic
 from restalchemy.common import contexts
+from restalchemy.common import exceptions as ra_e
 from restalchemy.dm import filters as ra_filters
 from restalchemy.storage.sql import orm
 import pyotp
@@ -38,9 +41,13 @@ import pyotp
 from genesis_core.common import constants as c
 from genesis_core.common import utils as u
 from genesis_core.events import payloads as event_payloads
+from genesis_core.security.registry import ENTRY_POINT_GROUP
 from genesis_core.user_api.iam import constants as iam_c
 from genesis_core.user_api.iam.dm import types
 from genesis_core.user_api.iam import exceptions as iam_exceptions
+
+
+log = logging.getLogger(__name__)
 
 
 class ModelWithSecret(models.Model, models.CustomPropertiesMixin):
@@ -224,6 +231,15 @@ class User(
             "email": self.email,
         }
 
+    @staticmethod
+    def normalize_create_kwargs(kwargs):
+        """Normalizes kwargs for user creation (password->secret, username->name)."""
+        if "password" in kwargs and "secret" not in kwargs:
+            kwargs["secret"] = kwargs.pop("password")
+        if "username" in kwargs and "name" not in kwargs:
+            kwargs["name"] = kwargs.pop("username")
+        return kwargs
+
     @classmethod
     def me(cls, token_info=None):
         token_info = (
@@ -336,6 +352,26 @@ class User(
         self.reset_confirmation_code()
         self.save()
         self.send_registration_event(app_endpoint=app_endpoint)
+
+    def _setup_target_resource_fields(self):
+        """Sets up fields required for TargetResourceMixin serialization."""
+        try:
+            ctx = contexts.get_context()
+            if hasattr(ctx, 'iam_context') and ctx.iam_context and ctx.iam_context.token:
+                token = ctx.iam_context.token
+                self.project_id = token.project.uuid if token.project else None
+                self.client_id = token.client.client_id if token.client else None
+                self.redirect_url = token.client.redirect_url if token.client else None
+            else:
+                self.project_id = None
+                self.client_id = None
+                self.redirect_url = None
+            self.rules = None
+        except Exception:
+            self.project_id = None
+            self.client_id = None
+            self.redirect_url = None
+            self.rules = None
 
     def confirm_email(self):
         self.email_verified = True
@@ -1056,6 +1092,26 @@ class CaptchaRule(AbstractValidationRule):
     )
 
 
+class ValidationRule:
+    """Wrapper for validation rule with unified verify() interface."""
+    
+    def __init__(self, rule_dict, verifier_class):
+        self.rule_dict = rule_dict
+        self.kind = rule_dict.get("kind") if isinstance(rule_dict, dict) else getattr(rule_dict, "kind", None)
+        config = rule_dict if isinstance(rule_dict, dict) else rule_dict.__dict__
+        self.verifier = verifier_class(config=config or {})
+    
+    def verify(self, request):
+        """Verifies the rule, raises exception on failure or does nothing on success."""
+        if not self.verifier.can_handle(request):
+            return
+        ok, error_msg = self.verifier.verify(request)
+        if not ok:
+            raise iam_exceptions.CanNotCreateUser(
+                message=error_msg or f"{self.kind} validation failed"
+            )
+
+
 class IamClient(
     models.ModelWithUUID,
     models.ModelWithRequiredNameDesc,
@@ -1085,6 +1141,37 @@ class IamClient(
         default=None,
         required=False,
     )
+
+    def get_validation_rules(self):
+        """Returns normalized validation rule objects."""
+        if not self.rules:
+            return []
+        
+        rules = []
+        for rule_dict in self.rules:
+            rule_kind = rule_dict.get("kind") if isinstance(rule_dict, dict) else getattr(rule_dict, "kind", None)
+            if not rule_kind:
+                continue
+            
+            try:
+                verifier_cls = u.load_from_entry_point(ENTRY_POINT_GROUP, rule_kind)
+                rules.append(ValidationRule(rule_dict, verifier_cls))
+            except Exception as e:
+                log.warning("Failed to load verifier '%s': %s", rule_kind, e)
+                continue
+        
+        return rules
+
+    def create_user(self, app_endpoint, **kwargs):
+        """Creates a user with proper field setup."""
+        User.normalize_create_kwargs(kwargs)
+        kwargs.pop("email_verified", None)
+        user = User(**kwargs)
+        user.insert()
+        user.resend_confirmation_event(app_endpoint=app_endpoint)
+        user._setup_target_resource_fields()
+        
+        return user
 
     def validate_client_creds(self, client_id, client_secret):
         if not (
