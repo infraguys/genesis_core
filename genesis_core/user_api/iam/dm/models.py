@@ -1095,10 +1095,10 @@ class CaptchaRule(AbstractValidationRule):
 class ValidationRule:
     """Wrapper for validation rule with unified verify() interface."""
     
-    def __init__(self, rule_dict, verifier_class):
-        self.rule_dict = rule_dict
-        self.kind = rule_dict.get("kind") if isinstance(rule_dict, dict) else getattr(rule_dict, "kind", None)
-        config = rule_dict if isinstance(rule_dict, dict) else rule_dict.__dict__
+    def __init__(self, rule_model, verifier_class):
+        self.rule_model = rule_model
+        self.kind = rule_model.kind
+        config = rule_model.dump_to_simple_view()
         self.verifier = verifier_class(config=config or {})
     
     def verify(self, request):
@@ -1149,15 +1149,13 @@ class IamClient(
         
         rules = []
         for rule_dict in self.rules:
-            rule_kind = rule_dict.get("kind") if isinstance(rule_dict, dict) else getattr(rule_dict, "kind", None)
-            if not rule_kind:
-                continue
-            
             try:
-                verifier_cls = u.load_from_entry_point(ENTRY_POINT_GROUP, rule_kind)
-                rules.append(ValidationRule(rule_dict, verifier_cls))
+                rule_model = AbstractValidationRule.restore_from_simple_view(**rule_dict)
+                verifier_cls = u.load_from_entry_point(ENTRY_POINT_GROUP, rule_model.kind)
+                rules.append(ValidationRule(rule_model, verifier_cls))
             except Exception as e:
-                log.warning("Failed to load verifier '%s': %s", rule_kind, e)
+                rule_kind = rule_dict.get("kind", "unknown")
+                log.warning("Failed to load rule '%s': %s", rule_kind, e)
                 continue
         
         return rules
