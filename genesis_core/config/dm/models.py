@@ -121,8 +121,8 @@ class Config(
         default=OnChangeNoAction,
     )
     mode = properties.property(
-        types.Enum([m.value for m in cc.FileMode]),
-        default=cc.FileMode.o644.value,
+        cc.FileModeType(),
+        default="0644",
     )
     owner = properties.property(
         types.String(max_length=128),
@@ -194,7 +194,10 @@ class Render(
         types.String(min_length=1, max_length=512),
         required=True,
     )
-    mode = properties.property(types.String(max_length=4), default="0644")
+    mode = properties.property(
+        cc.FileModeType(),
+        default="0644",
+    )
     owner = properties.property(
         types.String(max_length=128),
         default="root",
