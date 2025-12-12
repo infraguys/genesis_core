@@ -24,7 +24,7 @@ class AbstractVerifier(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def verify(self, request) -> tuple[bool, str | None]:
-        """Perform validation. Called only if can_handle() returned True."""
+    def verify(self, request) -> None:
+        """Perform validation. Raises exception on failure, returns None on success. Called only if can_handle() returned True."""
         pass
 

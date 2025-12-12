@@ -1127,11 +1127,7 @@ class ValidationRule:
         """Verifies the rule, raises exception on failure or does nothing on success."""
         if not self.verifier.can_handle(request):
             return
-        ok, error_msg = self.verifier.verify(request)
-        if not ok:
-            raise iam_exceptions.CanNotCreateUser(
-                message=error_msg or f"{self.kind} validation failed"
-            )
+        self.verifier.verify(request)
 
 
 class IamClient(

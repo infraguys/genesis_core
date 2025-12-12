@@ -30,6 +30,7 @@ except ImportError:
     firebase_exceptions = None
 
 from genesis_core.security.interfaces import AbstractVerifier
+from genesis_core.user_api.iam import exceptions as iam_exceptions
 
 
 log = logging.getLogger(__name__)
@@ -92,11 +93,11 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
                 return token
         return None
 
-    def verify(self, request) -> tuple[bool, str | None]:
+    def verify(self, request) -> None:
         self._initialize_firebase()
         token = self._get_token_from_request(request)
         if not token:
-            return False, "Firebase App Check token not found"
+            raise iam_exceptions.CanNotCreateUser(message="Firebase App Check token not found")
 
         try:
             app_check_token = app_check.verify_token(token, app=self._app)
@@ -104,12 +105,13 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
             if allowed_app_ids:
                 app_id = app_check_token.get("app_id")
                 if app_id not in allowed_app_ids:
-                    return False, f"App ID {app_id} is not allowed"
-            return True, None
+                    raise iam_exceptions.CanNotCreateUser(message=f"App ID {app_id} is not allowed")
+        except iam_exceptions.CanNotCreateUser:
+            raise
         except firebase_exceptions.InvalidArgumentError as e:
-            return False, f"Invalid Firebase App Check token: {str(e)}"
+            raise iam_exceptions.CanNotCreateUser(message=f"Invalid Firebase App Check token: {str(e)}")
         except firebase_exceptions.PermissionDeniedError as e:
-            return False, f"Firebase App Check permission denied: {str(e)}"
+            raise iam_exceptions.CanNotCreateUser(message=f"Firebase App Check permission denied: {str(e)}")
         except Exception as e:
-            return False, f"Firebase App Check verification failed: {str(e)}"
+            raise iam_exceptions.CanNotCreateUser(message=f"Firebase App Check verification failed: {str(e)}")
 

@@ -22,6 +22,7 @@ from restalchemy.dm import filters as ra_filters
 
 from genesis_core.user_api.iam import constants as iam_c
 from genesis_core.user_api.iam.dm import models
+from genesis_core.user_api.iam import exceptions as iam_exceptions
 from gcl_iam import tokens
 from genesis_core.security.interfaces import AbstractVerifier
 
@@ -42,17 +43,17 @@ class AdminBypassVerifier(AbstractVerifier):
     def can_handle(self, request) -> bool:
         return request.headers.get("Authorization", "").startswith("Bearer ")
 
-    def verify(self, request) -> tuple[bool, str | None]:
+    def verify(self, request) -> None:
         ctx = contexts.get_context()
         token_algorithm = ctx.context_storage.get(
             iam_c.STORAGE_KEY_IAM_TOKEN_ENCRYPTION_ALGORITHM
         )
         if not token_algorithm:
-            return False, "Token algorithm is not configured"
+            raise iam_exceptions.CanNotCreateUser(message="Token algorithm is not configured")
 
         auth_header = request.headers.get("Authorization", "")
         if not auth_header.startswith("Bearer "):
-            return False, "Authorization header is not a Bearer token"
+            raise iam_exceptions.CanNotCreateUser(message="Authorization header is not a Bearer token")
 
         try:
             auth_token = tokens.AuthToken(
@@ -67,16 +68,18 @@ class AdminBypassVerifier(AbstractVerifier):
             user = token.user
 
             if any(role.name.lower() == "admin" for role in user.get_my_roles()._roles):
-                return True, None
+                return
 
             bypass_users = self.config.get("bypass_users", []) or []
             bypass_list = {str(u).lower() for u in bypass_users}
             if (user.email and user.email.lower() in bypass_list) or str(user.uuid).lower() in bypass_list:
-                return True, None
+                return
 
-            return False, "User is not allowed to bypass validation"
+            raise iam_exceptions.CanNotCreateUser(message="User is not allowed to bypass validation")
+        except iam_exceptions.CanNotCreateUser:
+            raise
         except Exception as e:
             log.debug("Admin bypass verification failed: %s", e)
-            return False, "Admin bypass verification failed"
+            raise iam_exceptions.CanNotCreateUser(message="Admin bypass verification failed")
 
 

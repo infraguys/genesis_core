@@ -21,6 +21,7 @@ from typing import Any
 import altcha
 
 from genesis_core.security.interfaces import AbstractVerifier
+from genesis_core.user_api.iam import exceptions as iam_exceptions
 
 
 log = logging.getLogger(__name__)
@@ -54,14 +55,14 @@ class CaptchaVerifier(AbstractVerifier):
             log.debug("Failed to parse CAPTCHA payload: %s", e)
             return None
 
-    def verify(self, request) -> tuple[bool, str | None]:
+    def verify(self, request) -> None:
         payload = self._get_payload_from_request(request)
         if not payload:
-            return False, "Invalid CAPTCHA payload"
+            raise iam_exceptions.CanNotCreateUser(message="Invalid CAPTCHA payload")
 
         hmac_key = self.config.get("hmac_key")
         if not hmac_key:
-            return False, "CAPTCHA hmac_key not configured in rule"
+            raise iam_exceptions.CanNotCreateUser(message="CAPTCHA hmac_key not configured in rule")
 
         try:
             verified, error = altcha.verify_solution(
@@ -70,9 +71,10 @@ class CaptchaVerifier(AbstractVerifier):
                 check_expires=True,
             )
             if not verified:
-                return False, error or "CAPTCHA verification failed"
-            return True, None
+                raise iam_exceptions.CanNotCreateUser(message=error or "CAPTCHA verification failed")
+        except iam_exceptions.CanNotCreateUser:
+            raise
         except Exception as e:
             log.debug("CAPTCHA verification failed: %s", e)
-            return False, f"CAPTCHA verification failed: {str(e)}"
+            raise iam_exceptions.CanNotCreateUser(message=f"CAPTCHA verification failed: {str(e)}")
 
