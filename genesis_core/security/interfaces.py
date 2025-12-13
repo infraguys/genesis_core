@@ -16,8 +16,16 @@
 
 import abc
 
+from restalchemy.dm import types as ra_types
+
 
 class AbstractVerifier(abc.ABC):
+    @classmethod
+    @abc.abstractmethod
+    def get_rule_scheme(cls) -> dict[str, ra_types.BaseType]:
+        """Returns scheme dict for validation rule structure."""
+        pass
+
     @abc.abstractmethod
     def can_handle(self, request) -> bool:
         """Check if this verifier can handle the request."""

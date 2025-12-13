@@ -19,6 +19,7 @@ from typing import Any
 
 from restalchemy.common import contexts
 from restalchemy.dm import filters as ra_filters
+from restalchemy.dm import types as ra_types
 
 from genesis_core.user_api.iam import constants as iam_c
 from genesis_core.user_api.iam.dm import models
@@ -39,6 +40,13 @@ class AdminBypassVerifier(AbstractVerifier):
 
     def __init__(self, config: dict[str, Any] = None):
         self.config = config or {}
+
+    @classmethod
+    def get_rule_scheme(cls) -> dict[str, Any]:
+        return {
+            "kind": ra_types.String(max_length=64),
+            "bypass_users": ra_types.List(),
+        }
 
     def can_handle(self, request) -> bool:
         return request.headers.get("Authorization", "").startswith("Bearer ")

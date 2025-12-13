@@ -1155,7 +1155,7 @@ class IamClient(
         required=True,
     )
     rules = properties.property(
-        ra_types.List(),
+        ra_types.TypedList(AbstractValidationRule.get_rule_selector()),
         default=list,
         required=False,
     )
@@ -1165,19 +1165,11 @@ class IamClient(
         if not self.rules:
             return []
         
-        rule_selector = AbstractValidationRule.get_rule_selector()
-        
         rules = []
-        for rule_dict in self.rules:
-            kind = rule_dict.get("kind")
-            try:
-                kind_type = rule_selector._kind_type_map.get(kind)
-                rule_model = kind_type.from_simple_type(rule_dict)
-                verifier_cls = u.load_from_entry_point(ENTRY_POINT_GROUP, kind)
-                rules.append(ValidationRule(rule_model, verifier_cls))
-            except Exception as e:
-                log.warning("Failed to load rule '%s': %s", kind, e)
-                continue
+        for rule_model in self.rules:
+            kind = rule_model.kind
+            verifier_cls = u.load_from_entry_point(ENTRY_POINT_GROUP, kind)
+            rules.append(ValidationRule(rule_model, verifier_cls))
         
         return rules
 

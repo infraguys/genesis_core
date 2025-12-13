@@ -29,6 +29,8 @@ except ImportError:
     credentials = None
     firebase_exceptions = None
 
+from restalchemy.dm import types as ra_types
+
 from genesis_core.security.interfaces import AbstractVerifier
 from genesis_core.user_api.iam import exceptions as iam_exceptions
 
@@ -57,6 +59,15 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
         self.config = config or {}
         self._app = None
         self._initialized = False
+
+    @classmethod
+    def get_rule_scheme(cls) -> dict[str, Any]:
+        return {
+            "kind": ra_types.String(max_length=64),
+            "credentials_path": ra_types.String(),
+            "allowed_app_ids": ra_types.List(),
+            "mode": ra_types.Enum(["enforce", "report-only"]),
+        }
 
     def _initialize_firebase(self):
         if self._initialized:
