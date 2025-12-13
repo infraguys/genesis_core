@@ -117,8 +117,6 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
                 app_id = app_check_token.get("app_id")
                 if app_id not in allowed_app_ids:
                     raise iam_exceptions.CanNotCreateUser(message=f"App ID {app_id} is not allowed")
-        except iam_exceptions.CanNotCreateUser:
-            raise
         except firebase_exceptions.InvalidArgumentError as e:
             raise iam_exceptions.CanNotCreateUser(message=f"Invalid Firebase App Check token: {str(e)}")
         except firebase_exceptions.PermissionDeniedError as e:

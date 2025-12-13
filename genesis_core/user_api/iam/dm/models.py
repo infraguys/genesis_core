@@ -158,6 +158,10 @@ class RolesInfo:
         super().__init__()
         self._roles = roles
 
+    def get_roles(self):
+        """Returns the list of Role objects."""
+        return self._roles
+
     def get_response_body(self):
         return [role.get_storable_snapshot() for role in self._roles]
 
@@ -353,7 +357,7 @@ class User(
         self.save()
         self.send_registration_event(app_endpoint=app_endpoint)
 
-    def _setup_target_resource_fields(self):
+    def setup_target_resource_fields(self):
         """Sets up fields required for TargetResourceMixin serialization."""
         try:
             ctx = contexts.get_context()
@@ -1180,7 +1184,7 @@ class IamClient(
         user = User(**kwargs)
         user.insert()
         user.resend_confirmation_event(app_endpoint=app_endpoint)
-        user._setup_target_resource_fields()
+        user.setup_target_resource_fields()
         
         return user
 
