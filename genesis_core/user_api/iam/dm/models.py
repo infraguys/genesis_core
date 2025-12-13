@@ -371,7 +371,8 @@ class User(
                 self.client_id = None
                 self.redirect_url = None
             self.rules = None
-        except Exception:
+        except Exception as e:
+            log.warning("Failed to set up target resource fields from context: %s", e)
             self.project_id = None
             self.client_id = None
             self.redirect_url = None
