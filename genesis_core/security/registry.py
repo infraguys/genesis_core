@@ -41,17 +41,24 @@ class VerifierRegistry:
     def _load_verifiers(self):
         try:
             entry_points = utils.load_group_from_entry_point(ENTRY_POINT_GROUP)
-            for ep in entry_points:
-                try:
-                    verifier_class = ep.load()
-                    verifier_config = self.config.get(f"{VERIFIER_CONFIG_PREFIX}{ep.name}", {})
-
-                    self._verifiers[ep.name] = verifier_class(config=verifier_config)
-                    log.info("Loaded verifier %s from %s", ep.name, ep.value)
-                except Exception:
-                    log.exception("Failed to load verifier %s", ep.name)
-        except Exception:
-            log.exception("Failed to load verifiers from entry points")
+        except (ImportError, ModuleNotFoundError) as e:
+            log.error("Failed to load entry point group '%s': %s", ENTRY_POINT_GROUP, e)
+            return
+        except Exception as e:
+            log.exception("Unexpected error loading entry point group '%s': %s", ENTRY_POINT_GROUP, e)
+            return
+        
+        for ep in entry_points:
+            try:
+                verifier_class = ep.load()
+                verifier_config = self.config.get(f"{VERIFIER_CONFIG_PREFIX}{ep.name}", {})
+                
+                self._verifiers[ep.name] = verifier_class(config=verifier_config)
+                log.info("Loaded verifier %s from %s", ep.name, ep.value)
+            except (ImportError, ModuleNotFoundError, AttributeError) as e:
+                log.warning("Failed to load verifier '%s': %s", ep.name, e)
+            except Exception as e:
+                log.exception("Unexpected error loading verifier '%s': %s", ep.name, e)
 
     def _validate_verifiers(self) -> None:
         """Validate that all verifiers with mode=enforce are loaded."""
