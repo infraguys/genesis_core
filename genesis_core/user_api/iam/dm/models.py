@@ -1135,8 +1135,6 @@ class ValidationRule:
     
     def verify(self, request):
         """Verifies the rule, raises exception on failure or does nothing on success."""
-        if not self.verifier.can_handle(request):
-            return
         self.verifier.verify(request)
 
 
