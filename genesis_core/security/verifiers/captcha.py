@@ -79,9 +79,10 @@ class CaptchaVerifier(AbstractVerifier):
                 hmac_key=hmac_key,
                 check_expires=True,
             )
-            if not verified:
-                raise iam_exceptions.CanNotCreateUser(message=error or "CAPTCHA verification failed")
         except Exception as e:
-            log.debug("CAPTCHA verification failed: %s", e)
+            log.debug("CAPTCHA verification library raised an unexpected exception: %s", e)
             raise iam_exceptions.CanNotCreateUser(message=f"CAPTCHA verification failed: {str(e)}")
+        
+        if not verified:
+            raise iam_exceptions.CanNotCreateUser(message=error or "CAPTCHA verification failed")
 

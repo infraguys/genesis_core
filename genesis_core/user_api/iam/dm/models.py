@@ -1056,7 +1056,12 @@ class AbstractValidationRule(types_dynamic.AbstractKindModel, models.SimpleViewM
     
     @classmethod
     def get_rule_selector(cls):
-        """Returns KindModelSelectorType for all rule types."""
+        """Returns KindModelSelectorType for all rule types.
+        
+        Note: All AbstractValidationRule subclasses must be imported in this module
+        for __subclasses__() to discover them. If a new rule is defined elsewhere,
+        ensure it's imported here.
+        """
         if cls._rule_selector is None:
             def find_subclasses(base):
                 subclasses = []
