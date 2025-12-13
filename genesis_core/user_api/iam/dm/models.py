@@ -1148,6 +1148,8 @@ class IamClient(
 ):
     __tablename__ = "iam_clients"
     __jsonfields__ = ["rules"]
+    
+    _verifier_cache = {}
 
     project_id = properties.property(
         ra_types.AllowNone(ra_types.UUID()),
@@ -1176,7 +1178,9 @@ class IamClient(
         rules = []
         for rule_model in self.rules:
             kind = rule_model.kind
-            verifier_cls = u.load_from_entry_point(ENTRY_POINT_GROUP, kind)
+            if kind not in self._verifier_cache:
+                self._verifier_cache[kind] = u.load_from_entry_point(ENTRY_POINT_GROUP, kind)
+            verifier_cls = self._verifier_cache[kind]
             rules.append(ValidationRule(rule_model, verifier_cls))
         
         return rules
