@@ -33,11 +33,17 @@ class TestClients(base.BaseIamResourceTest):
         client = user_api_client(auth_user_admin)
         iam_client_name = "test_client[admin-user]"
 
+        signature_algorithm = {
+            "kind": "HS256",
+            "secret_uuid": "00000000-0000-0000-0000-000000000001",
+            "previous_secret_uuid": None,
+        }
+
         iam_client = client.create_iam_client(
             name=iam_client_name,
             client_id="client_id",
             secret="12345678",
-            redirect_url="http://127.0.0.1/",
+            signature_algorithm=signature_algorithm,
         )
 
         assert iam_client["name"] == iam_client_name
@@ -48,12 +54,18 @@ class TestClients(base.BaseIamResourceTest):
         client = user_api_client(auth_test1_user)
         iam_client_name = "test_client[admin-user]"
 
+        signature_algorithm = {
+            "kind": "HS256",
+            "secret_uuid": "00000000-0000-0000-0000-000000000001",
+            "previous_secret_uuid": None,
+        }
+
         with pytest.raises(bazooka_exc.ForbiddenError):
             client.create_iam_client(
                 name=iam_client_name,
                 client_id="client_id",
                 secret="12345678",
-                redirect_url="http://127.0.0.1/",
+                signature_algorithm=signature_algorithm,
             )
 
     def test_list_iam_clients_by_admin(self, user_api_client, auth_user_admin):
@@ -187,6 +199,32 @@ class TestClients(base.BaseIamResourceTest):
         ).json()
 
         assert token_info["refresh_expires_in"] == 1
+
+    def test_get_token_with_invalid_client_id_error(
+        self, user_api_noauth_client, auth_test1_user
+    ):
+        client = user_api_noauth_client()
+        token_params = auth_test1_user.get_password_auth_params()
+        token_params["client_id"] = "wrong-client-id"
+
+        with pytest.raises(bazooka_exc.UnauthorizedError):
+            client.post(
+                url=auth_test1_user.get_token_url(endpoint=client.endpoint),
+                data=token_params,
+            )
+
+    def test_get_token_with_invalid_client_secret_error(
+        self, user_api_noauth_client, auth_test1_user
+    ):
+        client = user_api_noauth_client()
+        token_params = auth_test1_user.get_password_auth_params()
+        token_params["client_secret"] = "wrong-client-secret"
+
+        with pytest.raises(bazooka_exc.UnauthorizedError):
+            client.post(
+                url=auth_test1_user.get_token_url(endpoint=client.endpoint),
+                data=token_params,
+            )
 
     @pytest.fixture(
         scope="function",

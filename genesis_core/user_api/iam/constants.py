@@ -27,6 +27,7 @@ GRANT_TYPE_PASSWORD_EMAIL = "email+password"
 GRANT_TYPE_PASSWORD_PHONE = "phone+password"
 GRANT_TYPE_PASSWORD_LOGIN = "login+password"
 GRANT_TYPE_REFRESH_TOKEN = "refresh_token"
+GRANT_TYPE_AUTHORIZATION_CODE = "authorization_code"
 
 
 # client parameters in request
@@ -44,10 +45,12 @@ PARAM_USERNAME = "username"
 PARAM_EMAIL = "email"
 PARAM_PHONE = "phone"
 PARAM_LOGIN = "login"
+PARAM_CODE = "code"
 PARAM_PASSWORD = "password"
 PARAM_SCOPE = "scope"
 PARAM_TTL = "ttl"
 PARAM_REFRESH_TTL = "refresh_ttl"
+PARAM_REDIRECT_URI = "redirect_uri"
 
 
 # User settings

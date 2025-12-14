@@ -59,6 +59,18 @@ tox -e py312
 tox -e py312-functional
 ```
 
+## Functional tests environment
+
+To run functional tests, export the following environment variables:
+
+```bash
+export DATABASE_URI="postgresql://genesis_core:genesis_core@127.0.0.1:5432/genesis_core"
+export ADMIN_PASSWORD="admin"
+export DEFAULT_CLIENT_SECRET="GenesisCoreSecret"
+export GLOBAL_SALT="FOy/2kwwdn0ig1QOq7cestqe"
+export HS256_KEY="secret"
+```
+
 # 🔗 Related projects
 
 - Genesis SDK is a set of tools for developing Genesis elements. You can find it [here](https://github.com/infraguys/gcl_sdk).
