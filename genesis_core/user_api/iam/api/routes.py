@@ -148,10 +148,22 @@ class LoginAction(routes.Action):
     __controller__ = controllers.IdpController
 
 
+class AuthorizeAction(routes.Action):
+    """Handler for /v1/iam/idp/<uuid>/actions/authorize/invoke endpoint"""
+
+    __controller__ = controllers.IdpController
+
+
 class CallbackAction(routes.Action):
     """Handler for /v1/iam/idp/<uuid>/actions/callback/invoke endpoint"""
 
     __controller__ = controllers.IdpController
+
+
+class WellKnownRoute(routes.Route):
+    """Handler for /v1/iam/idp/<uuid>/.well-known/openid-configuration endpoint"""
+
+    __controller__ = controllers.WellKnownController
 
 
 class IdpRoute(routes.Route):
@@ -160,7 +172,29 @@ class IdpRoute(routes.Route):
     __controller__ = controllers.IdpController
 
     login = routes.action(LoginAction, invoke=True)
+    authorize = routes.action(AuthorizeAction, invoke=True)
     callback = routes.action(CallbackAction, invoke=True)
+
+
+# add well-known route to IdpRoute
+setattr(
+    IdpRoute, ".well_known", routes.route(WellKnownRoute, resource_route=True)
+)
+
+
+class ConfirmAuthorizationRequestAction(routes.Action):
+    """Handler for .../<uuid>/actions/confirm/invoke endpoint"""
+
+    __controller__ = controllers.AuthorizationInfoController
+
+
+class AuthorizationRequestRoute(routes.Route):
+    """Handler for /v1/iam/authorization_requests/<uuid> endpoint"""
+
+    __controller__ = controllers.AuthorizationInfoController
+    __allow_methods__ = [routes.GET]
+
+    confirm = routes.action(ConfirmAuthorizationRequestAction, invoke=True)
 
 
 class AuthAction(routes.Action):
@@ -199,6 +233,18 @@ class ResetPasswordEventAction(routes.Action):
     __controller__ = controllers.ClientsController
 
 
+class JwksAction(routes.Action):
+    """Handler for .../<uuid>/actions/jwks endpoint"""
+
+    __controller__ = controllers.ClientsController
+
+
+class UserinfoAction(routes.Action):
+    """Handler for .../<uuid>/actions/userinfo endpoint"""
+
+    __controller__ = controllers.ClientsController
+
+
 class IamClientsRoute(routes.Route):
     """Handler for /v1/iam/clients/ endpoint"""
 
@@ -209,7 +255,9 @@ class IamClientsRoute(routes.Route):
     get_token = routes.action(GetTokenAction, invoke=True)
     introspect = routes.action(IntrospectAction)
     me = routes.action(MeAction)
+    userinfo = routes.action(UserinfoAction)
     reset_password = routes.action(ResetPasswordEventAction, invoke=True)
+    jwks = routes.action(JwksAction)
 
 
 class IamWebRoute(WebRoute):
@@ -235,5 +283,6 @@ class IamRoute(routes.Route):
 
     # oauth2, oidc, sso, etc
     idp = routes.route(IdpRoute)
+    authorization_requests = routes.route(AuthorizationRequestRoute)
     clients = routes.route(IamClientsRoute)
     web = routes.route(IamWebRoute)

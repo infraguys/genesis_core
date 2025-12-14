@@ -16,30 +16,45 @@
 
 import base64
 import datetime
+import enum
 import hashlib
+import os
 import secrets
+import urllib.parse
 import uuid as sys_uuid
 
+from gcl_iam import algorithms
 from gcl_iam import exceptions as iam_e
 from gcl_iam import tokens
 from gcl_sdk.agents.universal.dm import models as ua_models
 import jinja2
+import pyotp
+from restalchemy.common import contexts
+from restalchemy.dm import filters as ra_filters
 from restalchemy.dm import models
 from restalchemy.dm import properties
 from restalchemy.dm import relationships
 from restalchemy.dm import types as ra_types
-from restalchemy.common import contexts
-from restalchemy.dm import filters as ra_filters
+from restalchemy.dm import types_dynamic as ra_types_dynamic
+from restalchemy.storage import exceptions as ra_storage_exceptions
 from restalchemy.storage.sql import orm
-import pyotp
-
 
 from genesis_core.common import constants as c
 from genesis_core.common import utils as u
 from genesis_core.events import payloads as event_payloads
+from genesis_core.secret import constants as secret_c
+from genesis_core.secret.dm import models as secret_models
 from genesis_core.user_api.iam import constants as iam_c
-from genesis_core.user_api.iam.dm import types
 from genesis_core.user_api.iam import exceptions as iam_exceptions
+from genesis_core.user_api.iam.dm import types
+
+
+class KindModelSelectorType(ra_types_dynamic.KindModelSelectorType):
+    def get_kind_types(self):
+        return [
+            self._kind_type_map[k]
+            for k in sorted(self._kind_type_map)
+        ]
 
 
 class ModelWithSecret(models.Model, models.CustomPropertiesMixin):
@@ -152,6 +167,14 @@ class RolesInfo:
 
     def get_response_body(self):
         return [role.get_storable_snapshot() for role in self._roles]
+
+
+class IdpResponseType(str, enum.Enum):
+    CODE = "code"
+
+    @classmethod
+    def list_response_types(cls):
+        return [cls.CODE.value]
 
 
 class User(
@@ -652,48 +675,6 @@ class RoleBinding(
     )
 
 
-class Idp(
-    models.ModelWithUUID,
-    models.ModelWithRequiredNameDesc,
-    models.ModelWithTimestamp,
-    ModelWithSecret,
-    ModelWithAlwaysActiveStatus,
-    orm.SQLStorableMixin,
-):
-    __tablename__ = "iam_idp"
-
-    project_id = properties.property(
-        ra_types.AllowNone(ra_types.UUID()),
-        default=None,
-        read_only=True,
-    )
-    client_id = properties.property(
-        ra_types.String(max_length=64),
-        required=True,
-    )
-    scope = properties.property(
-        ra_types.String(max_length=64),
-        default="openid",
-    )
-    well_known_endpoint = properties.property(
-        ra_types.String(max_length=256),
-        required=True,
-    )
-
-    redirect_uri_template = properties.property(
-        ra_types.String(max_length=256),
-        default=(
-            "{{ host_url }}/v1/iam/idp/"
-            "{{ idp_uuid }}/actions/callback/invoke"
-        ),
-    )
-
-    def get_redirect_uri(self, request_params):
-        return jinja2.Template(self.redirect_uri_template).render(
-            **request_params
-        )
-
-
 class Introspection(
     models.ModelWithUUID,
     models.ModelWithTimestamp,
@@ -725,249 +706,6 @@ class Introspection(
                 permission.name for permission in self.permissions
             ],
         }
-
-
-class Token(
-    models.ModelWithUUID,
-    models.ModelWithTimestamp,
-    orm.SQLStorableMixin,
-):
-    __tablename__ = "iam_tokens"
-
-    @staticmethod
-    def get_default_expiration_delta():
-        return datetime.timedelta(minutes=60)
-
-    @staticmethod
-    def get_default_refresh_expiration_delta():
-        return datetime.timedelta(days=1)
-
-    expiration_delta = properties.property(
-        ra_types.TimeDelta(),
-        default=get_default_expiration_delta,
-    )
-    refresh_expiration_delta = properties.property(
-        ra_types.TimeDelta(),
-        default=get_default_refresh_expiration_delta,
-    )
-
-    user = relationships.relationship(
-        User,
-        prefetch=True,
-        required=True,
-    )
-    project = relationships.relationship(
-        Project,
-        prefetch=True,
-        required=False,
-    )
-    expiration_at = properties.property(
-        ra_types.UTCDateTimeZ(),
-        required=True,
-    )
-    refresh_expiration_at = properties.property(
-        ra_types.UTCDateTimeZ(),
-        required=True,
-    )
-    refresh_token_uuid = properties.property(
-        ra_types.UUID(),
-        default=sys_uuid.uuid4,
-    )
-    issuer = properties.property(
-        ra_types.String(max_length=256),
-        required=False,
-    )
-    audience = properties.property(
-        ra_types.String(max_length=64),
-        default="account",
-    )
-    typ = properties.property(
-        ra_types.String(max_length=64),
-        default="Bearer",
-    )
-    scope = properties.property(
-        ra_types.String(max_length=128),
-        default=iam_c.PARAM_SCOPE_DEFAULT,
-    )
-
-    def __init__(self, user=None, scope="", project=None, **kwargs):
-        user = user or User.me()
-        now = datetime.datetime.now(datetime.timezone.utc)
-
-        if "expiration_at" not in kwargs:
-            expiration_delta = kwargs.get(
-                "expiration_delta",
-                self.get_default_expiration_delta(),
-            )
-
-            kwargs["expiration_at"] = now + expiration_delta
-
-        if "refresh_expiration_at" not in kwargs:
-            expiration_delta = kwargs.get(
-                "refresh_expiration_delta",
-                self.get_default_refresh_expiration_delta(),
-            )
-
-            kwargs["refresh_expiration_at"] = now + expiration_delta
-
-        if project is None and scope:
-            project = self._get_project_by_scope(user, scope)
-        super().__init__(user=user, project=project, scope=scope, **kwargs)
-
-    def _get_key_by_encryption_algorithm(self, algorithm):
-        ctx = contexts.get_context()
-        storage = ctx.context_storage
-        if algorithm == iam_c.ALGORITHM_HS256:
-            return {
-                "key": storage.get(
-                    iam_c.STORAGE_KEY_IAM_TOKEN_HS256_ENCRYPTION_KEY
-                )
-            }
-        raise iam_e.IncorrectEncriptionAlgorithmError(algorithm=algorithm)
-
-    def check_refresh_expiration(self):
-        now = datetime.datetime.now(datetime.timezone.utc)
-        return now < self.refresh_expiration_at
-
-    def validate_refresh_expiration(self):
-        if not self.check_refresh_expiration():
-            raise iam_e.InvalidRefreshTokenError()
-
-    def check_expiration(self):
-        now = datetime.datetime.now(datetime.timezone.utc)
-        return now < self.expiration_at
-
-    def validate_expiration(self):
-        if not self.check_expiration():
-            raise iam_e.InvalidAuthTokenError()
-
-    def _get_default_project(self, user):
-        return Project.get_default(user=user)
-
-    def _get_project_by_uuid(self, user, str_uuid):
-        for project in Project.objects.get_all(
-            filters={"uuid": ra_filters.EQ(str_uuid)},
-            limit=1,
-        ):
-            return project
-
-    def _get_project_by_scope(self, user, scope):
-        scope = scope.lower()
-        project = None
-        for piece in scope.split(" "):
-            if piece.startswith("project"):
-                project_info = piece.split(":", 1)
-                project = (
-                    self._get_project_by_uuid(user, project_info[1])
-                    if len(project_info) > 1 and project_info[1] != "default"
-                    else self._get_default_project(user)
-                )
-                break
-
-        return project
-
-    def refresh(self, scope=None):
-        scope = scope or self.scope
-        now = datetime.datetime.now(datetime.timezone.utc)
-        new_expiration_at = now + self.expiration_delta
-        self.expiration_at = new_expiration_at
-        self.project = self._get_project_by_scope(self.user, scope)
-        self.scope = scope
-        self.update()
-
-    def get_response_body(self):
-        ctx = contexts.get_context()
-        storage = ctx.context_storage
-
-        now = datetime.datetime.now(datetime.timezone.utc)
-        algorithm = storage.get(
-            iam_c.STORAGE_KEY_IAM_TOKEN_ENCRYPTION_ALGORITHM
-        )
-
-        access_token_info = {
-            "exp": int(self.expiration_at.timestamp()),
-            "iat": int(self.created_at.timestamp()),
-            "auth_time": int(self.created_at.timestamp()),
-            "jti": str(self.uuid),
-            "iss": self.issuer,
-            "aud": self.audience,
-            "sub": str(self.user.uuid),
-            "typ": self.typ,
-            "otp": self.user.otp_enabled,
-        }
-        access_token = algorithm.encode(access_token_info)
-
-        id_token_info = {
-            "exp": int(self.expiration_at.timestamp()),
-            "iat": int(self.created_at.timestamp()),
-            "auth_time": int(self.created_at.timestamp()),
-            "jti": str(self.uuid),
-            "iss": self.issuer,
-            "aud": self.audience,
-            "sub": str(self.user.uuid),
-            "email": self.user.email,
-            "name": f" {self.user.first_name} {self.user.last_name}",
-            "project_id": str(self.project.uuid) if self.project else None,
-        }
-
-        id_token = algorithm.encode(id_token_info)
-
-        refresh_token_info = {
-            "exp": int(self.refresh_expiration_at.timestamp()),
-            "iat": int(self.created_at.timestamp()),
-            "jti": str(self.refresh_token_uuid),
-            "iss": self.issuer,
-            "aud": self.audience,
-            "sub": str(self.user.uuid),
-        }
-
-        refresh_token = algorithm.encode(refresh_token_info)
-
-        return {
-            "access_token": access_token,
-            "token_type": self.typ,
-            "expires_at": int(self.expiration_at.timestamp()),
-            "expires_in": (self.expiration_at - now).seconds,
-            "id_token": id_token,
-            "refresh_token": refresh_token,
-            "refresh_expires_in": (self.refresh_expiration_at - now).seconds,
-            "scope": self.scope,
-        }
-
-    @classmethod
-    def my(cls, token_info=None):
-        token_info = (
-            token_info or contexts.get_context().iam_context.token_info
-        )
-        for token in Token.objects.get_all(
-            filters={"uuid": ra_filters.EQ(token_info.uuid)},
-            limit=1,
-        ):
-            return token
-        raise iam_e.InvalidAuthTokenError()
-
-    def introspect(self, token_info=None, otp_code=None):
-        user = User.me(token_info=token_info)
-
-        values = PermissionFastView.objects.get_all(
-            filters={
-                "user": ra_filters.EQ(user),
-                "project": ra_filters.Is(self.project),
-            }
-        )
-
-        otp_verified = False
-        if otp_code is not None:
-            if not user.validate_otp(otp_code):
-                raise iam_e.OTPInvalidCodeError()
-            otp_verified = True
-
-        return Introspection(
-            user=self.user,
-            project=self.project,
-            permissions=[v.permission for v in values],
-            otp_verified=otp_verified,
-        )
 
 
 class MeInfo:
@@ -1009,6 +747,56 @@ class MeInfo:
         }
 
 
+class Userinfo:
+
+    def __init__(self):
+        super().__init__()
+        self._token = Token.my()
+
+    def get_user(self):
+        return User.me()
+
+    def get_response_body(self):
+        return self._token.extend_structure_by_scope({})
+
+
+class HS256SignatureAlgorithm(ra_types_dynamic.AbstractKindModel):
+    KIND = "HS256"
+
+    secret_uuid = properties.property(
+        ra_types.UUID(),
+        required=True,
+        default=sys_uuid.UUID("00000000-0000-0000-0000-000000000001"),
+    )
+
+    previous_secret_uuid = properties.property(
+        ra_types.AllowNone(ra_types.UUID()),
+        default=None,
+    )
+
+    @property
+    def secret(self):
+        return secret_models.Password.objects.get_one(
+            filters={"uuid": str(self.secret_uuid)}
+        )
+
+    @property
+    def previous_secret(self):
+        if self.previous_secret_uuid is None:
+            return None
+
+        return secret_models.Password.objects.get_one(
+            filters={"uuid": str(self.previous_secret_uuid)}
+        )
+
+    def update_secret_uuid(self, new_secret_uuid):
+        self.previous_secret_uuid = self.secret_uuid
+        self.secret_uuid = new_secret_uuid
+
+    def update_secret(self, new_secret):
+        self.update_secret_uuid(new_secret.uuid)
+
+
 class IamClient(
     models.ModelWithUUID,
     models.ModelWithRequiredNameDesc,
@@ -1028,16 +816,26 @@ class IamClient(
         ra_types.String(max_length=64),
         required=True,
     )
-    redirect_url = properties.property(
-        ra_types.Url(),
-        required=True,
+    signature_algorithm = properties.property(
+        KindModelSelectorType(
+            ra_types_dynamic.KindModelType(HS256SignatureAlgorithm),
+        ),
+        default=HS256SignatureAlgorithm,
     )
 
+    @classmethod
+    def get_id_token_signing_alg_values_supported(cls) -> list[str]:
+        selector_type = cls.properties.properties[
+            "signature_algorithm"
+        ].get_property_type()
+        return [t.kind for t in selector_type.get_kind_types()]
+
     def validate_client_creds(self, client_id, client_secret):
-        if not (
-            self.client_id == client_id or self.check_secret(client_secret)
-        ):
-            raise iam_e.CredentialsAreInvalidError()
+        if not client_id or not client_secret:
+            raise iam_e.ClientAuthenticationError()
+
+        if self.client_id != client_id or not self.check_secret(client_secret):
+            raise iam_e.ClientAuthenticationError()
 
     def _get_token_by_password_and_smth(
         self,
@@ -1067,6 +865,7 @@ class IamClient(
             )
             token = Token(
                 user=user,
+                iam_client=self,
                 scope=scope,
                 issuer=f"{root_endpoint}iam/clients/{self.uuid}",
                 audience=self.client_id,
@@ -1132,11 +931,7 @@ class IamClient(
             return self.get_token_by_password_username(login, **kwargs)
 
     def get_token_by_refresh_token(self, refresh_token, scope=None):
-        context = contexts.get_context()
-        storage = context.context_storage
-        algorithm = storage.get(
-            iam_c.STORAGE_KEY_IAM_TOKEN_ENCRYPTION_ALGORITHM
-        )
+        algorithm = self.get_token_algorithm()
         refresh_token_info = tokens.RefreshToken(
             token=refresh_token,
             algorithm=algorithm,
@@ -1154,11 +949,24 @@ class IamClient(
         else:
             raise iam_e.InvalidRefreshTokenError()
 
+    def get_token_by_authorization_code(self, code, redirect_uri):
+        for auth_info in IdpAuthorizationInfo.objects.get_all(
+            filters={"code": ra_filters.EQ(code)}
+        ):
+            if auth_info.idp.callback_uri == redirect_uri:
+                auth_info.delete()
+                return auth_info.token
+
+        raise iam_e.CredentialsAreInvalidError()
+
     def introspect(self):
         return Token.my().introspect()
 
     def me(self):
         return MeInfo()
+
+    def userinfo(self):
+        return Userinfo()
 
     def send_reset_password_event(
         self, email, app_endpoint="http://localhost/"
@@ -1166,3 +974,468 @@ class IamClient(
         email = email.lower()
         user = User.objects.get_one(filters={"email": ra_filters.EQ(email)})
         user.send_reset_password_event(app_endpoint=app_endpoint)
+
+    def get_token_algorithm(self):
+        secret = self.signature_algorithm.secret
+        previous_secret = self.signature_algorithm.previous_secret
+
+        return algorithms.HS256(
+            key=secret.value,
+            previous_key=(
+                None if previous_secret is None else previous_secret.value
+            ),
+        )
+
+    def get_jwks(self):
+        return {"keys": []}
+
+
+class Token(
+    models.ModelWithUUID,
+    models.ModelWithTimestamp,
+    orm.SQLStorableMixin,
+):
+    __tablename__ = "iam_tokens"
+
+    @staticmethod
+    def get_default_expiration_delta():
+        return datetime.timedelta(minutes=60)
+
+    @staticmethod
+    def get_default_refresh_expiration_delta():
+        return datetime.timedelta(days=1)
+
+    expiration_delta = properties.property(
+        ra_types.TimeDelta(),
+        default=get_default_expiration_delta,
+    )
+    refresh_expiration_delta = properties.property(
+        ra_types.TimeDelta(),
+        default=get_default_refresh_expiration_delta,
+    )
+
+    user = relationships.relationship(
+        User,
+        prefetch=True,
+        required=True,
+    )
+    iam_client = relationships.relationship(
+        IamClient,
+        prefetch=True,
+        required=True,
+    )
+    project = relationships.relationship(
+        Project,
+        prefetch=True,
+        required=False,
+    )
+    expiration_at = properties.property(
+        ra_types.UTCDateTimeZ(),
+        required=True,
+    )
+    refresh_expiration_at = properties.property(
+        ra_types.UTCDateTimeZ(),
+        required=True,
+    )
+    refresh_token_uuid = properties.property(
+        ra_types.UUID(),
+        default=sys_uuid.uuid4,
+    )
+    issuer = properties.property(
+        ra_types.String(max_length=256),
+        required=False,
+    )
+    audience = properties.property(
+        ra_types.String(max_length=64),
+        default="account",
+    )
+    typ = properties.property(
+        ra_types.String(max_length=64),
+        default="Bearer",
+    )
+    scope = properties.property(
+        ra_types.String(max_length=128),
+        default=iam_c.PARAM_SCOPE_DEFAULT,
+    )
+    nonce = properties.property(
+        ra_types.String(max_length=256),
+        default=None,
+    )
+
+    def __init__(self, user=None, scope="", project=None, **kwargs):
+        user = user or User.me()
+        now = datetime.datetime.now(datetime.timezone.utc)
+
+        if "expiration_at" not in kwargs:
+            expiration_delta = kwargs.get(
+                "expiration_delta",
+                self.get_default_expiration_delta(),
+            )
+
+            kwargs["expiration_at"] = now + expiration_delta
+
+        if "refresh_expiration_at" not in kwargs:
+            expiration_delta = kwargs.get(
+                "refresh_expiration_delta",
+                self.get_default_refresh_expiration_delta(),
+            )
+
+            kwargs["refresh_expiration_at"] = now + expiration_delta
+
+        if project is None and scope:
+            project = self._get_project_by_scope(user, scope)
+        super().__init__(user=user, project=project, scope=scope, **kwargs)
+
+    def _get_key_by_encryption_algorithm(self, algorithm):
+        ctx = contexts.get_context()
+        storage = ctx.context_storage
+        if algorithm == iam_c.ALGORITHM_HS256:
+            return {
+                "key": storage.get(
+                    iam_c.STORAGE_KEY_IAM_TOKEN_HS256_ENCRYPTION_KEY
+                )
+            }
+        raise iam_e.IncorrectEncriptionAlgorithmError(algorithm=algorithm)
+
+    def check_refresh_expiration(self):
+        now = datetime.datetime.now(datetime.timezone.utc)
+        return now < self.refresh_expiration_at
+
+    def validate_refresh_expiration(self):
+        if not self.check_refresh_expiration():
+            raise iam_e.InvalidRefreshTokenError()
+
+    def check_expiration(self):
+        now = datetime.datetime.now(datetime.timezone.utc)
+        return now < self.expiration_at
+
+    def validate_expiration(self):
+        if not self.check_expiration():
+            raise iam_e.InvalidAuthTokenError()
+
+    def _get_default_project(self, user):
+        return Project.get_default(user=user)
+
+    def _get_project_by_uuid(self, user, str_uuid):
+        for project in Project.objects.get_all(
+            filters={"uuid": ra_filters.EQ(str_uuid)},
+            limit=1,
+        ):
+            return project
+
+    def extend_structure_by_scope(self, struct_dict):
+        if self.nonce:
+            struct_dict["nonce"] = self.nonce
+
+        splitted_scope = self.scope.split(" ")
+
+        if "openid" in splitted_scope:
+            struct_dict["sub"] = str(self.user.uuid)
+
+        if "profile" in splitted_scope:
+            struct_dict["name"] = (
+                f" {self.user.first_name} {self.user.last_name}"
+            )
+            struct_dict["given_name"] = self.user.first_name
+            struct_dict["family_name"] = self.user.last_name
+            struct_dict["middle_name"] = self.user.surname
+            struct_dict["nickname"] = self.user.name
+            struct_dict["preferred_username"] = self.user.name
+            struct_dict["updated_at"] = int(self.user.updated_at.timestamp())
+
+        if "email" in splitted_scope:
+            struct_dict["email"] = self.user.email
+            struct_dict["email_verified"] = self.user.email_verified
+
+        return struct_dict
+
+    def _get_project_by_scope(self, user, scope):
+        scope = scope.lower()
+        project = None
+        for piece in scope.split(" "):
+            if piece.startswith("project"):
+                project_info = piece.split(":", 1)
+                project = (
+                    self._get_project_by_uuid(user, project_info[1])
+                    if len(project_info) > 1 and project_info[1] != "default"
+                    else self._get_default_project(user)
+                )
+                break
+
+        return project
+
+    def refresh(self, scope=None):
+        scope = scope or self.scope
+        now = datetime.datetime.now(datetime.timezone.utc)
+        new_expiration_at = now + self.expiration_delta
+        self.expiration_at = new_expiration_at
+        self.project = self._get_project_by_scope(self.user, scope)
+        self.scope = scope
+        self.update()
+
+    def get_response_body(self):
+        ctx = contexts.get_context()
+
+        now = datetime.datetime.now(datetime.timezone.utc)
+        algorithm = self.iam_client.get_token_algorithm()
+
+        access_token_info = {
+            "exp": int(self.expiration_at.timestamp()),
+            "iat": int(self.created_at.timestamp()),
+            "auth_time": int(self.created_at.timestamp()),
+            "jti": str(self.uuid),
+            "iss": self.issuer,
+            "aud": self.audience,
+            "sub": str(self.user.uuid),
+            "typ": self.typ,
+            "otp": self.user.otp_enabled,
+        }
+        access_token = algorithm.encode(access_token_info)
+
+        id_token_info = {
+            "exp": int(self.expiration_at.timestamp()),
+            "iat": int(self.created_at.timestamp()),
+            "auth_time": int(self.created_at.timestamp()),
+            "jti": str(self.uuid),
+            "iss": self.issuer,
+            "aud": self.audience,
+            "project_id": str(self.project.uuid) if self.project else None,
+        }
+
+        id_token_info = self.extend_structure_by_scope(id_token_info)
+
+        id_token = algorithm.encode(id_token_info)
+
+        refresh_token_info = {
+            "exp": int(self.refresh_expiration_at.timestamp()),
+            "iat": int(self.created_at.timestamp()),
+            "jti": str(self.refresh_token_uuid),
+            "iss": self.issuer,
+            "aud": self.audience,
+            "sub": str(self.user.uuid),
+        }
+
+        refresh_token = algorithm.encode(refresh_token_info)
+
+        return {
+            "access_token": access_token,
+            "token_type": self.typ,
+            "expires_at": int(self.expiration_at.timestamp()),
+            "expires_in": (self.expiration_at - now).seconds,
+            "id_token": id_token,
+            "refresh_token": refresh_token,
+            "refresh_expires_in": (self.refresh_expiration_at - now).seconds,
+            "scope": self.scope,
+        }
+
+    @classmethod
+    def my(cls, token_info=None):
+        token_info = (
+            token_info or contexts.get_context().iam_context.token_info
+        )
+        for token in Token.objects.get_all(
+            filters={"uuid": ra_filters.EQ(token_info.uuid)},
+            limit=1,
+        ):
+            return token
+        raise iam_e.InvalidAuthTokenError()
+
+    def introspect(self, token_info=None, otp_code=None):
+        user = User.me(token_info=token_info)
+
+        values = PermissionFastView.objects.get_all(
+            filters={
+                "user": ra_filters.EQ(user),
+                "project": ra_filters.Is(self.project),
+            }
+        )
+
+        otp_verified = False
+        if otp_code is not None:
+            if not user.validate_otp(otp_code):
+                raise iam_e.OTPInvalidCodeError()
+            otp_verified = True
+
+        return Introspection(
+            user=self.user,
+            project=self.project,
+            permissions=[v.permission for v in values],
+            otp_verified=otp_verified,
+        )
+
+
+class Idp(
+    models.ModelWithUUID,
+    models.ModelWithRequiredNameDesc,
+    models.ModelWithTimestamp,
+    ModelWithSecret,
+    ModelWithAlwaysActiveStatus,
+    orm.SQLStorableMixin,
+):
+    __tablename__ = "iam_idp"
+
+    project_id = properties.property(
+        ra_types.AllowNone(ra_types.UUID()),
+        default=None,
+        read_only=True,
+    )
+    iam_client = relationships.relationship(
+        IamClient,
+        prefetch=True,
+        required=True,
+    )
+    client_id = properties.property(
+        ra_types.String(max_length=64),
+        required=True,
+    )
+    scope = properties.property(
+        ra_types.String(max_length=64),
+        default="openid",
+    )
+    callback_uri = properties.property(
+        ra_types.String(max_length=256),
+        required=True,
+    )
+
+    @property
+    def well_known_endpoint(self):
+        ctx = contexts.get_context()
+        app_url = ctx.get_real_url_with_prefix()
+        return (
+            f"{app_url}/v1/iam/idp/{self.uuid}/"
+            ".well-known/openid-configuration"
+        )
+
+    def get_wellknown_info(self):
+        ctx = contexts.get_context()
+        app_url = ctx.get_real_url_with_prefix()
+
+        return {
+            "issuer": (f"{app_url}/v1/iam/clients/{self.iam_client.uuid}"),
+            "authorization_endpoint": (
+                f"{app_url}/v1/iam/idp/{self.uuid}" "/actions/authorize/invoke"
+            ),
+            "token_endpoint": (
+                f"{app_url}/v1/iam/clients/{self.iam_client.uuid}"
+                "/actions/get_token/invoke"
+            ),
+            "userinfo_endpoint": (
+                f"{app_url}/v1/iam/clients/{self.iam_client.uuid}"
+                "/actions/userinfo"
+            ),
+            "jwks_uri": (
+                f"{app_url}/v1/iam/clients/{self.iam_client.uuid}"
+                "/actions/jwks"
+            ),
+            "response_types_supported": IdpResponseType.list_response_types(),
+            "subject_types_supported": ["public"],
+            "id_token_signing_alg_values_supported": (
+                self.iam_client.get_id_token_signing_alg_values_supported()
+            ),
+            "scopes_supported": ["openid", "profile", "email"],
+            "claims_supported": ["sub", "iss", "name", "email"],
+            "end_session_endpoint": (
+                f"{app_url}/v1/iam/clients/{self.iam_client.uuid}"
+                "/actions/logout/invoke"
+            ),
+        }
+
+    def authorize(
+        self, client_id, redirect_uri, state, response_type, nonce, scope
+    ):
+        if self.client_id != client_id:
+            raise iam_exceptions.InvalidClientId(client_id=client_id)
+        if self.callback_uri != redirect_uri:
+            raise iam_exceptions.InvalidRedirectUri(redirect_uri=redirect_uri)
+
+        ctx = contexts.get_context()
+        app_url = ctx.get_real_url_with_prefix()
+
+        auth_info = IdpAuthorizationInfo(
+            idp=self,
+            state=state,
+            response_type=response_type,
+            nonce=nonce,
+            scope=scope,
+        )
+
+        auth_info.insert()
+
+        return urllib.parse.urljoin(
+            app_url,
+            f"/?auth_uuid={auth_info.uuid}"
+            f"&client_uuid={self.iam_client.uuid}"
+            f"&idp_uuid={self.uuid}",
+        )
+
+    def construct_callback_uri(self, auth_info):
+        return (
+            self.callback_uri + f"?code={auth_info.code}"
+            f"&state={auth_info.state}"
+        )
+
+
+class IdpAuthorizationInfo(
+    models.ModelWithUUID,
+    models.ModelWithTimestamp,
+    orm.SQLStorableMixin,
+):
+    __tablename__ = "iam_idp_authorization_info"
+
+    idp = relationships.relationship(
+        Idp,
+        required=True,
+    )
+    state = properties.property(
+        ra_types.String(max_length=256),
+        required=True,
+    )
+    response_type = properties.property(
+        ra_types.Enum([s.value for s in IdpResponseType]),
+        default=IdpResponseType.CODE.value,
+    )
+    nonce = properties.property(
+        ra_types.String(max_length=256),
+        required=True,
+    )
+    scope = properties.property(
+        ra_types.String(max_length=256),
+        required=True,
+    )
+    expiration_time_at = properties.property(
+        ra_types.UTCDateTimeZ(),
+        default=lambda: (
+            datetime.datetime.now(datetime.timezone.utc)
+            + datetime.timedelta(minutes=10)
+        ),
+    )
+    token = relationships.relationship(
+        Token,
+        prefetch=True,
+        required=False,
+    )
+
+    code = properties.property(
+        ra_types.UUID(),
+        default=sys_uuid.uuid4,
+    )
+
+    def confirm(self):
+        ctx = contexts.get_context()
+        app_url = ctx.get_real_url_with_prefix()
+
+        current_token = Token.my()
+        self.token = Token(
+            user=current_token.user,
+            iam_client=self.idp.iam_client,
+            scope=self.scope,
+            project=current_token.project,
+            nonce=self.nonce,
+            audience=self.idp.iam_client.client_id,
+            issuer=f"{app_url}/v1/iam/clients/{self.idp.iam_client.uuid}",
+        )
+        self.token.insert()
+        self.update()
+
+    def construct_callback_uri(self):
+        return self.idp.construct_callback_uri(self)

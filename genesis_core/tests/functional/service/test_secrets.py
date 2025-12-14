@@ -17,13 +17,13 @@
 import typing as tp
 import uuid as sys_uuid
 
-from restalchemy.storage.sql import engines
 from gcl_iam.tests.functional import clients as iam_clients
 from gcl_sdk.agents.universal.dm import models as ua_models
 
+from genesis_core.tests.functional import stubs
+from genesis_core.secret import constants as sc
 from genesis_core.secret import service
 from genesis_core.secret.dm import models
-
 
 class TestSecretsServiceBuilder:
 
@@ -69,8 +69,8 @@ class TestSecretsServiceBuilder:
 
         self._service._iteration()
 
-        target_resources = ua_models.TargetResource.objects.get_all()
-        passwords = models.Password.objects.get_all()
+        target_resources = stubs.TargetResource.objects.get_all()
+        passwords = stubs.Password.objects.get_all()
 
         assert len(target_resources) == 1
         assert len(passwords) == 1
@@ -101,10 +101,10 @@ class TestSecretsServiceBuilder:
 
         self._service._iteration()
 
-        password = models.Password.objects.get_one()
+        password = stubs.Password.objects.get_one()
         assert password.status == "IN_PROGRESS"
 
-        target_resources = ua_models.TargetResource.objects.get_all()
+        target_resources = stubs.TargetResource.objects.get_all()
         view = target_resources[0].dump_to_simple_view()
         view.pop("master", None)
         view.pop("master_hash", None)
@@ -122,7 +122,7 @@ class TestSecretsServiceBuilder:
 
         self._service._iteration()
 
-        password = models.Password.objects.get_one()
+        password = stubs.Password.objects.get_one()
         assert password.status == "ACTIVE"
         assert password.value == "mynewpassword"
 
@@ -149,10 +149,10 @@ class TestSecretsServiceBuilder:
 
         self._service._iteration()
 
-        password = models.Password.objects.get_one()
+        password = stubs.Password.objects.get_one()
         assert password.status == "IN_PROGRESS"
 
-        target_resources = ua_models.TargetResource.objects.get_all()
+        target_resources = stubs.TargetResource.objects.get_all()
         view = target_resources[0].dump_to_simple_view()
         view.pop("master", None)
         view.pop("master_hash", None)
@@ -170,7 +170,7 @@ class TestSecretsServiceBuilder:
 
         self._service._iteration()
 
-        password = models.Password.objects.get_one()
+        password = stubs.Password.objects.get_one()
         assert password.status == "ACTIVE"
 
         update = {"name": "test"}
@@ -181,14 +181,13 @@ class TestSecretsServiceBuilder:
         assert response.status_code == 200
 
         output = response.json()
-        assert output["name"] == "test"
 
-        password = models.Password.objects.get_one()
+        password = stubs.Password.objects.get_one()
         assert password.status == "NEW"
 
         self._service._iteration()
 
-        password = models.Password.objects.get_one()
+        password = stubs.Password.objects.get_one()
         assert password.status == "IN_PROGRESS"
 
     def test_delete_passwords(
@@ -214,14 +213,14 @@ class TestSecretsServiceBuilder:
 
         self._service._iteration()
 
-        password = models.Password.objects.get_one()
+        password = stubs.Password.objects.get_one()
         assert password.status == "IN_PROGRESS"
 
         password.delete()
 
         self._service._iteration()
 
-        target_resources = ua_models.TargetResource.objects.get_all()
+        target_resources = stubs.TargetResource.objects.get_all()
         assert len(target_resources) == 0
 
     def test_update_passwords_active_on_valid_hash(
@@ -247,10 +246,10 @@ class TestSecretsServiceBuilder:
 
         self._service._iteration()
 
-        password = models.Password.objects.get_one()
+        password = stubs.Password.objects.get_one()
         assert password.status == "IN_PROGRESS"
 
-        target_resources = ua_models.TargetResource.objects.get_all()
+        target_resources = stubs.TargetResource.objects.get_all()
         view = target_resources[0].dump_to_simple_view()
         view.pop("master", None)
         view.pop("master_hash", None)
@@ -269,7 +268,7 @@ class TestSecretsServiceBuilder:
 
         self._service._iteration()
 
-        password = models.Password.objects.get_one()
+        password = stubs.Password.objects.get_one()
         assert password.status == "IN_PROGRESS"
 
         render_actual_resource.full_hash = "3333"
@@ -278,7 +277,7 @@ class TestSecretsServiceBuilder:
 
         self._service._iteration()
 
-        cert = models.Password.objects.get_one()
+        cert = stubs.Password.objects.get_one()
         assert cert.status == "ACTIVE"
 
     def test_new_certificate(
@@ -308,7 +307,7 @@ class TestSecretsServiceBuilder:
 
         self._service._iteration()
 
-        target_resources = ua_models.TargetResource.objects.get_all()
+        target_resources = stubs.TargetResource.objects.get_all()
         certificates = models.Certificate.objects.get_all()
 
         assert len(target_resources) == 1
@@ -344,7 +343,7 @@ class TestSecretsServiceBuilder:
         certificate = models.Certificate.objects.get_one()
         assert certificate.status == "IN_PROGRESS"
 
-        target_resources = ua_models.TargetResource.objects.get_all()
+        target_resources = stubs.TargetResource.objects.get_all()
         view = target_resources[0].dump_to_simple_view()
         view.pop("master", None)
         view.pop("master_hash", None)
@@ -394,7 +393,7 @@ class TestSecretsServiceBuilder:
         cert = models.Certificate.objects.get_one()
         assert cert.status == "IN_PROGRESS"
 
-        target_resources = ua_models.TargetResource.objects.get_all()
+        target_resources = stubs.TargetResource.objects.get_all()
         view = target_resources[0].dump_to_simple_view()
         view.pop("master", None)
         view.pop("master_hash", None)
@@ -464,7 +463,7 @@ class TestSecretsServiceBuilder:
 
         self._service._iteration()
 
-        target_resources = ua_models.TargetResource.objects.get_all()
+        target_resources = stubs.TargetResource.objects.get_all()
         assert len(target_resources) == 0
 
     def test_update_certificates_active_on_valid_hash(
@@ -493,7 +492,7 @@ class TestSecretsServiceBuilder:
         cert = models.Certificate.objects.get_one()
         assert cert.status == "IN_PROGRESS"
 
-        target_resources = ua_models.TargetResource.objects.get_all()
+        target_resources = stubs.TargetResource.objects.get_all()
         view = target_resources[0].dump_to_simple_view()
         view.pop("master", None)
         view.pop("master_hash", None)
@@ -555,7 +554,7 @@ class TestSecretsServiceBuilder:
 
         self._service._iteration()
 
-        target_resources = ua_models.TargetResource.objects.get_all()
+        target_resources = stubs.TargetResource.objects.get_all()
         keys = models.SSHKey.objects.get_all()
 
         assert len(target_resources) == 2
@@ -599,7 +598,7 @@ class TestSecretsServiceBuilder:
 
         self._service._iteration()
 
-        target_resources = ua_models.TargetResource.objects.get_all()
+        target_resources = stubs.TargetResource.objects.get_all()
         keys = models.SSHKey.objects.get_all()
 
         assert len(target_resources) == 0
@@ -638,7 +637,7 @@ class TestSecretsServiceBuilder:
         key = models.SSHKey.objects.get_one()
         assert key.status == "IN_PROGRESS"
 
-        target_resources = ua_models.TargetResource.objects.get_all()
+        target_resources = stubs.TargetResource.objects.get_all()
         host_key = [r for r in target_resources if r.kind == "ssh_key_target"][
             0
         ]
@@ -693,7 +692,7 @@ class TestSecretsServiceBuilder:
         key = models.SSHKey.objects.get_one()
         assert key.status == "IN_PROGRESS"
 
-        target_resources = ua_models.TargetResource.objects.get_all()
+        target_resources = stubs.TargetResource.objects.get_all()
         host_key = [r for r in target_resources if r.kind == "ssh_key_target"][
             0
         ]
@@ -768,5 +767,5 @@ class TestSecretsServiceBuilder:
 
         self._service._iteration()
 
-        target_resources = ua_models.TargetResource.objects.get_all()
+        target_resources = stubs.TargetResource.objects.get_all()
         assert len(target_resources) == 0

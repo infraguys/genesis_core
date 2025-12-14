@@ -364,7 +364,7 @@ class MigrationStep(migrations.AbstarctMigrationStep):
                     'Genesis Core OIDC Client',
                     'GenesisCoreClientId',
                     '{default_client_secret}',
-                    '5fOuZXeIn5e5TJlo9Pv5T219',
+                    '{default_admin_salt}',
                     'http://127.0.0.1:11010/v1/'
                 );
             """,
