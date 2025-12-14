@@ -76,7 +76,7 @@ class AdminBypassVerifier(AbstractVerifier):
             )
             token.validate_expiration()
             user = token.user
-        except iam_e.InvalidAuthTokenError as e:
+        except (iam_e.InvalidAuthTokenError, iam_e.CredentialsAreInvalidError) as e:
             log.debug("Admin bypass verification failed: token expired or invalid: %s", e)
             raise iam_exceptions.CanNotCreateUser(message="Token expired or invalid")
         except (ra_e.NotFoundError, ValueError, TypeError, KeyError, AttributeError) as e:
