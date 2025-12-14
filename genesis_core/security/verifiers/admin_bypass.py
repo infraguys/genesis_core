@@ -18,12 +18,14 @@ import logging
 from typing import Any
 
 from restalchemy.common import contexts
+from restalchemy.common import exceptions as ra_e
 from restalchemy.dm import filters as ra_filters
 from restalchemy.dm import types as ra_types
 
 from genesis_core.user_api.iam import constants as iam_c
 from genesis_core.user_api.iam.dm import models
 from genesis_core.user_api.iam import exceptions as iam_exceptions
+from gcl_iam import exceptions as iam_e
 from gcl_iam import tokens
 from genesis_core.security.interfaces import AbstractVerifier
 
@@ -74,7 +76,10 @@ class AdminBypassVerifier(AbstractVerifier):
             )
             token.validate_expiration()
             user = token.user
-        except Exception as e:
+        except iam_e.InvalidAuthTokenError as e:
+            log.debug("Admin bypass verification failed: token expired or invalid: %s", e)
+            raise iam_exceptions.CanNotCreateUser(message="Token expired or invalid")
+        except (ra_e.NotFoundError, ValueError, TypeError, KeyError) as e:
             log.debug("Admin bypass verification failed during token processing: %s", e)
             raise iam_exceptions.CanNotCreateUser(message="Admin bypass verification failed")
 
