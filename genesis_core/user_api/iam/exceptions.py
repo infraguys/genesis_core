@@ -175,3 +175,17 @@ class InvalidGrantType(
     iam_exc.InvalidGrantTypeError,
 ):
     __template__ = "Invalid grant type: {grant_type}"
+
+
+class InvalidClientId(
+    exceptions.CommonValueErrorException,
+    iam_exc.InvalidGrantTypeError,
+):
+    __template__ = "Invalid or unknown client_id: {client_id}"
+
+
+class InvalidRedirectUri(
+    exceptions.CommonValueErrorException,
+    iam_exc.InvalidGrantTypeError,
+):
+    __template__ = "Invalid or unregistered redirect_uri: {redirect_uri}"

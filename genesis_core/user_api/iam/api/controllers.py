@@ -29,6 +29,7 @@ from restalchemy.api import controllers
 from restalchemy.api import resources
 from restalchemy.common import contexts
 from restalchemy.common import exceptions as ra_e
+from restalchemy.common import utils as ra_utils
 from restalchemy.dm import filters as ra_filters
 from restalchemy.openapi import utils as oa_utils
 import pyotp
@@ -474,13 +475,32 @@ class PermissionBindingController(
     __policy_name__ = "permission_binding"
 
 
-class IdpController(
-    iam_controllers.PolicyBasedWithoutProjectController,
-    controllers.BaseResourceControllerPaginated,
+class WellKnownController(
+    controllers.BaseNestedResourceController,
+    EnforceMixin,
 ):
-    __resource__ = resources.ResourceByRAModel(
+
+    def get(self, parent_resource, uuid):
+        return parent_resource.get_wellknown_info()
+
+    def filter(self, parent_resource, **kwargs):
+        return ["openid-configuration"]
+
+
+class IdpController(
+    controllers.BaseResourceControllerPaginated,
+    EnforceMixin,
+):
+    __resource__ = resources.ResourceByModelWithCustomProps(
         models.Idp,
         convert_underscore=False,
+        name_map={"secret": "client_secret"},
+        hidden_fields=resources.HiddenFieldMap(
+            get=["salt", "secret_hash", "secret"],
+            create=["salt", "secret_hash"],
+            update=["salt", "secret_hash"],
+            filter=["salt", "secret_hash", "secret"],
+        ),
     )
 
     def _get_request_params(self, resource):
@@ -514,6 +534,28 @@ class IdpController(
         )
 
         return None, 307, [("Location", auth_url)]
+
+    @actions.get
+    def authorize(
+        self,
+        resource,
+        client_id,
+        redirect_uri,
+        state,
+        response_type,
+        nonce,
+        scope,
+    ):
+        redirect_uri = resource.authorize(
+            client_id=client_id,
+            redirect_uri=redirect_uri,
+            state=state,
+            response_type=response_type,
+            nonce=nonce,
+            scope=scope,
+        )
+
+        return None, 307, [("Location", redirect_uri)]
 
     @actions.get
     def callback(self, resource, state, session_state, iss, code):
@@ -628,13 +670,16 @@ class ClientsController(
                 client_id=client_id,
                 client_secret=client_secret,
             )
+            ctx = contexts.get_context()
             payload = dict(
                 password=kwargs.get(c.PARAM_PASSWORD),
                 scope=kwargs.get(c.PARAM_SCOPE, ""),
                 ttl=kwargs.get(c.PARAM_TTL, None),
                 refresh_ttl=kwargs.get(c.PARAM_REFRESH_TTL, None),
                 otp_code=self._req.headers.get(c.HEADER_OTP_CODE, None),
-                root_endpoint=resource.redirect_url,
+                root_endpoint=ra_utils.lastslash(
+                    ctx.get_real_url_with_prefix(),
+                ),
             )
             login_attr, token_getter = grant_type_map[grant_type]
             payload[login_attr] = kwargs.get(login_attr)
@@ -642,16 +687,20 @@ class ClientsController(
                 raise ra_e.ValidationErrorException()
 
             token = token_getter(**payload)
-            return token.get_response_body()
 
         elif grant_type == c.GRANT_TYPE_REFRESH_TOKEN:
             token = resource.get_token_by_refresh_token(
                 refresh_token=kwargs.get("refresh_token"),
                 scope=kwargs.get(c.PARAM_SCOPE, None),
             )
-            return token.get_response_body()
+        elif grant_type == c.GRANT_TYPE_AUTHORIZATION_CODE:
+            token = resource.get_token_by_authorization_code(
+                code=kwargs.get(c.PARAM_CODE),
+                redirect_uri=kwargs.get(c.PARAM_REDIRECT_URI),
+            )
         else:
             raise iam_e.InvalidGrantType(grant_type=grant_type)
+        return token.get_response_body()
 
     @actions.get
     def introspect(self, resource):
@@ -661,6 +710,10 @@ class ClientsController(
     def me(self, resource):
         return resource.me().get_response_body()
 
+    @actions.get
+    def userinfo(self, resource):
+        return resource.userinfo().get_response_body()
+
     @actions.post
     def reset_password(self, resource, email=None):
         email = email or self._req.params.get("email")
@@ -668,6 +721,10 @@ class ClientsController(
         resource.send_reset_password_event(
             email=email, app_endpoint=app_endpoint
         )
+
+    @actions.get
+    def jwks(self, resource):
+        return resource.get_jwks()
 
 
 class WebController:
@@ -744,3 +801,30 @@ class IamWebController(WebController):
     def do(self, path, parent_resource=None):
         request_context = self._build_request_context()
         return self._build_response(path.lstrip("/"), request_context)
+
+
+class AuthorizationInfoController(controllers.BaseResourceControllerPaginated):
+    __resource__ = resources.ResourceByRAModel(
+        models.IdpAuthorizationInfo,
+        convert_underscore=False,
+        hidden_fields=[
+            "idp",
+            "state",
+            "nonce",
+            "code",
+            "response_type",
+            "token",
+        ],
+    )
+
+    @actions.post
+    def confirm(self, resource, redirect_me=None):
+        resource.confirm()
+        callback_uri = resource.construct_callback_uri()
+
+        if redirect_me:
+            return None, 307, [("Location", callback_uri)]
+
+        return {
+            "redirect_url": callback_uri,
+        }
