@@ -25,7 +25,11 @@ from gcl_iam.tests.functional import clients as iam_clients
 
 from genesis_core.tests.functional.restapi.iam import base
 from genesis_core.user_api.iam.dm import models as iam_models
-from firebase_admin import exceptions as firebase_exceptions
+
+try:
+    from firebase_admin import exceptions as firebase_exceptions
+except ImportError:
+    firebase_exceptions = None
 
 class TestClientUserCreation(base.BaseIamResourceTest):
 
@@ -318,6 +322,8 @@ class TestClientUserCreation(base.BaseIamResourceTest):
         self, mock_firebase_admin, mock_exists, mock_credentials, mock_app_check, user_api,
         iam_client_with_firebase_app_check_rule
     ):
+        if firebase_exceptions is None:
+            pytest.skip("firebase-admin is not installed")
         mock_exists.return_value = True
         mock_cred = mock.MagicMock()
         mock_credentials.Certificate.return_value = mock_cred
@@ -350,6 +356,8 @@ class TestClientUserCreation(base.BaseIamResourceTest):
         self, mock_firebase_admin, mock_exists, mock_credentials, mock_app_check, user_api,
         iam_client_with_firebase_app_check_rule
     ):
+        if firebase_exceptions is None:
+            pytest.skip("firebase-admin is not installed")
         mock_exists.return_value = True
         mock_cred = mock.MagicMock()
         mock_credentials.Certificate.return_value = mock_cred

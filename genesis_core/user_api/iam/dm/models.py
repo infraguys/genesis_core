@@ -359,6 +359,11 @@ class User(
 
     def setup_target_resource_fields(self):
         """Sets up fields required for TargetResourceMixin serialization."""
+        self.project_id = None
+        self.client_id = None
+        self.redirect_url = None
+        self.rules = None
+        
         try:
             ctx = contexts.get_context()
             if hasattr(ctx, 'iam_context') and ctx.iam_context and ctx.iam_context.token:
@@ -366,17 +371,8 @@ class User(
                 self.project_id = token.project.uuid if token.project else None
                 self.client_id = token.client.client_id if token.client else None
                 self.redirect_url = token.client.redirect_url if token.client else None
-            else:
-                self.project_id = None
-                self.client_id = None
-                self.redirect_url = None
-            self.rules = None
-        except Exception as e:
+        except (AttributeError, iam_e.NoIamSessionStored) as e:
             log.warning("Failed to set up target resource fields from context: %s", e)
-            self.project_id = None
-            self.client_id = None
-            self.redirect_url = None
-            self.rules = None
 
     def confirm_email(self):
         self.email_verified = True
