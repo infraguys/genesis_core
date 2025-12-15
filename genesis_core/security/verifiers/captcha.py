@@ -81,7 +81,7 @@ class CaptchaVerifier(AbstractVerifier):
             )
         except (ValueError, TypeError, KeyError) as e:
             log.debug("CAPTCHA verification failed: %s", e)
-            raise iam_exceptions.CanNotCreateUser(message=f"CAPTCHA verification failed: {str(e)}")
+            raise iam_exceptions.CanNotCreateUser(message="CAPTCHA verification failed.")
         
         if not verified:
             raise iam_exceptions.CanNotCreateUser(message=error or "CAPTCHA verification failed")
