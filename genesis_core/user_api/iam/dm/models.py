@@ -1139,7 +1139,7 @@ class IamClient(
     __tablename__ = "iam_clients"
     __jsonfields__ = ["rules"]
     
-    _verifier_cache = {}
+    _verifier_cache: dict = {}
 
     project_id = properties.property(
         ra_types.AllowNone(ra_types.UUID()),

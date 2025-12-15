@@ -113,12 +113,14 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
         try:
             app_check_token = app_check.verify_token(token, app=self._app)
         except firebase_exceptions.InvalidArgumentError as e:
-            raise iam_exceptions.CanNotCreateUser(message=f"Invalid Firebase App Check token: {str(e)}")
+            log.debug("Invalid Firebase App Check token: %s", e)
+            raise iam_exceptions.CanNotCreateUser(message="Invalid Firebase App Check token.")
         except firebase_exceptions.PermissionDeniedError as e:
-            raise iam_exceptions.CanNotCreateUser(message=f"Firebase App Check permission denied: {str(e)}")
+            log.debug("Firebase App Check permission denied: %s", e)
+            raise iam_exceptions.CanNotCreateUser(message="Firebase App Check permission denied.")
         except firebase_exceptions.FirebaseError as e:
             log.debug("Firebase App Check verification failed: %s", e)
-            raise iam_exceptions.CanNotCreateUser(message=f"Firebase App Check verification failed: {str(e)}")
+            raise iam_exceptions.CanNotCreateUser(message="Firebase App Check verification failed.")
         
         allowed_app_ids = self.config.get("allowed_app_ids")
         if allowed_app_ids:
