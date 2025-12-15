@@ -43,13 +43,6 @@ class AdminBypassVerifier(AbstractVerifier):
     def __init__(self, config: dict[str, Any] = None):
         self.config = config or {}
 
-    @classmethod
-    def get_rule_scheme(cls) -> dict[str, ra_types.BaseType]:
-        return {
-            "kind": ra_types.String(max_length=64),
-            "bypass_users": ra_types.List(),
-        }
-
     def can_handle(self, request) -> bool:
         return request.headers.get("Authorization", "").startswith("Bearer ")
 

@@ -60,15 +60,6 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
         self._app = None
         self._initialized = False
 
-    @classmethod
-    def get_rule_scheme(cls) -> dict[str, ra_types.BaseType]:
-        return {
-            "kind": ra_types.String(max_length=64),
-            "credentials_path": ra_types.String(),
-            "allowed_app_ids": ra_types.List(),
-            "mode": ra_types.Enum(["enforce", "report-only"]),
-        }
-
     def _initialize_firebase(self):
         if self._initialized:
             return
