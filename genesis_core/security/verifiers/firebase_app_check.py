@@ -18,21 +18,18 @@ import logging
 import os
 from typing import Any
 
+from genesis_core.security.interfaces import AbstractVerifier
+from genesis_core.user_api.iam import exceptions as iam_exceptions
+
 try:
     import firebase_admin
-    from firebase_admin import app_check
-    from firebase_admin import credentials
+    from firebase_admin import app_check, credentials
     from firebase_admin import exceptions as firebase_exceptions
 except ImportError:
     firebase_admin = None
     app_check = None
     credentials = None
     firebase_exceptions = None
-
-from restalchemy.dm import types as ra_types
-
-from genesis_core.security.interfaces import AbstractVerifier
-from genesis_core.user_api.iam import exceptions as iam_exceptions
 
 
 log = logging.getLogger(__name__)
