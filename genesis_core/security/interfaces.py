@@ -15,7 +15,7 @@
 #    under the License.
 
 import abc
-
+from webob import Request
 from restalchemy.dm import types as ra_types
 
 
@@ -24,15 +24,12 @@ class AbstractVerifier(abc.ABC):
     @abc.abstractmethod
     def get_rule_scheme(cls) -> dict[str, ra_types.BaseType]:
         """Returns scheme dict for validation rule structure."""
-        pass
 
     @abc.abstractmethod
-    def can_handle(self, request) -> bool:
+    def can_handle(self, request: Request) -> bool:
         """Check if this verifier can handle the request."""
-        pass
 
     @abc.abstractmethod
-    def verify(self, request) -> None:
+    def verify(self, request: Request) -> None:
         """Perform validation. Raises exception on failure, returns None on success. Called only if can_handle() returned True."""
-        pass
 
