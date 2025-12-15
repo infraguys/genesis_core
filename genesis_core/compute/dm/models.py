@@ -206,8 +206,7 @@ class Node(
     def insert(self, session=None):
         super().insert(session=session)
 
-        placement_policies = getattr(self, "placement_policies", None) or []
-        for policy in placement_policies:
+        for policy in self.placement_policies:
             allocation = FlatPlacementPolicyAllocation(
                 node=self.uuid,
                 policy=policy,
