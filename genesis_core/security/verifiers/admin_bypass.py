@@ -62,8 +62,6 @@ class AdminBypassVerifier(AbstractVerifier):
             raise iam_exceptions.CanNotCreateUser(message="Token algorithm is not configured")
 
         auth_header = request.headers.get("Authorization", "")
-        if not auth_header.startswith("Bearer "):
-            raise iam_exceptions.CanNotCreateUser(message="Authorization header is not a Bearer token")
 
         try:
             auth_token = tokens.AuthToken(
