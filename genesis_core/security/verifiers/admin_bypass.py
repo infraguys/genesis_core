@@ -44,7 +44,7 @@ class AdminBypassVerifier(AbstractVerifier):
         self.config = config or {}
 
     @classmethod
-    def get_rule_scheme(cls) -> dict[str, Any]:
+    def get_rule_scheme(cls) -> dict[str, ra_types.BaseType]:
         return {
             "kind": ra_types.String(max_length=64),
             "bypass_users": ra_types.List(),
