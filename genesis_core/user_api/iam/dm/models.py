@@ -47,6 +47,10 @@ from genesis_core.user_api.iam.dm import types
 from genesis_core.user_api.iam import exceptions as iam_exceptions
 
 
+# Entry point group name for validation rules
+VALIDATION_RULES_ENTRY_POINT_GROUP = "genesis_core.validation_rules"
+
+
 log = logging.getLogger(__name__)
 
 
@@ -1052,24 +1056,14 @@ class AbstractValidationRule(types_dynamic.AbstractKindModel, models.SimpleViewM
     
     @classmethod
     def get_rule_selector(cls):
-        """Returns KindModelSelectorType for all rule types.
-        
-        Note: All AbstractValidationRule subclasses must be imported in this module
-        for __subclasses__() to discover them. If a new rule is defined elsewhere,
-        ensure it's imported here.
-        """
+        """Returns KindModelSelectorType for all rule types loaded via entry points."""
         if cls._rule_selector is None:
-            def find_subclasses(base):
-                subclasses = []
-                for subclass in base.__subclasses__():
-                    subclasses.append(subclass)
-                    subclasses.extend(find_subclasses(subclass))
-                return subclasses
-            
-            rule_classes = [
-                subcls for subcls in find_subclasses(cls)
-                if hasattr(subcls, 'KIND')
-            ]
+            rule_classes = []
+            entry_points = u.load_group_from_entry_point(VALIDATION_RULES_ENTRY_POINT_GROUP)
+            for ep in entry_points:
+                rule_cls = ep.load()
+                if hasattr(rule_cls, 'KIND') and issubclass(rule_cls, cls):
+                    rule_classes.append(rule_cls)
             
             cls._rule_selector = types_dynamic.KindModelSelectorType(
                 *[types_dynamic.KindModelType(rule_cls) for rule_cls in rule_classes]
