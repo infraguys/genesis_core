@@ -1168,9 +1168,10 @@ class IamClient(
         rules = []
         for rule_model in self.rules:
             kind = rule_model.kind
-            if kind not in self._verifier_cache:
-                self._verifier_cache[kind] = u.load_from_entry_point(ENTRY_POINT_GROUP, kind)
-            verifier_cls = self._verifier_cache[kind]
+            cache = type(self)._verifier_cache
+            if kind not in cache:
+                cache[kind] = u.load_from_entry_point(ENTRY_POINT_GROUP, kind)
+            verifier_cls = cache[kind]
             rules.append(ValidationRule(rule_model, verifier_cls))
         
         return rules
