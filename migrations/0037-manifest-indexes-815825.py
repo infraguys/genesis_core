@@ -54,8 +54,8 @@ class MigrationStep(migrations.AbstractMigrationStep):
                 ON em_resources (element);
             """,
             """
-            ALTER TABLE em_resources
-            ADD CONSTRAINT em_resources_unique_name UNIQUE (element, name);
+            ALTER TABLE em_elements
+            ADD CONSTRAINT em_elements_unique_name UNIQUE (name);
             """,
         ]
 
@@ -83,8 +83,8 @@ class MigrationStep(migrations.AbstractMigrationStep):
             DROP INDEX IF EXISTS em_resources_element_idx;
             """,
             """
-            ALTER TABLE em_resources
-            DROP CONSTRAINT em_resources_unique_name;
+            ALTER TABLE em_elements
+            DROP CONSTRAINT em_elements_unique_name;
             """,
         ]
 
