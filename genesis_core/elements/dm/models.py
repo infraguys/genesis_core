@@ -522,6 +522,7 @@ class Resource(
     __allowed_methods_from_manifest__ = [
         "get_uri",
         "to_str",
+        "index",
     ]
 
     element = relationships.relationship(
@@ -573,6 +574,14 @@ class Resource(
             return ""
         return str(self.actual_resource.value[field])
 
+    def index(self, field: str, idx: str | int = 0) -> None | str:
+        if not self.actual_resource or not self.actual_resource.value:
+            return None
+        try:
+            return self.actual_resource.value[field][int(idx)]
+        except (TypeError, IndexError):
+            return None
+
     def get_parameter_value(self, parameter):
         parts = parameter.split(":")
         resource_name = parts[0][1:]
@@ -593,7 +602,8 @@ class Resource(
                 if func_name in self.__allowed_methods_from_manifest__:
                     func = getattr(self, func_name)
                     if match.group(2):
-                        return func(match.group(2))
+                        result = [x.strip() for x in match.group(2).split(",")]
+                        return func(*result)
                     return func()
 
         result_value = self.get_actual_state_safe()
