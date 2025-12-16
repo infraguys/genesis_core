@@ -616,66 +616,64 @@ class Resource(
             return self.render_target_state()
         return self.actual_resource.value
 
+    def _render_value(self, value, engine):
+        if value.startswith("$"):
+            link = utils.ResourceLink(value)
+            try:
+                resource = engine.get_resource_by_link(
+                    element=self.element,
+                    link=link.location,
+                )
+                return resource.get_parameter_value(
+                    parameter=link.parameter,
+                )
+            except ValueError as e:
+                raise ValueError(
+                    f"Can't render value `{value}` for resource"
+                    f" `{repr(self)}` by reason: {e}"
+                )
+        return value
+
+    def _recursive_render(self, data, engine):
+        if isinstance(data, dict):
+            result = {}
+            for key, value in data.items():
+                if isinstance(
+                    value,
+                    (
+                        dict,
+                        list,
+                    ),
+                ):
+                    value = self._recursive_render(value, engine)
+                    result[key] = value
+                elif isinstance(value, str):
+                    result[key] = self._render_value(value, engine)
+                else:
+                    result[key] = value
+        elif isinstance(data, list):
+            result = []
+            for item in data:
+                if isinstance(
+                    item,
+                    (
+                        dict,
+                        list,
+                    ),
+                ):
+                    item = self._recursive_render(item, engine)
+                    result.append(item)
+                elif isinstance(item, str):
+                    result.append(self._render_value(item, engine))
+                else:
+                    result.append(item)
+        else:
+            result = data
+        return result
+
     def render_target_state(self, engine=None):
-
         engine = engine or element_engine
-
-        def render_value(value):
-            if value.startswith("$"):
-                link = utils.ResourceLink(value)
-                try:
-                    resource = engine.get_resource_by_link(
-                        element=self.element,
-                        link=link.location,
-                    )
-                    return resource.get_parameter_value(
-                        parameter=link.parameter,
-                    )
-                except ValueError as e:
-                    raise ValueError(
-                        f"Can't render value `{value}` for resource"
-                        f" `{repr(self)}` by reason: {e}"
-                    )
-            return value
-
-        def recursive_render(data):
-            if isinstance(data, dict):
-                result = {}
-                for key, value in data.items():
-                    if isinstance(
-                        value,
-                        (
-                            dict,
-                            list,
-                        ),
-                    ):
-                        value = recursive_render(value)
-                        result[key] = value
-                    elif isinstance(value, str):
-                        result[key] = render_value(value)
-                    else:
-                        result[key] = value
-            elif isinstance(data, list):
-                result = []
-                for item in data:
-                    if isinstance(
-                        item,
-                        (
-                            dict,
-                            list,
-                        ),
-                    ):
-                        item = recursive_render(item)
-                        result.append(item)
-                    elif isinstance(item, str):
-                        result.append(render_value(item))
-                    else:
-                        result.append(item)
-            else:
-                result = data
-            return result
-
-        res = recursive_render(self.value)
+        res = self._recursive_render(self.value, engine)
         # uuid is mandatory to find already created resources in services
         if "uuid" not in res:
             res["uuid"] = str(self.uuid)
