@@ -18,6 +18,7 @@ import enum
 
 PASSWORD_KIND = "password"
 CERTIFICATE_KIND = "certificate"
+RSA_KEY_KIND = "rsa_key"
 SSH_KEY_KIND = "ssh_key"
 SSH_KEY_TARGET_KIND = "ssh_key_target"
 

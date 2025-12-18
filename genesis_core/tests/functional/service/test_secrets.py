@@ -25,6 +25,7 @@ from genesis_core.secret import constants as sc
 from genesis_core.secret import service
 from genesis_core.secret.dm import models
 
+
 class TestSecretsServiceBuilder:
 
     def setup_method(self) -> None:
