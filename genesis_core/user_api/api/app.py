@@ -24,11 +24,10 @@ from restalchemy.dm import types as ra_types
 from restalchemy.openapi import structures as openapi_structures
 from restalchemy.openapi import engines as openapi_engines
 
+from genesis_core import version
 from genesis_core.common.api.middlewares import errors as errors_mw
 from genesis_core.user_api.api import routes as app_routes
 from genesis_core.user_api.api import versions
-from genesis_core.user_api.iam import drivers
-from genesis_core import version
 
 
 skip_auth_endpoints = [
@@ -115,7 +114,7 @@ def get_openapi_engine():
     return openapi_engine
 
 
-def build_wsgi_application(context_storage, token_algorithm):
+def build_wsgi_application(context_storage, iam_engine_driver):
     return middlewares.attach_middlewares(
         applications.OpenApiApplication(
             route_class=get_api_application(),
@@ -125,11 +124,10 @@ def build_wsgi_application(context_storage, token_algorithm):
             middlewares.configure_middleware(
                 iam_mw.GenesisCoreAuthMiddleware,
                 # service_name="iam",
-                token_algorithm=token_algorithm,
                 context_kwargs={
                     "context_storage": context_storage,
                 },
-                iam_engine_driver=drivers.DirectDriver(),
+                iam_engine_driver=iam_engine_driver,
                 skip_auth_endpoints=skip_auth_endpoints,
             ),
             errors_mw.ErrorsHandlerMiddleware,

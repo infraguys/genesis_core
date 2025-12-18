@@ -238,7 +238,7 @@ class TestClients(base.BaseIamResourceTest):
         return request.param[0]
 
     def test_get_no_scoped_token_success(
-        self, user_api_client, auth_test1_user, hs256_algorithm
+        self, user_api_client, auth_test1_user, decode_id_token
     ):
         client = user_api_client(auth_test1_user)
         token_params = auth_test1_user.get_password_auth_params()
@@ -248,14 +248,12 @@ class TestClients(base.BaseIamResourceTest):
             data=token_params,
         ).json()
 
-        id_token = hs256_algorithm.decode(
-            token_info["id_token"], ignore_audience=True
-        )
+        id_token = decode_id_token(token_info["id_token"])
         assert token_info["scope"] == ""
         assert id_token["project_id"] is None
 
     def test_get_empty_scoped_token_success(
-        self, user_api_client, auth_test1_user, hs256_algorithm
+        self, user_api_client, auth_test1_user, decode_id_token
     ):
         client = user_api_client(auth_test1_user)
         token_params = auth_test1_user.get_password_auth_params()
@@ -266,14 +264,12 @@ class TestClients(base.BaseIamResourceTest):
             data=token_params,
         ).json()
 
-        id_token = hs256_algorithm.decode(
-            token_info["id_token"], ignore_audience=True
-        )
+        id_token = decode_id_token(token_info["id_token"])
         assert token_info["scope"] == ""
         assert id_token["project_id"] is None
 
     def test_get_scoped_token_no_project_no_organization_success(
-        self, user_api_client, auth_test1_user, hs256_algorithm, scope_test
+        self, user_api_client, auth_test1_user, decode_id_token, scope_test
     ):
         client = user_api_client(auth_test1_user)
         token_params = auth_test1_user.get_password_auth_params()
@@ -284,14 +280,12 @@ class TestClients(base.BaseIamResourceTest):
             data=token_params,
         ).json()
 
-        id_token = hs256_algorithm.decode(
-            token_info["id_token"], ignore_audience=True
-        )
+        id_token = decode_id_token(token_info["id_token"])
         assert token_info["scope"] == scope_test
         assert id_token["project_id"] is None
 
     def test_get_scoped_token_no_project_one_organization_success(
-        self, user_api_client, auth_test1_user, hs256_algorithm, scope_test
+        self, user_api_client, auth_test1_user, decode_id_token, scope_test
     ):
         client = user_api_client(auth_test1_user)
         client.create_organization("OrganizationName1")
@@ -303,14 +297,12 @@ class TestClients(base.BaseIamResourceTest):
             data=token_params,
         ).json()
 
-        id_token = hs256_algorithm.decode(
-            token_info["id_token"], ignore_audience=True
-        )
+        id_token = decode_id_token(token_info["id_token"])
         assert token_info["scope"] == scope_test
         assert id_token["project_id"] is None
 
     def test_get_scoped_token_one_project_one_organization_success(
-        self, user_api_client, auth_test1_user, hs256_algorithm, scope_test
+        self, user_api_client, auth_test1_user, decode_id_token, scope_test
     ):
         client = user_api_client(auth_test1_user)
         org = client.create_organization("OrganizationName1")
@@ -325,14 +317,12 @@ class TestClients(base.BaseIamResourceTest):
             data=token_params,
         ).json()
 
-        id_token = hs256_algorithm.decode(
-            token_info["id_token"], ignore_audience=True
-        )
+        id_token = decode_id_token(token_info["id_token"])
         assert token_info["scope"] == scope_test
         assert id_token["project_id"] == project["uuid"]
 
     def test_get_scoped_token_two_project_two_organization_success(
-        self, user_api_client, auth_test1_user, hs256_algorithm, scope_test
+        self, user_api_client, auth_test1_user, decode_id_token, scope_test
     ):
         client = user_api_client(auth_test1_user)
         org1 = client.create_organization("OrganizationName1")
@@ -351,14 +341,12 @@ class TestClients(base.BaseIamResourceTest):
             data=token_params,
         ).json()
 
-        id_token = hs256_algorithm.decode(
-            token_info["id_token"], ignore_audience=True
-        )
+        id_token = decode_id_token(token_info["id_token"])
         assert token_info["scope"] == scope_test
         assert id_token["project_id"] == project["uuid"]
 
     def test_refresh_token_wo_scope_success(
-        self, user_api_client, auth_test1_user, hs256_algorithm
+        self, user_api_client, auth_test1_user, decode_id_token
     ):
         client = user_api_client(auth_test1_user)
         token_params = auth_test1_user.get_password_auth_params()
@@ -376,19 +364,15 @@ class TestClients(base.BaseIamResourceTest):
             },
         ).json()
 
-        first_id_token = hs256_algorithm.decode(
-            token_info["id_token"], ignore_audience=True
-        )
-        second_id_token = hs256_algorithm.decode(
-            refreshed_token_info["id_token"], ignore_audience=True
-        )
+        first_id_token = decode_id_token(token_info["id_token"])
+        second_id_token = decode_id_token(refreshed_token_info["id_token"])
         assert token_info["scope"] == "test"
         assert first_id_token["project_id"] is None
         assert refreshed_token_info["scope"] == "test"
         assert second_id_token["project_id"] is None
 
     def test_refresh_to_scoped_token_one_project_one_organization_success(
-        self, user_api_client, auth_test1_user, hs256_algorithm, scope_test
+        self, user_api_client, auth_test1_user, decode_id_token, scope_test
     ):
         client = user_api_client(auth_test1_user)
         org = client.create_organization("OrganizationName1")
@@ -410,12 +394,8 @@ class TestClients(base.BaseIamResourceTest):
             },
         ).json()
 
-        first_id_token = hs256_algorithm.decode(
-            token_info["id_token"], ignore_audience=True
-        )
-        second_id_token = hs256_algorithm.decode(
-            refreshed_token_info["id_token"], ignore_audience=True
-        )
+        first_id_token = decode_id_token(token_info["id_token"])
+        second_id_token = decode_id_token(refreshed_token_info["id_token"])
         assert token_info["scope"] == ""
         assert first_id_token["project_id"] is None
         assert refreshed_token_info["scope"] == scope_test

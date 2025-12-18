@@ -63,17 +63,16 @@ PARAM_SCOPE_DEFAULT = ""
 
 # Algorithms
 ALGORITHM_HS256 = "HS256"
+ALGORITHM_RS256 = "RS256"
 
 
 # Config section name
 DOMAIN_IAM = "iam"
-DOMAIN_IAM_TOKEN_HS256 = "token_hs256"
 
 
 # Global Storage Keys
 STORAGE_KEY_IAM_GLOBAL_SALT = "iam_global_salt"
-STORAGE_KEY_IAM_TOKEN_ENCRYPTION_ALGORITHM = "iam_token_encryption_algorithm"
-STORAGE_KEY_IAM_TOKEN_HS256_ENCRYPTION_KEY = "iam_token_hs256_encryption_key"
+STORAGE_KEY_IAM_HS256_JWKS_ENCRYPTION_KEY = "iam_hs256_jwks_encryption_key"
 STORAGE_KEY_EVENTS_CLIENT = "events_client"
 
 

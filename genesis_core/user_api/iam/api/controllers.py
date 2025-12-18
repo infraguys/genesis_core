@@ -491,16 +491,9 @@ class IdpController(
     controllers.BaseResourceControllerPaginated,
     EnforceMixin,
 ):
-    __resource__ = resources.ResourceByModelWithCustomProps(
+    __resource__ = resources.ResourceByRAModel(
         models.Idp,
         convert_underscore=False,
-        name_map={"secret": "client_secret"},
-        hidden_fields=resources.HiddenFieldMap(
-            get=["salt", "secret_hash", "secret"],
-            create=["salt", "secret_hash"],
-            update=["salt", "secret_hash"],
-            filter=["salt", "secret_hash", "secret"],
-        ),
     )
 
     def _get_request_params(self, resource):

@@ -16,9 +16,6 @@
 
 import logging
 import sys
-
-from gcl_iam import algorithms
-from gcl_iam import constants as glc_iam_c
 from gcl_looper.services import hub
 from gcl_looper.services import bjoern_service
 from gcl_sdk.events import clients as sdk_clients
@@ -34,6 +31,7 @@ from genesis_core.common import constants as c
 from genesis_core.common import log as infra_log
 from genesis_core.common import utils
 from genesis_core.user_api.iam import constants as iam_c
+from genesis_core.user_api.iam import drivers as iam_drivers
 
 
 api_cli_opts = [
@@ -61,18 +59,9 @@ iam_cli_opts = [
         help="Global salt for IAM passwords",
     ),
     cfg.StrOpt(
-        "token_encryption_algorithm",
-        default="HS256",
-        choices=("HS256",),
-        help="Token encryption algorithm",
-    ),
-]
-
-iam_token_encryption_algorithms = [
-    cfg.StrOpt(
-        "encryption_key",
-        default=c.DEFAULT_HS256_KEY,
-        help="Token encryption key",
+        "hs256_jwks_encryption_key",
+        default=c.DEFAULT_HS256_JWKS_ENCRYPTION_KEY,
+        help="Encryption key for HS256 JWKS secret (A256GCM, 32 bytes)",
     ),
 ]
 
@@ -84,22 +73,8 @@ DOMAIN_IAM = "iam"
 CONF = cfg.CONF
 CONF.register_cli_opts(api_cli_opts, DOMAIN)
 CONF.register_cli_opts(iam_cli_opts, DOMAIN_IAM)
-CONF.register_cli_opts(
-    iam_token_encryption_algorithms,
-    iam_c.DOMAIN_IAM_TOKEN_HS256,
-)
 ra_config_opts.register_posgresql_db_opts(CONF)
 sdk_opts.register_event_opts(CONF)
-
-
-def get_token_encryption_algorithm(conf=CONF):
-    tea_name = conf[DOMAIN_IAM].token_encryption_algorithm
-    if tea_name == glc_iam_c.ALGORITHM_HS256:
-        return algorithms.HS256(
-            key=conf[iam_c.DOMAIN_IAM_TOKEN_HS256].encryption_key,
-        )
-    else:
-        raise ValueError("Unknown token encryption algorithm: {tea_name}")
 
 
 def main():
@@ -114,10 +89,9 @@ def main():
 
     engines.engine_factory.configure_postgresql_factory(CONF)
 
-    token_algorithm = get_token_encryption_algorithm(CONF)
     context_storage = utils.get_context_storage(
         global_salt=CONF[DOMAIN_IAM].global_salt,
-        token_algorithm=token_algorithm,
+        hs256_jwks_encryption_key=CONF[DOMAIN_IAM].hs256_jwks_encryption_key,
         events_client=sdk_clients.build_client(CONF),
     )
 
@@ -130,10 +104,11 @@ def main():
     serv_hub = hub.ProcessHubService()
 
     for _ in range(CONF[DOMAIN].workers):
+        iam_engine_driver = iam_drivers.DirectDriver()
         service = bjoern_service.BjoernService(
             wsgi_app=app.build_wsgi_application(
                 context_storage=context_storage,
-                token_algorithm=token_algorithm,
+                iam_engine_driver=iam_engine_driver,
             ),
             host=CONF[DOMAIN].bind_host,
             port=CONF[DOMAIN].bind_port,

@@ -51,10 +51,7 @@ from genesis_core.user_api.iam.dm import types
 
 class KindModelSelectorType(ra_types_dynamic.KindModelSelectorType):
     def get_kind_types(self):
-        return [
-            self._kind_type_map[k]
-            for k in sorted(self._kind_type_map)
-        ]
+        return self._kind_type_map[k]
 
 
 class ModelWithSecret(models.Model, models.CustomPropertiesMixin):
@@ -797,6 +794,48 @@ class HS256SignatureAlgorithm(ra_types_dynamic.AbstractKindModel):
         self.update_secret_uuid(new_secret.uuid)
 
 
+class RS256SignatureAlgorithm(ra_types_dynamic.AbstractKindModel):
+    KIND = "RS256"
+
+    secret_uuid = properties.property(
+        ra_types.UUID(),
+        required=True,
+    )
+
+    previous_secret_uuid = properties.property(
+        ra_types.AllowNone(ra_types.UUID()),
+        default=None,
+    )
+
+    @property
+    def secret(self):
+        return secret_models.RSAKey.objects.get_one(
+            filters={"uuid": str(self.secret_uuid)}
+        )
+
+    @property
+    def previous_secret(self):
+        if self.previous_secret_uuid is None:
+            return None
+
+        return secret_models.RSAKey.objects.get_one(
+            filters={"uuid": str(self.previous_secret_uuid)}
+        )
+
+    def safe_update_secret_uuid(self, new_secret_uuid):
+        self.previous_secret_uuid = self.secret_uuid
+        self.secret_uuid = new_secret_uuid
+
+    def force_update_secret_uuid(self, new_secret_uuid):
+        self.secret_uuid = new_secret_uuid
+
+    def safe_update_secret(self, new_secret):
+        self.safe_update_secret_uuid(new_secret.uuid)
+
+    def force_update_secret(self, new_secret):
+        self.force_update_secret_uuid(new_secret.uuid)
+
+
 class IamClient(
     models.ModelWithUUID,
     models.ModelWithRequiredNameDesc,
@@ -819,6 +858,7 @@ class IamClient(
     signature_algorithm = properties.property(
         KindModelSelectorType(
             ra_types_dynamic.KindModelType(HS256SignatureAlgorithm),
+            ra_types_dynamic.KindModelType(RS256SignatureAlgorithm),
         ),
         default=HS256SignatureAlgorithm,
     )
@@ -976,18 +1016,103 @@ class IamClient(
         user.send_reset_password_event(app_endpoint=app_endpoint)
 
     def get_token_algorithm(self):
-        secret = self.signature_algorithm.secret
-        previous_secret = self.signature_algorithm.previous_secret
+        if self.signature_algorithm.kind == iam_c.ALGORITHM_HS256:
+            secret = self.signature_algorithm.secret
+            previous_secret = self.signature_algorithm.previous_secret
 
-        return algorithms.HS256(
-            key=secret.value,
-            previous_key=(
-                None if previous_secret is None else previous_secret.value
-            ),
+            return algorithms.HS256(
+                key=secret.value,
+                previous_key=(
+                    None if previous_secret is None else previous_secret.value
+                ),
+            )
+
+        if self.signature_algorithm.kind == iam_c.ALGORITHM_RS256:
+            secret = self.signature_algorithm.secret
+            previous_secret = self.signature_algorithm.previous_secret
+
+            return algorithms.RS256(
+                private_key=secret.private_key,
+                public_key=secret.public_key,
+                previous_public_key=(
+                    None
+                    if previous_secret is None
+                    else previous_secret.public_key
+                ),
+            )
+
+        raise ValueError(
+            f"Unknown signature algorithm: {self.signature_algorithm.kind}"
         )
 
     def get_jwks(self):
-        return {"keys": []}
+        if self.signature_algorithm.kind == iam_c.ALGORITHM_HS256:
+            ctx = contexts.get_context()
+            storage = ctx.context_storage
+            encryption_key = storage.get(
+                iam_c.STORAGE_KEY_IAM_HS256_JWKS_ENCRYPTION_KEY
+            )
+
+            secret = self.signature_algorithm.secret
+            previous_secret = self.signature_algorithm.previous_secret
+
+            keys = []
+            keys.append(
+                {
+                    "kty": "oct",
+                    "alg": iam_c.ALGORITHM_HS256,
+                    "use": "sig",
+                    "kid": str(secret.uuid),
+                    "k": algorithms.encrypt_hs256_jwks_secret(
+                        secret=secret.value,
+                        encryption_key=encryption_key,
+                    ),
+                }
+            )
+
+            if previous_secret is not None:
+                keys.append(
+                    {
+                        "kty": "oct",
+                        "alg": iam_c.ALGORITHM_HS256,
+                        "use": "sig",
+                        "kid": str(previous_secret.uuid),
+                        "k": algorithms.encrypt_hs256_jwks_secret(
+                            secret=previous_secret.value,
+                            encryption_key=encryption_key,
+                        ),
+                    }
+                )
+
+            result = {"keys": keys}
+
+        elif self.signature_algorithm.kind == iam_c.ALGORITHM_RS256:
+            secret = self.signature_algorithm.secret
+            previous_secret = self.signature_algorithm.previous_secret
+
+            keys = []
+            keys.append(
+                algorithms.public_pem_to_jwk(
+                    public_key_pem=secret.public_key,
+                )
+            )
+
+            if previous_secret is not None:
+                keys.append(
+                    algorithms.public_pem_to_jwk(
+                        public_key_pem=previous_secret.public_key,
+                    )
+                )
+
+            result = {"keys": keys}
+
+        else:
+            raise ValueError(
+                f"Unknown signature algorithm: {self.signature_algorithm.kind}"
+            )
+
+        result["algorithm"] = self.signature_algorithm.kind
+        return result
 
 
 class Token(
@@ -1085,17 +1210,6 @@ class Token(
         if project is None and scope:
             project = self._get_project_by_scope(user, scope)
         super().__init__(user=user, project=project, scope=scope, **kwargs)
-
-    def _get_key_by_encryption_algorithm(self, algorithm):
-        ctx = contexts.get_context()
-        storage = ctx.context_storage
-        if algorithm == iam_c.ALGORITHM_HS256:
-            return {
-                "key": storage.get(
-                    iam_c.STORAGE_KEY_IAM_TOKEN_HS256_ENCRYPTION_KEY
-                )
-            }
-        raise iam_e.IncorrectEncriptionAlgorithmError(algorithm=algorithm)
 
     def check_refresh_expiration(self):
         now = datetime.datetime.now(datetime.timezone.utc)
@@ -1268,7 +1382,6 @@ class Idp(
     models.ModelWithUUID,
     models.ModelWithRequiredNameDesc,
     models.ModelWithTimestamp,
-    ModelWithSecret,
     ModelWithAlwaysActiveStatus,
     orm.SQLStorableMixin,
 ):
@@ -1284,10 +1397,6 @@ class Idp(
         prefetch=True,
         required=True,
     )
-    client_id = properties.property(
-        ra_types.String(max_length=64),
-        required=True,
-    )
     scope = properties.property(
         ra_types.String(max_length=64),
         default="openid",
@@ -1296,6 +1405,14 @@ class Idp(
         ra_types.String(max_length=256),
         required=True,
     )
+
+    @property
+    def client_id(self):
+        return self.iam_client.client_id
+
+    @property
+    def client_secret(self):
+        return self.iam_client.secret
 
     @property
     def well_known_endpoint(self):
