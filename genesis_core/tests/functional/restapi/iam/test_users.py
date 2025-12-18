@@ -475,7 +475,7 @@ class TestUsers(base.BaseIamResourceTest):
             ("phone", None, pytest.raises(bazooka_exc.BaseHTTPException)),
             ("username", "wrong", pytest.raises(bazooka_exc.BadRequestError)),
             ("username", "", pytest.raises(bazooka_exc.BadRequestError)),
-            ("null", None, pytest.raises(bazooka_exc.NotFoundError)),
+            ("null", None, pytest.raises(bazooka_exc.BadRequestError)),
         ],
     )
     def test_auth_with_login(
