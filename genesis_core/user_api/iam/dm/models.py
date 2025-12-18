@@ -1077,7 +1077,19 @@ class IamClient(
             token.insert()
             return token
 
-        raise iam_exceptions.UserNotFound()
+        # Security hardening:
+        # - Do not reveal whether a user exists (prevent username enumeration).
+        # - Reduce timing differences between "user not found" and "wrong password".
+        # For missing users we run the same PBKDF2 routine with a fixed salt and then
+        # raise the same "invalid credentials" exception.
+        self._generate_hash(
+            secret=password or "",
+            secret_salt=iam_c.DUMMY_PBKDF2_SALT,
+            global_salt=contexts.get_context().context_storage.get(
+                iam_c.STORAGE_KEY_IAM_GLOBAL_SALT
+            ),
+        )
+        raise iam_e.CredentialsAreInvalidError()
 
     def get_token_by_password(self, username, **kwargs):
         """
