@@ -61,6 +61,11 @@ USER_CONFIRMATION_CODE_TTL = timedelta(hours=1)
 PARAM_SCOPE_DEFAULT = ""
 
 
+# Used for dummy PBKDF2 hash computation when user is missing to reduce timing
+# differences and prevent username enumeration in password-grant flow.
+DUMMY_PBKDF2_SALT = "AAAAAAAAAAAAAAAAAAAAAAAA"
+
+
 # Algorithms
 ALGORITHM_HS256 = "HS256"
 ALGORITHM_RS256 = "RS256"
