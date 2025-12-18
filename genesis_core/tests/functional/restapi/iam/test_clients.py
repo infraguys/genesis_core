@@ -202,6 +202,7 @@ class TestClients(base.BaseIamResourceTest):
 
         assert token_info["refresh_expires_in"] == 1
 
+<<<<<<< HEAD
     def test_logout_deletes_token_from_db(
         self, user_api_client, auth_test1_user
     ):
@@ -249,6 +250,31 @@ class TestClients(base.BaseIamResourceTest):
                 url=auth_test1_user.get_token_url(endpoint=client.endpoint),
                 data=token_params,
             )
+=======
+    def test_get_token_invalid_credentials_no_user_and_wrong_password_same_error(
+        self, user_api_client, auth_test1_user
+    ):
+        client = user_api_client(auth_test1_user)
+        url = auth_test1_user.get_token_url(endpoint=client.endpoint)
+
+        no_user_params = auth_test1_user.get_password_auth_params()
+        no_user_params["username"] = "user_does_not_exist"
+        no_user_params["password"] = "obviously-wrong-password"
+
+        wrong_password_params = auth_test1_user.get_password_auth_params()
+        wrong_password_params["password"] = "obviously-wrong-password"
+
+        with pytest.raises(bazooka_exc.BadRequestError) as no_user_exc:
+            client.post(url=url, data=no_user_params)
+        with pytest.raises(bazooka_exc.BadRequestError) as wrong_password_exc:
+            client.post(url=url, data=wrong_password_params)
+
+        assert type(no_user_exc.value) is type(wrong_password_exc.value)
+        assert not isinstance(no_user_exc.value, bazooka_exc.NotFoundError)
+        assert not isinstance(
+            wrong_password_exc.value, bazooka_exc.NotFoundError
+        )
+>>>>>>> 981ebe0 (security(iam): prevent user enumeration in get_token)
 
     @pytest.fixture(
         scope="function",
