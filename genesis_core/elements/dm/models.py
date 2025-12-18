@@ -14,12 +14,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import re
+from functools import partial
 import logging
 import enum
-import yaml
+import re
 import typing as tp
 import uuid as sys_uuid
+import yaml
 
 from gcl_sdk.agents.universal.dm import models as sdk_models
 from gcl_sdk.agents.universal import utils as sdk_utils
@@ -562,6 +563,8 @@ class Resource(
         default="",
     )
 
+    __inline_vars_regex__ = re.compile(r"[\\]{0,1}\{(.*?)}")
+
     def get_uri(self):
         version_prefix = ""
         if self.element.api_version:
@@ -616,6 +619,28 @@ class Resource(
             return self.render_target_state()
         return self.actual_resource.value
 
+    # Support inplace vars with f"" syntax
+    def _fstring_replacement_callback(self, match, engine):
+        # Just remove escape syntax
+        if match.group(0).startswith("\\{") and match.group(0)[-1] == "}":
+            return match.group(0)[1:]
+        var = match.group(1)
+        link = utils.ResourceLink(var)
+        try:
+            resource = engine.get_resource_by_link(
+                element=self.element,
+                link=link.location,
+            )
+            value = resource.get_parameter_value(
+                parameter=link.parameter,
+            )
+            return str(value)
+        except ValueError as e:
+            raise ValueError(
+                f"Can't render value `{var}` for resource"
+                f" `{repr(self)}` by reason: {e}"
+            )
+
     def _render_value(self, value, engine):
         if value.startswith("$"):
             link = utils.ResourceLink(value)
@@ -632,6 +657,13 @@ class Resource(
                     f"Can't render value `{value}` for resource"
                     f" `{repr(self)}` by reason: {e}"
                 )
+        elif value.startswith('f"'):
+            return re.sub(
+                self.__inline_vars_regex__,
+                partial(self._fstring_replacement_callback, engine=engine),
+                value[2:-1],
+            )
+
         return value
 
     def _recursive_render(self, data, engine):
