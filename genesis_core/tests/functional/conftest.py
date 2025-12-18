@@ -23,6 +23,7 @@ import uuid as sys_uuid
 import pytest
 import netaddr
 from gcl_iam import algorithms
+from gcl_iam import tokens
 from gcl_iam.tests.functional import clients as iam_clients
 from gcl_sdk.events import clients as sdk_clients
 
@@ -38,26 +39,35 @@ from genesis_core.config.dm import models as conf_models
 from genesis_core.config import constants as cc
 from genesis_core.secret import constants as sc
 from genesis_core.secret.dm import models as secret_models
+from genesis_core.user_api.iam import drivers as user_drivers
 from genesis_core.user_api.iam.dm import models as iam_models
 
 FIRST_MIGRATION = "0000-root-d34de1.py"
 
 
 @pytest.fixture(scope="session")
-def hs256_algorithm():
-    secret = os.getenv("HS256_KEY", c.DEFAULT_HS256_KEY)
-    return algorithms.HS256(key=secret)
+def context_storage():
+    hs256_jwks_encryption_key = os.getenv(
+        "HS256_JWKS_ENCRYPTION_KEY",
+        c.DEFAULT_HS256_JWKS_ENCRYPTION_KEY,
+    )
+    return utils.get_context_storage(
+        global_salt=os.getenv("GLOBAL_SALT", c.DEFAULT_GLOBAL_SALT),
+        hs256_jwks_encryption_key=hs256_jwks_encryption_key,
+        events_client=sdk_clients.DummyEventClient(),
+    )
 
 
 @pytest.fixture(scope="session")
-def context_storage(
-    hs256_algorithm: algorithms.AbstractAlgorithm,
-):
-    return utils.get_context_storage(
-        global_salt=os.getenv("GLOBAL_SALT", c.DEFAULT_GLOBAL_SALT),
-        token_algorithm=hs256_algorithm,
-        events_client=sdk_clients.DummyEventClient(),
-    )
+def decode_id_token():
+    driver = user_drivers.DirectDriver()
+
+    def _decode(token: str):
+        unverified = tokens.UnverifiedToken(token)
+        algorithm = driver.get_algorithm(unverified)
+        return algorithm.decode(token, ignore_audience=True)
+
+    return _decode
 
 
 @pytest.fixture(scope="session")
@@ -86,12 +96,14 @@ def default_client_uuid():
 
 
 @pytest.fixture(scope="module")
-def user_api_service(hs256_algorithm, context_storage):
+def user_api_service(context_storage):
+    iam_engine_driver = user_drivers.DirectDriver()
+
     class ApiRestService(test_utils.RestServiceTestCase):
         __FIRST_MIGRATION__ = FIRST_MIGRATION
         __APP__ = user_app.build_wsgi_application(
             context_storage=context_storage,
-            token_algorithm=hs256_algorithm,
+            iam_engine_driver=iam_engine_driver,
         )
 
     rest_service = ApiRestService()
@@ -291,11 +303,11 @@ def user_api_client(user_api, auth_user_admin):
         project_id: str = None,
     ):
         permissions = permissions or []
-        client = iam_clients.GenesisCoreTestRESTClient(
+        client = iam_clients.GenericAutoRefreshRESTClient(
             f"{user_api.get_endpoint()}v1/",
             auth,
         )
-        admin_client = iam_clients.GenesisCoreTestRESTClient(
+        admin_client = iam_clients.GenericAutoRefreshRESTClient(
             f"{user_api.get_endpoint()}v1/",
             auth_user_admin,
         )
