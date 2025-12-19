@@ -202,7 +202,6 @@ class TestClients(base.BaseIamResourceTest):
 
         assert token_info["refresh_expires_in"] == 1
 
-<<<<<<< HEAD
     def test_logout_deletes_token_from_db(
         self, user_api_client, auth_test1_user
     ):
@@ -250,7 +249,7 @@ class TestClients(base.BaseIamResourceTest):
                 url=auth_test1_user.get_token_url(endpoint=client.endpoint),
                 data=token_params,
             )
-=======
+
     def test_get_token_invalid_credentials_no_user_and_wrong_password_same_error(
         self, user_api_client, auth_test1_user
     ):
@@ -274,7 +273,6 @@ class TestClients(base.BaseIamResourceTest):
         assert not isinstance(
             wrong_password_exc.value, bazooka_exc.NotFoundError
         )
->>>>>>> 981ebe0 (security(iam): prevent user enumeration in get_token)
 
     @pytest.fixture(
         scope="function",
