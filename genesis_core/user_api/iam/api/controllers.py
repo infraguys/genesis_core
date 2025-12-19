@@ -366,6 +366,33 @@ class OrganizationMemberController(
         convert_underscore=False,
     )
 
+    def create(self, organization, **kwargs):
+        if not (
+            organization.are_i_owner()
+            or self.enforce(c.PERMISSION_ORGANIZATION_WRITE_ALL)
+        ):
+            raise iam_e.CanNotUpdateOrganization(name=organization.name)
+
+        return super().create(organization=organization, **kwargs)
+
+    def update(self, uuid, **kwargs):
+        member = super().get(uuid)
+        organization = member.organization
+        if organization.are_i_owner() or self.enforce(
+            c.PERMISSION_ORGANIZATION_WRITE_ALL
+        ):
+            return super().update(uuid, **kwargs)
+        raise iam_e.CanNotUpdateOrganization(name=organization.name)
+
+    def delete(self, uuid):
+        member = super().get(uuid)
+        organization = member.organization
+        if organization.are_i_owner() or self.enforce(
+            c.PERMISSION_ORGANIZATION_WRITE_ALL
+        ):
+            return super().delete(uuid)
+        raise iam_e.CanNotUpdateOrganization(name=organization.name)
+
 
 class ProjectController(
     controllers.BaseResourceControllerPaginated, EnforceMixin
@@ -375,8 +402,17 @@ class ProjectController(
         convert_underscore=False,
     )
 
-    def create(self, **kwargs):
-        project = super().create(**kwargs)
+    def create(self, organization, **kwargs):
+        if not (
+            organization.are_i_owner()
+            or self.enforce(c.PERMISSION_PROJECT_WRITE_ALL)
+            or self.enforce(c.PERMISSION_ORGANIZATION_WRITE_ALL)
+        ):
+            raise iam_e.CanNotCreateProjectInOrganization(
+                uuid=organization.uuid
+            )
+
+        project = super().create(organization=organization, **kwargs)
         project.add_owner(models.User.me())
         return project
 
