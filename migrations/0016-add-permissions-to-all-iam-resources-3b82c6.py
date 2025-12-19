@@ -1,4 +1,5 @@
 # Copyright 2016 Eugene Frolov <eugene@frolov.net.ru>
+# Copyright 2025 Genesis Corporation
 #
 # All Rights Reserved.
 #
@@ -190,6 +191,15 @@ class MigrationStep(migrations.AbstarctMigrationStep):
     def upgrade(self, session):
         self._create_permissions(session)
 
+    def _delete_permission_bindings(self, session):
+        for permission_uuid in PERMISSION_UUIDS.values():
+            session.execute(
+                f"""
+                DELETE FROM iam_binding_permissions
+                WHERE permission = '{permission_uuid}';
+            """
+            )
+
     def _delete_permissions(self, session):
         for permission_uuid in PERMISSION_UUIDS.values():
             session.execute(
@@ -200,6 +210,7 @@ class MigrationStep(migrations.AbstarctMigrationStep):
             )
 
     def downgrade(self, session):
+        self._delete_permission_bindings(session)
         self._delete_permissions(session)
 
 
