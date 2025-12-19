@@ -21,6 +21,7 @@ import pytest
 
 from genesis_core.common import constants as common_c
 from genesis_core.tests.functional.restapi.iam import base
+from genesis_core.user_api.iam import constants as c
 
 
 class TestProjects(base.BaseIamResourceTest):
@@ -118,6 +119,56 @@ class TestProjects(base.BaseIamResourceTest):
         org = client.create_organization(name="TestOrganization")
 
         project = client.create_project(
+            uuid=str(sys_uuid.uuid4()),
+            organization_uuid=org["uuid"],
+            name="TestProject",
+        )
+
+        assert project["name"] == "TestProject"
+
+    @pytest.mark.sec_issue_10110_997
+    def test_create_project_in_foreign_organization_forbidden(
+        self,
+        user_api_client,
+        auth_test1_user,
+        auth_test2_user,
+    ):
+        owner_client = user_api_client(auth_test1_user)
+        foreign_client = user_api_client(auth_test2_user)
+
+        org = owner_client.create_organization(name="TestOrganization")
+
+        with pytest.raises(bazooka_exc.ForbiddenError):
+            foreign_client.create_project(
+                uuid=str(sys_uuid.uuid4()),
+                organization_uuid=org["uuid"],
+                name="TestProject",
+            )
+
+    @pytest.mark.sec_issue_10110_997
+    @pytest.mark.parametrize(
+        "permissions",
+        [
+            [c.PERMISSION_PROJECT_WRITE_ALL],
+            [c.PERMISSION_ORGANIZATION_WRITE_ALL],
+        ],
+    )
+    def test_create_project_in_foreign_organization_allowed_with_global_perm(
+        self,
+        user_api_client,
+        auth_test1_user,
+        auth_test2_user,
+        permissions,
+    ):
+        owner_client = user_api_client(auth_test1_user)
+        foreign_client = user_api_client(
+            auth_test2_user,
+            permissions=permissions,
+        )
+
+        org = owner_client.create_organization(name="TestOrganization")
+
+        project = foreign_client.create_project(
             uuid=str(sys_uuid.uuid4()),
             organization_uuid=org["uuid"],
             name="TestProject",
