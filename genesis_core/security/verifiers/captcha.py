@@ -68,5 +68,6 @@ class CaptchaVerifier(AbstractVerifier):
         )
 
         if not verified:
+            log.debug("CAPTCHA verification failed: %s", error)
             raise iam_exceptions.CaptchaValidationFailed()
 

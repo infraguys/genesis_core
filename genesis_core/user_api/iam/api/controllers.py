@@ -15,7 +15,6 @@
 #    under the License.
 
 import errno
-import logging
 from os import path as os_path
 import mimetypes
 import re
@@ -39,9 +38,6 @@ from genesis_core.user_api.iam.clients import idp
 from genesis_core.user_api.iam.dm import models
 from genesis_core.user_api.iam import constants as c
 from genesis_core.user_api.iam import exceptions as iam_e
-
-
-log = logging.getLogger(__name__)
 
 
 class EnforceMixin:

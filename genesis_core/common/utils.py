@@ -41,7 +41,7 @@ def load_from_entry_point(group: str, name: str) -> tp.Any:
     raise RuntimeError(f"No class '{name}' found in entry points {group}")
 
 
-def load_group_from_entry_point(group: str) -> tp.Any:
+def load_group_from_entry_point(group: str) -> tp.List[tp.Any]:
     """Load all entry points from a group. Compatible with Python 3.8+."""
     try:
         # Python 3.10+ supports filtering by group
