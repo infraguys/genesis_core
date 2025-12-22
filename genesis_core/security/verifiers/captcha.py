@@ -59,22 +59,14 @@ class CaptchaVerifier(AbstractVerifier):
     def verify(self, request) -> None:
         payload = self._get_payload_from_request(request)
         if not payload:
-            raise iam_exceptions.CanNotCreateUser(message="Invalid CAPTCHA payload")
+            raise iam_exceptions.CaptchaValidationFailed()
 
-        hmac_key = self.config.get("hmac_key")
-        if not hmac_key:
-            raise iam_exceptions.CanNotCreateUser(message="CAPTCHA hmac_key not configured in rule")
+        verified, error = altcha.verify_solution(
+            payload,
+            hmac_key=self.config.get("hmac_key"),
+            check_expires=True,
+        )
 
-        try:
-            verified, error = altcha.verify_solution(
-                payload,
-                hmac_key=hmac_key,
-                check_expires=True,
-            )
-        except (ValueError, TypeError, KeyError) as e:
-            log.debug("CAPTCHA verification failed: %s", e)
-            raise iam_exceptions.CanNotCreateUser(message="CAPTCHA verification failed.")
-        
         if not verified:
-            raise iam_exceptions.CanNotCreateUser(message=error or "CAPTCHA verification failed")
+            raise iam_exceptions.CaptchaValidationFailed()
 

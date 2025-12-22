@@ -1162,17 +1162,14 @@ class IamClient(
 
     def get_validation_rules(self):
         """Returns normalized validation rule objects."""
-        if not self.rules:
-            return []
-        
         rules = []
         for rule_model in self.rules:
             kind = rule_model.kind
-            cache = type(self)._verifier_cache
+            cache = self._verifier_cache
             if kind not in cache:
-                cache[kind] = u.load_from_entry_point(ENTRY_POINT_GROUP, kind)
-            verifier_cls = cache[kind]
-            rules.append(ValidationRule(rule_model, verifier_cls))
+                verifier_cls = u.load_from_entry_point(ENTRY_POINT_GROUP, kind)
+                cache[kind] = verifier_cls
+            rules.append(ValidationRule(rule_model, cache[kind]))
         
         return rules
 

@@ -289,9 +289,10 @@ class TestClientUserCreation(base.BaseIamResourceTest):
             headers=headers,
         )
 
-        assert response.status_code == 403
+        assert response.status_code == 400
         error_data = response.json()
-        assert "CanNotCreateUser" in error_data.get("type", "")
+        error_description = error_data.get("error_description", "")
+        assert 'The provided credentials are invalid' in  error_description
 
     def test_create_user_admin_bypass_user_not_in_list_forbidden(
         self, user_api, auth_test2_user,
@@ -311,20 +312,18 @@ class TestClientUserCreation(base.BaseIamResourceTest):
 
         assert response.status_code == 403
         error_data = response.json()
-        assert "CanNotCreateUser" in error_data.get("type", "")
-        assert "not allowed to bypass" in error_data.get("message", "").lower()
+        err_type = error_data.get("type", "")
+        assert "AdminBypassValidationFailed" in err_type
 
     @mock.patch("genesis_core.security.verifiers.firebase_app_check.app_check")
     @mock.patch("genesis_core.security.verifiers.firebase_app_check.credentials")
-    @mock.patch("genesis_core.security.verifiers.firebase_app_check.os.path.exists")
     @mock.patch("genesis_core.security.verifiers.firebase_app_check.firebase_admin")
     def test_create_user_firebase_app_check_success(
-        self, mock_firebase_admin, mock_exists, mock_credentials, mock_app_check, user_api,
+        self, mock_firebase_admin, mock_credentials, mock_app_check, user_api,
         iam_client_with_firebase_app_check_rule
     ):
         if firebase_exceptions is None:
             pytest.skip("firebase-admin is not installed")
-        mock_exists.return_value = True
         mock_cred = mock.MagicMock()
         mock_credentials.Certificate.return_value = mock_cred
         mock_app = mock.MagicMock()
@@ -350,15 +349,13 @@ class TestClientUserCreation(base.BaseIamResourceTest):
 
     @mock.patch("genesis_core.security.verifiers.firebase_app_check.app_check")
     @mock.patch("genesis_core.security.verifiers.firebase_app_check.credentials")
-    @mock.patch("genesis_core.security.verifiers.firebase_app_check.os.path.exists")
     @mock.patch("genesis_core.security.verifiers.firebase_app_check.firebase_admin")
     def test_create_user_firebase_app_check_invalid_token_forbidden(
-        self, mock_firebase_admin, mock_exists, mock_credentials, mock_app_check, user_api,
+        self, mock_firebase_admin, mock_credentials, mock_app_check, user_api,
         iam_client_with_firebase_app_check_rule
     ):
         if firebase_exceptions is None:
             pytest.skip("firebase-admin is not installed")
-        mock_exists.return_value = True
         mock_cred = mock.MagicMock()
         mock_credentials.Certificate.return_value = mock_cred
         mock_app = mock.MagicMock()
@@ -380,8 +377,8 @@ class TestClientUserCreation(base.BaseIamResourceTest):
 
         assert response.status_code == 403
         error_data = response.json()
-        assert "CanNotCreateUser" in error_data.get("type", "")
-        assert "firebase" in error_data.get("message", "").lower()
+        err_type = error_data.get("type", "")
+        assert "FirebaseAppCheckValidationFailed" in err_type
         mock_app_check.verify_token.assert_called_once()
 
     @mock.patch("genesis_core.security.verifiers.captcha.altcha")
@@ -440,9 +437,7 @@ class TestClientUserCreation(base.BaseIamResourceTest):
 
         assert response.status_code == 403
         error_data = response.json()
-        assert "CanNotCreateUser" in error_data.get("type", "")
-        error_message = error_data.get("message", "").lower()
-        assert "invalid" in error_message or "challenge" in error_message or "captcha" in error_message
+        assert "CaptchaValidationFailed" in error_data.get("type", "")
         mock_altcha.verify_solution.assert_called_once()
 
     def test_create_user_captcha_invalid_payload_forbidden(
@@ -462,18 +457,15 @@ class TestClientUserCreation(base.BaseIamResourceTest):
 
         assert response.status_code == 403
         error_data = response.json()
-        assert "CanNotCreateUser" in error_data.get("type", "")
-        assert "captcha" in error_data.get("message", "").lower()
+        assert "CaptchaValidationFailed" in error_data.get("type", "")
 
     @mock.patch("genesis_core.security.verifiers.firebase_app_check.app_check")
     @mock.patch("genesis_core.security.verifiers.firebase_app_check.credentials")
-    @mock.patch("genesis_core.security.verifiers.firebase_app_check.os.path.exists")
     @mock.patch("genesis_core.security.verifiers.firebase_app_check.firebase_admin")
     def test_create_user_firebase_app_check_allowed_app_id_success(
-        self, mock_firebase_admin, mock_exists, mock_credentials, mock_app_check, user_api,
+        self, mock_firebase_admin, mock_credentials, mock_app_check, user_api,
         iam_client_with_firebase_app_check_rule
     ):
-        mock_exists.return_value = True
         mock_cred = mock.MagicMock()
         mock_credentials.Certificate.return_value = mock_cred
         mock_app = mock.MagicMock()
@@ -499,13 +491,11 @@ class TestClientUserCreation(base.BaseIamResourceTest):
 
     @mock.patch("genesis_core.security.verifiers.firebase_app_check.app_check")
     @mock.patch("genesis_core.security.verifiers.firebase_app_check.credentials")
-    @mock.patch("genesis_core.security.verifiers.firebase_app_check.os.path.exists")
     @mock.patch("genesis_core.security.verifiers.firebase_app_check.firebase_admin")
     def test_create_user_firebase_app_check_no_allowed_apps_success(
-        self, mock_firebase_admin, mock_exists, mock_credentials, mock_app_check, user_api,
+        self, mock_firebase_admin, mock_credentials, mock_app_check, user_api,
         iam_client_with_firebase_app_check_rule_no_allowed_apps
     ):
-        mock_exists.return_value = True
         mock_cred = mock.MagicMock()
         mock_credentials.Certificate.return_value = mock_cred
         mock_app = mock.MagicMock()

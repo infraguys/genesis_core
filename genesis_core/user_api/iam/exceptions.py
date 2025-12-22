@@ -182,3 +182,24 @@ class CanNotCreateUser(
     iam_exc.Forbidden,
 ):
     __template__ = "User creation failed: {message}"
+
+
+class AdminBypassValidationFailed(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = "Admin bypass validation failed."
+
+
+class CaptchaValidationFailed(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = "CAPTCHA validation failed."
+
+
+class FirebaseAppCheckValidationFailed(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = "Firebase App Check verification failed: {message}"

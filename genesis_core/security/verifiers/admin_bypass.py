@@ -51,9 +51,6 @@ class AdminBypassVerifier(AbstractVerifier):
         token_algorithm = ctx.context_storage.get(
             iam_c.STORAGE_KEY_IAM_TOKEN_ENCRYPTION_ALGORITHM
         )
-        if not token_algorithm:
-            raise iam_exceptions.CanNotCreateUser(message="Token algorithm is not configured")
-
         auth_header = request.headers.get("Authorization", "")
 
         try:
@@ -69,10 +66,10 @@ class AdminBypassVerifier(AbstractVerifier):
             user = token.user
         except (iam_e.InvalidAuthTokenError, iam_e.CredentialsAreInvalidError) as e:
             log.debug("Admin bypass verification failed: token expired or invalid: %s", e)
-            raise iam_exceptions.CanNotCreateUser(message="Token expired or invalid")
+            raise
         except (ra_e.NotFoundError, ValueError, TypeError, KeyError, AttributeError) as e:
             log.debug("Admin bypass verification failed during token processing: %s", e)
-            raise iam_exceptions.CanNotCreateUser(message="Admin bypass verification failed")
+            raise
 
         if any(role.name.lower() == "admin" for role in user.get_my_roles().get_roles()):
             return
@@ -82,6 +79,6 @@ class AdminBypassVerifier(AbstractVerifier):
         if (user.email and user.email.lower() in bypass_list) or str(user.uuid).lower() in bypass_list:
             return
 
-        raise iam_exceptions.CanNotCreateUser(message="User is not allowed to bypass validation")
+        raise iam_exceptions.AdminBypassValidationFailed()
 
 

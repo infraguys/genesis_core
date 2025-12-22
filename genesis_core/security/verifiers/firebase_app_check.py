@@ -15,7 +15,6 @@
 #    under the License.
 
 import logging
-import os
 from typing import Any
 
 from genesis_core.security.interfaces import AbstractVerifier
@@ -55,10 +54,9 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
     def __init__(self, config: dict[str, Any] = None):
         self.config = config or {}
         self._app = None
-        self._initialized = False
 
     def _initialize_firebase(self):
-        if self._initialized:
+        if self._app is not None:
             return
 
         if firebase_admin is None:
@@ -66,21 +64,18 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
 
         try:
             self._app = firebase_admin.get_app()
-            self._initialized = True
             return
         except ValueError:
-            pass
+            credentials_path = self.config.get("credentials_path")
+            if not credentials_path:
+                raise ValueError("Firebase credentials_path is required in config")
 
-        credentials_path = self.config.get("credentials_path")
-        if not credentials_path:
-            raise ValueError("Firebase credentials_path is required in config")
+            try:
+                cred = credentials.Certificate(credentials_path)
+            except FileNotFoundError:
+                raise ValueError(f"Firebase credentials file not found: {credentials_path}")
 
-        if not os.path.exists(credentials_path):
-            raise ValueError(f"Firebase credentials file not found: {credentials_path}")
-
-        cred = credentials.Certificate(credentials_path)
-        self._app = firebase_admin.initialize_app(cred)
-        self._initialized = True
+            self._app = firebase_admin.initialize_app(cred)
 
     def can_handle(self, request) -> bool:
         return any(request.headers.get(h) for h in self.FIREBASE_HEADERS)
@@ -96,23 +91,31 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
         self._initialize_firebase()
         token = self._get_token_from_request(request)
         if not token:
-            raise iam_exceptions.CanNotCreateUser(message="Firebase App Check token not found")
+            raise iam_exceptions.FirebaseAppCheckValidationFailed(
+                message="Firebase App Check token not found."
+            )
 
         try:
             app_check_token = app_check.verify_token(token, app=self._app)
         except firebase_exceptions.InvalidArgumentError as e:
-            log.debug("Invalid Firebase App Check token: %s", e)
-            raise iam_exceptions.CanNotCreateUser(message="Invalid Firebase App Check token.")
+            raise iam_exceptions.FirebaseAppCheckValidationFailed(
+                message="Invalid App Check token."
+            ) from e
         except firebase_exceptions.PermissionDeniedError as e:
-            log.debug("Firebase App Check permission denied: %s", e)
-            raise iam_exceptions.CanNotCreateUser(message="Firebase App Check permission denied.")
+            raise iam_exceptions.FirebaseAppCheckValidationFailed(
+                message="App Check verification failed: permission denied."
+            ) from e
         except firebase_exceptions.FirebaseError as e:
-            log.debug("Firebase App Check verification failed: %s", e)
-            raise iam_exceptions.CanNotCreateUser(message="Firebase App Check verification failed.")
+            log.error("Unexpected Firebase App Check error: %s", e)
+            raise iam_exceptions.FirebaseAppCheckValidationFailed(
+                message="App Check verification failed due to a system error."
+            ) from e
         
         allowed_app_ids = self.config.get("allowed_app_ids")
         if allowed_app_ids:
             app_id = app_check_token.get("app_id")
             if app_id not in allowed_app_ids:
-                raise iam_exceptions.CanNotCreateUser(message=f"App ID {app_id} is not allowed")
+                raise iam_exceptions.FirebaseAppCheckValidationFailed(
+                    message=f"App ID {app_id} is not allowed."
+                )
 

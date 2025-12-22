@@ -14,9 +14,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import logging
-
-from oslo_config import cfg
 from gcl_iam import middlewares as iam_mw
 from restalchemy.api import applications
 from restalchemy.api import constants as ra_c
@@ -100,34 +97,24 @@ def get_openapi_engine():
     return openapi_engine
 
 
-def build_wsgi_application(context_storage, token_algorithm, conf=None):
-    if conf is None:
-        conf = cfg.CONF
-
-    log = logging.getLogger(__name__)
-
-    middleware_list = [
-        middlewares.configure_middleware(
-            iam_mw.GenesisCoreAuthMiddleware,
-            # service_name="iam",
-            token_algorithm=token_algorithm,
-            context_kwargs={
-                "context_storage": context_storage,
-            },
-            iam_engine_driver=drivers.DirectDriver(),
-            skip_auth_endpoints=skip_auth_endpoints,
-        ),
-    ]
-
-    middleware_list.extend([
-        errors_mw.ErrorsHandlerMiddleware,
-        logging_mw.LoggingMiddleware,
-    ])
-
+def build_wsgi_application(context_storage, token_algorithm):
     return middlewares.attach_middlewares(
         applications.OpenApiApplication(
             route_class=get_api_application(),
             openapi_engine=get_openapi_engine(),
         ),
-        middleware_list,
+        [
+            middlewares.configure_middleware(
+                iam_mw.GenesisCoreAuthMiddleware,
+                # service_name="iam",
+                token_algorithm=token_algorithm,
+                context_kwargs={
+                    "context_storage": context_storage,
+                },
+                iam_engine_driver=drivers.DirectDriver(),
+                skip_auth_endpoints=skip_auth_endpoints,
+            ),
+            errors_mw.ErrorsHandlerMiddleware,
+            logging_mw.LoggingMiddleware,
+        ],
     )

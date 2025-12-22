@@ -42,8 +42,13 @@ def load_from_entry_point(group: str, name: str) -> tp.Any:
 
 
 def load_group_from_entry_point(group: str) -> tp.Any:
-    """Load class from entry points."""
-    return [e for e in entry_points(group=group)]
+    """Load all entry points from a group. Compatible with Python 3.8+."""
+    try:
+        # Python 3.10+ supports filtering by group
+        return list(entry_points(group=group))
+    except TypeError:
+        # Python 3.8-3.9: filter manually
+        return [ep for ep in entry_points() if ep.group == group]
 
 
 def get_context_storage(
