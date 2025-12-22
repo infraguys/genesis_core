@@ -663,7 +663,7 @@ class Resource(
             return re.sub(
                 self.__inline_vars_regex__,
                 partial(self._fstring_replacement_callback, engine=engine),
-                value[2:-1],
+                value[2 : value.rfind('"')],
             )
 
         return value
