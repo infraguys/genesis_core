@@ -85,6 +85,11 @@ class MigrationStep(migrations.AbstractMigrationStep):
                 DROP COLUMN IF EXISTS "redirect_url";
             """,
             """
+                UPDATE "iam_clients"
+                SET "salt" = 'd4JJ9QYuEEJxHCFja9FZskG4'
+                WHERE "salt" = '5fOuZXeIn5e5TJlo9Pv5T219'; --fix incorrect default salt
+            """,
+            """
                 ALTER TABLE "iam_tokens"
                 ADD COLUMN IF NOT EXISTS "iam_client" UUID
                     REFERENCES "iam_clients" ("uuid")
