@@ -266,25 +266,27 @@ class Manifest(
 
         # Resources
         existing_resources = {
-            i.name: i
+            (i.resource_link_prefix, i.name): i
             for i in Resource.objects.get_all(
                 filters={"element": ra_filters.EQ(element.uuid)}
             )
         }
 
-        for resource_link_prefix, resource in self.resources.items():
+        for resource_link_prefix, resources in self.resources.items():
             link_resolver = LinkResolver(
                 element=element,
                 element_engine=element_engine,
                 full_link=resource_link_prefix,
             )
-            for resource_name, resource_value in resource.items():
+            for resource_name, resource_value in resources.items():
+                resolved_link_prefix = link_resolver.full_link_original
                 res_kwargs = dict(
                     element=element,
-                    resource_link_prefix=link_resolver.full_link_original,
+                    resource_link_prefix=resolved_link_prefix,
                     value=resource_value,
                 )
-                if resource := existing_resources.pop(resource_name, None):
+                res_key = (resolved_link_prefix, resource_name)
+                if resource := existing_resources.pop(res_key, None):
                     for k, v in res_kwargs.items():
                         setattr(resource, k, v)
                     resource.save()
