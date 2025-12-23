@@ -361,23 +361,6 @@ class User(
         self.save()
         self.send_registration_event(app_endpoint=app_endpoint)
 
-    def setup_target_resource_fields(self):
-        """Sets up fields required for TargetResourceMixin serialization."""
-        self.project_id = None
-        self.client_id = None
-        self.redirect_url = None
-        self.rules = None
-        
-        try:
-            ctx = contexts.get_context()
-            if hasattr(ctx, 'iam_context') and ctx.iam_context and ctx.iam_context.token:
-                token = ctx.iam_context.token
-                self.project_id = token.project.uuid if token.project else None
-                self.client_id = token.client.client_id if token.client else None
-                self.redirect_url = token.client.redirect_url if token.client else None
-        except (AttributeError, iam_e.NoIamSessionStored) as e:
-            log.warning("Failed to set up target resource fields from context: %s", e)
-
     def confirm_email(self):
         self.email_verified = True
         self.clear_confirmation_code()
@@ -1180,8 +1163,12 @@ class IamClient(
         user = User(**kwargs)
         user.insert()
         user.resend_confirmation_event(app_endpoint=app_endpoint)
-        user.setup_target_resource_fields()
-        
+        # restalchemy packer tries to access IamClient fields for User model -> Attribute error otherwise
+        user.project_id = self.project_id
+        user.client_id = self.client_id
+        user.redirect_url = self.redirect_url
+        user.rules = None
+
         return user
 
     def validate_client_creds(self, client_id, client_secret):

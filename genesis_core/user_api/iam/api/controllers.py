@@ -169,17 +169,13 @@ class UserController(
         name_map={"secret": "password", "name": "username"},
     )
 
-    def _create_user(self, **kwargs):
-        """Shared logic for creating a user."""
+    def create(self, **kwargs):
         self.validate_secret(kwargs)
         kwargs.pop("email_verified", None)
         user = super().create(**kwargs)
         app_endpoint = _get_app_endpoint(req=self._req)
         user.resend_confirmation_event(app_endpoint=app_endpoint)
         return user
-
-    def create(self, **kwargs):
-        return self._create_user(**kwargs)
 
     def filter(self, filters, **kwargs):
         self.enforce(
