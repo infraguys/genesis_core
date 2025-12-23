@@ -54,6 +54,8 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
     def __init__(self, config: dict[str, Any] = None):
         self.config = config or {}
         self._app = None
+        raw_allowed = self.config.get("allowed_app_ids") or []
+        self._allowed_app_ids = {str(app_id) for app_id in raw_allowed}
 
     def _initialize_firebase(self):
         if self._app is not None:
@@ -110,11 +112,11 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
             raise iam_exceptions.FirebaseAppCheckValidationFailed(
                 message="App Check verification failed due to a system error."
             ) from e
-        
-        allowed_app_ids = self.config.get("allowed_app_ids")
-        if allowed_app_ids:
+
+        # Fail fast for not-allowed app IDs once token is verified
+        if self._allowed_app_ids:
             app_id = app_check_token.get("app_id")
-            if app_id not in allowed_app_ids:
+            if app_id not in self._allowed_app_ids:
                 raise iam_exceptions.FirebaseAppCheckValidationFailed(
                     message=f"App ID {app_id} is not allowed."
                 )

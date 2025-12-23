@@ -195,7 +195,7 @@ class CaptchaValidationFailed(
     exceptions.CommonForbiddenException,
     iam_exc.Forbidden,
 ):
-    __template__ = "CAPTCHA validation failed."
+    __template__ = "CAPTCHA validation failed: {message}"
 
 
 class FirebaseAppCheckValidationFailed(

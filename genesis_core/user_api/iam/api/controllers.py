@@ -38,6 +38,7 @@ from genesis_core.user_api.iam.clients import idp
 from genesis_core.user_api.iam.dm import models
 from genesis_core.user_api.iam import constants as c
 from genesis_core.user_api.iam import exceptions as iam_e
+from genesis_core.user_api.iam.validation import ClientRequestValidator
 
 
 class EnforceMixin:
@@ -546,6 +547,8 @@ class ClientsController(
         ),
     )
 
+    _validator = ClientRequestValidator()
+
     def create(self, **kwargs):
         if self.enforce(c.PERMISSION_IAM_CLIENT_CREATE):
             return super().create(**kwargs)
@@ -671,24 +674,10 @@ class ClientsController(
 
     @actions.post
     def create_user(self, resource, **kwargs):
-        self._apply_validation_rules(resource, self._req)
+        self._validator.validate(resource, self._req)
         self.validate_secret(kwargs)
         app_endpoint = _get_app_endpoint(req=self._req)
         return resource.create_user(app_endpoint=app_endpoint, **kwargs)
-
-    def _apply_validation_rules(self, client, request):
-        """Applies validation rules, first matching rule validates the request."""
-        rules = client.get_validation_rules()
-        if not rules:
-            return
-        handled = False
-        for rule in rules:
-            if rule.verifier.can_handle(request):
-                handled = True
-                rule.verify(request)
-                return
-        if not handled:
-            raise iam_e.CanNotCreateUser(message="No matching validation found")
 
 
 class WebController:

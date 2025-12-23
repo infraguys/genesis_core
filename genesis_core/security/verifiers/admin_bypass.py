@@ -14,23 +14,16 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import logging
 from typing import Any
 
 from restalchemy.common import contexts
-from restalchemy.common import exceptions as ra_e
 from restalchemy.dm import filters as ra_filters
-from restalchemy.dm import types as ra_types
 
 from genesis_core.user_api.iam import constants as iam_c
 from genesis_core.user_api.iam.dm import models
 from genesis_core.user_api.iam import exceptions as iam_exceptions
-from gcl_iam import exceptions as iam_e
 from gcl_iam import tokens
 from genesis_core.security.interfaces import AbstractVerifier
-
-
-log = logging.getLogger(__name__)
 
 
 class AdminBypassVerifier(AbstractVerifier):
@@ -53,23 +46,16 @@ class AdminBypassVerifier(AbstractVerifier):
         )
         auth_header = request.headers.get("Authorization", "")
 
-        try:
-            auth_token = tokens.AuthToken(
-                token=auth_header[7:].strip(),
-                algorithm=token_algorithm,
-                ignore_audience=True,
-            )
-            token = models.Token.objects.get_one(
-                filters={"uuid": ra_filters.EQ(auth_token.uuid)},
-            )
-            token.validate_expiration()
-            user = token.user
-        except (iam_e.InvalidAuthTokenError, iam_e.CredentialsAreInvalidError) as e:
-            log.debug("Admin bypass verification failed: token expired or invalid: %s", e)
-            raise
-        except (ra_e.NotFoundError, ValueError, TypeError, KeyError, AttributeError) as e:
-            log.debug("Admin bypass verification failed during token processing: %s", e)
-            raise
+        auth_token = tokens.AuthToken(
+            token=auth_header[7:].strip(),
+            algorithm=token_algorithm,
+            ignore_audience=True,
+        )
+        token = models.Token.objects.get_one(
+            filters={"uuid": ra_filters.EQ(auth_token.uuid)},
+        )
+        token.validate_expiration()
+        user = token.user
 
         if any(role.name.lower() == "admin" for role in user.get_my_roles().get_roles()):
             return

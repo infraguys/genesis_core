@@ -19,7 +19,6 @@ import logging
 from typing import Any
 
 import altcha
-from restalchemy.dm import types as ra_types
 
 from genesis_core.security.interfaces import AbstractVerifier
 from genesis_core.user_api.iam import exceptions as iam_exceptions
@@ -52,14 +51,16 @@ class CaptchaVerifier(AbstractVerifier):
         captcha_header = request.headers.get(self.CAPTCHA_HEADER)
         try:
             return json.loads(captcha_header)
-        except (json.JSONDecodeError, TypeError) as e:
-            log.debug("Failed to parse CAPTCHA payload: %s", e)
+        except (json.JSONDecodeError, TypeError):
+            log.exception("Failed to parse CAPTCHA payload: ")
             return None
 
     def verify(self, request) -> None:
         payload = self._get_payload_from_request(request)
         if not payload:
-            raise iam_exceptions.CaptchaValidationFailed()
+            raise iam_exceptions.CaptchaValidationFailed(
+                message="Invalid CAPTCHA payload."
+            )
 
         verified, error = altcha.verify_solution(
             payload,
@@ -68,6 +69,5 @@ class CaptchaVerifier(AbstractVerifier):
         )
 
         if not verified:
-            log.debug("CAPTCHA verification failed: %s", error)
-            raise iam_exceptions.CaptchaValidationFailed()
+            raise iam_exceptions.CaptchaValidationFailed(message=error)
 
