@@ -34,7 +34,6 @@ class CaptchaVerifier(AbstractVerifier):
       {
         "kind": "captcha",
         "hmac_key": "your-hmac-key-here",
-        "mode": "enforce"
       }
     """
 

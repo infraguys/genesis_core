@@ -42,7 +42,6 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
         "kind": "firebase_app_check",
         "credentials_path": "/path/to/firebase-credentials.json",
         "allowed_app_ids": ["app-id-1", "app-id-2", ...],
-        "mode": "enforce"
       }
     """
 
@@ -53,31 +52,24 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
 
     def __init__(self, config: dict[str, Any] = None):
         self.config = config or {}
-        self._app = None
         raw_allowed = self.config.get("allowed_app_ids") or []
         self._allowed_app_ids = {str(app_id) for app_id in raw_allowed}
 
-    def _initialize_firebase(self):
-        if self._app is not None:
-            return
-
+    def _get_firebase_app(self):
         if firebase_admin is None:
             raise RuntimeError("firebase-admin package is not installed")
 
         try:
-            self._app = firebase_admin.get_app()
-            return
+            return firebase_admin.get_app()
         except ValueError:
+            # No default app initialized yet – initialize it from credentials_path
             credentials_path = self.config.get("credentials_path")
             if not credentials_path:
                 raise ValueError("Firebase credentials_path is required in config")
 
-            try:
-                cred = credentials.Certificate(credentials_path)
-            except FileNotFoundError:
-                raise ValueError(f"Firebase credentials file not found: {credentials_path}")
-
-            self._app = firebase_admin.initialize_app(cred)
+            cred = credentials.Certificate(credentials_path)
+            # Return the initialized default app directly
+            return firebase_admin.initialize_app(cred)
 
     def can_handle(self, request) -> bool:
         return any(request.headers.get(h) for h in self.FIREBASE_HEADERS)
@@ -90,7 +82,7 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
         return None
 
     def verify(self, request) -> None:
-        self._initialize_firebase()
+        app = self._get_firebase_app()
         token = self._get_token_from_request(request)
         if not token:
             raise iam_exceptions.FirebaseAppCheckValidationFailed(
@@ -98,7 +90,7 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
             )
 
         try:
-            app_check_token = app_check.verify_token(token, app=self._app)
+            app_check_token = app_check.verify_token(token, app=app)
         except firebase_exceptions.InvalidArgumentError as e:
             raise iam_exceptions.FirebaseAppCheckValidationFailed(
                 message="Invalid App Check token."

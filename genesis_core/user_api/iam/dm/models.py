@@ -1077,10 +1077,6 @@ class FirebaseAppCheckRule(AbstractValidationRule):
         ra_types.List(),
         default=list,
     )
-    mode = properties.property(
-        ra_types.Enum(["enforce", "report-only"]),
-        default="enforce",
-    )
 
 
 class CaptchaRule(AbstractValidationRule):
@@ -1090,10 +1086,6 @@ class CaptchaRule(AbstractValidationRule):
     hmac_key = properties.property(
         ra_types.String(),
         required=True,
-    )
-    mode = properties.property(
-        ra_types.Enum(["enforce", "report-only"]),
-        default="enforce",
     )
 
 

@@ -110,7 +110,6 @@ class TestClientUserCreation(base.BaseIamResourceTest):
             "kind": "firebase_app_check",
             "credentials_path": "/tmp/fake-firebase-credentials.json",
             "allowed_app_ids": ["test-app-id"],
-            "mode": "enforce"
         }]
         return self._create_iam_client_with_rules(
             client, "firebase_app_check", rules
@@ -125,7 +124,6 @@ class TestClientUserCreation(base.BaseIamResourceTest):
         rules = [{
             "kind": "captcha",
             "hmac_key": "test-hmac-key-12345",
-            "mode": "enforce"
         }]
         return self._create_iam_client_with_rules(
             client, "captcha", rules
@@ -151,7 +149,6 @@ class TestClientUserCreation(base.BaseIamResourceTest):
             "kind": "firebase_app_check",
             "credentials_path": "/tmp/fake-firebase-credentials.json",
             "allowed_app_ids": [],
-            "mode": "enforce"
         }]
         return self._create_iam_client_with_rules(
             client, "firebase_app_check_no_allowed", rules
@@ -172,12 +169,10 @@ class TestClientUserCreation(base.BaseIamResourceTest):
                 "kind": "firebase_app_check",
                 "credentials_path": "/tmp/fake-firebase-credentials.json",
                 "allowed_app_ids": ["test-app-id"],
-                "mode": "enforce"
             },
             {
                 "kind": "captcha",
                 "hmac_key": "test-hmac-key-12345",
-                "mode": "enforce"
             }
         ]
         return self._create_iam_client_with_rules(
