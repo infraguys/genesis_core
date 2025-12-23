@@ -1113,7 +1113,8 @@ class IamClient(
 ):
     __tablename__ = "iam_clients"
     __jsonfields__ = ["rules"]
-    
+
+    # Cache verifier classes by kind not to load from EP on each request
     _verifier_cache: dict = {}
 
     project_id = properties.property(
@@ -1138,12 +1139,11 @@ class IamClient(
     def get_validation_rules(self):
         """Returns normalized validation rule objects."""
         rules = []
+        cache = self._verifier_cache
         for rule_model in self.rules:
             kind = rule_model.kind
-            cache = self._verifier_cache
             if kind not in cache:
-                verifier_cls = u.load_from_entry_point(ENTRY_POINT_GROUP, kind)
-                cache[kind] = verifier_cls
+                cache[kind] = u.load_from_entry_point(ENTRY_POINT_GROUP, kind)
             rules.append(ValidationRule(rule_model, cache[kind]))
         
         return rules
