@@ -1139,7 +1139,7 @@ class IamClient(
     def get_validation_rules(self):
         """Returns normalized validation rule objects."""
         rules = []
-        cache = self._verifier_cache
+        cache = IamClient._verifier_cache
         for rule_model in self.rules:
             kind = rule_model.kind
             if kind not in cache:
