@@ -14,11 +14,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install requirements
-        run: sudo apt update && sudo apt install --yes tox libev-dev libvirt-dev
+        run: sudo apt update && sudo apt install --yes libev-dev libvirt-dev
+      - name: Install tox
+        run: pip install tox
       - name: Black
         run: |
           tox -e black-check
@@ -45,11 +47,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: sudo apt update && sudo apt install --yes tox libev-dev libvirt-dev pdns-server pdns-backend-pgsql
+        run: sudo apt update && sudo apt install --yes libev-dev libvirt-dev pdns-server pdns-backend-pgsql
+      - name: Install tox
+        run: pip install tox
       - name: Unit tests
         run: |
           tox -e ${{ matrix.python-version }}
@@ -67,11 +71,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: sudo apt update && sudo apt install --yes libev-dev libvirt-dev
       - name: Install tox
-        run: sudo apt update && sudo apt install --yes tox libev-dev libvirt-dev
+        run: pip install tox
       - name: Coverage
         run: |
           tox -e begin,${{ matrix.python-version }},end
