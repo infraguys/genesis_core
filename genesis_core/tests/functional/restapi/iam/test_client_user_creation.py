@@ -31,6 +31,11 @@ try:
 except ImportError:
     firebase_exceptions = None
 
+try:
+    import altcha
+except ImportError:
+    altcha = None
+
 class TestClientUserCreation(base.BaseIamResourceTest):
 
     def _create_iam_client_with_rules(
@@ -381,6 +386,8 @@ class TestClientUserCreation(base.BaseIamResourceTest):
         self, mock_altcha, user_api,
         iam_client_with_captcha_rule
     ):
+        if altcha is None:
+            pytest.skip("altcha is not installed")
         mock_altcha.verify_solution.return_value = (True, None)
         valid_captcha_payload = json.dumps({
             "challenge": "test_challenge_123",
@@ -411,6 +418,8 @@ class TestClientUserCreation(base.BaseIamResourceTest):
         self, mock_altcha, user_api,
         iam_client_with_captcha_rule
     ):
+        if altcha is None:
+            pytest.skip("altcha is not installed")
         mock_altcha.verify_solution.return_value = (False, "Invalid challenge")
         invalid_captcha_payload = json.dumps({
             "challenge": "invalid_challenge",
@@ -439,6 +448,8 @@ class TestClientUserCreation(base.BaseIamResourceTest):
         self, user_api,
         iam_client_with_captcha_rule
     ):
+        if altcha is None:
+            pytest.skip("altcha is not installed")
         headers = {"X-Captcha": "not-a-valid-json"}
 
         response = self._create_user_via_action(

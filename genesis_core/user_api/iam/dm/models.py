@@ -241,6 +241,7 @@ class User(
 
     @staticmethod
     def normalize_create_kwargs(kwargs):
+        # Todo: Remove this mathod when Phantomii's fix is ready
         """Normalizes kwargs for user creation (password->secret, username->name)."""
         if "password" in kwargs and "secret" not in kwargs:
             kwargs["secret"] = kwargs.pop("password")
@@ -1156,6 +1157,7 @@ class IamClient(
         user.insert()
         user.resend_confirmation_event(app_endpoint=app_endpoint)
         # restalchemy packer tries to access IamClient fields for User model -> Attribute error otherwise
+        # Todo: delete these 4 rows bellow when Phantomii's fix is ready
         user.project_id = self.project_id
         user.client_id = self.client_id
         user.redirect_url = self.redirect_url

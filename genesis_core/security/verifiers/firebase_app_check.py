@@ -17,18 +17,12 @@
 import logging
 from typing import Any
 
+import firebase_admin
+from firebase_admin import app_check, credentials
+from firebase_admin import exceptions as firebase_exceptions
+
 from genesis_core.security.interfaces import AbstractVerifier
 from genesis_core.user_api.iam import exceptions as iam_exceptions
-
-try:
-    import firebase_admin
-    from firebase_admin import app_check, credentials
-    from firebase_admin import exceptions as firebase_exceptions
-except ImportError:
-    firebase_admin = None
-    app_check = None
-    credentials = None
-    firebase_exceptions = None
 
 
 log = logging.getLogger(__name__)
@@ -56,9 +50,6 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
         self._allowed_app_ids = {str(app_id) for app_id in raw_allowed}
 
     def _get_firebase_app(self):
-        if firebase_admin is None:
-            raise RuntimeError("firebase-admin package is not installed")
-
         try:
             return firebase_admin.get_app()
         except ValueError:
