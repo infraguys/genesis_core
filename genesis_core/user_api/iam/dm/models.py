@@ -239,15 +239,6 @@ class User(
             "email": self.email,
         }
 
-    @staticmethod
-    def normalize_create_kwargs(kwargs):
-        # Todo: Remove this mathod when Phantomii's fix is ready
-        """Normalizes kwargs for user creation (password->secret, username->name)."""
-        if "password" in kwargs and "secret" not in kwargs:
-            kwargs["secret"] = kwargs.pop("password")
-        if "username" in kwargs and "name" not in kwargs:
-            kwargs["name"] = kwargs.pop("username")
-        return kwargs
 
     @classmethod
     def me(cls, token_info=None):
@@ -1149,11 +1140,33 @@ class IamClient(
         
         return rules
 
-    def create_user(self, app_endpoint, **kwargs):
+    def create_user(
+            self,
+            app_endpoint,
+            username,
+            password,
+            email,
+            first_name=None,
+            last_name=None,
+            surname=None,
+            phone=None,
+            description=None,
+            **kwargs
+    ):
         """Creates a user with proper field setup."""
-        User.normalize_create_kwargs(kwargs)
         kwargs.pop("email_verified", None)
-        user = User(**kwargs)
+        # (username -> name, password -> secret)
+        user = User(
+            name=username,
+            secret=password,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            surname=surname,
+            phone=phone,
+            description=description,
+            **kwargs,
+        )
         user.insert()
         user.resend_confirmation_event(app_endpoint=app_endpoint)
         # restalchemy packer tries to access IamClient fields for User model -> Attribute error otherwise
