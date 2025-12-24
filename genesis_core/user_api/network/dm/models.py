@@ -352,6 +352,18 @@ class RuleStaticKind(AbstractRuleKind):
     path = properties.property(AllowedPathType(), required=True)
 
 
+class ArchivedTarUrl(types.Url):
+    def validate(self, value):
+        if not super().validate(value):
+            return False
+        return value.endswith("tar.gz") or value.endswith("tar.zst")
+
+
+class RuleStaticDownloadKind(AbstractRuleKind):
+    KIND = "local_dir_download"
+    url = properties.property(ArchivedTarUrl(), required=True)
+
+
 class AbstractModifierKind(
     types_dynamic.AbstractKindModel, models.SimpleViewMixin
 ):
@@ -485,6 +497,7 @@ class AbstractHTTPRouteCondKind(AbstractRouteCondKind):
                 types_dynamic.KindModelType(RuleHTTPBackendKind),
                 types_dynamic.KindModelType(RuleRedirectKind),
                 types_dynamic.KindModelType(RuleStaticKind),
+                types_dynamic.KindModelType(RuleStaticDownloadKind),
             )
         ),
         required=True,
