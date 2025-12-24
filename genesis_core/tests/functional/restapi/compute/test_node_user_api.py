@@ -224,6 +224,19 @@ class TestNodeUserApi:
         assert response.status_code == 201
         assert output["uuid"] == pool["uuid"]
 
+    def test_hyper_add_nonadmin_negative(
+        self,
+        pool_factory: tp.Callable,
+        user_api_client: iam_clients.GenesisCoreTestRESTClient,
+        auth_test1_user: iam_clients.GenesisCoreAuth,
+    ):
+        pool = pool_factory()
+        client = user_api_client(auth_test1_user)
+        url = client.build_collection_uri(["compute", "hypervisors"])
+
+        with pytest.raises(bazooka_exc.ForbiddenError):
+            client.post(url, json=pool)
+
     def test_hyper_update(
         self,
         pool_factory: tp.Callable,
