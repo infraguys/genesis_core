@@ -672,8 +672,21 @@ class ClientsController(
             email=email, app_endpoint=app_endpoint
         )
 
+
+class ClientUserCreationController(
+    controllers.BaseResourceControllerPaginated,
+    EnforceMixin,
+    ValidateSecretMixin,
+):
+    """Controller for create_user action that returns User model."""
+    # Reference to existing User resource to avoid duplicate registration
+    __resource__ = UserController.__resource__
+    
+    _validator = ClientRequestValidator()
+
     @actions.post
     def create_user(self, resource, **kwargs):
+        """Creates a user via IamClient.create_user action."""
         self._validator.validate(resource, self._req)
         self.validate_secret(kwargs)
         app_endpoint = _get_app_endpoint(req=self._req)

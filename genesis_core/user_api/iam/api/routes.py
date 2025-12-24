@@ -202,7 +202,7 @@ class ResetPasswordEventAction(routes.Action):
 class CreateUserAction(routes.Action):
     """Handler for .../<uuid>/actions/create_user/invoke endpoint"""
 
-    __controller__ = controllers.ClientsController
+    __controller__ = controllers.ClientUserCreationController
 
 
 class IamClientsRoute(routes.Route):
