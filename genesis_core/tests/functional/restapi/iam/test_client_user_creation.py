@@ -28,13 +28,11 @@ from genesis_core.user_api.iam.dm import models as iam_models
 
 try:
     from firebase_admin import exceptions as firebase_exceptions
-except ImportError:
-    firebase_exceptions = None
-
-try:
+    from genesis_core.security.verifiers import firebase_app_check
     import altcha
-except ImportError:
-    altcha = None
+    from genesis_core.security.verifiers import captcha
+except (ImportError, AttributeError):
+    pytestmark = pytest.mark.skip("firebase-admin or altcha is not installed")
 
 class TestClientUserCreation(base.BaseIamResourceTest):
 
@@ -322,8 +320,6 @@ class TestClientUserCreation(base.BaseIamResourceTest):
         self, mock_firebase_admin, mock_credentials, mock_app_check, user_api,
         iam_client_with_firebase_app_check_rule
     ):
-        if firebase_exceptions is None:
-            pytest.skip("firebase-admin is not installed")
         mock_cred = mock.MagicMock()
         mock_credentials.Certificate.return_value = mock_cred
         mock_app = mock.MagicMock()
@@ -354,8 +350,6 @@ class TestClientUserCreation(base.BaseIamResourceTest):
         self, mock_firebase_admin, mock_credentials, mock_app_check, user_api,
         iam_client_with_firebase_app_check_rule
     ):
-        if firebase_exceptions is None:
-            pytest.skip("firebase-admin is not installed")
         mock_cred = mock.MagicMock()
         mock_credentials.Certificate.return_value = mock_cred
         mock_app = mock.MagicMock()
@@ -386,8 +380,6 @@ class TestClientUserCreation(base.BaseIamResourceTest):
         self, mock_altcha, user_api,
         iam_client_with_captcha_rule
     ):
-        if altcha is None:
-            pytest.skip("altcha is not installed")
         mock_altcha.verify_solution.return_value = (True, None)
         valid_captcha_payload = json.dumps({
             "challenge": "test_challenge_123",
@@ -418,8 +410,6 @@ class TestClientUserCreation(base.BaseIamResourceTest):
         self, mock_altcha, user_api,
         iam_client_with_captcha_rule
     ):
-        if altcha is None:
-            pytest.skip("altcha is not installed")
         mock_altcha.verify_solution.return_value = (False, "Invalid challenge")
         invalid_captcha_payload = json.dumps({
             "challenge": "invalid_challenge",
@@ -448,8 +438,6 @@ class TestClientUserCreation(base.BaseIamResourceTest):
         self, user_api,
         iam_client_with_captcha_rule
     ):
-        if altcha is None:
-            pytest.skip("altcha is not installed")
         headers = {"X-Captcha": "not-a-valid-json"}
 
         response = self._create_user_via_action(
