@@ -175,3 +175,31 @@ class InvalidGrantType(
     iam_exc.InvalidGrantTypeError,
 ):
     __template__ = "Invalid grant type: {grant_type}"
+
+
+class CanNotCreateUser(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = "User creation failed: {message}"
+
+
+class AdminBypassValidationFailed(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = "Admin bypass validation failed."
+
+
+class CaptchaValidationFailed(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = "CAPTCHA validation failed: {message}"
+
+
+class FirebaseAppCheckValidationFailed(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = "Firebase App Check verification failed: {message}"
