@@ -19,6 +19,7 @@ import logging
 from typing import Any
 
 import altcha
+from webob import Request
 
 from genesis_core.security.interfaces import AbstractVerifier
 from genesis_core.user_api.iam import exceptions as iam_exceptions
@@ -42,7 +43,7 @@ class CaptchaVerifier(AbstractVerifier):
     def __init__(self, config: dict[str, Any] = None):
         self.config = config or {}
 
-    def can_handle(self, request) -> bool:
+    def can_handle(self, request: Request) -> bool:
         return bool(request.headers.get(self.CAPTCHA_HEADER))
 
     def _get_payload_from_request(self, request) -> dict | None:

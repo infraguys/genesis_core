@@ -547,8 +547,6 @@ class ClientsController(
         ),
     )
 
-    _validator = ClientRequestValidator()
-
     def create(self, **kwargs):
         if self.enforce(c.PERMISSION_IAM_CLIENT_CREATE):
             return super().create(**kwargs)

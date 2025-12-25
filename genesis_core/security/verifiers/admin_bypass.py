@@ -18,6 +18,7 @@ from typing import Any
 
 from restalchemy.common import contexts
 from restalchemy.dm import filters as ra_filters
+from webob import Request
 
 from genesis_core.user_api.iam import constants as iam_c
 from genesis_core.user_api.iam.dm import models
@@ -36,7 +37,7 @@ class AdminBypassVerifier(AbstractVerifier):
     def __init__(self, config: dict[str, Any] = None):
         self.config = config or {}
 
-    def can_handle(self, request) -> bool:
+    def can_handle(self, request: Request) -> bool:
         return request.headers.get("Authorization", "").startswith("Bearer ")
 
     def verify(self, request) -> None:

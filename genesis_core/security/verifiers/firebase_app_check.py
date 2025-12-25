@@ -20,6 +20,7 @@ from typing import Any
 import firebase_admin
 from firebase_admin import app_check, credentials
 from firebase_admin import exceptions as firebase_exceptions
+from webob import Request
 
 from genesis_core.security.interfaces import AbstractVerifier
 from genesis_core.user_api.iam import exceptions as iam_exceptions
@@ -62,7 +63,7 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
             # Return the initialized default app directly
             return firebase_admin.initialize_app(cred)
 
-    def can_handle(self, request) -> bool:
+    def can_handle(self, request: Request) -> bool:
         return any(request.headers.get(h) for h in self.FIREBASE_HEADERS)
 
     def _get_token_from_request(self, request) -> str | None:
