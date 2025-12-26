@@ -1012,8 +1012,12 @@ class IamClient(
         self, email, app_endpoint="http://localhost/"
     ):
         email = email.lower()
-        user = User.objects.get_one(filters={"email": ra_filters.EQ(email)})
-        user.send_reset_password_event(app_endpoint=app_endpoint)
+        # Result for non-existing email should not differ from existing one
+        #  to mitigate with email enumeration.
+        if user := User.objects.get_one_or_none(
+            filters={"email": ra_filters.EQ(email)}
+        ):
+            user.send_reset_password_event(app_endpoint=app_endpoint)
 
     def get_token_algorithm(self):
         if self.signature_algorithm.kind == iam_c.ALGORITHM_HS256:
