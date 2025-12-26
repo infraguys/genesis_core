@@ -187,10 +187,10 @@ class HypervisorsController(
     )
 
     def create(self, **kwargs):
-        hyper: models.MachinePool = self.model(**kwargs)
-
-        if hyper.machine_type != nc.NodeType.VM:
+        if (
+            "machine_type" in kwargs
+            and kwargs["machine_type"] != nc.NodeType.VM.value
+        ):
             raise ValueError("Hyper must be VM type")
 
-        hyper.insert()
-        return hyper
+        return super().create(**kwargs)
