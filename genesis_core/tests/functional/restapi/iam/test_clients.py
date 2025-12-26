@@ -18,8 +18,10 @@ import uuid as sys_uuid
 
 from bazooka import exceptions as bazooka_exc
 import pytest
+from restalchemy.common import contexts
 
 from genesis_core.tests.functional.restapi.iam import base
+from genesis_core.user_api.iam.dm import models as iam_models
 
 
 TEST_PROJECT_ID = str(sys_uuid.uuid4())
@@ -199,6 +201,28 @@ class TestClients(base.BaseIamResourceTest):
         ).json()
 
         assert token_info["refresh_expires_in"] == 1
+
+    def test_logout_deletes_token_from_db(
+        self, user_api_client, auth_test1_user
+    ):
+        client = user_api_client(auth_test1_user)
+        me = client.me()
+
+        assert me["user"]["uuid"] == auth_test1_user.uuid
+
+        logout_url = client.build_resource_uri(
+            [
+                "iam/clients",
+                auth_test1_user.client_uuid,
+                "actions",
+                "logout",
+                "invoke",
+            ]
+        )
+        client.post(url=logout_url)
+
+        with pytest.raises(bazooka_exc.UnauthorizedError):
+            client.me()
 
     def test_get_token_with_invalid_client_id_error(
         self, user_api_noauth_client, auth_test1_user

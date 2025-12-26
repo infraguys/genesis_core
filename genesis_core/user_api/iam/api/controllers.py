@@ -719,6 +719,12 @@ class ClientsController(
             email=email, app_endpoint=app_endpoint
         )
 
+    @actions.post
+    def logout(self, resource):
+        token = models.Token.my()
+        token.delete()
+        return {}
+
     @actions.get
     def jwks(self, resource):
         return resource.get_jwks()
