@@ -245,6 +245,12 @@ class UserinfoAction(routes.Action):
     __controller__ = controllers.ClientsController
 
 
+class LogoutAction(routes.Action):
+    """Handler for .../<uuid>/actions/logout/invoke endpoint"""
+
+    __controller__ = controllers.ClientsController
+
+
 class IamClientsRoute(routes.Route):
     """Handler for /v1/iam/clients/ endpoint"""
 
@@ -256,6 +262,7 @@ class IamClientsRoute(routes.Route):
     introspect = routes.action(IntrospectAction)
     me = routes.action(MeAction)
     userinfo = routes.action(UserinfoAction)
+    logout = routes.action(LogoutAction, invoke=True)
     reset_password = routes.action(ResetPasswordEventAction, invoke=True)
     jwks = routes.action(JwksAction)
 
