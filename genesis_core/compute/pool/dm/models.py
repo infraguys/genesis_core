@@ -221,7 +221,10 @@ class PoolMachine(
             ram=machine.ram,
             image=machine.image,
             machine_type=machine.machine_type,
-            boot=machine.boot,
+            # Always boot from network
+            # TODO(akremenetsky): Some machines in the future
+            # need to boot from hd0
+            boot=nc.BootAlternative.network.value,
             node=machine.node.uuid,
             pool=machine.pool.uuid,
             port_info={
