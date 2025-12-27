@@ -132,6 +132,13 @@ class MetaPool(meta.MetaCoordinatorDataPlaneModel):
             m.ram for m in self.dp_machine_map.values()
         )
 
+    def dump_to_dp(self, **kwargs) -> None:
+        """Configure the pool."""
+        # Actually we do nothing to configure or dump to pool at the moment
+        # but we need to synchronize the pool state since it will be used by
+        # machines and volumes as their dependencies.
+        self.restore_from_dp(**kwargs)
+
 
 class MetaVolume(meta.MetaCoordinatorDataPlaneModel):
     """Volume meta model."""
@@ -369,8 +376,14 @@ class MetaVolume(meta.MetaCoordinatorDataPlaneModel):
 
         self._attach_volume(pool, driver, dp_volume)
 
-    def restore_from_dp(self, pool: MetaPool) -> None:
+    def restore_from_dp(self, pool: MetaPool | None) -> None:
         """Load the pool information."""
+        # Prevent actualization when pool is not provided
+        if pool is None:
+            raise ValueError(
+                f"The pool is not provided for volume {self.uuid}"
+            )
+
         if self.uuid not in pool.dp_volume_map:
             raise ua_driver_exc.ResourceNotFound(resource=self)
 
@@ -477,9 +490,6 @@ class MetaMachine(meta.MetaCoordinatorDataPlaneModel):
         self.status = dp_machine.status
         LOG.info("The machine %s created", self.uuid)
 
-        # Update the machine in the pool
-        # pool.dp_machine_map[self.uuid] = dp_machine
-
     def _delete_machine(
         self,
         driver: driver_base.AbstractPoolDriver,
@@ -488,13 +498,9 @@ class MetaMachine(meta.MetaCoordinatorDataPlaneModel):
         driver.delete_machine(dp_machine)
         LOG.info("The machine %s deleted", self.uuid)
 
-        # Update the machine in the pool
-        # del pool.dp_machine_map[self.uuid]
-
     def _from_dp_machine(self, dp_machine: models.Machine) -> None:
         self.cores = dp_machine.cores
         self.ram = dp_machine.ram
-        self.name = dp_machine.name
         self.status = dp_machine.status
 
         # Don't try to restore image from legacy machine since it is not
@@ -540,6 +546,7 @@ class MetaMachine(meta.MetaCoordinatorDataPlaneModel):
             "project_id",
             "port_info",
             "image",
+            "name",
             # Temporary get boot field from meta
             "boot",
         }
@@ -550,12 +557,20 @@ class MetaMachine(meta.MetaCoordinatorDataPlaneModel):
         """Create the machine in the pool."""
         driver: driver_base.AbstractPoolDriver = pool.load_driver()
 
-        # Recreate the machine if it already exists
+        # The machine is already present in the data plane.
+        # It's not ordinary behavior but there is a couple of cases
+        # where this can happen during recovery or migration.
+        # So do nothing and let the `update_on_dp` handle it next iteration.
+        # The iteration is skipped intentionally to have a chance to stop
+        # the service during migration if something goes wrong.
         if self.uuid in pool.dp_machine_map:
-            dp_machine = pool.dp_machine_map[self.uuid]
-
-            # The volumes have been handled by MetaVolume
-            driver.delete_machine(dp_machine, delete_volumes=False)
+            LOG.warning(
+                "Machine %s already exists in pool %s. "
+                "It will be actualized on the next iteration.",
+                self.uuid,
+                pool.uuid,
+            )
+            return
 
         # Validation all resources are ready for the machine
         volumes = sorted(volumes, key=lambda v: v.index)
@@ -610,9 +625,15 @@ class MetaMachine(meta.MetaCoordinatorDataPlaneModel):
         self._allocate_resources(pool, self.cores, self.ram)
 
     def restore_from_dp(
-        self, pool: MetaPool, volumes: tp.Collection[MetaVolume]
+        self, pool: MetaPool | None, volumes: tp.Collection[MetaVolume]
     ) -> None:
         """Load the machine from the data plane."""
+        # Prevent actualization when pool is not provided
+        if pool is None:
+            raise ValueError(
+                f"The pool is not provided for machine {self.uuid}"
+            )
+
         if self.uuid not in pool.dp_machine_map:
             raise ua_driver_exc.ResourceNotFound(resource=self)
 
@@ -658,6 +679,19 @@ class MetaMachine(meta.MetaCoordinatorDataPlaneModel):
                 )
                 return
 
+            # NOTE(akremenetsky): Legacy machines always have image=None.
+            # Therefore we cannot update the image without modifying XML.
+            # To make things simpler, the image is enriched when cores
+            # are changed. This avoids the need to modify XML directly.
+            # This "helper" has to be removed after full migration.
+            if dp_machine.image is None:
+                dp_machine.image = self.image
+                LOG.info(
+                    "Enriched legacy machine %s with image %s.",
+                    self.uuid,
+                    self.image,
+                )
+
             driver.set_machine_cores(dp_machine, self.cores)
             self._allocate_resources(pool, cores=need_cores)
             LOG.info("The machine %s cores updated.", self.uuid)
@@ -681,16 +715,10 @@ class MetaMachine(meta.MetaCoordinatorDataPlaneModel):
             self._allocate_resources(pool, ram=need_ram)
             LOG.info("The machine %s ram updated.", self.uuid)
 
-        # Name
-        if self.name != dp_machine.name:
-            unknown_action = False
-            driver.rename_machine(dp_machine, self.name)
-            LOG.info("The machine %s name updated.", self.uuid)
-
-        # TODO(akremenetsky): Actally update image logic is more suitable for
+        # TODO(akremenetsky): Actually update image logic is more suitable for
         # volumes update but for backward compatibility we keep it here.
         # Image
-        if self.image != dp_machine.image:
+        if dp_machine.image and self.image != dp_machine.image:
             unknown_action = False
             # Just recreate, Seed OS flash the new image
             dp_machine.image = self.image
