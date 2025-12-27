@@ -241,7 +241,7 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
             )
             guest_agent.save()
 
-        # Swtich to `network` for new machines and for machines where image
+        # Switch to `network` for new machines and for machines where image
         # for the root disk has been changed.
         boot = nc.BootAlternative.hd0.value
         if machine_guest_pair is None:
@@ -287,6 +287,9 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
             elif isinstance(pair[0], pool_models.PoolMachine):
                 target_pool_machine, pool_machine = pair
 
+        if not target_pool_machine or not target_guest_machine:
+            raise ValueError("Target pool machine or guest machine is missing")
+
         # Actualize boot mode
         if (
             guest_machine is not None
@@ -296,7 +299,9 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
             # FIXME(akremenetsky): Detect disk number
             machine.boot = nc.BootAlternative.hd0.value
             target_guest_machine.boot = nc.BootAlternative.hd0.value
-            target_pool_machine.boot = nc.BootAlternative.hd0.value
+            # Always boot from network from hypervisor point of view
+            # TODO(akremenetsky): One day we need to support boot from HD
+            target_pool_machine.boot = nc.BootAlternative.network.value
 
         # Actualize status
         self._actualize_machine_status(
