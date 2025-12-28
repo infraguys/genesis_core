@@ -128,6 +128,7 @@ class UserController(
         process_filters=True,
         hidden_fields=resources.HiddenFieldMap(
             get=[
+                "user_source",
                 "salt",
                 "secret_hash",
                 "secret",
@@ -143,6 +144,7 @@ class UserController(
                 "confirmation_code_made_at",
             ],
             update=[
+                "user_source",
                 "salt",
                 "secret_hash",
                 "secret",
@@ -151,6 +153,7 @@ class UserController(
                 "confirmation_code_made_at",
             ],
             filter=[
+                "user_source",
                 "salt",
                 "secret_hash",
                 "secret",
@@ -159,6 +162,7 @@ class UserController(
                 "confirmation_code_made_at",
             ],
             action_post=[
+                "user_source",
                 "salt",
                 "secret_hash",
                 "secret",

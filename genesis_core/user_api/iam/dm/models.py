@@ -46,6 +46,7 @@ from genesis_core.secret import constants as secret_c
 from genesis_core.secret.dm import models as secret_models
 from genesis_core.user_api.iam import constants as iam_c
 from genesis_core.user_api.iam import exceptions as iam_exceptions
+from genesis_core.user_api.iam.clients import keycloak
 from genesis_core.user_api.iam.dm import types
 
 
@@ -174,6 +175,66 @@ class IdpResponseType(str, enum.Enum):
         return [cls.CODE.value]
 
 
+class AbstractUserSource(ra_types_dynamic.AbstractKindModel):
+
+    def process_secret(self, user, secret):
+        raise NotImplementedError()
+
+
+class IamUserSource(AbstractUserSource):
+    KIND = "IAM"
+
+    def process_secret(self, user, secret):
+        if not user.check_secret(secret):
+            raise iam_e.CredentialsAreInvalidError()
+
+
+class KeycloakUserSource(AbstractUserSource):
+    KIND = "KEYCLOAK"
+
+    endpoint = properties.property(
+        ra_types.Url(),
+        required=True,
+    )
+    realm = properties.property(
+        ra_types.String(max_length=256),
+        required=True,
+    )
+    client_id = properties.property(
+        ra_types.String(max_length=256),
+        required=True,
+    )
+    client_secret = properties.property(
+        ra_types.String(max_length=512),
+        required=True,
+    )
+    timeout = properties.property(
+        ra_types.Integer(min_value=1, max_value=120),
+        default=5,
+    )
+
+    def process_secret(self, user, secret):
+        if user.check_secret(secret):
+            return
+
+        client = keycloak.KeycloakClient(
+            endpoint=self.endpoint,
+            timeout=self.timeout,
+        )
+
+        if not client.check_password(
+            realm=self.realm,
+            client_id=self.client_id,
+            client_secret=self.client_secret,
+            login=user.email,
+            password=secret,
+        ):
+            raise iam_e.CredentialsAreInvalidError()
+
+        user.secret = secret
+        user.update()
+
+
 class User(
     models.ModelWithUUID,
     models.ModelWithRequiredNameDesc,
@@ -188,6 +249,14 @@ class User(
     name = properties.property(
         types.Username(min_length=1, max_length=128),
         required=True,
+    )
+
+    user_source = properties.property(
+        KindModelSelectorType(
+            ra_types_dynamic.KindModelType(IamUserSource),
+            ra_types_dynamic.KindModelType(KeycloakUserSource),
+        ),
+        default=IamUserSource,
     )
 
     first_name = properties.property(
@@ -285,7 +354,7 @@ class User(
         if self.otp_enabled:
             raise iam_e.OTPAlreadyEnabledError()
 
-        self.validate_secret(password)
+        self.process_secret(password)
         self.otp_secret = pyotp.random_base32()
         self.save()
 
@@ -305,7 +374,7 @@ class User(
         self.save()
 
     def disable_otp(self, password):
-        self.validate_secret(password)
+        self.process_secret(password)
         self.otp_secret = ""
         self.otp_enabled = False
         self.save()
@@ -405,6 +474,9 @@ class User(
         if self.check_confirmation_code(code):
             return self.reset_secret(new_secret)
         raise iam_exceptions.CanNotConfirmUser(code=code)
+
+    def process_secret(self, secret):
+        self.user_source.process_secret(user=self, secret=secret)
 
 
 class Role(
@@ -722,6 +794,7 @@ class MeInfo:
             "secret",
             "confirmation_code",
             "confirmation_code_made_at",
+            "user_source",
         ]
         user = self._user.get_storable_snapshot()
         for drop_field in skip_fields:
@@ -889,7 +962,7 @@ class IamClient(
         **kwargs,
     ):
         for user in users_query:
-            user.validate_secret(secret=password)
+            user.process_secret(secret=password)
             if user.otp_enabled and not user.validate_otp(otp_code):
                 raise iam_e.OTPInvalidCodeError()
 
