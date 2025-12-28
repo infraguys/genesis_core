@@ -29,7 +29,7 @@ class MigrationStep(migrations.AbstractMigrationStep):
 
     @property
     def is_manual(self):
-        return False
+        return True
 
     def upgrade(self, session):
         expressions = [
