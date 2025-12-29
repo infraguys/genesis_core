@@ -52,7 +52,7 @@ from genesis_core.user_api.iam.dm import types
 
 class KindModelSelectorType(ra_types_dynamic.KindModelSelectorType):
     def get_kind_types(self):
-        return self._kind_type_map[k]
+        return [self._kind_type_map[k] for k in self._kind_type_map]
 
 
 class ModelWithSecret(models.Model, models.CustomPropertiesMixin):
