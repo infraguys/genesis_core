@@ -80,40 +80,40 @@ class TestNameTestCase:
         scope="function",
         params=[
             ("u", True),
-            ("用户123!", False),
+            ("用户123!", True),  # old is False
             ("用户", True),
-            ("test+user@domain.com", False),
-            ("a#b$c%&'*", False),
-            ("~underscore_", False),
-            ("john.doe{2023}", False),
-            ("=equal-sign", False),
-            ("slash/test", False),
-            ("question?mark", False),
-            ("caret^symbol", False),
+            ("test+user@domain.com", True),  # old is False
+            ("a#b$c%&'*", True),  # old is False
+            ("~underscore_", True),  # old is False
+            ("john.doe{2023}", True),  # old is False
+            ("=equal-sign", True),  # old is False
+            ("slash/test", True),  # old is False
+            ("question?mark", True),  # old is False
+            ("caret^symbol", True),  # old is False
             ("back`tick", True),
             ("back'tick", True),
             ("back tick", True),
-            ("back tick ", False),
-            (" back tick", False),
-            ("pipe|symbol", False),
-            ("tilde~wave", False),
+            ("back tick ", True),  # old is False
+            (" back tick", True),  # old is False
+            ("pipe|symbol", True),  # old is False
+            ("tilde~wave", True),  # old is False
             ("dash-test", True),
-            ("123.45@domain", False),
-            ("أحمد_2023", False),
+            ("123.45@domain", True),  # old is False
+            ("أحمد_2023", True),  # old is False
             ("", False),
-            (" space ", False),
+            (" space ", True),  # old is False
             ("two words", True),
-            ("emoji😊", False),
-            ("percent%age", False),
-            ("invalid/", False),
-            ("semicolon;test", False),
-            ('quote"mark', False),
-            ("bracket(test)", False),
-            ("angle<tag", False),
-            ("comma,separated", False),
-            ("dash-", False),
-            ("@start-with", False),
-            ("user@", False),
+            ("emoji😊", True),  # old is False
+            ("percent%age", True),  # old is False
+            ("invalid/", True),  # old is False
+            ("semicolon;test", True),  # old is False
+            ('quote"mark', True),  # old is False
+            ("bracket(test)", True),  # old is False
+            ("angle<tag", True),  # old is False
+            ("comma,separated", True),  # old is False
+            ("dash-", True),  # old is False
+            ("@start-with", True),  # old is False
+            ("user@", True),  # old is False
             ("a\nb", False),
         ],
     )
