@@ -60,8 +60,7 @@ class TestDnsApi:
         assert self._cmp_shallow(domain, output)
         yield output
 
-    # DNS
-
+    @pytest.mark.xdist_group(name="pdns")
     def test_domains_list(
         self,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
@@ -75,6 +74,7 @@ class TestDnsApi:
         assert response.status_code == 200
         assert len(response.json()) == 0
 
+    @pytest.mark.xdist_group(name="pdns")
     def test_domains_add(
         self,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
@@ -126,6 +126,7 @@ class TestDnsApi:
         assert response.status_code == 200
         assert len(response.json()) == 0
 
+    @pytest.mark.xdist_group(name="pdns")
     def test_a_record(
         self,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
@@ -174,6 +175,7 @@ class TestDnsApi:
 
         assert response.status_code == 204
 
+    @pytest.mark.xdist_group(name="pdns")
     def test_txt_record(
         self,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,

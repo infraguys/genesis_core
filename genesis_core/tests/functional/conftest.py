@@ -29,6 +29,7 @@ from gcl_sdk.events import clients as sdk_clients
 from gcl_sdk.infra.dm import models as sdk_infra_models
 from gcl_sdk.agents.universal.dm import models as sdk_ua_models
 from restalchemy.dm import filters as dm_filters
+from restalchemy.tests.functional.conftest import setup_db_for_worker
 
 from genesis_core.common import constants as c
 from genesis_core.common.dm import targets as ct

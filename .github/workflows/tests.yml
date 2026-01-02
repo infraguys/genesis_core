@@ -39,8 +39,13 @@ jobs:
           POSTGRES_HOST_AUTH_METHOD: trust
           POSTGRES_USER: genesis_core
           POSTGRES_PASSWORD: genesis_core
+          POSTGRES_INITDB_ARGS: "-c max_connections=100"
         # Set health checks to wait until postgres has started
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
         ports:
           # Maps tcp port 5432 on service container to the host
           - 5432:5432
