@@ -29,11 +29,11 @@ build:
     - dst: /opt/genesis_core/artifacts/initrd.img
       # Local path
       http:
-        src: https://repository.genesis-core.tech/seed_os/latest/initrd.img
+        src: https://repository.genesis-core.tech/seed_os/0.1.0/initrd.img
     - dst: /opt/genesis_core/artifacts/vmlinuz
       # Local path
       http:
-        src: https://repository.genesis-core.tech/seed_os/latest/vmlinuz
+        src: https://repository.genesis-core.tech/seed_os/0.1.0/vmlinuz
     - dst: /opt/genesis_core/artifacts/html.tgz
       # Local path
       http:
