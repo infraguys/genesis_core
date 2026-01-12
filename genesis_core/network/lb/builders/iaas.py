@@ -57,7 +57,7 @@ class LBBuilder(builder.CoreInfraBuilder):
             replicas=instance.type.nodes_number,
             project_id=self._project_id,
             status=sdk_c.NodeStatus.NEW.value,
-            disk_spec=sdk_models.SetDisksSpec(
+            disk_spec=sdk_models.SetRootDiskSpec(
                 size=instance.type.disk_size,
                 image=CONF.gservice.lb_image,
             ),
