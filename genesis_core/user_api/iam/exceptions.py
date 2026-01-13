@@ -1,4 +1,5 @@
 # Copyright 2025 Genesis Corporation
+# Copyright 2026 Genesis Corporation
 #
 # All Rights Reserved.
 #
@@ -29,6 +30,13 @@ class CanNotSetOwner(exceptions.CommonForbiddenException, iam_exc.Forbidden):
         " the owner. This action requires the `{rule}` permission, which is"
         " not granted. Please contact your administrator to request the"
         " necessary access or retain the current owner value."
+    )
+
+
+class CanNotCreateUser(exceptions.CommonForbiddenException, iam_exc.Forbidden):
+    __template__ = (
+        "The current user is not permitted to create users. This action"
+        " requires the `{rule}`, which has not been granted."
     )
 
 
