@@ -32,7 +32,7 @@ DOMAIN = "gservice"
 cli_opts = [
     cfg.StrOpt(
         "lb-image",
-        default="https://repository.genesis-core.tech/genesis-lbaas/latest/genesis-lbaas.raw.gz",
+        default="https://repository.genesis-core.tech/genesis_lbaas/latest/genesis-lbaas.raw.gz",
         help="URL to get image for LB dataplane VM",
     ),
 ]
