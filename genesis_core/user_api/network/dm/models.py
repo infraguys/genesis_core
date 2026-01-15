@@ -352,6 +352,7 @@ class AllowedPathType(types.BaseCompiledRegExpTypeFromAttr):
 class RuleStaticKind(AbstractRuleKind):
     KIND = "local_dir"
     path = properties.property(AllowedPathType(), required=True)
+    is_spa = properties.property(types.Boolean(), default=True)
 
 
 class ArchivedTarUrl(types.Url):
@@ -364,6 +365,7 @@ class ArchivedTarUrl(types.Url):
 class RuleStaticDownloadKind(AbstractRuleKind):
     KIND = "local_dir_download"
     url = properties.property(ArchivedTarUrl(), required=True)
+    is_spa = properties.property(types.Boolean(), default=True)
 
 
 class AbstractModifierKind(
