@@ -20,11 +20,11 @@ from restalchemy.storage.sql import migrations
 class MigrationStep(migrations.AbstractMigrationStep):
 
     def __init__(self):
-        self._depends = ["0035-dummy-placement-e6d5dc.py"]
+        self._depends = []
 
     @property
     def migration_id(self):
-        return "83f22b9e-fb2b-45bd-8237-aaf7705369f7"
+        return "12db0312-4ac4-4591-b80a-b2db5a593842"
 
     @property
     def is_manual(self):
