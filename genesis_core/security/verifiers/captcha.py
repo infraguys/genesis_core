@@ -52,7 +52,7 @@ class CaptchaVerifier(AbstractVerifier):
         try:
             return json.loads(captcha_header)
         except (json.JSONDecodeError, TypeError):
-            log.exception("Failed to parse CAPTCHA payload: ")
+            log.exception("Failed to parse CAPTCHA payload.")
             return None
 
     def verify(self, request) -> None:
