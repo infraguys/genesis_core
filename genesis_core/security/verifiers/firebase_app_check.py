@@ -96,6 +96,11 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
             raise iam_exceptions.FirebaseAppCheckValidationFailed(
                 message="App Check verification failed due to a system error."
             ) from e
+        except ValueError as e:
+            log.error("Firebase App Check token ValueError: %s", e)
+            raise iam_exceptions.FirebaseAppCheckValidationFailed(
+                message="App Check verification failed due to a system error."
+            ) from e
 
         # Fail fast for not-allowed app IDs once token is verified
         if self._allowed_app_ids:

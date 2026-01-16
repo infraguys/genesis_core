@@ -59,7 +59,7 @@ class TestClientUserCreation(base.BaseIamResourceTest):
     ):
         """Create IamClient with admin_bypass rule."""
         client = user_api_client(auth_user_admin)
-        rules = [{"kind": "admin_bypass", "bypass_users": []}]
+        rules = [{"kind": "admin_bypass", "bypass_users": ["00000000-0000-0000-0000-000000000000"]}]
         return self._create_iam_client_with_rules(
             client, "admin_bypass", rules
         )
@@ -166,7 +166,7 @@ class TestClientUserCreation(base.BaseIamResourceTest):
         rules = [
             {
                 "kind": "admin_bypass",
-                "bypass_users": []
+                "bypass_users": ["00000000-0000-0000-0000-000000000000"]
             },
             {
                 "kind": "firebase_app_check",

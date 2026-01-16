@@ -58,9 +58,6 @@ class AdminBypassVerifier(AbstractVerifier):
         token.validate_expiration()
         user = token.user
 
-        if any(role.name.lower() == "admin" for role in user.get_my_roles().get_roles()):
-            return
-
         bypass_users = self.config.get("bypass_users", [])
         bypass_list = {str(u).lower() for u in bypass_users}
         if (user.email and user.email.lower() in bypass_list) or str(user.uuid).lower() in bypass_list:
