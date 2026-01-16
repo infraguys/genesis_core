@@ -37,6 +37,12 @@ class SSHKeysRoute(routes.Route):
     __controller__ = controllers.SSHKeysController
 
 
+class RSAKeysRoute(routes.Route):
+    """Handler for /v1/secret/rsa_keys/ endpoint"""
+
+    __controller__ = controllers.RSAKeysController
+
+
 class SecretRoute(routes.Route):
     """Handler for /v1/secret/ endpoint"""
 
@@ -46,3 +52,4 @@ class SecretRoute(routes.Route):
     passwords = routes.route(PasswordsRoute)
     certificates = routes.route(CertificatesRoute)
     ssh_keys = routes.route(SSHKeysRoute)
+    rsa_keys = routes.route(RSAKeysRoute)

@@ -13,12 +13,15 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+from __future__ import annotations
 
-import re
+from functools import partial
 import logging
 import enum
-import yaml
+import re
+import typing as tp
 import uuid as sys_uuid
+import yaml
 
 from gcl_sdk.agents.universal.dm import models as sdk_models
 from gcl_sdk.agents.universal import utils as sdk_utils
@@ -27,12 +30,19 @@ from restalchemy.dm import models
 from restalchemy.dm import properties
 from restalchemy.dm import relationships
 from restalchemy.dm import types as ra_types
+from restalchemy.dm import types_dynamic as ra_types_dyn
 from restalchemy.storage.sql import orm
 from restalchemy.storage.sql import engines
 
+from gcl_sdk.agents.universal.dm import models as ua_models
+from gcl_sdk.paas.dm import services as srv_models
+
 from genesis_core.common import exceptions
+from genesis_core.common.dm import models as cm
+from genesis_core.common.dm import targets as ct
 from genesis_core.common import utils as cm_utils
 from genesis_core.elements.dm import utils
+from genesis_core.elements import constants as cc
 
 
 LOG = logging.getLogger(__name__)
@@ -164,25 +174,53 @@ class Manifest(
     )
 
     def install(self):
+        if element := Element.objects.get_one_or_none(
+            filters={"name": ra_filters.EQ(self.name)}
+        ):
+            raise ValueError(f"Element '{self.name}' already exists.")
+
         element_engine.load_from_database()
 
         element = Element(
-            uuid=utils.get_element_uuid(self.name, self.version),
+            uuid=self.uuid,
             name=self.name,
             version=self.version,
             api_version=self.api_version,
             description=self.description,
             project_id=utils.get_project_id(),
         )
-        element.insert()
+        element.save()
         element_engine.add_element(element)
 
+        return self.apply_element(element)
+
+    def upgrade(self):
+        element = Element.objects.get_one_or_none(
+            filters={"name": ra_filters.EQ(self.name)}
+        )
+        if not element:
+            raise ValueError(
+                f"Element '{self.name}' does not exist, please install it first."
+            )
+
+        element_engine.load_from_database()
+
+        element.version = self.version
+        element.api_version = self.api_version
+        element.description = self.description
+        element.save()
+        return self.apply_element(element)
+
+    def apply_element(self, element):
+        # Imports
+        existing_imports = {
+            i.name: i
+            for i in Import.objects.get_all(
+                filters={"element": ra_filters.EQ(element.uuid)}
+            )
+        }
+
         for import_name, import_data in self.imports.items():
-            import_kwargs = {}
-
-            if "kind" in import_data:
-                import_kwargs["kind"] = import_data["kind"]
-
             from_element = element_engine.get_element(
                 link=import_data["element"],
             )
@@ -190,62 +228,123 @@ class Manifest(
                 from_element=from_element,
                 link=import_data["link"],
             )
-            import_model = Import(
-                uuid=cm_utils.get_or_create_uuid_from_dict(import_data),
+            import_kwargs = dict(
                 name=import_name,
                 element=element,
                 from_element=from_element,
                 from_resource=from_resource,
-                **import_kwargs,
             )
 
-            import_model.insert()
+            if "kind" in import_data:
+                import_kwargs["kind"] = import_data["kind"]
+
+            if import_model := existing_imports.pop(import_name, None):
+                for k, v in import_kwargs.items():
+                    setattr(import_model, k, v)
+                import_model.save()
+            else:
+                import_model = Import(
+                    uuid=cm_utils.get_or_create_uuid_from_dict(import_data),
+                    **import_kwargs,
+                )
+
+                import_model.insert()
+                resource = ImportedResource(
+                    element=import_model.element,
+                    resource=import_model.from_resource,
+                    name=import_model.name,
+                )
+                element_engine.add_resource(resource)
+
+        for imp in existing_imports.values():
             resource = ImportedResource(
-                element=import_model.element,
-                resource=import_model.from_resource,
-                name=import_model.name,
+                element=imp.element,
+                resource=imp.from_resource,
+                name=imp.name,
             )
-            element_engine.add_resource(resource)
+            element_engine.delete_resource(resource)
+            imp.delete()
 
-        # prepare resources:
-        for resource_link_prefix, resource in self.resources.items():
+        # Resources
+        existing_resources = {
+            (i.resource_link_prefix, i.name): i
+            for i in Resource.objects.get_all(
+                filters={"element": ra_filters.EQ(element.uuid)}
+            )
+        }
+
+        for resource_link_prefix, resources in self.resources.items():
             link_resolver = LinkResolver(
                 element=element,
                 element_engine=element_engine,
                 full_link=resource_link_prefix,
             )
-            for resource_name, resource_value in resource.items():
-                resource = Resource(
-                    uuid=cm_utils.get_or_create_uuid_from_dict(resource_value),
-                    name=resource_name,
+            for resource_name, resource_value in resources.items():
+                resolved_link_prefix = link_resolver.full_link_original
+                res_kwargs = dict(
                     element=element,
-                    resource_link_prefix=link_resolver.full_link_original,
+                    resource_link_prefix=resolved_link_prefix,
                     value=resource_value,
                 )
+                res_key = (resolved_link_prefix, resource_name)
+                if resource := existing_resources.pop(res_key, None):
+                    for k, v in res_kwargs.items():
+                        setattr(resource, k, v)
+                    resource.save()
+                else:
+                    resource = Resource(
+                        uuid=cm_utils.get_or_create_uuid_from_dict(
+                            resource_value
+                        ),
+                        name=resource_name,
+                        **res_kwargs,
+                    )
 
-                # NOTE(efrolov): checks that the element providing this
-                #   resource is installed
-                # TODO(akremenetsky): Temporarily disabled this check
-                # resource.get_provider_element()
+                    # NOTE(efrolov): check that the element providing this
+                    #   resource is installed
+                    # TODO(akremenetsky): Temporarily disabled this check
+                    # resource.get_provider_element()
 
-                resource.insert()
-                element_engine.add_resource(resource)
+                    resource.insert()
+                    element_engine.add_resource(resource)
+
+        for res in existing_resources.values():
+            element_engine.delete_resource(res)
+            res.delete()
+
+        # Exports
+        existing_exports = {
+            i.name: i
+            for i in Export.objects.get_all(
+                filters={"element": ra_filters.EQ(element.uuid)}
+            )
+        }
 
         for export_name, export_data in self.exports.items():
-            export_kwargs = {}
-            if "kind" in export_data:
-                export_kwargs["kind"] = export_data["kind"]
-
-            export_model = Export(
-                uuid=cm_utils.get_or_create_uuid_from_dict(export_data),
+            export_kwargs = dict(
                 name=export_name,
                 element=element,
                 link=export_data["link"],
-                **export_kwargs,
             )
+            if "kind" in export_data:
+                export_kwargs["kind"] = export_data["kind"]
 
-            export_model.insert()
-            element_engine.add_resource_export(export_model)
+            if export_model := existing_exports.pop(export_name, None):
+                for k, v in export_kwargs.items():
+                    setattr(export_model, k, v)
+                export_model.save()
+            else:
+                export_model = Export(
+                    uuid=cm_utils.get_or_create_uuid_from_dict(export_data),
+                    **export_kwargs,
+                )
+
+                export_model.insert()
+                element_engine.add_resource_export(export_model)
+
+        for exp in existing_exports.values():
+            element_engine.delete_resource_export(exp)
+            exp.delete()
 
         return self
 
@@ -254,9 +353,8 @@ class Manifest(
 
         elements = Element.objects.get_all(
             filters={
-                "uuid": ra_filters.EQ(
-                    utils.get_element_uuid(self.name, self.version)
-                ),
+                "name": ra_filters.EQ(self.name),
+                "version": ra_filters.EQ(self.version),
             }
         )
         for element in elements:
@@ -428,6 +526,7 @@ class Resource(
     __allowed_methods_from_manifest__ = [
         "get_uri",
         "to_str",
+        "index",
     ]
 
     element = relationships.relationship(
@@ -467,6 +566,8 @@ class Resource(
         default="",
     )
 
+    __inline_vars_regex__ = re.compile(r"[\\]{0,1}\{(.*?)}")
+
     def get_uri(self):
         version_prefix = ""
         if self.element.api_version:
@@ -478,6 +579,14 @@ class Resource(
         if not self.actual_resource or not self.actual_resource.value:
             return ""
         return str(self.actual_resource.value[field])
+
+    def index(self, field: str, idx: str | int = 0) -> None | str:
+        if not self.actual_resource or not self.actual_resource.value:
+            return None
+        try:
+            return self.actual_resource.value[field][int(idx)]
+        except (TypeError, IndexError):
+            return None
 
     def get_parameter_value(self, parameter):
         parts = parameter.split(":")
@@ -499,7 +608,8 @@ class Resource(
                 if func_name in self.__allowed_methods_from_manifest__:
                     func = getattr(self, func_name)
                     if match.group(2):
-                        return func(match.group(2))
+                        result = [x.strip() for x in match.group(2).split(",")]
+                        return func(*result)
                     return func()
 
         result_value = self.get_actual_state_safe()
@@ -512,66 +622,97 @@ class Resource(
             return self.render_target_state()
         return self.actual_resource.value
 
+    # Support inplace vars with f"" syntax
+    def _fstring_replacement_callback(self, match, engine):
+        # Just remove escape syntax
+        if match.group(0).startswith("\\{") and match.group(0)[-1] == "}":
+            return match.group(0)[1:]
+        var = match.group(1)
+        link = utils.ResourceLink(var)
+        try:
+            resource = engine.get_resource_by_link(
+                element=self.element,
+                link=link.location,
+            )
+            value = resource.get_parameter_value(
+                parameter=link.parameter,
+            )
+            return str(value)
+        except ValueError as e:
+            raise ValueError(
+                f"Can't render value `{var}` for resource"
+                f" `{repr(self)}` by reason: {e}"
+            )
+
+    def _render_value(self, value, engine):
+        if value.startswith("$"):
+            link = utils.ResourceLink(value)
+            try:
+                resource = engine.get_resource_by_link(
+                    element=self.element,
+                    link=link.location,
+                )
+                return resource.get_parameter_value(
+                    parameter=link.parameter,
+                )
+            except ValueError as e:
+                raise ValueError(
+                    f"Can't render value `{value}` for resource"
+                    f" `{repr(self)}` by reason: {e}"
+                )
+        elif value.startswith('f"'):
+            return re.sub(
+                self.__inline_vars_regex__,
+                partial(self._fstring_replacement_callback, engine=engine),
+                value[2 : value.rfind('"')],
+            )
+
+        return value
+
+    def _recursive_render(self, data, engine):
+        if isinstance(data, dict):
+            result = {}
+            for key, value in data.items():
+                if isinstance(
+                    value,
+                    (
+                        dict,
+                        list,
+                    ),
+                ):
+                    value = self._recursive_render(value, engine)
+                    result[key] = value
+                elif isinstance(value, str):
+                    result[key] = self._render_value(value, engine)
+                else:
+                    result[key] = value
+        elif isinstance(data, list):
+            result = []
+            for item in data:
+                if isinstance(
+                    item,
+                    (
+                        dict,
+                        list,
+                    ),
+                ):
+                    item = self._recursive_render(item, engine)
+                    result.append(item)
+                elif isinstance(item, str):
+                    result.append(self._render_value(item, engine))
+                else:
+                    result.append(item)
+        else:
+            result = data
+        return result
+
     def render_target_state(self, engine=None):
-
         engine = engine or element_engine
-
-        def render_value(value):
-            if value.startswith("$"):
-                link = utils.ResourceLink(value)
-                try:
-                    resource = engine.get_resource_by_link(
-                        element=self.element,
-                        link=link.location,
-                    )
-                    return resource.get_parameter_value(
-                        parameter=link.parameter,
-                    )
-                except ValueError as e:
-                    raise ValueError(
-                        f"Can't render value `{value}` for resource"
-                        f" `{repr(self)}` by reason: {e}"
-                    )
-            return value
-
-        def recursive_render(data):
-            if isinstance(data, dict):
-                result = {}
-                for key, value in data.items():
-                    if isinstance(
-                        value,
-                        (
-                            dict,
-                            list,
-                        ),
-                    ):
-                        value = recursive_render(value)
-                        result[key] = value
-                    elif isinstance(value, str):
-                        result[key] = render_value(value)
-                    else:
-                        result[key] = value
-            elif isinstance(data, list):
-                result = []
-                for item in data:
-                    if isinstance(
-                        item,
-                        (
-                            dict,
-                            list,
-                        ),
-                    ):
-                        item = recursive_render(item)
-                        result.append(item)
-                    elif isinstance(item, str):
-                        result.append(render_value(item))
-                    else:
-                        result.append(item)
-            else:
-                result = data
-            return result
-
-        return recursive_render(self.value)
+        res = self._recursive_render(self.value, engine)
+        # uuid is mandatory to find already created resources in services
+        if "uuid" not in res:
+            res["uuid"] = str(self.uuid)
+        return res
 
     @property
     def link(self):
@@ -593,10 +734,10 @@ class Resource(
         provider_element = self.get_provider_element()
         return f"em_{provider_element.name}_{'_'.join(parts)}"
 
-    def calculate_full_hash(self):
+    def calculate_full_hash(self, target_state=None):
         if self.actual_resource is not None:
             return self.actual_resource.full_hash
-        target_state = self.render_target_state()
+        target_state = target_state or self.render_target_state()
         return sdk_utils.calculate_hash(target_state)
 
     def _find_actual_resource(self):
@@ -623,7 +764,7 @@ class Resource(
             return
         self.actual_resource = self._find_actual_resource()
         hash = sdk_utils.calculate_hash(target_state)
-        self.full_hash = self.calculate_full_hash()
+        self.full_hash = self.calculate_full_hash(target_state)
         if self.target_resource is None:
             res_uuid = sdk_models.TargetResource.gen_res_uuid(
                 self.uuid, self.kind
@@ -1003,6 +1144,10 @@ class ElementEngine:
         namespace = self._namespaces[resource.element.link]
         namespace.add_resource(resource)
 
+    def delete_resource(self, resource):
+        namespace = self._namespaces[resource.element.link]
+        namespace.delete_resource(resource)
+
     def get_resources(self):
         result = []
         for namespace in self._namespaces.values():
@@ -1052,6 +1197,9 @@ class ElementEngine:
             )
         self._resource_exports[export_resource.link] = resource
 
+    def delete_resource_export(self, export_resource):
+        del self._resource_exports[export_resource.link]
+
     def get_export_resource(self, from_element, link):
         # Implement check element here for export resources
         if link not in self._resource_exports:
@@ -1063,3 +1211,122 @@ class ElementEngine:
 
 
 element_engine = ElementEngine()
+
+
+class ServiceTarget(srv_models.ServiceTarget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Check for Service existence
+        if not Service.objects.get_one_or_none(
+            filters={"uuid": ra_filters.EQ(self.service)}
+        ):
+            raise ValueError(
+                "Service %s does not exist. Please create it first."
+                % self.service
+            )
+
+    @classmethod
+    def from_service(cls, service: sys_uuid.UUID) -> "ServiceTarget":
+        return cls(service=service)
+
+    def target_services(self) -> tp.List[sys_uuid.UUID]:
+        return [self.service]
+
+    def owners(self) -> tp.List[sys_uuid.UUID]:
+        """It's the simplest case with an ordinary service target.
+
+        In that case, the owner and target is the service itself.
+        If owners are deleted, the service will be deleted as well.
+        """
+        return [self.service]
+
+    def _fetch_services(self) -> tp.List["Service"]:
+        return Service.objects.get_all(filters={"uuid": str(self.service)})
+
+    def are_owners_alive(self) -> bool:
+        return bool(self._fetch_services())
+
+    def get_dp_obj(self):
+        service = Service.objects.get_one(
+            filters={"uuid": ra_filters.EQ(self.service)}
+        )
+        return srv_models.ServiceDPTarget(
+            service=self.service, service_name=service.name
+        )
+
+
+class Service(
+    cm.ModelWithFullAsset,
+    orm.SQLStorableMixin,
+    ua_models.TargetResourceMixin,
+    ua_models.TargetResourceSQLStorableMixin,
+):
+    __tablename__ = "em_services"
+
+    name = properties.property(
+        ra_types.BaseCompiledRegExpType(re.compile(r"^[A-Za-z0-9_-]{0,100}$")),
+        default="",
+    )
+    path = properties.property(
+        ra_types.String(min_length=1, max_length=255),
+        required=True,
+    )
+    status = properties.property(
+        ra_types.Enum([s.value for s in cc.ServiceStatus]),
+        default=cc.ServiceStatus.NEW.value,
+    )
+    target_status = properties.property(
+        ra_types.Enum([s.value for s in srv_models.ServiceTargetStatus]),
+        default=srv_models.ServiceTargetStatus.enabled.value,
+    )
+    target = properties.property(
+        ra_types_dyn.KindModelSelectorType(
+            ra_types_dyn.KindModelType(ct.NodeTarget),
+            ra_types_dyn.KindModelType(ct.NodeSetTarget),
+        ),
+        required=True,
+    )
+    user = properties.property(
+        ra_types.String(min_length=1, max_length=255),
+        required=True,
+        default="root",
+    )
+    group = properties.property(
+        ra_types.AllowNone(ra_types.String(min_length=1, max_length=255)),
+        default=None,
+    )
+    service_type = properties.property(
+        ra_types_dyn.KindModelSelectorType(
+            ra_types_dyn.KindModelType(srv_models.ServiceTypeSimple),
+            ra_types_dyn.KindModelType(srv_models.ServiceTypeOneshot),
+            ra_types_dyn.KindModelType(srv_models.ServiceTypeMonopoly),
+            ra_types_dyn.KindModelType(srv_models.ServiceTypeMonopolyOneshot),
+        ),
+        required=True,
+    )
+    before = properties.property(
+        ra_types.TypedList(
+            ra_types_dyn.KindModelSelectorType(
+                ra_types_dyn.KindModelType(srv_models.CmdShell),
+                ra_types_dyn.KindModelType(ServiceTarget),
+            ),
+        ),
+        required=True,
+        default=[],
+    )
+    after = properties.property(
+        ra_types.TypedList(
+            ra_types_dyn.KindModelSelectorType(
+                ra_types_dyn.KindModelType(srv_models.CmdShell),
+                ra_types_dyn.KindModelType(ServiceTarget),
+            ),
+        ),
+        required=True,
+        default=[],
+    )
+
+    def target_nodes(self) -> tp.List[sys_uuid.UUID]:
+        return self.target.target_nodes()
+
+    def target_owners(self) -> tp.List[sys_uuid.UUID]:
+        return self.target.owners()

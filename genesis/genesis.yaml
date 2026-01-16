@@ -25,15 +25,19 @@ build:
     - dst: /opt/genesis_core/artifacts/undionly.kpxe
       # Local path
       http:
-        src: http://repository.genesis-core.tech:8081/ipxe/latest/undionly.kpxe
+        src: https://repository.genesis-core.tech/ipxe/latest/undionly.kpxe
     - dst: /opt/genesis_core/artifacts/initrd.img
       # Local path
       http:
-        src: http://repository.genesis-core.tech:8081/seed_os/latest/initrd.img
+        src: https://repository.genesis-core.tech/seed_os/0.1.0/initrd.img
     - dst: /opt/genesis_core/artifacts/vmlinuz
       # Local path
       http:
-        src: http://repository.genesis-core.tech:8081/seed_os/latest/vmlinuz
+        src: https://repository.genesis-core.tech/seed_os/0.1.0/vmlinuz
+    - dst: /opt/genesis_core/artifacts/html.tgz
+      # Local path
+      http:
+        src: https://repository.genesis-core.tech/genesis_ui/0.1.1/html.tgz
 
     # Take SDK from a local path for development purposes.
     - dst: /opt/gcl_sdk
@@ -62,7 +66,8 @@ build:
 
         # Override image build parameters, for instance Packer parameters
         override:
-          disk_size: "6G"
+          # For development purposes it's handy to have more space.
+          disk_size: "10G"
       # manifest: manifests/genesis-core.yaml
 
         envs:

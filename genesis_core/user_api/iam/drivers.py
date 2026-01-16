@@ -14,8 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from gcl_iam import algorithms as iam_algorithms
 from gcl_iam import drivers as iam_drivers
-
 from genesis_core.user_api.iam.dm import models
 
 
@@ -27,3 +27,37 @@ class DirectDriver(iam_drivers.AbstractAuthDriver):
         return token.introspect(
             token_info=token_info, otp_code=otp_code
         ).get_response_body()
+
+    def get_algorithm(self, token_info):
+        token = models.Token.my(token_info=token_info)
+        signature_algorithm = token.iam_client.signature_algorithm
+
+        if signature_algorithm.kind == iam_algorithms.ALGORITHM_HS256:
+            secret_value = signature_algorithm.secret.value
+            previous_secret_value = (
+                None
+                if signature_algorithm.previous_secret is None
+                else signature_algorithm.previous_secret.value
+            )
+            return iam_algorithms.HS256(
+                key=secret_value,
+                previous_key=previous_secret_value,
+            )
+
+        elif signature_algorithm.kind == iam_algorithms.ALGORITHM_RS256:
+            secret = signature_algorithm.secret
+            previous_secret = signature_algorithm.previous_secret
+
+            return iam_algorithms.RS256(
+                private_key=secret.private_key,
+                public_key=secret.public_key,
+                previous_public_key=(
+                    None
+                    if previous_secret is None
+                    else previous_secret.public_key
+                ),
+            )
+
+        raise ValueError(
+            f"Unknown signature algorithm: {signature_algorithm.kind}"
+        )

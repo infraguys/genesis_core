@@ -19,12 +19,10 @@ import uuid as sys_uuid
 from urllib.parse import urljoin
 
 import pytest
-import netaddr
 import requests
 from oslo_config import cfg
 
 from genesis_core.compute.dm import models
-from genesis_core.config.dm import models as config_models
 from genesis_core.common import constants as c
 from genesis_core.tests.functional import utils as test_utils
 from genesis_core.tests.functional import conftest
@@ -71,28 +69,33 @@ class TestNodeOrchApi:
         assert response.text.startswith("#!ipxe")
         assert "initrd" in response.text
         assert "vmlinuz" in response.text
-        assert "gc_base_url" in response.text
+        assert "gc_orch_api" in response.text
+        assert "gc_status_api" in response.text
         assert "tftp://10.20.0.2" in response.text
 
     def test_netboots_hd_boot(
         self,
-        machine_factory: tp.Callable,
-        default_pool: tp.Dict[str, tp.Any],
+        pool_factory: tp.Callable,
         orch_api: test_utils.RestServiceTestCase,
     ):
         CONF[orch_api_cmd.DOMAIN].gc_host = "10.20.0.2"
 
+        pool_view = pool_factory()
+        pool_view["status"] = "ACTIVE"
+        pool = models.MachinePool.restore_from_simple_view(**pool_view)
+        pool.insert()
+
         uuid = sys_uuid.uuid4()
-        machine = machine_factory(
+        machine = models.Machine(
+            cores=1,
+            ram=1024,
             boot="hd0",
             uuid=uuid,
             firmware_uuid=uuid,
-            pool=sys_uuid.UUID(default_pool["uuid"]),
+            pool=pool.uuid,
+            status="ACTIVE",
+            project_id=c.SERVICE_PROJECT_ID,
         )
-        pool = models.MachinePool.restore_from_simple_view(**default_pool)
-        pool.insert()
-
-        machine = models.Machine.restore_from_simple_view(**machine)
         machine.insert()
 
         url = urljoin(orch_api.base_url, f"boots/{machine.uuid}")
@@ -120,7 +123,8 @@ class TestNodeOrchApi:
         assert response.text.startswith("#!ipxe")
         assert "initrd" in response.text
         assert "vmlinuz" in response.text
-        assert "gc_base_url" in response.text
+        assert "gc_orch_api" in response.text
+        assert "gc_status_api" in response.text
         assert "tftp://" not in response.text
         assert "https://kernel.org/vmlinuz" in response.text
         assert "https://kernel.org/initrd.img" in response.text

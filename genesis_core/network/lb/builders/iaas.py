@@ -1,0 +1,99 @@
+#    Copyright 2025 Genesis Corporation.
+#
+#    All Rights Reserved.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+import logging
+import uuid as sys_uuid
+import typing as tp
+
+from oslo_config import cfg
+from gcl_sdk.infra import constants as sdk_c
+from gcl_sdk.infra.services import builder
+from gcl_sdk.infra.dm import models as sdk_models
+from gcl_sdk.agents.universal.dm import models as ua_models
+
+from genesis_core.network.lb.dm import models
+
+LOG = logging.getLogger(__name__)
+CONF = cfg.CONF
+
+NODE_SET_KIND = models.TargetNodeSet.get_resource_kind()
+
+
+class LBBuilder(builder.CoreInfraBuilder):
+
+    _name_prefix = "lbaas"
+
+    def __init__(
+        self,
+        instance_model: tp.Type[models.IaasLB],
+        project_id: sys_uuid.UUID,
+    ):
+        super().__init__(instance_model)
+        self._project_id = project_id
+
+    def create_infra(
+        self, instance: models.IaasLB
+    ) -> tp.Collection[ua_models.TargetResourceKindAwareMixin]:
+        infra_objects = []
+
+        node_set = models.TargetNodeSet(
+            uuid=instance.uuid,
+            name=f"{self._name_prefix}-{instance.name}",
+            cores=instance.type.cpu,
+            ram=instance.type.ram,
+            replicas=instance.type.nodes_number,
+            project_id=self._project_id,
+            status=sdk_c.NodeStatus.NEW.value,
+            disk_spec=sdk_models.SetRootDiskSpec(
+                size=instance.type.disk_size,
+                image=CONF.gservice.lb_image,
+            ),
+        )
+        infra_objects.append(node_set)
+
+        return infra_objects
+
+    def actualize_infra(
+        self,
+        instance: models.IaasLB,
+        infra: builder.InfraCollection,
+    ) -> tp.Collection[ua_models.TargetResourceKindAwareMixin]:
+        nodeset = None
+        tgt_nodeset = None
+
+        for target, actual in infra.infra_objects:
+            if target.get_resource_kind() == NODE_SET_KIND:
+                nodeset = actual
+                target.cores = instance.type.cpu
+                target.ram = instance.type.ram
+                target.replicas = instance.type.nodes_number
+                # This action wipe out the disk.
+                # Rethink this part when we have persistent volumes.
+                # target.root_disk_size = instance.disk_size
+                tgt_nodeset = target
+                break
+        else:
+            raise ValueError("IaasLB must have at least one target_node_set!")
+
+        if nodeset and nodeset.nodes:
+            instance.ipsv4 = [node["ipv4"] for node in nodeset.nodes.values()]
+
+        try:
+            instance.status = sdk_c.InstanceStatus(nodeset.status).value
+        except (ValueError, AttributeError):
+            instance.status = sdk_c.InstanceStatus.IN_PROGRESS.value
+
+        return (tgt_nodeset,)

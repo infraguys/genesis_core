@@ -33,17 +33,19 @@ class TestNodeSetUserApi:
         node_foo: tp.Dict[str, tp.Any],
         node_bar: tp.Dict[str, tp.Any],
     ):
-        return all(
-            (node_foo[key] == node_bar[key])
-            for key in (
-                "uuid",
-                "name",
-                "image",
-                "cores",
-                "ram",
-                "status",
-                "node_type",
+        return (
+            all(
+                (node_foo[key] == node_bar[key])
+                for key in (
+                    "uuid",
+                    "name",
+                    "cores",
+                    "ram",
+                    "status",
+                    "node_type",
+                )
             )
+            and node_foo["disk_spec"] == node_bar["disk_spec"]
         )
 
     @staticmethod
@@ -51,17 +53,19 @@ class TestNodeSetUserApi:
         node_set_foo: tp.Dict[str, tp.Any],
         node_set_bar: tp.Dict[str, tp.Any],
     ):
-        return all(
-            (node_set_foo[key] == node_set_bar[key])
-            for key in (
-                "uuid",
-                "name",
-                "image",
-                "cores",
-                "ram",
-                "node_type",
-                "replicas",
+        return (
+            all(
+                (node_set_foo[key] == node_set_bar[key])
+                for key in (
+                    "uuid",
+                    "name",
+                    "cores",
+                    "ram",
+                    "node_type",
+                    "replicas",
+                )
             )
+            and node_set_foo["disk_spec"] == node_set_bar["disk_spec"]
         )
 
     # Node Sets

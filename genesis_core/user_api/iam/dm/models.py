@@ -13,45 +13,52 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+from __future__ import annotations
 
 import base64
 import datetime
+import enum
 import hashlib
-import logging
 import secrets
-import string
+import urllib.parse
 import uuid as sys_uuid
 
+from gcl_iam import algorithms
 from gcl_iam import exceptions as iam_e
 from gcl_iam import tokens
 from gcl_sdk.agents.universal.dm import models as ua_models
-import jinja2
+import pyotp
+from restalchemy.common import contexts
+from restalchemy.dm import filters as ra_filters
 from restalchemy.dm import models
 from restalchemy.dm import properties
 from restalchemy.dm import relationships
 from restalchemy.dm import types as ra_types
+from restalchemy.dm import types_dynamic as ra_types_dynamic
 from restalchemy.dm import types_dynamic
 from restalchemy.common import contexts
 from restalchemy.common import exceptions as ra_e
 from restalchemy.dm import filters as ra_filters
 from restalchemy.storage.sql import orm
-import pyotp
-
 
 from genesis_core.common import constants as c
 from genesis_core.common import utils as u
 from genesis_core.events import payloads as event_payloads
+from genesis_core.secret.dm import models as secret_models
 from genesis_core.security.registry import ENTRY_POINT_GROUP
 from genesis_core.user_api.iam import constants as iam_c
-from genesis_core.user_api.iam.dm import types
 from genesis_core.user_api.iam import exceptions as iam_exceptions
+from genesis_core.user_api.iam.clients import keycloak
+from genesis_core.user_api.iam.dm import types
+
+
+class KindModelSelectorType(ra_types_dynamic.KindModelSelectorType):
+    def get_kind_types(self):
+        return [self._kind_type_map[k] for k in self._kind_type_map]
 
 
 # Entry point group name for validation rules
 VALIDATION_RULES_ENTRY_POINT_GROUP = "genesis_core.validation_rules"
-
-
-log = logging.getLogger(__name__)
 
 
 class ModelWithSecret(models.Model, models.CustomPropertiesMixin):
@@ -170,6 +177,74 @@ class RolesInfo:
         return [role.get_storable_snapshot() for role in self._roles]
 
 
+class IdpResponseType(str, enum.Enum):
+    CODE = "code"
+
+    @classmethod
+    def list_response_types(cls):
+        return [cls.CODE.value]
+
+
+class AbstractUserSource(ra_types_dynamic.AbstractKindModel):
+
+    def process_secret(self, user, secret):
+        raise NotImplementedError()
+
+
+class IamUserSource(AbstractUserSource):
+    KIND = "IAM"
+
+    def process_secret(self, user, secret):
+        if not user.check_secret(secret):
+            raise iam_e.CredentialsAreInvalidError()
+
+
+class KeycloakUserSource(AbstractUserSource):
+    KIND = "KEYCLOAK"
+
+    endpoint = properties.property(
+        ra_types.Url(),
+        required=True,
+    )
+    realm = properties.property(
+        ra_types.String(max_length=256),
+        required=True,
+    )
+    client_id = properties.property(
+        ra_types.String(max_length=256),
+        required=True,
+    )
+    client_secret = properties.property(
+        ra_types.String(max_length=512),
+        required=True,
+    )
+    timeout = properties.property(
+        ra_types.Integer(min_value=1, max_value=120),
+        default=5,
+    )
+
+    def process_secret(self, user, secret):
+        if user.check_secret(secret):
+            return
+
+        client = keycloak.KeycloakClient(
+            endpoint=self.endpoint,
+            timeout=self.timeout,
+        )
+
+        if not client.check_password(
+            realm=self.realm,
+            client_id=self.client_id,
+            client_secret=self.client_secret,
+            login=user.email,
+            password=secret,
+        ):
+            raise iam_e.CredentialsAreInvalidError()
+
+        user.secret = secret
+        user.update()
+
+
 class User(
     models.ModelWithUUID,
     models.ModelWithRequiredNameDesc,
@@ -184,6 +259,14 @@ class User(
     name = properties.property(
         types.Username(min_length=1, max_length=128),
         required=True,
+    )
+
+    user_source = properties.property(
+        KindModelSelectorType(
+            ra_types_dynamic.KindModelType(IamUserSource),
+            ra_types_dynamic.KindModelType(KeycloakUserSource),
+        ),
+        default=IamUserSource,
     )
 
     first_name = properties.property(
@@ -239,7 +322,6 @@ class User(
             "email": self.email,
         }
 
-
     @classmethod
     def me(cls, token_info=None):
         token_info = (
@@ -282,7 +364,7 @@ class User(
         if self.otp_enabled:
             raise iam_e.OTPAlreadyEnabledError()
 
-        self.validate_secret(password)
+        self.process_secret(password)
         self.otp_secret = pyotp.random_base32()
         self.save()
 
@@ -302,7 +384,7 @@ class User(
         self.save()
 
     def disable_otp(self, password):
-        self.validate_secret(password)
+        self.process_secret(password)
         self.otp_secret = ""
         self.otp_enabled = False
         self.save()
@@ -333,7 +415,7 @@ class User(
         ctx = contexts.get_context()
         event_client = ctx.context_storage.get(iam_c.STORAGE_KEY_EVENTS_CLIENT)
 
-        self.reset_confirmation_code()
+        self.create_confirmation_code()
 
         registration_event_payload = event_payloads.ResetPasswordEventPayload(
             site_endpoint=app_endpoint,
@@ -349,7 +431,7 @@ class User(
         )
 
     def resend_confirmation_event(self, app_endpoint="http://localhost/"):
-        self.reset_confirmation_code()
+        self.create_confirmation_code()
         self.save()
         self.send_registration_event(app_endpoint=app_endpoint)
 
@@ -365,8 +447,11 @@ class User(
             return self.confirm_email()
         raise iam_exceptions.CanNotConfirmUser(code=code)
 
-    def reset_confirmation_code(self):
-        self.confirmation_code = sys_uuid.uuid4()
+    def create_confirmation_code(self):
+        # Janitor service will call .clear_confirmation_code()
+        # to set confirmation_code and confirmation_code_made_at to nulls,
+        # hourly, for all expired codes.
+        self.confirmation_code = self.confirmation_code or sys_uuid.uuid4()
         self.confirmation_code_made_at = datetime.datetime.now(
             datetime.timezone.utc
         )
@@ -399,6 +484,9 @@ class User(
         if self.check_confirmation_code(code):
             return self.reset_secret(new_secret)
         raise iam_exceptions.CanNotConfirmUser(code=code)
+
+    def process_secret(self, secret):
+        self.user_source.process_secret(user=self, secret=secret)
 
 
 class Role(
@@ -666,48 +754,6 @@ class RoleBinding(
     )
 
 
-class Idp(
-    models.ModelWithUUID,
-    models.ModelWithRequiredNameDesc,
-    models.ModelWithTimestamp,
-    ModelWithSecret,
-    ModelWithAlwaysActiveStatus,
-    orm.SQLStorableMixin,
-):
-    __tablename__ = "iam_idp"
-
-    project_id = properties.property(
-        ra_types.AllowNone(ra_types.UUID()),
-        default=None,
-        read_only=True,
-    )
-    client_id = properties.property(
-        ra_types.String(max_length=64),
-        required=True,
-    )
-    scope = properties.property(
-        ra_types.String(max_length=64),
-        default="openid",
-    )
-    well_known_endpoint = properties.property(
-        ra_types.String(max_length=256),
-        required=True,
-    )
-
-    redirect_uri_template = properties.property(
-        ra_types.String(max_length=256),
-        default=(
-            "{{ host_url }}/v1/iam/idp/"
-            "{{ idp_uuid }}/actions/callback/invoke"
-        ),
-    )
-
-    def get_redirect_uri(self, request_params):
-        return jinja2.Template(self.redirect_uri_template).render(
-            **request_params
-        )
-
-
 class Introspection(
     models.ModelWithUUID,
     models.ModelWithTimestamp,
@@ -741,6 +787,558 @@ class Introspection(
         }
 
 
+class MeInfo:
+
+    def __init__(self):
+        super().__init__()
+        self._user = self.get_user()
+
+    def get_user(self):
+        return User.me()
+
+    def get_response_body(self):
+        skip_fields = [
+            "otp_secret",
+            "salt",
+            "secret_hash",
+            "secret",
+            "confirmation_code",
+            "confirmation_code_made_at",
+            "user_source",
+        ]
+        user = self._user.get_storable_snapshot()
+        for drop_field in skip_fields:
+            user.pop(drop_field, None)
+
+        # "name" field is deprecated and will be removed, use "username"
+        user["username"] = user["name"]
+
+        organizations = []
+        for organization in Organization.list_my():
+            organizations.append(organization.get_storable_snapshot())
+
+        project = Token.my().project
+        project_id = str(project.uuid) if project else None
+
+        return {
+            "user": user,
+            "organization": organizations,
+            "project_id": project_id,
+        }
+
+
+class Userinfo:
+
+    def __init__(self):
+        super().__init__()
+        self._token = Token.my()
+
+    def get_user(self):
+        return User.me()
+
+    def get_response_body(self):
+        return self._token.extend_structure_by_scope({})
+
+
+class HS256SignatureAlgorithm(ra_types_dynamic.AbstractKindModel):
+    KIND = "HS256"
+
+    secret_uuid = properties.property(
+        ra_types.UUID(),
+        required=True,
+        default=sys_uuid.UUID("00000000-0000-0000-0000-000000000001"),
+    )
+
+    previous_secret_uuid = properties.property(
+        ra_types.AllowNone(ra_types.UUID()),
+        default=None,
+    )
+
+    @property
+    def secret(self):
+        return secret_models.Password.objects.get_one(
+            filters={"uuid": str(self.secret_uuid)}
+        )
+
+    @property
+    def previous_secret(self):
+        if self.previous_secret_uuid is None:
+            return None
+
+        return secret_models.Password.objects.get_one(
+            filters={"uuid": str(self.previous_secret_uuid)}
+        )
+
+    def update_secret_uuid(self, new_secret_uuid):
+        self.previous_secret_uuid = self.secret_uuid
+        self.secret_uuid = new_secret_uuid
+
+    def update_secret(self, new_secret):
+        self.update_secret_uuid(new_secret.uuid)
+
+
+class RS256SignatureAlgorithm(ra_types_dynamic.AbstractKindModel):
+    KIND = "RS256"
+
+    secret_uuid = properties.property(
+        ra_types.UUID(),
+        required=True,
+    )
+
+    previous_secret_uuid = properties.property(
+        ra_types.AllowNone(ra_types.UUID()),
+        default=None,
+    )
+
+    @property
+    def secret(self):
+        return secret_models.RSAKey.objects.get_one(
+            filters={"uuid": str(self.secret_uuid)}
+        )
+
+    @property
+    def previous_secret(self):
+        if self.previous_secret_uuid is None:
+            return None
+
+        return secret_models.RSAKey.objects.get_one(
+            filters={"uuid": str(self.previous_secret_uuid)}
+        )
+
+    def safe_update_secret_uuid(self, new_secret_uuid):
+        self.previous_secret_uuid = self.secret_uuid
+        self.secret_uuid = new_secret_uuid
+
+    def force_update_secret_uuid(self, new_secret_uuid):
+        self.secret_uuid = new_secret_uuid
+
+    def safe_update_secret(self, new_secret):
+        self.safe_update_secret_uuid(new_secret.uuid)
+
+    def force_update_secret(self, new_secret):
+        self.force_update_secret_uuid(new_secret.uuid)
+
+
+# Validation rules for user registration
+class AbstractValidationRule(types_dynamic.AbstractKindModel, models.SimpleViewMixin):
+    """Base class for user registration validation rules."""
+
+    _rule_selector = None
+
+    @classmethod
+    def get_rule_selector(cls):
+        """Returns KindModelSelectorType for all rule types loaded via entry points."""
+        if cls._rule_selector is None:
+            rule_classes = []
+            entry_points = u.load_group_from_entry_point(VALIDATION_RULES_ENTRY_POINT_GROUP)
+            for ep in entry_points:
+                rule_cls = ep.load()
+                if hasattr(rule_cls, 'KIND') and issubclass(rule_cls, cls):
+                    rule_classes.append(rule_cls)
+
+            cls._rule_selector = types_dynamic.KindModelSelectorType(
+                *[types_dynamic.KindModelType(rule_cls) for rule_cls in rule_classes]
+            )
+        return cls._rule_selector
+
+
+class AdminBypassRule(AbstractValidationRule):
+    """Rule that allows admin users to bypass validation."""
+    KIND = "admin_bypass"
+
+    # List of user UUIDs or emails that should bypass validation
+    bypass_users = properties.property(
+        ra_types.List(),
+        default=list,
+    )
+
+
+class FirebaseAppCheckRule(AbstractValidationRule):
+    """Rule that requires Firebase App Check token validation."""
+    KIND = "firebase_app_check"
+
+    credentials_path = properties.property(
+        ra_types.String(),
+        required=True,
+    )
+    allowed_app_ids = properties.property(
+        ra_types.List(),
+        default=list,
+    )
+
+
+class CaptchaRule(AbstractValidationRule):
+    """Rule that requires CAPTCHA validation."""
+    KIND = "captcha"
+
+    hmac_key = properties.property(
+        ra_types.String(),
+        required=True,
+    )
+
+
+class ValidationRule:
+    """Wrapper for validation rule with unified verify() interface."""
+
+    def __init__(self, rule_model, verifier_class):
+        self.rule_model = rule_model
+        self.kind = rule_model.kind
+        config = rule_model.dump_to_simple_view()
+        self.verifier = verifier_class(config=config or {})
+
+    def verify(self, request):
+        """Verifies the rule, raises exception on failure or does nothing on success."""
+        self.verifier.verify(request)
+
+
+class IamClient(
+    models.ModelWithUUID,
+    models.ModelWithRequiredNameDesc,
+    models.ModelWithTimestamp,
+    ModelWithSecret,
+    ModelWithAlwaysActiveStatus,
+    orm.SQLStorableWithJSONFieldsMixin,
+):
+    __tablename__ = "iam_clients"
+    __jsonfields__ = ["rules"]
+
+    # Cache verifier classes by kind not to load from EP on each request
+    _verifier_cache: dict = {}
+
+    project_id = properties.property(
+        ra_types.AllowNone(ra_types.UUID()),
+        default=None,
+        read_only=True,
+    )
+    client_id = properties.property(
+        ra_types.String(max_length=64),
+        required=True,
+    )
+    signature_algorithm = properties.property(
+        KindModelSelectorType(
+            ra_types_dynamic.KindModelType(HS256SignatureAlgorithm),
+            ra_types_dynamic.KindModelType(RS256SignatureAlgorithm),
+        ),
+        default=HS256SignatureAlgorithm,
+    )
+    rules = properties.property(
+        ra_types.TypedList(AbstractValidationRule.get_rule_selector()),
+        default=list,
+        required=False,
+    )
+
+    def get_validation_rules(self):
+        """Returns normalized validation rule objects."""
+        rules = []
+        cache = IamClient._verifier_cache
+        for rule_model in self.rules:
+            kind = rule_model.kind
+            if kind not in cache:
+                cache[kind] = u.load_from_entry_point(ENTRY_POINT_GROUP, kind)
+            rules.append(ValidationRule(rule_model, cache[kind]))
+
+        return rules
+
+    def create_user(
+            self,
+            app_endpoint,
+            username,
+            password,
+            email,
+            first_name=None,
+            last_name=None,
+            surname=None,
+            phone=None,
+            description=None,
+            **kwargs
+    ):
+        """Creates a user with proper field setup."""
+        kwargs.pop("email_verified", None)
+        # (username -> name, password -> secret)
+        user = User(
+            name=username,
+            secret=password,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            surname=surname,
+            phone=phone,
+            description=description,
+            **kwargs,
+        )
+        user.insert()
+        user.resend_confirmation_event(app_endpoint=app_endpoint)
+
+        return user
+
+    @classmethod
+    def get_id_token_signing_alg_values_supported(cls) -> list[str]:
+        selector_type = cls.properties.properties[
+            "signature_algorithm"
+        ].get_property_type()
+        return [t.kind for t in selector_type.get_kind_types()]
+
+    def validate_client_creds(self, client_id, client_secret):
+        if not client_id or not client_secret:
+            raise iam_e.ClientAuthenticationError()
+
+        if self.client_id != client_id or not self.check_secret(client_secret):
+            raise iam_e.ClientAuthenticationError()
+
+    def _get_token_by_password_and_smth(
+        self,
+        users_query,
+        password,
+        scope=iam_c.PARAM_SCOPE_DEFAULT,
+        ttl=None,
+        refresh_ttl=None,
+        otp_code=None,
+        root_endpoint=c.DEFAULT_ROOT_ENDPOINT,
+        **kwargs,
+    ):
+        for user in users_query:
+            user.process_secret(secret=password)
+            if user.otp_enabled and not user.validate_otp(otp_code):
+                raise iam_e.OTPInvalidCodeError()
+
+            expiration_delta = (
+                datetime.timedelta(seconds=float(ttl))
+                if ttl is not None
+                else Token.get_default_expiration_delta()
+            )
+            refresh_expiration_delta = (
+                datetime.timedelta(seconds=float(refresh_ttl))
+                if refresh_ttl is not None
+                else Token.get_default_refresh_expiration_delta()
+            )
+            token = Token(
+                user=user,
+                iam_client=self,
+                scope=scope,
+                issuer=f"{root_endpoint}iam/clients/{self.uuid}",
+                audience=self.client_id,
+                expiration_delta=expiration_delta,
+                refresh_expiration_delta=refresh_expiration_delta,
+                **kwargs,
+            )
+            token.insert()
+            return token
+
+        # Security hardening:
+        # - Do not reveal whether a user exists (prevent username enumeration).
+        # - Reduce timing differences between "user not found" and "wrong password".
+        # For missing users we run the same PBKDF2 routine with a fixed salt and then
+        # raise the same "invalid credentials" exception.
+        self._generate_hash(
+            secret=password or "",
+            secret_salt=iam_c.DUMMY_PBKDF2_SALT,
+            global_salt=contexts.get_context().context_storage.get(
+                iam_c.STORAGE_KEY_IAM_GLOBAL_SALT
+            ),
+        )
+        raise iam_e.CredentialsAreInvalidError()
+
+    def get_token_by_password(self, username, **kwargs):
+        """
+        Get auth token by username + password (default approach).
+        """
+        users_query = User.objects.query(
+            where_conditions="LOWER(name) = %s",
+            where_values=(username.lower(),),
+            limit=1,
+        )
+        return self._get_token_by_password_and_smth(
+            users_query=users_query, **kwargs
+        )
+
+    def get_token_by_password_username(self, username, **kwargs):
+        """
+        Get auth token by username + password.
+        This is just an alias for get_token_by_password_username,
+        to ensure consistency.
+        """
+        return self.get_token_by_password(username, **kwargs)
+
+    def get_token_by_password_email(self, email, **kwargs):
+        """
+        Get auth token by email + password.
+        """
+        users_query = User.objects.get_all(
+            filters={"email": ra_filters.EQ(email)}
+        )
+        return self._get_token_by_password_and_smth(
+            users_query=users_query, **kwargs
+        )
+
+    def get_token_by_password_phone(self, phone, **kwargs):
+        """
+        Get auth token by phone + password.
+        Will be added later.
+        """
+        raise NotImplementedError()
+
+    def get_token_by_password_login(self, login, **kwargs):
+        """
+        Get auth token by any login field + password.
+        Dynamic "smart" lookup is done by one of these fields:
+         - by email (if it has "@")
+         - by username (if no "@")
+         - by phone [to be done later]
+        """
+        if "@" in login:
+            return self.get_token_by_password_email(login, **kwargs)
+        else:
+            return self.get_token_by_password_username(login, **kwargs)
+
+    def get_token_by_refresh_token(self, refresh_token, scope=None):
+        algorithm = self.get_token_algorithm()
+        refresh_token_info = tokens.RefreshToken(
+            token=refresh_token,
+            algorithm=algorithm,
+            ignore_audience=True,
+            ignore_expiration=True,
+        )
+        for token in Token.objects.get_all(
+            filters={
+                "refresh_token_uuid": ra_filters.EQ(refresh_token_info.uuid)
+            }
+        ):
+            token.validate_refresh_expiration()
+            token.refresh(scope=scope)
+            return token
+        else:
+            raise iam_e.InvalidRefreshTokenError()
+
+    def get_token_by_authorization_code(self, code, redirect_uri):
+        for auth_info in IdpAuthorizationInfo.objects.get_all(
+            filters={"code": ra_filters.EQ(code)}
+        ):
+            if auth_info.idp.callback_uri == redirect_uri:
+                auth_info.delete()
+                return auth_info.token
+
+        raise iam_e.CredentialsAreInvalidError()
+
+    def introspect(self):
+        return Token.my().introspect()
+
+    def me(self):
+        return MeInfo()
+
+    def userinfo(self):
+        return Userinfo()
+
+    def send_reset_password_event(
+        self, email, app_endpoint="http://localhost/"
+    ):
+        email = email.lower()
+        # Result for non-existing email should not differ from existing one
+        #  to mitigate with email enumeration.
+        if user := User.objects.get_one_or_none(
+            filters={"email": ra_filters.EQ(email)}
+        ):
+            user.send_reset_password_event(app_endpoint=app_endpoint)
+
+    def get_token_algorithm(self):
+        if self.signature_algorithm.kind == iam_c.ALGORITHM_HS256:
+            secret = self.signature_algorithm.secret
+            previous_secret = self.signature_algorithm.previous_secret
+
+            return algorithms.HS256(
+                key=secret.value,
+                previous_key=(
+                    None if previous_secret is None else previous_secret.value
+                ),
+            )
+
+        if self.signature_algorithm.kind == iam_c.ALGORITHM_RS256:
+            secret = self.signature_algorithm.secret
+            previous_secret = self.signature_algorithm.previous_secret
+
+            return algorithms.RS256(
+                private_key=secret.private_key,
+                public_key=secret.public_key,
+                previous_public_key=(
+                    None
+                    if previous_secret is None
+                    else previous_secret.public_key
+                ),
+            )
+
+        raise ValueError(
+            f"Unknown signature algorithm: {self.signature_algorithm.kind}"
+        )
+
+    def get_jwks(self):
+        if self.signature_algorithm.kind == iam_c.ALGORITHM_HS256:
+            ctx = contexts.get_context()
+            storage = ctx.context_storage
+            encryption_key = storage.get(
+                iam_c.STORAGE_KEY_IAM_HS256_JWKS_ENCRYPTION_KEY
+            )
+
+            secret = self.signature_algorithm.secret
+            previous_secret = self.signature_algorithm.previous_secret
+
+            keys = []
+            keys.append(
+                {
+                    "kty": "oct",
+                    "alg": iam_c.ALGORITHM_HS256,
+                    "use": "sig",
+                    "kid": str(secret.uuid),
+                    "k": algorithms.encrypt_hs256_jwks_secret(
+                        secret=secret.value,
+                        encryption_key=encryption_key,
+                    ),
+                }
+            )
+
+            if previous_secret is not None:
+                keys.append(
+                    {
+                        "kty": "oct",
+                        "alg": iam_c.ALGORITHM_HS256,
+                        "use": "sig",
+                        "kid": str(previous_secret.uuid),
+                        "k": algorithms.encrypt_hs256_jwks_secret(
+                            secret=previous_secret.value,
+                            encryption_key=encryption_key,
+                        ),
+                    }
+                )
+
+            result = {"keys": keys}
+
+        elif self.signature_algorithm.kind == iam_c.ALGORITHM_RS256:
+            secret = self.signature_algorithm.secret
+            previous_secret = self.signature_algorithm.previous_secret
+
+            keys = []
+            keys.append(
+                algorithms.public_pem_to_jwk(
+                    public_key_pem=secret.public_key,
+                )
+            )
+
+            if previous_secret is not None:
+                keys.append(
+                    algorithms.public_pem_to_jwk(
+                        public_key_pem=previous_secret.public_key,
+                    )
+                )
+
+            result = {"keys": keys}
+
+        else:
+            raise ValueError(
+                f"Unknown signature algorithm: {self.signature_algorithm.kind}"
+            )
+
+        result["algorithm"] = self.signature_algorithm.kind
+        return result
+
+
 class Token(
     models.ModelWithUUID,
     models.ModelWithTimestamp,
@@ -767,6 +1365,11 @@ class Token(
 
     user = relationships.relationship(
         User,
+        prefetch=True,
+        required=True,
+    )
+    iam_client = relationships.relationship(
+        IamClient,
         prefetch=True,
         required=True,
     )
@@ -803,6 +1406,10 @@ class Token(
         ra_types.String(max_length=128),
         default=iam_c.PARAM_SCOPE_DEFAULT,
     )
+    nonce = properties.property(
+        ra_types.String(max_length=256),
+        default=None,
+    )
 
     def __init__(self, user=None, scope="", project=None, **kwargs):
         user = user or User.me()
@@ -827,17 +1434,6 @@ class Token(
         if project is None and scope:
             project = self._get_project_by_scope(user, scope)
         super().__init__(user=user, project=project, scope=scope, **kwargs)
-
-    def _get_key_by_encryption_algorithm(self, algorithm):
-        ctx = contexts.get_context()
-        storage = ctx.context_storage
-        if algorithm == iam_c.ALGORITHM_HS256:
-            return {
-                "key": storage.get(
-                    iam_c.STORAGE_KEY_IAM_TOKEN_HS256_ENCRYPTION_KEY
-                )
-            }
-        raise iam_e.IncorrectEncriptionAlgorithmError(algorithm=algorithm)
 
     def check_refresh_expiration(self):
         now = datetime.datetime.now(datetime.timezone.utc)
@@ -865,6 +1461,32 @@ class Token(
         ):
             return project
 
+    def extend_structure_by_scope(self, struct_dict):
+        if self.nonce:
+            struct_dict["nonce"] = self.nonce
+
+        splitted_scope = self.scope.split(" ")
+
+        if "openid" in splitted_scope:
+            struct_dict["sub"] = str(self.user.uuid)
+
+        if "profile" in splitted_scope:
+            struct_dict["name"] = (
+                f" {self.user.first_name} {self.user.last_name}"
+            )
+            struct_dict["given_name"] = self.user.first_name
+            struct_dict["family_name"] = self.user.last_name
+            struct_dict["middle_name"] = self.user.surname
+            struct_dict["nickname"] = self.user.name
+            struct_dict["preferred_username"] = self.user.name
+            struct_dict["updated_at"] = int(self.user.updated_at.timestamp())
+
+        if "email" in splitted_scope:
+            struct_dict["email"] = self.user.email
+            struct_dict["email_verified"] = self.user.email_verified
+
+        return struct_dict
+
     def _get_project_by_scope(self, user, scope):
         scope = scope.lower()
         project = None
@@ -891,12 +1513,9 @@ class Token(
 
     def get_response_body(self):
         ctx = contexts.get_context()
-        storage = ctx.context_storage
 
         now = datetime.datetime.now(datetime.timezone.utc)
-        algorithm = storage.get(
-            iam_c.STORAGE_KEY_IAM_TOKEN_ENCRYPTION_ALGORITHM
-        )
+        algorithm = self.iam_client.get_token_algorithm()
 
         access_token_info = {
             "exp": int(self.expiration_at.timestamp()),
@@ -918,11 +1537,10 @@ class Token(
             "jti": str(self.uuid),
             "iss": self.issuer,
             "aud": self.audience,
-            "sub": str(self.user.uuid),
-            "email": self.user.email,
-            "name": f" {self.user.first_name} {self.user.last_name}",
             "project_id": str(self.project.uuid) if self.project else None,
         }
+
+        id_token_info = self.extend_structure_by_scope(id_token_info)
 
         id_token = algorithm.encode(id_token_info)
 
@@ -984,324 +1602,182 @@ class Token(
         )
 
 
-class MeInfo:
 
-    def __init__(self):
-        super().__init__()
-        self._user = self.get_user()
-
-    def get_user(self):
-        return User.me()
-
-    def get_response_body(self):
-        skip_fields = [
-            "otp_secret",
-            "salt",
-            "secret_hash",
-            "secret",
-            "confirmation_code",
-            "confirmation_code_made_at",
-        ]
-        user = self._user.get_storable_snapshot()
-        for drop_field in skip_fields:
-            user.pop(drop_field, None)
-
-        # "name" field is deprecated and will be removed, use "username"
-        user["username"] = user["name"]
-
-        organizations = []
-        for organization in Organization.list_my():
-            organizations.append(organization.get_storable_snapshot())
-
-        project = Token.my().project
-        project_id = str(project.uuid) if project else None
-
-        return {
-            "user": user,
-            "organization": organizations,
-            "project_id": project_id,
-        }
-
-
-# Validation rules for user registration
-class AbstractValidationRule(types_dynamic.AbstractKindModel, models.SimpleViewMixin):
-    """Base class for user registration validation rules."""
-    
-    _rule_selector = None
-    
-    @classmethod
-    def get_rule_selector(cls):
-        """Returns KindModelSelectorType for all rule types loaded via entry points."""
-        if cls._rule_selector is None:
-            rule_classes = []
-            entry_points = u.load_group_from_entry_point(VALIDATION_RULES_ENTRY_POINT_GROUP)
-            for ep in entry_points:
-                rule_cls = ep.load()
-                if hasattr(rule_cls, 'KIND') and issubclass(rule_cls, cls):
-                    rule_classes.append(rule_cls)
-            
-            cls._rule_selector = types_dynamic.KindModelSelectorType(
-                *[types_dynamic.KindModelType(rule_cls) for rule_cls in rule_classes]
-            )
-        return cls._rule_selector
-
-
-class AdminBypassRule(AbstractValidationRule):
-    """Rule that allows admin users to bypass validation."""
-    KIND = "admin_bypass"
-    
-    # List of user UUIDs or emails that should bypass validation
-    bypass_users = properties.property(
-        ra_types.List(),
-        default=list,
-    )
-
-
-class FirebaseAppCheckRule(AbstractValidationRule):
-    """Rule that requires Firebase App Check token validation."""
-    KIND = "firebase_app_check"
-    
-    credentials_path = properties.property(
-        ra_types.String(),
-        required=True,
-    )
-    allowed_app_ids = properties.property(
-        ra_types.List(),
-        default=list,
-    )
-
-
-class CaptchaRule(AbstractValidationRule):
-    """Rule that requires CAPTCHA validation."""
-    KIND = "captcha"
-    
-    hmac_key = properties.property(
-        ra_types.String(),
-        required=True,
-    )
-
-
-class ValidationRule:
-    """Wrapper for validation rule with unified verify() interface."""
-    
-    def __init__(self, rule_model, verifier_class):
-        self.rule_model = rule_model
-        self.kind = rule_model.kind
-        config = rule_model.dump_to_simple_view()
-        self.verifier = verifier_class(config=config or {})
-    
-    def verify(self, request):
-        """Verifies the rule, raises exception on failure or does nothing on success."""
-        self.verifier.verify(request)
-
-
-class IamClient(
+class Idp(
     models.ModelWithUUID,
     models.ModelWithRequiredNameDesc,
     models.ModelWithTimestamp,
-    ModelWithSecret,
     ModelWithAlwaysActiveStatus,
-    orm.SQLStorableWithJSONFieldsMixin,
+    orm.SQLStorableMixin,
 ):
-    __tablename__ = "iam_clients"
-    __jsonfields__ = ["rules"]
-
-    # Cache verifier classes by kind not to load from EP on each request
-    _verifier_cache: dict = {}
+    __tablename__ = "iam_idp"
 
     project_id = properties.property(
         ra_types.AllowNone(ra_types.UUID()),
         default=None,
         read_only=True,
     )
-    client_id = properties.property(
+    iam_client = relationships.relationship(
+        IamClient,
+        prefetch=True,
+        required=True,
+    )
+    scope = properties.property(
         ra_types.String(max_length=64),
+        default="openid",
+    )
+    callback_uri = properties.property(
+        ra_types.String(max_length=256),
         required=True,
     )
-    redirect_url = properties.property(
-        ra_types.Url(),
+
+    @property
+    def client_id(self):
+        return self.iam_client.client_id
+
+    @property
+    def client_secret(self):
+        return self.iam_client.secret
+
+    @property
+    def well_known_endpoint(self):
+        ctx = contexts.get_context()
+        app_url = ctx.get_real_url_with_prefix()
+        return (
+            f"{app_url}/v1/iam/idp/{self.uuid}/"
+            ".well-known/openid-configuration"
+        )
+
+    def get_wellknown_info(self):
+        ctx = contexts.get_context()
+        app_url = ctx.get_real_url_with_prefix()
+
+        return {
+            "issuer": (f"{app_url}/v1/iam/clients/{self.iam_client.uuid}"),
+            "authorization_endpoint": (
+                f"{app_url}/v1/iam/idp/{self.uuid}" "/actions/authorize/invoke"
+            ),
+            "token_endpoint": (
+                f"{app_url}/v1/iam/clients/{self.iam_client.uuid}"
+                "/actions/get_token/invoke"
+            ),
+            "userinfo_endpoint": (
+                f"{app_url}/v1/iam/clients/{self.iam_client.uuid}"
+                "/actions/userinfo"
+            ),
+            "jwks_uri": (
+                f"{app_url}/v1/iam/clients/{self.iam_client.uuid}"
+                "/actions/jwks"
+            ),
+            "response_types_supported": IdpResponseType.list_response_types(),
+            "subject_types_supported": ["public"],
+            "id_token_signing_alg_values_supported": (
+                self.iam_client.get_id_token_signing_alg_values_supported()
+            ),
+            "scopes_supported": ["openid", "profile", "email"],
+            "claims_supported": ["sub", "iss", "name", "email"],
+            "end_session_endpoint": (
+                f"{app_url}/v1/iam/clients/{self.iam_client.uuid}"
+                "/actions/logout/invoke"
+            ),
+        }
+
+    def authorize(
+        self, client_id, redirect_uri, state, response_type, nonce, scope
+    ):
+        if self.client_id != client_id:
+            raise iam_exceptions.InvalidClientId(client_id=client_id)
+        if self.callback_uri != redirect_uri:
+            raise iam_exceptions.InvalidRedirectUri(redirect_uri=redirect_uri)
+
+        ctx = contexts.get_context()
+        app_url = ctx.get_real_url_with_prefix()
+
+        auth_info = IdpAuthorizationInfo(
+            idp=self,
+            state=state,
+            response_type=response_type,
+            nonce=nonce,
+            scope=scope,
+        )
+
+        auth_info.insert()
+
+        return urllib.parse.urljoin(
+            app_url,
+            f"/?auth_uuid={auth_info.uuid}"
+            f"&client_uuid={self.iam_client.uuid}"
+            f"&idp_uuid={self.uuid}",
+        )
+
+    def construct_callback_uri(self, auth_info):
+        return (
+            self.callback_uri + f"?code={auth_info.code}"
+            f"&state={auth_info.state}"
+        )
+
+
+class IdpAuthorizationInfo(
+    models.ModelWithUUID,
+    models.ModelWithTimestamp,
+    orm.SQLStorableMixin,
+):
+    __tablename__ = "iam_idp_authorization_info"
+
+    idp = relationships.relationship(
+        Idp,
         required=True,
     )
-    rules = properties.property(
-        ra_types.TypedList(AbstractValidationRule.get_rule_selector()),
-        default=list,
+    state = properties.property(
+        ra_types.String(max_length=256),
+        required=True,
+    )
+    response_type = properties.property(
+        ra_types.Enum([s.value for s in IdpResponseType]),
+        default=IdpResponseType.CODE.value,
+    )
+    nonce = properties.property(
+        ra_types.String(max_length=256),
+        required=True,
+    )
+    scope = properties.property(
+        ra_types.String(max_length=256),
+        required=True,
+    )
+    expiration_time_at = properties.property(
+        ra_types.UTCDateTimeZ(),
+        default=lambda: (
+            datetime.datetime.now(datetime.timezone.utc)
+            + datetime.timedelta(minutes=10)
+        ),
+    )
+    token = relationships.relationship(
+        Token,
+        prefetch=True,
         required=False,
     )
 
-    def get_validation_rules(self):
-        """Returns normalized validation rule objects."""
-        rules = []
-        cache = IamClient._verifier_cache
-        for rule_model in self.rules:
-            kind = rule_model.kind
-            if kind not in cache:
-                cache[kind] = u.load_from_entry_point(ENTRY_POINT_GROUP, kind)
-            rules.append(ValidationRule(rule_model, cache[kind]))
-        
-        return rules
+    code = properties.property(
+        ra_types.UUID(),
+        default=sys_uuid.uuid4,
+    )
 
-    def create_user(
-            self,
-            app_endpoint,
-            username,
-            password,
-            email,
-            first_name=None,
-            last_name=None,
-            surname=None,
-            phone=None,
-            description=None,
-            **kwargs
-    ):
-        """Creates a user with proper field setup."""
-        kwargs.pop("email_verified", None)
-        # (username -> name, password -> secret)
-        user = User(
-            name=username,
-            secret=password,
-            email=email,
-            first_name=first_name,
-            last_name=last_name,
-            surname=surname,
-            phone=phone,
-            description=description,
-            **kwargs,
+    def confirm(self):
+        ctx = contexts.get_context()
+        app_url = ctx.get_real_url_with_prefix()
+
+        current_token = Token.my()
+        self.token = Token(
+            user=current_token.user,
+            iam_client=self.idp.iam_client,
+            scope=self.scope,
+            project=current_token.project,
+            nonce=self.nonce,
+            audience=self.idp.iam_client.client_id,
+            issuer=f"{app_url}/v1/iam/clients/{self.idp.iam_client.uuid}",
         )
-        user.insert()
-        user.resend_confirmation_event(app_endpoint=app_endpoint)
+        self.token.insert()
+        self.update()
 
-        return user
-
-    def validate_client_creds(self, client_id, client_secret):
-        if not (
-            self.client_id == client_id or self.check_secret(client_secret)
-        ):
-            raise iam_e.CredentialsAreInvalidError()
-
-    def _get_token_by_password_and_smth(
-        self,
-        users_query,
-        password,
-        scope=iam_c.PARAM_SCOPE_DEFAULT,
-        ttl=None,
-        refresh_ttl=None,
-        otp_code=None,
-        root_endpoint=c.DEFAULT_ROOT_ENDPOINT,
-        **kwargs,
-    ):
-        for user in users_query:
-            user.validate_secret(secret=password)
-            if user.otp_enabled and not user.validate_otp(otp_code):
-                raise iam_e.OTPInvalidCodeError()
-
-            expiration_delta = (
-                datetime.timedelta(seconds=float(ttl))
-                if ttl is not None
-                else Token.get_default_expiration_delta()
-            )
-            refresh_expiration_delta = (
-                datetime.timedelta(seconds=float(refresh_ttl))
-                if refresh_ttl is not None
-                else Token.get_default_refresh_expiration_delta()
-            )
-            token = Token(
-                user=user,
-                scope=scope,
-                issuer=f"{root_endpoint}iam/clients/{self.uuid}",
-                audience=self.client_id,
-                expiration_delta=expiration_delta,
-                refresh_expiration_delta=refresh_expiration_delta,
-                **kwargs,
-            )
-            token.insert()
-            return token
-
-        raise iam_exceptions.UserNotFound()
-
-    def get_token_by_password(self, username, **kwargs):
-        """
-        Get auth token by username + password (default approach).
-        """
-        users_query = User.objects.query(
-            where_conditions="LOWER(name) = %s",
-            where_values=(username.lower(),),
-            limit=1,
-        )
-        return self._get_token_by_password_and_smth(
-            users_query=users_query, **kwargs
-        )
-
-    def get_token_by_password_username(self, username, **kwargs):
-        """
-        Get auth token by username + password.
-        This is just an alias for get_token_by_password_username,
-        to ensure consistency.
-        """
-        return self.get_token_by_password(username, **kwargs)
-
-    def get_token_by_password_email(self, email, **kwargs):
-        """
-        Get auth token by email + password.
-        """
-        users_query = User.objects.get_all(
-            filters={"email": ra_filters.EQ(email)}
-        )
-        return self._get_token_by_password_and_smth(
-            users_query=users_query, **kwargs
-        )
-
-    def get_token_by_password_phone(self, phone, **kwargs):
-        """
-        Get auth token by phone + password.
-        Will be added later.
-        """
-        raise NotImplementedError()
-
-    def get_token_by_password_login(self, login, **kwargs):
-        """
-        Get auth token by any login field + password.
-        Dynamic "smart" lookup is done by one of these fields:
-         - by email (if it has "@")
-         - by username (if no "@")
-         - by phone [to be done later]
-        """
-        if "@" in login:
-            return self.get_token_by_password_email(login, **kwargs)
-        else:
-            return self.get_token_by_password_username(login, **kwargs)
-
-    def get_token_by_refresh_token(self, refresh_token, scope=None):
-        context = contexts.get_context()
-        storage = context.context_storage
-        algorithm = storage.get(
-            iam_c.STORAGE_KEY_IAM_TOKEN_ENCRYPTION_ALGORITHM
-        )
-        refresh_token_info = tokens.RefreshToken(
-            token=refresh_token,
-            algorithm=algorithm,
-            ignore_audience=True,
-            ignore_expiration=True,
-        )
-        for token in Token.objects.get_all(
-            filters={
-                "refresh_token_uuid": ra_filters.EQ(refresh_token_info.uuid)
-            }
-        ):
-            token.validate_refresh_expiration()
-            token.refresh(scope=scope)
-            return token
-        else:
-            raise iam_e.InvalidRefreshTokenError()
-
-    def introspect(self):
-        return Token.my().introspect()
-
-    def me(self):
-        return MeInfo()
-
-    def send_reset_password_event(
-        self, email, app_endpoint="http://localhost/"
-    ):
-        email = email.lower()
-        user = User.objects.get_one(filters={"email": ra_filters.EQ(email)})
-        user.send_reset_password_event(app_endpoint=app_endpoint)
+    def construct_callback_uri(self):
+        return self.idp.construct_callback_uri(self)

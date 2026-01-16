@@ -32,34 +32,19 @@ class TestNodeUserApi:
         node_foo: tp.Dict[str, tp.Any],
         node_bar: tp.Dict[str, tp.Any],
     ):
-        return all(
-            (node_foo[key] == node_bar[key])
-            for key in (
-                "uuid",
-                "name",
-                "image",
-                "cores",
-                "ram",
-                "status",
-                "node_type",
+        return (
+            all(
+                (node_foo[key] == node_bar[key])
+                for key in (
+                    "uuid",
+                    "name",
+                    "cores",
+                    "ram",
+                    "status",
+                    "node_type",
+                )
             )
-        )
-
-    @staticmethod
-    def _machine_cmp_shallow(
-        machine_foo: tp.Dict[str, tp.Any],
-        machine_bar: tp.Dict[str, tp.Any],
-    ):
-        return all(
-            (machine_foo[key] == machine_bar[key])
-            for key in (
-                "uuid",
-                "name",
-                "cores",
-                "ram",
-                "status",
-                "machine_type",
-            )
+            and node_foo["disk_spec"] == node_bar["disk_spec"]
         )
 
     # Common
@@ -105,6 +90,7 @@ class TestNodeUserApi:
         output = response.json()
 
         assert response.status_code == 201
+        node["status"] = "NEW"
         assert self._node_cmp_shallow(node, output)
 
     def test_nodes_add_several(
@@ -121,6 +107,7 @@ class TestNodeUserApi:
             response = client.post(url, json=node)
             output = response.json()
             assert response.status_code == 201
+            node["status"] = "NEW"
             assert self._node_cmp_shallow(node, output)
 
         response = client.get(url)
@@ -188,7 +175,7 @@ class TestNodeUserApi:
         output = response.json()
 
         assert response.status_code == 201
-        assert output["root_disk_size"] == nc.DEF_ROOT_DISK_SIZE
+        assert output["disk_spec"]["size"] == nc.DEF_ROOT_DISK_SIZE
 
     # Hypervisors
 
@@ -237,6 +224,19 @@ class TestNodeUserApi:
         assert response.status_code == 201
         assert output["uuid"] == pool["uuid"]
 
+    def test_hyper_add_nonadmin_negative(
+        self,
+        pool_factory: tp.Callable,
+        user_api_client: iam_clients.GenesisCoreTestRESTClient,
+        auth_test1_user: iam_clients.GenesisCoreAuth,
+    ):
+        pool = pool_factory()
+        client = user_api_client(auth_test1_user)
+        url = client.build_collection_uri(["compute", "hypervisors"])
+
+        with pytest.raises(bazooka_exc.ForbiddenError):
+            client.post(url, json=pool)
+
     def test_hyper_update(
         self,
         pool_factory: tp.Callable,
@@ -280,103 +280,6 @@ class TestNodeUserApi:
         url = client.build_resource_uri(
             ["compute", "hypervisors", pool["uuid"]]
         )
-        response = client.delete(url)
-
-        assert response.status_code == 204
-
-        with pytest.raises(bazooka_exc.NotFoundError):
-            client.get(url)
-
-    # Machines
-
-    def test_machines_add(
-        self,
-        machine_factory: tp.Callable,
-        default_pool: tp.Dict[str, tp.Any],
-        user_api_client: iam_clients.GenesisCoreTestRESTClient,
-        auth_user_admin: iam_clients.GenesisCoreAuth,
-    ):
-        machine = machine_factory()
-        client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["compute", "machines"])
-
-        response = client.post(url, json=machine)
-        output = response.json()
-
-        assert response.status_code == 201
-        assert self._machine_cmp_shallow(machine, output)
-
-    def test_machines_add_several(
-        self,
-        machine_factory: tp.Callable,
-        default_pool: tp.Dict[str, tp.Any],
-        user_api_client: iam_clients.GenesisCoreTestRESTClient,
-        auth_user_admin: iam_clients.GenesisCoreAuth,
-    ):
-        machines = [machine_factory(name=f"machine{i}") for i in range(3)]
-        client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["compute", "machines"])
-
-        for machine in machines:
-            response = client.post(url, json=machine)
-            output = response.json()
-            assert response.status_code == 201
-            assert self._machine_cmp_shallow(machine, output)
-
-        response = client.get(url)
-        output = response.json()
-        assert len(output) == len(machines)
-        for machine in machines:
-            assert any(
-                self._machine_cmp_shallow(machine, item) for item in output
-            )
-
-    def test_machines_update(
-        self,
-        machine_factory: tp.Callable,
-        default_pool: tp.Dict[str, tp.Any],
-        user_api_client: iam_clients.GenesisCoreTestRESTClient,
-        auth_user_admin: iam_clients.GenesisCoreAuth,
-    ):
-        machine = machine_factory()
-        client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["compute", "machines"])
-
-        response = client.post(url, json=machine)
-        output = response.json()
-        assert response.status_code == 201
-
-        update = {"cores": 2, "ram": 2048}
-        url = client.build_resource_uri(
-            ["compute", "machines", machine["uuid"]]
-        )
-
-        response = client.put(url, json=update)
-        output = response.json()
-
-        assert response.status_code == 200
-        assert output["cores"] == 2
-        assert output["ram"] == 2048
-
-    def test_machines_delete(
-        self,
-        machine_factory: tp.Callable,
-        default_pool: tp.Dict[str, tp.Any],
-        user_api_client: iam_clients.GenesisCoreTestRESTClient,
-        auth_user_admin: iam_clients.GenesisCoreAuth,
-    ):
-        machine = machine_factory()
-        client = user_api_client(auth_user_admin)
-        url = client.build_collection_uri(["compute", "machines"])
-
-        response = client.post(url, json=machine)
-
-        assert response.status_code == 201
-
-        url = client.build_resource_uri(
-            ["compute", "machines", machine["uuid"]]
-        )
-
         response = client.delete(url)
 
         assert response.status_code == 204
@@ -452,6 +355,7 @@ class TestNodeUserApi:
 
         output = response.json()
         assert len(output) == 1
+        node["status"] = nc.NodeStatus.NEW.value
         assert self._node_cmp_shallow(node, output[0])
 
         url = client.build_resource_uri(["compute", "nodes", node_uuid])

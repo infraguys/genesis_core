@@ -16,9 +16,9 @@
 
 from gcl_iam import controllers as iam_controllers
 from restalchemy.api import controllers
-from restalchemy.api import resources
-from restalchemy.api import field_permissions as field_p
 from restalchemy.api import constants as ra_c
+from restalchemy.api import field_permissions as field_p
+from restalchemy.api import resources
 
 from genesis_core.secret.dm import models
 from genesis_core.secret import constants as sc
@@ -49,6 +49,46 @@ class PasswordsController(iam_controllers.PolicyBasedController):
     )
 
     def update(self, uuid, **kwargs):
+        # Force config to be NEW
+        # In order to regenerate renders
+        kwargs["status"] = sc.SecretStatus.NEW.value
+
+        return super().update(uuid, **kwargs)
+
+
+class RSAKeysController(iam_controllers.PolicyBasedController):
+    """Controller for /v1/secret/rsa_keys/ endpoint"""
+
+    __policy_name__ = "rsa_key"
+    __policy_service_name__ = "secret"
+
+    __resource__ = resources.ResourceByRAModel(
+        model_class=models.RSAKey,
+        process_filters=True,
+        convert_underscore=False,
+        fields_permissions=field_p.FieldsPermissions(
+            default=field_p.Permissions.RW,
+            fields={
+                "status": {
+                    ra_c.ALL: field_p.Permissions.RO,
+                },
+                "private_key": {
+                    ra_c.UPDATE: field_p.Permissions.RO,
+                },
+                "public_key": {
+                    ra_c.UPDATE: field_p.Permissions.RO,
+                },
+                "bitness": {
+                    ra_c.UPDATE: field_p.Permissions.RO,
+                },
+            },
+        ),
+    )
+
+    def update(self, uuid, **kwargs):
+        # NOTE: Do not enforce model state transitions from controller layer.
+        #   This approach can update the status even if the model update fails.
+        # TODO: Move this logic into RSAKey model update method.
         # Force config to be NEW
         # In order to regenerate renders
         kwargs["status"] = sc.SecretStatus.NEW.value

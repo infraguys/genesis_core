@@ -27,6 +27,7 @@ GRANT_TYPE_PASSWORD_EMAIL = "email+password"
 GRANT_TYPE_PASSWORD_PHONE = "phone+password"
 GRANT_TYPE_PASSWORD_LOGIN = "login+password"
 GRANT_TYPE_REFRESH_TOKEN = "refresh_token"
+GRANT_TYPE_AUTHORIZATION_CODE = "authorization_code"
 
 
 # client parameters in request
@@ -44,10 +45,12 @@ PARAM_USERNAME = "username"
 PARAM_EMAIL = "email"
 PARAM_PHONE = "phone"
 PARAM_LOGIN = "login"
+PARAM_CODE = "code"
 PARAM_PASSWORD = "password"
 PARAM_SCOPE = "scope"
 PARAM_TTL = "ttl"
 PARAM_REFRESH_TTL = "refresh_ttl"
+PARAM_REDIRECT_URI = "redirect_uri"
 
 
 # User settings
@@ -58,19 +61,23 @@ USER_CONFIRMATION_CODE_TTL = timedelta(hours=1)
 PARAM_SCOPE_DEFAULT = ""
 
 
+# Used for dummy PBKDF2 hash computation when user is missing to reduce timing
+# differences and prevent username enumeration in password-grant flow.
+DUMMY_PBKDF2_SALT = "AAAAAAAAAAAAAAAAAAAAAAAA"
+
+
 # Algorithms
 ALGORITHM_HS256 = "HS256"
+ALGORITHM_RS256 = "RS256"
 
 
 # Config section name
 DOMAIN_IAM = "iam"
-DOMAIN_IAM_TOKEN_HS256 = "token_hs256"
 
 
 # Global Storage Keys
 STORAGE_KEY_IAM_GLOBAL_SALT = "iam_global_salt"
-STORAGE_KEY_IAM_TOKEN_ENCRYPTION_ALGORITHM = "iam_token_encryption_algorithm"
-STORAGE_KEY_IAM_TOKEN_HS256_ENCRYPTION_KEY = "iam_token_hs256_encryption_key"
+STORAGE_KEY_IAM_HS256_JWKS_ENCRYPTION_KEY = "iam_hs256_jwks_encryption_key"
 STORAGE_KEY_EVENTS_CLIENT = "events_client"
 
 

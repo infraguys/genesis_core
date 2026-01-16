@@ -46,6 +46,10 @@ class ManifestController(
         return resource.install()
 
     @actions.post
+    def upgrade(self, resource):
+        return resource.upgrade()
+
+    @actions.post
     def uninstall(self, resource):
         return resource.uninstall()
 
@@ -104,4 +108,17 @@ class ElementResourceController(
                 "version",
             ],
         ),
+    )
+
+
+class ServicesController(iam_controllers.PolicyBasedController):
+    """Controller for /v1/em/services/ endpoint"""
+
+    __policy_name__ = "em"
+    __policy_service_name__ = "service"
+
+    __resource__ = resources.ResourceByRAModel(
+        model_class=models.Service,
+        process_filters=True,
+        convert_underscore=False,
     )

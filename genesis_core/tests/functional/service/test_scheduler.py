@@ -42,7 +42,7 @@ class TestSchedulerService:
         machine_weighters = [
             relative.SimpleMachineWeighter(),
         ]
-        self._service = service.NodeSchedulerService(
+        self._service = service.SchedulerService(
             pool_filters=pool_filters,
             pool_weighters=pool_weighters,
             machine_filters=machine_filters,
@@ -59,6 +59,7 @@ class TestSchedulerService:
         self,
         default_pool: tp.Dict[str, tp.Any],
         default_machine_agent: tp.Dict[str, tp.Any],
+        default_pool_builder: tp.Dict[str, tp.Any],
     ):
         self._service._iteration()
         pool = models.MachinePool.objects.get_all()
@@ -75,12 +76,9 @@ class TestSchedulerService:
         default_pool: tp.Dict[str, tp.Any],
         default_node: tp.Dict[str, tp.Any],
         default_machine_agent: tp.Dict[str, tp.Any],
-        builder_factory: tp.Callable,
+        default_pool_builder: tp.Dict[str, tp.Any],
     ):
-        view = builder_factory()
-        builder = models.Builder.restore_from_simple_view(**view)
-        builder.insert()
-
+        self._service._iteration()
         self._service._iteration()
         machines = models.Machine.objects.get_all()
         volumes = models.MachineVolume.objects.get_all()
@@ -88,7 +86,6 @@ class TestSchedulerService:
         assert len(machines) == 1
         assert len(volumes) == 1
         assert str(machines[0].node) == default_node["uuid"]
-        assert str(volumes[0].node) == default_node["uuid"]
         assert volumes[0].machine == machines[0].uuid
 
     def test_schedule_node_no_builders(
@@ -97,6 +94,7 @@ class TestSchedulerService:
         default_node: tp.Dict[str, tp.Any],
         default_machine_agent: tp.Dict[str, tp.Any],
     ):
+        self._service._iteration()
         self._service._iteration()
         machines = models.Machine.objects.get_all()
         volumes = models.MachineVolume.objects.get_all()
@@ -109,17 +107,14 @@ class TestSchedulerService:
         default_pool: tp.Dict[str, tp.Any],
         default_node: tp.Dict[str, tp.Any],
         default_machine_agent: tp.Dict[str, tp.Any],
-        builder_factory: tp.Callable,
+        default_pool_builder: tp.Dict[str, tp.Any],
         machine_factory: tp.Callable,
     ):
-        view = builder_factory()
-        builder = models.Builder.restore_from_simple_view(**view)
-        builder.insert()
-
         view = machine_factory(pool=None)
         machine = models.Machine.restore_from_simple_view(**view)
         machine.insert()
 
+        self._service._iteration()
         self._service._iteration()
         machines = models.Machine.objects.get_all()
 
@@ -130,7 +125,7 @@ class TestSchedulerService:
     def test_schedule_two_pools_single_iteration(
         self,
         default_machine_agent: tp.Dict[str, tp.Any],
-        builder_factory: tp.Callable,
+        default_pool_builder: tp.Dict[str, tp.Any],
         pool_factory: tp.Callable,
         node_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
@@ -138,23 +133,20 @@ class TestSchedulerService:
     ):
         client = user_api_client(auth_user_admin)
 
-        view = builder_factory()
-        builder = models.Builder.restore_from_simple_view(**view)
-        builder.insert()
-
         uuid_foo = sys_uuid.uuid4()
         foo_pool = pool_factory(uuid=uuid_foo)
-        url = client.build_collection_uri(["hypervisors"])
+        url = client.build_collection_uri(["compute", "hypervisors"])
         client.post(url, json=foo_pool)
 
         uuid_bar = sys_uuid.uuid4()
         bar_pool = pool_factory(uuid=uuid_bar)
-        url = client.build_collection_uri(["hypervisors"])
+        url = client.build_collection_uri(["compute", "hypervisors"])
         client.post(url, json=bar_pool)
 
-        view = node_factory()
-        node = models.Node.restore_from_simple_view(**view)
-        node.insert()
+        pools = models.MachinePool.objects.get_all()
+        for pool in pools:
+            pool.status = "ACTIVE"
+            pool.save()
 
         view = node_factory()
         node = models.Node.restore_from_simple_view(**view)
@@ -168,6 +160,11 @@ class TestSchedulerService:
         node = models.Node.restore_from_simple_view(**view)
         node.insert()
 
+        view = node_factory()
+        node = models.Node.restore_from_simple_view(**view)
+        node.insert()
+
+        self._service._iteration()
         self._service._iteration()
 
         machines = models.Machine.objects.get_all()
@@ -183,7 +180,7 @@ class TestSchedulerService:
     def test_schedule_two_pools_different_iterations(
         self,
         default_machine_agent: tp.Dict[str, tp.Any],
-        builder_factory: tp.Callable,
+        pool_builder_factory: tp.Callable,
         pool_factory: tp.Callable,
         node_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
@@ -191,28 +188,33 @@ class TestSchedulerService:
     ):
         client = user_api_client(auth_user_admin)
 
-        view = builder_factory()
-        builder = models.Builder.restore_from_simple_view(**view)
+        builder = pool_builder_factory()
         builder.insert()
 
         uuid_foo = sys_uuid.uuid4()
         foo_pool = pool_factory(uuid=uuid_foo)
-        url = client.build_collection_uri(["hypervisors"])
+        url = client.build_collection_uri(["compute", "hypervisors"])
         client.post(url, json=foo_pool)
 
         uuid_bar = sys_uuid.uuid4()
         bar_pool = pool_factory(uuid=uuid_bar)
-        url = client.build_collection_uri(["hypervisors"])
+        url = client.build_collection_uri(["compute", "hypervisors"])
         client.post(url, json=bar_pool)
 
-        view = node_factory()
-        node = models.Node.restore_from_simple_view(**view)
-        node.insert()
+        pools = models.MachinePool.objects.get_all()
+        for pool in pools:
+            pool.status = "ACTIVE"
+            pool.save()
 
         view = node_factory()
         node = models.Node.restore_from_simple_view(**view)
         node.insert()
 
+        view = node_factory()
+        node = models.Node.restore_from_simple_view(**view)
+        node.insert()
+
+        self._service._iteration()
         self._service._iteration()
 
         machines = models.Machine.objects.get_all()
@@ -233,8 +235,7 @@ class TestSchedulerService:
         node = models.Node.restore_from_simple_view(**view)
         node.insert()
 
-        view = builder_factory()
-        builder = models.Builder.restore_from_simple_view(**view)
+        builder = pool_builder_factory()
         builder.insert()
 
         self._service._iteration()
@@ -253,19 +254,16 @@ class TestSchedulerService:
         self,
         default_pool: tp.Dict[str, tp.Any],
         default_machine_agent: tp.Dict[str, tp.Any],
-        builder_factory: tp.Callable,
+        default_pool_builder: tp.Dict[str, tp.Any],
         machine_factory: tp.Callable,
         pool_factory: tp.Callable,
         node_factory: tp.Callable,
     ):
-        builder = builder_factory()
-        builder = models.Builder.restore_from_simple_view(**builder)
-        builder.insert()
-
         # HW machine pool
         hw_pool = pool_factory(machine_type="HW")
         hw_pool = models.MachinePool.restore_from_simple_view(**hw_pool)
-        hw_pool.insert()
+        hw_pool.status = "ACTIVE"
+        hw_pool.save()
 
         # HW machine
         hw_machine = machine_factory(
@@ -284,6 +282,7 @@ class TestSchedulerService:
         node.insert()
 
         self._service._iteration()
+        self._service._iteration()
         machines = models.Machine.objects.get_all()
         nodes = models.Node.objects.get_all()
 
@@ -297,19 +296,16 @@ class TestSchedulerService:
         self,
         default_pool: tp.Dict[str, tp.Any],
         default_machine_agent: tp.Dict[str, tp.Any],
-        builder_factory: tp.Callable,
+        default_pool_builder: tp.Dict[str, tp.Any],
         machine_factory: tp.Callable,
         pool_factory: tp.Callable,
         node_factory: tp.Callable,
     ):
-        builder = builder_factory()
-        builder = models.Builder.restore_from_simple_view(**builder)
-        builder.insert()
-
         # HW machine pool
         hw_pool = pool_factory(machine_type="HW")
         hw_pool = models.MachinePool.restore_from_simple_view(**hw_pool)
-        hw_pool.insert()
+        hw_pool.status = "ACTIVE"
+        hw_pool.save()
 
         # HW machine
         hw_machine = machine_factory(
@@ -328,6 +324,7 @@ class TestSchedulerService:
         node.insert()
 
         self._service._iteration()
+        self._service._iteration()
         machines = models.Machine.objects.get_all()
         nodes = models.Node.objects.get_all()
 
@@ -342,19 +339,16 @@ class TestSchedulerService:
         self,
         default_pool: tp.Dict[str, tp.Any],
         default_machine_agent: tp.Dict[str, tp.Any],
-        builder_factory: tp.Callable,
+        default_pool_builder: tp.Dict[str, tp.Any],
         machine_factory: tp.Callable,
         pool_factory: tp.Callable,
         node_factory: tp.Callable,
     ):
-        builder = builder_factory()
-        builder = models.Builder.restore_from_simple_view(**builder)
-        builder.insert()
-
         # HW machine pool
         hw_pool = pool_factory(machine_type="HW")
         hw_pool = models.MachinePool.restore_from_simple_view(**hw_pool)
-        hw_pool.insert()
+        hw_pool.status = "ACTIVE"
+        hw_pool.save()
 
         # HW machines
         hw_machine = machine_factory(
@@ -392,6 +386,7 @@ class TestSchedulerService:
         node = models.Node.restore_from_simple_view(**node)
         node.insert()
 
+        self._service._iteration()
         self._service._iteration()
         machines = models.Machine.objects.get_all()
         nodes = models.Node.objects.get_all()

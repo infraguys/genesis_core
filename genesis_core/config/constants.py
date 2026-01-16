@@ -15,7 +15,9 @@
 #    under the License.
 
 import enum
-import typing as tp
+import re
+
+from restalchemy.dm import types
 
 CONFIG_KIND = "config"
 RENDER_KIND = "render"
@@ -28,24 +30,5 @@ class ConfigStatus(str, enum.Enum):
     ERROR = "ERROR"
 
 
-class FilePermission(enum.Flag):
-    R = 4
-    W = 2
-    X = 1
-
-    ALL = R | W | X
-
-    @classmethod
-    def combinations(cls) -> tp.Tuple[int]:
-        return tuple(range(8))
-
-
-FileMode = enum.Enum(
-    "FileMode",
-    [
-        (f"o{u}{g}{o}", f"0{u}{g}{o}")
-        for u in FilePermission.combinations()
-        for g in FilePermission.combinations()
-        for o in FilePermission.combinations()
-    ],
-)
+class FileModeType(types.BaseCompiledRegExpTypeFromAttr):
+    pattern = re.compile(r"^0[0-7][0-7][0-7]$")

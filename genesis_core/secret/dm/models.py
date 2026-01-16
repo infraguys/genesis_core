@@ -18,6 +18,7 @@ from __future__ import annotations
 import typing as tp
 import uuid as sys_uuid
 
+from gcl_iam import algorithms as iam_algorithms
 from restalchemy.dm import properties
 from restalchemy.dm import types
 from restalchemy.dm import types_network
@@ -29,7 +30,7 @@ from gcl_sdk.agents.universal.dm import models as ua_models
 
 from genesis_core.common import constants as c
 from genesis_core.common.dm import models as cm
-from genesis_core.config.dm import models as cfg_models
+from genesis_core.common.dm import targets as ct
 from genesis_core.secret import constants as sc
 
 
@@ -99,14 +100,16 @@ class Password(
     def get_new_passwords(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list["Password"]:
-        return cls.get_new_entities(cls.__tablename__, sc.PASSWORD_KIND, limit)
+        return cls.get_new_entities(
+            cls.__tablename__, sc.PASSWORD_KIND, limit=limit
+        )
 
     @classmethod
     def get_updated_passwords(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list["Password"]:
         return cls.get_updated_entities(
-            cls.__tablename__, sc.PASSWORD_KIND, limit
+            cls.__tablename__, sc.PASSWORD_KIND, limit=limit
         )
 
     @classmethod
@@ -114,7 +117,7 @@ class Password(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list[ua_models.TargetResource]:
         return cls.get_deleted_target_resources(
-            cls.__tablename__, sc.PASSWORD_KIND, limit
+            cls.__tablename__, sc.PASSWORD_KIND, limit=limit
         )
 
 
@@ -193,7 +196,7 @@ class Certificate(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list["Certificate"]:
         return cls.get_new_entities(
-            cls.__tablename__, sc.CERTIFICATE_KIND, limit
+            cls.__tablename__, sc.CERTIFICATE_KIND, limit=limit
         )
 
     @classmethod
@@ -201,7 +204,7 @@ class Certificate(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list["Certificate"]:
         return cls.get_updated_entities(
-            cls.__tablename__, sc.CERTIFICATE_KIND, limit
+            cls.__tablename__, sc.CERTIFICATE_KIND, limit=limit
         )
 
     @classmethod
@@ -209,8 +212,87 @@ class Certificate(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list[ua_models.TargetResource]:
         return cls.get_deleted_target_resources(
-            cls.__tablename__, sc.CERTIFICATE_KIND, limit
+            cls.__tablename__, sc.CERTIFICATE_KIND, limit=limit
         )
+
+
+class RSAKey(
+    Secret,
+    orm.SQLStorableMixin,
+    ua_models.TargetResourceSQLStorableMixin,
+):
+    __tablename__ = "secret_rsa_keys"
+
+    private_key = properties.property(
+        types.String(min_length=1, max_length=32768),
+        required=True,
+    )
+    public_key = properties.property(
+        types.String(min_length=1, max_length=16384),
+        required=True,
+    )
+    bitness = properties.property(
+        types.Enum([2048, 3072, 4096]),
+        default=2048,
+    )
+
+    def __init__(
+        self,
+        private_key: str | None = None,
+        public_key: str | None = None,
+        bitness: int | None = None,
+        **kwargs,
+    ):
+        """Initialize RSA key secret.
+
+        Rules:
+        - If `private_key` is not provided, `bitness` must be provided.
+          In this case, the private key is generated and `public_key` is derived.
+        - If `private_key` is provided, `bitness` is computed from it.
+          If `public_key` is not provided, it is derived from the private key.
+
+        Note: inherited properties of base models may still be passed via `kwargs`.
+        """
+
+        bitness = bitness or 2048
+        if private_key is None:
+
+            private_key = iam_algorithms.generate_rsa_private_key_pem(
+                bitness=bitness
+            )
+            public_key = iam_algorithms.generate_rsa_public_key_pem(
+                private_key_pem=private_key
+            )
+        else:
+            bitness = iam_algorithms.get_rsa_bitness_from_private_key_pem(
+                private_key_pem=private_key
+            )
+
+            if public_key is None:
+                public_key = iam_algorithms.generate_rsa_public_key_pem(
+                    private_key_pem=private_key
+                )
+
+        super().__init__(
+            private_key=private_key,
+            public_key=public_key,
+            bitness=bitness,
+            **kwargs,
+        )
+
+    def get_resource_target_fields(self) -> set[str]:
+        """Return the collection of target fields.
+
+        Refer to the Resource model for more details about target fields.
+        """
+        return {
+            "constructor",
+            "name",
+            "description",
+            "project_id",
+            "uuid",
+            "bitness",
+        }
 
 
 class SSHKey(
@@ -222,8 +304,8 @@ class SSHKey(
 
     target = properties.property(
         types_dynamic.KindModelSelectorType(
-            types_dynamic.KindModelType(cfg_models.NodeTarget),
-            types_dynamic.KindModelType(cfg_models.NodeSetTarget),
+            types_dynamic.KindModelType(ct.NodeTarget),
+            types_dynamic.KindModelType(ct.NodeSetTarget),
         ),
         required=True,
     )
@@ -300,15 +382,16 @@ class SSHKey(
 
     @classmethod
     def get_new_keys(cls, limit: int = c.DEFAULT_SQL_LIMIT) -> list["SSHKey"]:
-
-        return cls.get_new_entities(cls.__tablename__, sc.SSH_KEY_KIND, limit)
+        return cls.get_new_entities(
+            cls.__tablename__, sc.SSH_KEY_KIND, limit=limit
+        )
 
     @classmethod
     def get_updated_keys(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list["SSHKey"]:
         return cls.get_updated_entities(
-            cls.__tablename__, sc.SSH_KEY_KIND, limit
+            cls.__tablename__, sc.SSH_KEY_KIND, limit=limit
         )
 
     @classmethod
@@ -316,7 +399,7 @@ class SSHKey(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list[ua_models.TargetResource]:
         return cls.get_deleted_target_resources(
-            cls.__tablename__, sc.SSH_KEY_KIND, limit
+            cls.__tablename__, sc.SSH_KEY_KIND, limit=limit
         )
 
 

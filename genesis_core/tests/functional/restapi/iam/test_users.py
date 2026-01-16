@@ -279,7 +279,7 @@ class TestUsers(base.BaseIamResourceTest):
             filters={"uuid": auth_test1_user.uuid}
         )
         user.email_verified = False
-        user.reset_confirmation_code()
+        user.create_confirmation_code()
         user.save()
 
         client = user_api_noauth_client()
@@ -326,7 +326,7 @@ class TestUsers(base.BaseIamResourceTest):
             filters={"uuid": auth_test1_user.uuid}
         )
         user.email_verified = False
-        user.reset_confirmation_code()
+        user.create_confirmation_code()
         user.confirmation_code_made_at = code_made_at
         user.save()
 
@@ -475,7 +475,7 @@ class TestUsers(base.BaseIamResourceTest):
             ("phone", None, pytest.raises(bazooka_exc.BaseHTTPException)),
             ("username", "wrong", pytest.raises(bazooka_exc.BadRequestError)),
             ("username", "", pytest.raises(bazooka_exc.BadRequestError)),
-            ("null", None, pytest.raises(bazooka_exc.NotFoundError)),
+            ("null", None, pytest.raises(bazooka_exc.BadRequestError)),
         ],
     )
     def test_auth_with_login(

@@ -18,7 +18,6 @@ import typing as tp
 import uuid as sys_uuid
 from importlib.metadata import entry_points
 
-from gcl_iam import algorithms
 from gcl_sdk.events import clients as sdk_clients
 from gcl_sdk.agents.universal import utils as sdk_utils
 from restalchemy.common import contexts
@@ -51,7 +50,7 @@ def load_group_from_entry_point(group: str) -> tp.Any:
 
 def get_context_storage(
     global_salt: str,
-    token_algorithm: algorithms.AbstractAlgorithm,
+    hs256_jwks_encryption_key: str,
     events_client: sdk_clients.AbstractEventClient,
 ) -> contexts.Storage:
     return contexts.Storage(
@@ -60,8 +59,8 @@ def get_context_storage(
                 "value": global_salt,
                 "read_only": True,
             },
-            iam_c.STORAGE_KEY_IAM_TOKEN_ENCRYPTION_ALGORITHM: {
-                "value": token_algorithm,
+            iam_c.STORAGE_KEY_IAM_HS256_JWKS_ENCRYPTION_KEY: {
+                "value": hs256_jwks_encryption_key,
                 "read_only": True,
             },
             iam_c.STORAGE_KEY_EVENTS_CLIENT: {

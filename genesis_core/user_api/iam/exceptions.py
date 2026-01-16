@@ -126,7 +126,7 @@ class CanNotCreateProjectInOrganization(
 ):
     __template__ = (
         "The current user is not permitted to create a project in the"
-        " organization `{name}`. Only the owner of the organization may"
+        " organization `{uuid}`. Only the owner of the organization may"
         " create projects."
     )
 
@@ -175,6 +175,20 @@ class InvalidGrantType(
     iam_exc.InvalidGrantTypeError,
 ):
     __template__ = "Invalid grant type: {grant_type}"
+
+
+class InvalidClientId(
+    exceptions.CommonValueErrorException,
+    iam_exc.InvalidGrantTypeError,
+):
+    __template__ = "Invalid or unknown client_id: {client_id}"
+
+
+class InvalidRedirectUri(
+    exceptions.CommonValueErrorException,
+    iam_exc.InvalidGrantTypeError,
+):
+    __template__ = "Invalid or unregistered redirect_uri: {redirect_uri}"
 
 
 class CanNotCreateUser(
