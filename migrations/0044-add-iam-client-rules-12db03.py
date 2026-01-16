@@ -20,7 +20,7 @@ from restalchemy.storage.sql import migrations
 class MigrationStep(migrations.AbstractMigrationStep):
 
     def __init__(self):
-        self._depends = []
+        self._depends = ["0043-add-user-source-4f5e1f.py"]
 
     @property
     def migration_id(self):
