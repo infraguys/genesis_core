@@ -16,15 +16,15 @@
 
 from typing import Any
 
-from restalchemy.common import contexts
+import jwt.exceptions
 from restalchemy.dm import filters as ra_filters
 from webob import Request
 
-from genesis_core.user_api.iam import constants as iam_c
 from genesis_core.user_api.iam.dm import models
 from genesis_core.user_api.iam import exceptions as iam_exceptions
 from gcl_iam import tokens
 from genesis_core.security.interfaces import AbstractVerifier
+from genesis_core.user_api.iam import drivers as iam_drivers
 
 
 class AdminBypassVerifier(AbstractVerifier):
@@ -41,15 +41,16 @@ class AdminBypassVerifier(AbstractVerifier):
         return request.headers.get("Authorization", "").startswith("Bearer ")
 
     def verify(self, request) -> None:
-        ctx = contexts.get_context()
-        token_algorithm = ctx.context_storage.get(
-            iam_c.STORAGE_KEY_IAM_TOKEN_ENCRYPTION_ALGORITHM
-        )
-        auth_header = request.headers.get("Authorization", "")
-
+        auth = request.headers.get("Authorization", "")
+        raw = auth[7:].strip()
+        try:
+            unverified_token = tokens.UnverifiedToken(raw)
+        except jwt.exceptions.DecodeError as e:
+            raise iam_exceptions.AdminBypassValidationFailed() from e
+        algorithm = iam_drivers.DirectDriver().get_algorithm(unverified_token)
         auth_token = tokens.AuthToken(
-            token=auth_header[7:].strip(),
-            algorithm=token_algorithm,
+            token=raw,
+            algorithm=algorithm,
             ignore_audience=True,
         )
         token = models.Token.objects.get_one(

@@ -35,6 +35,11 @@ except (ImportError, AttributeError):
     pytestmark = pytest.mark.skip("firebase-admin or altcha is not installed")
 
 class TestClientUserCreation(base.BaseIamResourceTest):
+    SIGNATURE_ALGORITHM = {
+            "kind": "HS256",
+            "secret_uuid": "00000000-0000-0000-0000-000000000001",
+            "previous_secret_uuid": None,
+        }
 
     def _create_iam_client_with_rules(
         self, client, name_suffix, rules
@@ -44,7 +49,7 @@ class TestClientUserCreation(base.BaseIamResourceTest):
             name=f"test_client_{name_suffix}",
             client_id=f"test_client_id_{sys_uuid.uuid4().hex[:8]}",
             secret="12345678",
-            redirect_url="http://127.0.0.1/",
+            signature_algorithm=self.SIGNATURE_ALGORITHM,
         )
         if rules:
             client.update_iam_client(
@@ -287,10 +292,9 @@ class TestClientUserCreation(base.BaseIamResourceTest):
             headers=headers,
         )
 
-        assert response.status_code == 400
+        assert response.status_code == 403
         error_data = response.json()
-        error_description = error_data.get("error_description", "")
-        assert 'The provided credentials are invalid' in  error_description
+        assert error_data["type"] == "AdminBypassValidationFailed"
 
     def test_create_user_admin_bypass_user_not_in_list_forbidden(
         self, user_api, auth_test2_user,

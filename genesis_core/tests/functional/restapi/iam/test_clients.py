@@ -28,6 +28,11 @@ TEST_PROJECT_ID = str(sys_uuid.uuid4())
 
 
 class TestClients(base.BaseIamResourceTest):
+    SIGNATURE_ALGORITHM = {
+        "kind": "HS256",
+        "secret_uuid": "00000000-0000-0000-0000-000000000001",
+        "previous_secret_uuid": None,
+    }
 
     def test_create_iam_client_by_admin(
         self, user_api_client, auth_user_admin
@@ -35,17 +40,11 @@ class TestClients(base.BaseIamResourceTest):
         client = user_api_client(auth_user_admin)
         iam_client_name = "test_client[admin-user]"
 
-        signature_algorithm = {
-            "kind": "HS256",
-            "secret_uuid": "00000000-0000-0000-0000-000000000001",
-            "previous_secret_uuid": None,
-        }
-
         iam_client = client.create_iam_client(
             name=iam_client_name,
             client_id="client_id",
             secret="12345678",
-            signature_algorithm=signature_algorithm,
+            signature_algorithm=self.SIGNATURE_ALGORITHM,
         )
 
         assert iam_client["name"] == iam_client_name
@@ -121,7 +120,7 @@ class TestClients(base.BaseIamResourceTest):
             name="test_client_rules",
             client_id=f"test_client_id_{sys_uuid.uuid4().hex[:8]}",
             secret="12345678",
-            redirect_url="http://127.0.0.1/",
+            signature_algorithm=self.SIGNATURE_ALGORITHM,
         )
 
         rules = [{
