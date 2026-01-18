@@ -1,4 +1,5 @@
 #    Copyright 2025 Genesis Corporation.
+#    Copyright 2026 Genesis Corporation.
 #
 #    All Rights Reserved.
 #
@@ -33,16 +34,30 @@ class TestUsers(base.BaseIamResourceTest):
     USERS_ENDPOINT = "iam/users"
 
     @pytest.mark.parametrize("name", ["test", "Spider-Man"])
-    def test_create_user_success(self, name, user_api_noauth_client):
-        client = user_api_noauth_client()
+    def test_create_user_success(self, name, user_api_client, auth_user_admin):
+        client = user_api_client(auth_user_admin)
 
         user = client.create_user(username=name, password="testtest")
 
         assert user["password"] == "*******"
         assert user["username"] == name
 
-    def test_create_user_400_error(self, user_api_noauth_client):
+    def test_create_user_wo_auth_unauthorized(self, user_api_noauth_client):
         client = user_api_noauth_client()
+
+        with pytest.raises(bazooka_exc.UnauthorizedError):
+            client.create_user(username="test", password="testtest")
+
+    def test_create_user_wo_permission_forbidden(
+        self, user_api_client, auth_test1_user
+    ):
+        client = user_api_client(auth_test1_user)
+
+        with pytest.raises(bazooka_exc.ForbiddenError):
+            client.create_user(username="test_forbidden", password="testtest")
+
+    def test_create_user_400_error(self, user_api_client, auth_user_admin):
+        client = user_api_client(auth_user_admin)
 
         with pytest.raises(bazooka_exc.BadRequestError):
             client.create_user(username="", password="test")
@@ -51,16 +66,18 @@ class TestUsers(base.BaseIamResourceTest):
         with pytest.raises(bazooka_exc.BadRequestError):
             client.create_user(username="test400", password="test test")
 
-    def test_create_user_space_login_400_error(self, user_api_noauth_client):
-        client = user_api_noauth_client()
+    def test_create_user_space_login_400_error(
+        self, user_api_client, auth_user_admin
+    ):
+        client = user_api_client(auth_user_admin)
 
         with pytest.raises(bazooka_exc.BadRequestError):
             client.create_user(username=" ", password="test")
 
     def test_create_user_without_first_last_name_success(
-        self, user_api_noauth_client
+        self, user_api_client, auth_user_admin
     ):
-        client = user_api_noauth_client()
+        client = user_api_client(auth_user_admin)
         for empty_name in ["", None]:
             name = f"test_no_names_{empty_name}".lower()
             user = client.create_user(
