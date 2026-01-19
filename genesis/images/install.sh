@@ -26,6 +26,7 @@ GC_ART_DIR="$GC_PATH/artifacts"
 VENV_PATH="$GC_PATH/.venv"
 BOOTSTRAP_PATH="/var/lib/genesis/bootstrap/scripts"
 
+PG_VERSION="18"
 GC_PG_USER="genesis_core"
 GC_PG_PASS="genesis_core"
 GC_PG_DB="genesis_core"
@@ -40,9 +41,22 @@ CLI_DEV_MODE=$([ -d "$DEV_CLI_PATH" ] && echo "true" || echo "false")
 
 # Install packages
 sudo apt update
-sudo apt install yq postgresql libev-dev libvirt-dev \
+sudo apt install yq postgresql-common libev-dev libvirt-dev \
     tftpd-hpa nginx isc-dhcp-server -y
 
+# Install PostgreSQL $PG_VERSION
+sudo YES=1 /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
+sudo apt update
+sudo apt install postgresql-"$PG_VERSION" -y
+
+# Configure PostgreSQL
+sudo -u postgres psql -c "ALTER SYSTEM SET io_method = 'io_uring';"
+# It's fine to create the user and database here since the bootstrap will transfer
+# the data to the data disk
+sudo -u postgres psql -c "CREATE ROLE $GC_PG_USER WITH LOGIN PASSWORD '$GC_PG_PASS';"
+sudo -u postgres psql -c "CREATE DATABASE $GC_PG_USER OWNER $GC_PG_DB;"
+
+# Configure SSH
 ALLOW_USER_PASSWD=${ALLOW_USER_PASSWD-}
 if [ -n "$ALLOW_USER_PASSWD" ]; then
     echo "ubuntu:ubuntu" | sudo chpasswd
@@ -108,10 +122,6 @@ sudo cp "$GC_PATH/etc/nginx/sites-available/genesis.conf" /etc/nginx/sites-avail
 sudo ln -s /etc/nginx/sites-available/genesis.conf /etc/nginx/sites-enabled/genesis.conf
 sudo systemctl enable nginx
 
-# Default creds for genesis core services
-sudo -u postgres psql -c "CREATE ROLE $GC_PG_USER WITH LOGIN PASSWORD '$GC_PG_PASS';"
-sudo -u postgres psql -c "CREATE DATABASE $GC_PG_USER OWNER $GC_PG_DB;"
-
 # Install genesis core
 sudo mkdir -p $GC_CFG_DIR
 sudo cp "$GC_PATH/etc/genesis_core/genesis_core.conf" $GC_CFG_DIR/
@@ -139,6 +149,12 @@ fi
 sudo cp -r "$GC_PATH/etc/genesis_universal_agent" /etc/
 
 # Apply migrations
+# The migrations are applied in the bootstrap script as well.
+# It's required for update the core otherwise the migrations won't be applied on the update.
+# It's fine to apply migrations here as:
+# 1) The bootstrap script will transfer the data to the data disk
+# 2) It's speed up the first run since the migrations are already applied.
+# 3) It's allows to debug the migrations at build time.
 ra-apply-migration --config-dir "$GC_PATH/etc/genesis_core/" --path "$GC_PATH/migrations"
 
 # Install CLI
@@ -162,6 +178,8 @@ sudo ln -sf "$VENV_PATH/bin/genesis-universal-scheduler" "/usr/bin/genesis-unive
 sudo ln -sf "$VENV_PATH/bin/genesis-ci" "/usr/bin/gctl"
 
 # Install Systemd service files
+# The genesis services are enabled in the bootstrap
+# script only after database is ready
 sudo cp "$GC_PATH/etc/systemd/gc-user-api.service" $SYSTEMD_SERVICE_DIR
 sudo cp "$GC_PATH/etc/systemd/gc-orch-api.service" $SYSTEMD_SERVICE_DIR
 sudo cp "$GC_PATH/etc/systemd/gc-status-api.service" $SYSTEMD_SERVICE_DIR
@@ -169,11 +187,6 @@ sudo cp "$GC_PATH/etc/systemd/gc-gservice.service" $SYSTEMD_SERVICE_DIR
 sudo cp "$GC_PATH/etc/systemd/gc-core-agent.service" $SYSTEMD_SERVICE_DIR
 sudo cp "$GC_PATH/etc/systemd/genesis-universal-agent.service" $SYSTEMD_SERVICE_DIR
 sudo cp "$GC_PATH/etc/systemd/genesis-universal-scheduler.service" $SYSTEMD_SERVICE_DIR
-
-# Enable genesis core services
-sudo systemctl enable gc-user-api gc-orch-api gc-status-api gc-gservice gc-core-agent \
-    genesis-universal-agent \
-    genesis-universal-scheduler
 
 
 # Prepare DNSaaS
@@ -200,3 +213,17 @@ sudo systemctl enable dnsdist@public
 LOCAL_IP="10.20.0.2"
 echo "DNS=${LOCAL_IP}" | sudo tee -a /etc/systemd/resolved.conf > /dev/null
 sudo sed -i 's/setLocal("10.20.0.2:53")/setLocal("'"${LOCAL_IP}"':53")/' /etc/dnsdist/dnsdist-private.conf
+
+
+cat <<EOT | sudo tee /etc/motd
+▄▖        ▘    ▄▖
+▌ █▌▛▌█▌▛▘▌▛▘  ▌ ▛▌▛▘█▌
+▙▌▙▖▌▌▙▖▄▌▌▄▌  ▙▖▙▌▌ ▙▖
+
+
+Welcome to Genesis Core virtual machine!
+
+All materials can be found here:
+https://github.com/infraguys
+
+EOT
