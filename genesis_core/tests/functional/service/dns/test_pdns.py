@@ -24,7 +24,6 @@ from gcl_iam.tests.functional import clients as iam_clients
 
 from genesis_core.common import constants as c
 
-
 DEF_DOMAIN = "core.internal"
 
 

@@ -26,7 +26,6 @@ from genesis_core.common import config
 from genesis_core.common import log as infra_log
 from genesis_core.gservice.service import GeneralService
 
-
 DOMAIN = "gservice"
 
 cli_opts = [

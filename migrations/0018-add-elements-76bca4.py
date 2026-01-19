@@ -21,7 +21,6 @@ from gcl_sdk import migrations as sdk_migrations
 
 from restalchemy.storage.sql import migrations
 
-
 SDK_MIGRATION_FILE_NAME = "0001-universal-agent-391c09.py"
 
 

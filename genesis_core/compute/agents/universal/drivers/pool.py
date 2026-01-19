@@ -33,7 +33,6 @@ from genesis_core.compute import constants as nc
 from genesis_core.compute.pool.drivers import base as driver_base
 from genesis_core.compute.pool.drivers import exceptions as driver_exc
 
-
 LOG = logging.getLogger(__name__)
 
 

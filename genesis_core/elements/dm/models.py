@@ -44,7 +44,6 @@ from genesis_core.common import utils as cm_utils
 from genesis_core.elements.dm import utils
 from genesis_core.elements import constants as cc
 
-
 LOG = logging.getLogger(__name__)
 
 

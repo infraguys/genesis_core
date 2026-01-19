@@ -31,20 +31,16 @@ class MigrationStep(migrations.AbstarctMigrationStep):
         return False
 
     def upgrade(self, session):
-        session.execute(
-            """
+        session.execute("""
             ALTER TABLE iam_users
             ADD COLUMN confirmation_code_made_at TIMESTAMP NULL DEFAULT NULL;
-        """
-        )
+        """)
 
     def downgrade(self, session):
-        session.execute(
-            """
+        session.execute("""
             ALTER TABLE iam_users 
             DROP COLUMN confirmation_code_made_at;
-        """
-        )
+        """)
 
 
 migration_step = MigrationStep()

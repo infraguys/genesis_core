@@ -33,7 +33,6 @@ from genesis_core.common import utils
 from genesis_core.user_api.iam import constants as iam_c
 from genesis_core.user_api.iam import drivers as iam_drivers
 
-
 api_cli_opts = [
     cfg.StrOpt(
         "bind-host",

@@ -27,7 +27,6 @@ from genesis_core.status_api.api import app
 from genesis_core.common import config
 from genesis_core.common import log as infra_log
 
-
 api_cli_opts = [
     cfg.StrOpt(
         "bind-host",

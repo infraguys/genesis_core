@@ -22,7 +22,6 @@ from restalchemy.storage.sql import orm as sql_orm
 
 from genesis_core.secret.dm import models
 
-
 INTERNAL_IAM_CLIENT_SECRET_UUID = sys_uuid.UUID(
     "00000000-0000-0000-0000-000000000001"
 )

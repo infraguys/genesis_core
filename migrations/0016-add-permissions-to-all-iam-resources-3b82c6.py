@@ -19,7 +19,6 @@ import uuid
 
 from restalchemy.storage.sql import migrations
 
-
 PERMISSION_PROJECT_LIST_ALL = "iam.project.list_all"
 PERMISSION_PROJECT_READ_ALL = "iam.project.read_all"
 PERMISSION_PROJECT_WRITE_ALL = "iam.project.write_all"
@@ -171,8 +170,7 @@ class MigrationStep(migrations.AbstarctMigrationStep):
         ]
 
         for name, description in permissions:
-            session.execute(
-                f"""
+            session.execute(f"""
                 INSERT INTO iam_permissions (
                     uuid, name, description
                 ) VALUES (
@@ -181,8 +179,7 @@ class MigrationStep(migrations.AbstarctMigrationStep):
                     '{description}'
                 )
                 ON CONFLICT (uuid) DO NOTHING;
-            """
-            )
+            """)
 
     @property
     def is_manual(self):
@@ -193,21 +190,17 @@ class MigrationStep(migrations.AbstarctMigrationStep):
 
     def _delete_permission_bindings(self, session):
         for permission_uuid in PERMISSION_UUIDS.values():
-            session.execute(
-                f"""
+            session.execute(f"""
                 DELETE FROM iam_binding_permissions
                 WHERE permission = '{permission_uuid}';
-            """
-            )
+            """)
 
     def _delete_permissions(self, session):
         for permission_uuid in PERMISSION_UUIDS.values():
-            session.execute(
-                f"""
+            session.execute(f"""
                 DELETE FROM iam_permissions
                 WHERE uuid = '{permission_uuid}';
-            """
-            )
+            """)
 
     def downgrade(self, session):
         self._delete_permission_bindings(session)

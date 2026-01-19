@@ -29,7 +29,6 @@ from genesis_core.secret import constants as sc
 from genesis_core.secret.dm import models as secret_dm
 from genesis_core.agent.universal.drivers.secret.dm import models as driver_dm
 
-
 LOG = logging.getLogger(__name__)
 
 

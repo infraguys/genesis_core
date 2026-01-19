@@ -20,7 +20,6 @@ from restalchemy.api import packers
 from genesis_core.compute import constants as nc
 from genesis_core.orch_api.dm import models
 
-
 _from_net_template = """#!ipxe
 :kernel
 kernel {kernel} showopts ip=dhcp net.ifnames=0 biosdevname=0 gc_orch_api={gc_orch_api} gc_status_api={gc_status_api} || goto kernel

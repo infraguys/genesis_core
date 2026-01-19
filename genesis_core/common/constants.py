@@ -16,7 +16,6 @@
 import os
 import uuid as sys_uuid
 
-
 GLOBAL_SERVICE_NAME = "genesis_core"
 SERVICE_PROJECT_ID = sys_uuid.UUID("00000000-0000-0000-0000-000000000000")
 EM_PROJECT_ID = sys_uuid.UUID("12345678-c625-4fee-81d5-f691897b8142")

@@ -29,7 +29,6 @@ from genesis_core.common.api.middlewares import errors as errors_mw
 from genesis_core.user_api.api import routes as app_routes
 from genesis_core.user_api.api import versions
 
-
 skip_auth_endpoints = [
     iam_mw.EndpointComparator("/"),
     iam_mw.EndpointComparator("/v1/"),

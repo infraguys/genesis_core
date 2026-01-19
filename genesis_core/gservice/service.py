@@ -51,7 +51,6 @@ from genesis_core.janitor import service as janitor_service
 from genesis_core.compute.node_set.dm import models as node_set_models
 from genesis_core.compute import constants as nc
 
-
 LOG = logging.getLogger(__name__)
 NODE_SET_TF_STORAGE = (
     "/var/lib/genesis/genesis_core/node_set/target_fields.json"

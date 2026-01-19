@@ -31,20 +31,16 @@ class MigrationStep(migrations.AbstarctMigrationStep):
         return False
 
     def upgrade(self, session):
-        session.execute(
-            """
+        session.execute("""
             ALTER TABLE "iam_tokens"
             ADD COLUMN expiration_delta FLOAT NOT NULL
                 DEFAULT 900.0;
-        """
-        )
-        session.execute(
-            """
+        """)
+        session.execute("""
             ALTER TABLE "iam_tokens"
             ADD COLUMN refresh_expiration_delta FLOAT NOT NULL
                 DEFAULT 86400.0;
-        """
-        )
+        """)
 
     def downgrade(self, session):
         session.execute(

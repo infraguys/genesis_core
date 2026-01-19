@@ -16,7 +16,6 @@
 
 from restalchemy.storage.sql import migrations
 
-
 _DEFAULT_IAM_CLIENT_UUID = "00000000-0000-0000-0000-000000000000"
 
 
@@ -101,8 +100,7 @@ class MigrationStep(migrations.AbstractMigrationStep):
         for expression in expressions:
             session.execute(expression)
 
-        session.execute(
-            """
+        session.execute("""
                 INSERT INTO "secret_passwords" (
                     "uuid",
                     "name",
@@ -122,8 +120,7 @@ class MigrationStep(migrations.AbstractMigrationStep):
                     'secret',
                     'ACTIVE'
                 ) ON CONFLICT ("uuid") DO NOTHING;
-            """
-        )
+            """)
 
         session.execute(
             """

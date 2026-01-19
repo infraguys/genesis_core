@@ -29,7 +29,6 @@ from genesis_core.secret.dm import models
 from genesis_core.common import constants as c
 from genesis_core.secret import constants as sc
 
-
 LOG = logging.getLogger(__name__)
 
 

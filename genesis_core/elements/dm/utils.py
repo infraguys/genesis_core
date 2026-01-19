@@ -16,7 +16,6 @@
 
 import uuid as sys_uuid
 
-
 ELEMENT_NAMESPACE = sys_uuid.UUID("f277e88a-cd58-4c33-a0c3-23a1086a53b7")
 UUID_PREFIX = "12345678"
 

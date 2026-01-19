@@ -29,7 +29,6 @@ from genesis_core.network import exceptions
 from genesis_core.network.dhcp import isc
 from genesis_core.compute import constants as nc
 
-
 DHCP_CTX_FILE = "gc_ctx_dhcpd.json"
 
 LOG = logging.getLogger(__name__)

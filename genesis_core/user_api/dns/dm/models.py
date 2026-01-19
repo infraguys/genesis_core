@@ -32,7 +32,6 @@ from gcl_sdk.agents.universal.dm import models as ua_models
 
 from genesis_core.common import utils as u
 
-
 CONF = cfg.CONF
 
 

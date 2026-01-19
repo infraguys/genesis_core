@@ -32,32 +32,24 @@ class MigrationStep(migrations.AbstarctMigrationStep):
         return False
 
     def upgrade(self, session):
-        session.execute(
-            """
+        session.execute("""
             ALTER TABLE "iam_users"
             ADD COLUMN surname VARCHAR(128) NOT NULL DEFAULT ''
-        """
-        )
-        session.execute(
-            """
+        """)
+        session.execute("""
             ALTER TABLE "iam_users"
             ADD COLUMN phone VARCHAR(15)
-        """
-        )
+        """)
 
     def downgrade(self, session):
-        session.execute(
-            """
+        session.execute("""
             ALTER TABLE "iam_users"
             DROP COLUMN surname
-        """
-        )
-        session.execute(
-            """
+        """)
+        session.execute("""
             ALTER TABLE "iam_users"
             DROP COLUMN phone
-        """
-        )
+        """)
 
 
 migration_step = MigrationStep()
