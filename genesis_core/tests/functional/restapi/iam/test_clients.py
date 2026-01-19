@@ -27,6 +27,11 @@ TEST_PROJECT_ID = str(sys_uuid.uuid4())
 
 
 class TestClients(base.BaseIamResourceTest):
+    SIGNATURE_ALGORITHM = {
+        "kind": "HS256",
+        "secret_uuid": "00000000-0000-0000-0000-000000000001",
+        "previous_secret_uuid": None,
+    }
 
     def test_create_iam_client_by_admin(
         self, user_api_client, auth_user_admin
@@ -34,17 +39,11 @@ class TestClients(base.BaseIamResourceTest):
         client = user_api_client(auth_user_admin)
         iam_client_name = "test_client[admin-user]"
 
-        signature_algorithm = {
-            "kind": "HS256",
-            "secret_uuid": "00000000-0000-0000-0000-000000000001",
-            "previous_secret_uuid": None,
-        }
-
         iam_client = client.create_iam_client(
             name=iam_client_name,
             client_id="client_id",
             secret="12345678",
-            signature_algorithm=signature_algorithm,
+            signature_algorithm=self.SIGNATURE_ALGORITHM,
         )
 
         assert iam_client["name"] == iam_client_name
@@ -111,6 +110,28 @@ class TestClients(base.BaseIamResourceTest):
         )
 
         assert result["name"] == new_name
+
+    def test_update_iam_clients_rules_by_admin(
+        self, user_api_client, auth_user_admin
+    ):
+        client = user_api_client(auth_user_admin)
+        iam_client = client.create_iam_client(
+            name="test_client_rules",
+            client_id=f"test_client_id_{sys_uuid.uuid4().hex[:8]}",
+            secret="12345678",
+            signature_algorithm=self.SIGNATURE_ALGORITHM,
+        )
+
+        rules = [{
+            "kind": "admin_bypass",
+            "bypass_users": []
+        }]
+        result = client.update_iam_client(
+            uuid=iam_client["uuid"],
+            rules=rules,
+        )
+
+        assert result["rules"] == rules
 
     def test_update_iam_clients_by_user(
         self, user_api_client, auth_test1_user

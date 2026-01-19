@@ -35,12 +35,17 @@ from restalchemy.dm import properties
 from restalchemy.dm import relationships
 from restalchemy.dm import types as ra_types
 from restalchemy.dm import types_dynamic as ra_types_dynamic
+from restalchemy.dm import types_dynamic
+from restalchemy.common import contexts
+from restalchemy.common import exceptions as ra_e
+from restalchemy.dm import filters as ra_filters
 from restalchemy.storage.sql import orm
 
 from genesis_core.common import constants as c
 from genesis_core.common import utils as u
 from genesis_core.events import payloads as event_payloads
 from genesis_core.secret.dm import models as secret_models
+from genesis_core.security.registry import ENTRY_POINT_GROUP
 from genesis_core.user_api.iam import constants as iam_c
 from genesis_core.user_api.iam import exceptions as iam_exceptions
 from genesis_core.user_api.iam.clients import keycloak
@@ -50,6 +55,10 @@ from genesis_core.user_api.iam.dm import types
 class KindModelSelectorType(ra_types_dynamic.KindModelSelectorType):
     def get_kind_types(self):
         return [self._kind_type_map[k] for k in self._kind_type_map]
+
+
+# Entry point group name for validation rules
+VALIDATION_RULES_ENTRY_POINT_GROUP = "genesis_core.validation_rules"
 
 
 class ModelWithSecret(models.Model, models.CustomPropertiesMixin):
@@ -159,6 +168,10 @@ class RolesInfo:
     def __init__(self, roles):
         super().__init__()
         self._roles = roles
+
+    def get_roles(self):
+        """Returns the list of Role objects."""
+        return self._roles
 
     def get_response_body(self):
         return [role.get_storable_snapshot() for role in self._roles]
@@ -906,15 +919,91 @@ class RS256SignatureAlgorithm(ra_types_dynamic.AbstractKindModel):
         self.force_update_secret_uuid(new_secret.uuid)
 
 
+# Validation rules for user registration
+class AbstractValidationRule(types_dynamic.AbstractKindModel, models.SimpleViewMixin):
+    """Base class for user registration validation rules."""
+
+    _rule_selector = None
+
+    @classmethod
+    def get_rule_selector(cls):
+        """Returns KindModelSelectorType for all rule types loaded via entry points."""
+        if cls._rule_selector is None:
+            rule_classes = []
+            entry_points = u.load_group_from_entry_point(VALIDATION_RULES_ENTRY_POINT_GROUP)
+            for ep in entry_points:
+                rule_cls = ep.load()
+                if hasattr(rule_cls, 'KIND') and issubclass(rule_cls, cls):
+                    rule_classes.append(rule_cls)
+
+            cls._rule_selector = types_dynamic.KindModelSelectorType(
+                *[types_dynamic.KindModelType(rule_cls) for rule_cls in rule_classes]
+            )
+        return cls._rule_selector
+
+
+class AdminBypassRule(AbstractValidationRule):
+    """Rule that allows admin users to bypass validation."""
+    KIND = "admin_bypass"
+
+    # List of user UUIDs or emails that should bypass validation
+    bypass_users = properties.property(
+        ra_types.List(),
+        default=list,
+    )
+
+
+class FirebaseAppCheckRule(AbstractValidationRule):
+    """Rule that requires Firebase App Check token validation."""
+    KIND = "firebase_app_check"
+
+    credentials_path = properties.property(
+        ra_types.String(),
+        required=True,
+    )
+    allowed_app_ids = properties.property(
+        ra_types.List(),
+        default=list,
+    )
+
+
+class CaptchaRule(AbstractValidationRule):
+    """Rule that requires CAPTCHA validation."""
+    KIND = "captcha"
+
+    hmac_key = properties.property(
+        ra_types.String(),
+        required=True,
+    )
+
+
+class ValidationRule:
+    """Wrapper for validation rule with unified verify() interface."""
+
+    def __init__(self, rule_model, verifier_class):
+        self.rule_model = rule_model
+        self.kind = rule_model.kind
+        config = rule_model.dump_to_simple_view()
+        self.verifier = verifier_class(config=config or {})
+
+    def verify(self, request):
+        """Verifies the rule, raises exception on failure or does nothing on success."""
+        self.verifier.verify(request)
+
+
 class IamClient(
     models.ModelWithUUID,
     models.ModelWithRequiredNameDesc,
     models.ModelWithTimestamp,
     ModelWithSecret,
     ModelWithAlwaysActiveStatus,
-    orm.SQLStorableMixin,
+    orm.SQLStorableWithJSONFieldsMixin,
 ):
     __tablename__ = "iam_clients"
+    __jsonfields__ = ["rules"]
+
+    # Cache verifier classes by kind not to load from EP on each request
+    _verifier_cache: dict = {}
 
     project_id = properties.property(
         ra_types.AllowNone(ra_types.UUID()),
@@ -932,6 +1021,55 @@ class IamClient(
         ),
         default=HS256SignatureAlgorithm,
     )
+    rules = properties.property(
+        ra_types.TypedList(AbstractValidationRule.get_rule_selector()),
+        default=list,
+        required=False,
+    )
+
+    def get_validation_rules(self):
+        """Returns normalized validation rule objects."""
+        rules = []
+        cache = IamClient._verifier_cache
+        for rule_model in self.rules:
+            kind = rule_model.kind
+            if kind not in cache:
+                cache[kind] = u.load_from_entry_point(ENTRY_POINT_GROUP, kind)
+            rules.append(ValidationRule(rule_model, cache[kind]))
+
+        return rules
+
+    def create_user(
+            self,
+            app_endpoint,
+            username,
+            password,
+            email,
+            first_name=None,
+            last_name=None,
+            surname=None,
+            phone=None,
+            description=None,
+            **kwargs
+    ):
+        """Creates a user with proper field setup."""
+        kwargs.pop("email_verified", None)
+        # (username -> name, password -> secret)
+        user = User(
+            name=username,
+            secret=password,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            surname=surname,
+            phone=phone,
+            description=description,
+            **kwargs,
+        )
+        user.insert()
+        user.resend_confirmation_event(app_endpoint=app_endpoint)
+
+        return user
 
     @classmethod
     def get_id_token_signing_alg_values_supported(cls) -> list[str]:
@@ -1462,6 +1600,7 @@ class Token(
             permissions=[v.permission for v in values],
             otp_verified=otp_verified,
         )
+
 
 
 class Idp(
