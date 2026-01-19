@@ -1,4 +1,4 @@
-#    Copyright 2025 Genesis Corporation.
+#    Copyright 2025-2026 Genesis Corporation.
 #
 #    All Rights Reserved.
 #
@@ -34,7 +34,6 @@ skip_auth_endpoints = [
     iam_mw.EndpointComparator("/v1/"),
     iam_mw.EndpointComparator("/v1/health/"),
     iam_mw.EndpointComparator("/v1/iam/"),
-    iam_mw.EndpointComparator("/v1/iam/users/", methods=[ra_c.POST]),
     iam_mw.EndpointComparator(
         f"/v1/iam/users/({ra_types.UUID_RE_TEMPLATE})"
         "/actions/reset_password/invoke",
