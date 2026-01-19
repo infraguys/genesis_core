@@ -1,5 +1,4 @@
-# Copyright 2025 Genesis Corporation
-# Copyright 2026 Genesis Corporation
+# Copyright 2025-2026 Genesis Corporation
 #
 # All Rights Reserved.
 #
@@ -174,6 +173,34 @@ class CanNotDeleteIamClient(
 ):
     __template__ = (
         "The current user is not permitted to delete IAM client `{uuid}`."
+        " This action requires the `{rule}`, which has not been granted."
+    )
+
+
+class CanNotCreateIdp(exceptions.CommonForbiddenException, iam_exc.Forbidden):
+    __template__ = (
+        "The current user is not permitted to create an IDP `{name}`."
+        " This action requires the `{rule}`, which has not been granted."
+    )
+
+
+class CanNotListIdps(exceptions.CommonForbiddenException, iam_exc.Forbidden):
+    __template__ = (
+        "The current user is not permitted to list IDPs."
+        " This action requires the `{rule}`, which has not been granted."
+    )
+
+
+class CanNotUpdateIdp(exceptions.CommonForbiddenException, iam_exc.Forbidden):
+    __template__ = (
+        "The current user is not permitted to update IDP `{uuid}`."
+        " This action requires the `{rule}`, which has not been granted."
+    )
+
+
+class CanNotDeleteIdp(exceptions.CommonForbiddenException, iam_exc.Forbidden):
+    __template__ = (
+        "The current user is not permitted to delete IDP `{uuid}`."
         " This action requires the `{rule}`, which has not been granted."
     )
 

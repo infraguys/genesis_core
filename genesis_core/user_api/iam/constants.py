@@ -1,5 +1,4 @@
-# Copyright 2025 Genesis Corporation
-# Copyright 2026 Genesis Corporation
+# Copyright 2025-2026 Genesis Corporation
 #
 # All Rights Reserved.
 #
@@ -228,4 +227,19 @@ PERMISSION_IAM_CLIENT_UPDATE = rules.Rule.from_raw(
 )
 PERMISSION_IAM_CLIENT_DELETE = rules.Rule.from_raw(
     "iam.iam_client.delete",
+)
+
+
+# IDP
+PERMISSION_IDP_CREATE = rules.Rule.from_raw(
+    "iam.idp.create",
+)
+PERMISSION_IDP_READ_ALL = rules.Rule.from_raw(
+    "iam.idp.read_all",
+)
+PERMISSION_IDP_UPDATE = rules.Rule.from_raw(
+    "iam.idp.update",
+)
+PERMISSION_IDP_DELETE = rules.Rule.from_raw(
+    "iam.idp.delete",
 )
