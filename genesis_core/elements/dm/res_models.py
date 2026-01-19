@@ -22,7 +22,6 @@ from gcl_sdk.paas.dm import services as srv_models
 
 from genesis_core.elements.dm import models
 
-
 LOG = logging.getLogger(__name__)
 
 

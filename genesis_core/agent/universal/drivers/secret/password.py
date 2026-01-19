@@ -22,7 +22,6 @@ from gcl_sdk.agents.universal.storage import fs
 
 from genesis_core.agent.universal.drivers.secret.backend import db as db_back
 
-
 LOG = logging.getLogger(__name__)
 
 PASSWORD_TARGET_FIELDS_STORAGE = (

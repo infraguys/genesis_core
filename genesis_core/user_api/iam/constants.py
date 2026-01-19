@@ -19,7 +19,6 @@ from datetime import timedelta
 
 from gcl_iam import rules
 
-
 # Grant Types
 GRANT_TYPE_PASSWORD = "password"
 GRANT_TYPE_PASSWORD_USERNAME = "username+password"

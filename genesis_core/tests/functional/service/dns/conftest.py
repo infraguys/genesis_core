@@ -29,7 +29,6 @@ import pytest
 
 from restalchemy.tests.functional import consts as ra_c
 
-
 LOG = logging.getLogger(__name__)
 
 PDNS_BIN = "/usr/sbin/pdns_server"

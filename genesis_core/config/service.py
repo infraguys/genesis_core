@@ -32,7 +32,6 @@ from genesis_core.config.dm import models
 from genesis_core.common import constants as c
 from genesis_core.config import constants as cc
 
-
 LOG = logging.getLogger(__name__)
 ORPHAN_CFG_ITERATION_FREQUENCY = 10
 DEF_OUTDATE_MIN_PERIOD = datetime.timedelta(minutes=10)

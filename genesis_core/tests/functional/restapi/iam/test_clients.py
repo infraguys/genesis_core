@@ -23,7 +23,6 @@ from restalchemy.common import contexts
 from genesis_core.tests.functional.restapi.iam import base
 from genesis_core.user_api.iam.dm import models as iam_models
 
-
 TEST_PROJECT_ID = str(sys_uuid.uuid4())
 
 

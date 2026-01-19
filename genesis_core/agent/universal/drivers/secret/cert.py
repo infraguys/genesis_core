@@ -26,7 +26,6 @@ from genesis_core.agent.universal.drivers.secret.backend import (
     cert as cert_back,
 )
 
-
 LOG = logging.getLogger(__name__)
 
 CERT_TARGET_FIELDS_STORAGE = (

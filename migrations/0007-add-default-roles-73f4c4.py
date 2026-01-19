@@ -16,7 +16,6 @@
 
 from restalchemy.storage.sql import migrations
 
-
 NEWCOMER_ROLE_UUID = "726f6c65-0000-0000-0000-000000000001"
 NEWCOMER_ROLE_NAME = "newcomer"
 NEWCOMER_ROLE_DESCRIPTION = (
