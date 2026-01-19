@@ -1,4 +1,4 @@
-#    Copyright 2025 Genesis Corporation.
+#    Copyright 2025-2026 Genesis Corporation.
 #
 #    All Rights Reserved.
 #
@@ -38,6 +38,7 @@ from genesis_core.compute import constants as nc
 from genesis_core.compute.dm import models as node_models
 from genesis_core.compute.node_set.dm import models as node_set_models
 from genesis_core.user_api.api import app as user_app
+from genesis_core.user_api.iam import constants as iam_c
 from genesis_core.tests.functional import utils as test_utils
 from genesis_core.config.dm import models as conf_models
 from genesis_core.config import constants as cc
@@ -153,7 +154,12 @@ def auth_test1_user(
     default_client_secret: str,
 ):
     password = "test1test"
-    client = user_api_client(auth_user_admin)
+    client = user_api_client(
+        auth_user_admin,
+        permissions=[
+            iam_c.PERMISSION_USER_CREATE,
+        ],
+    )
     user = client.create_user(username="test1", password=password)
     user_obj = iam_models.User.objects.get_one(filters={"uuid": user["uuid"]})
     client.confirm_email(
@@ -181,7 +187,12 @@ def auth_test2_user(
     default_client_secret: str,
 ):
     password = "test2test"
-    client = user_api_client(auth_user_admin)
+    client = user_api_client(
+        auth_user_admin,
+        permissions=[
+            iam_c.PERMISSION_USER_CREATE,
+        ],
+    )
     user = client.create_user(username="test2", password=password)
     user_obj = iam_models.User.objects.get_one(filters={"uuid": user["uuid"]})
     client.confirm_email(
@@ -209,7 +220,12 @@ def auth_test1_p1_user(
     default_client_secret: str,
 ):
     password = "testtest1p1"
-    client = user_api_client(auth_user_admin)
+    client = user_api_client(
+        auth_user_admin,
+        permissions=[
+            iam_c.PERMISSION_USER_CREATE,
+        ],
+    )
     user = client.create_user(username="test1p1", password=password)
     user_obj = iam_models.User.objects.get_one(filters={"uuid": user["uuid"]})
     client.confirm_email(

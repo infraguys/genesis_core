@@ -1,4 +1,4 @@
-#    Copyright 2025 Genesis Corporation.
+#    Copyright 2025-2026 Genesis Corporation.
 #
 #    All Rights Reserved.
 #
@@ -18,6 +18,7 @@ from bazooka import exceptions as bazooka_exc
 import pytest
 
 from genesis_core.tests.functional.restapi.iam import base
+from genesis_core.user_api.iam import constants as iam_c
 
 
 class TestRoleBindings(base.BaseIamResourceTest):
@@ -25,7 +26,12 @@ class TestRoleBindings(base.BaseIamResourceTest):
     def test_create_role_binding_by_admin(
         self, user_api_client, auth_user_admin
     ):
-        client = user_api_client(auth_user_admin)
+        client = user_api_client(
+            auth_user_admin,
+            permissions=[
+                iam_c.PERMISSION_USER_CREATE,
+            ],
+        )
         username = "test_user"
         role_binding_uuid = "15489734-6528-4d0c-ba5b-0f8e2d8b9b5f"
         role_name = "test_role"
@@ -46,7 +52,12 @@ class TestRoleBindings(base.BaseIamResourceTest):
     def test_create_role_binding_by_user1(
         self, user_api_client, auth_user_admin, auth_test1_user
     ):
-        client = user_api_client(auth_user_admin)
+        client = user_api_client(
+            auth_user_admin,
+            permissions=[
+                iam_c.PERMISSION_USER_CREATE,
+            ],
+        )
         username = "test_user"
         role_binding_uuid = "15489734-6528-4d0c-ba5b-0f8e2d8b9b5f"
         role_name = "test_role"
@@ -101,7 +112,12 @@ class TestRoleBindings(base.BaseIamResourceTest):
     def test_update_role_binding_by_admin(
         self, user_api_client, auth_user_admin
     ):
-        client = user_api_client(auth_user_admin)
+        client = user_api_client(
+            auth_user_admin,
+            permissions=[
+                iam_c.PERMISSION_USER_CREATE,
+            ],
+        )
         role_binding_uuid = "15489734-6528-4d0c-ba5b-0f8e2d8b9b5f"
         role_name = "test_role"
         user1 = client.create_user(
@@ -129,7 +145,12 @@ class TestRoleBindings(base.BaseIamResourceTest):
     def test_update_role_binding_by_user(
         self, user_api_client, auth_user_admin, auth_test1_user
     ):
-        client = user_api_client(auth_user_admin)
+        client = user_api_client(
+            auth_user_admin,
+            permissions=[
+                iam_c.PERMISSION_USER_CREATE,
+            ],
+        )
         role_binding_uuid = "15489734-6528-4d0c-ba5b-0f8e2d8b9b5f"
         role_name = "test_role"
         user1 = client.create_user(
