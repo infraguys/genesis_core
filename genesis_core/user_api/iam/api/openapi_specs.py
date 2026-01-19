@@ -17,7 +17,6 @@
 from restalchemy.openapi import constants as oa_c
 from genesis_core.user_api.iam import constants as c
 
-
 responses = {}
 responses.update(
     oa_c.build_openapi_user_response(

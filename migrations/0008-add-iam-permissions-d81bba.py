@@ -17,7 +17,6 @@
 import uuid
 from restalchemy.storage.sql import migrations
 
-
 USER_LIST = "iam.user.list"
 USER_READ_ALL = "iam.user.read_all"
 USER_WRITE_ALL = "iam.user.write_all"
@@ -96,8 +95,7 @@ class MigrationStep(migrations.AbstarctMigrationStep):
         ]
 
         for name, description in permissions:
-            session.execute(
-                f"""
+            session.execute(f"""
                 INSERT INTO iam_permissions (
                     uuid, name, description
                 ) VALUES (
@@ -106,12 +104,10 @@ class MigrationStep(migrations.AbstarctMigrationStep):
                     '{description}'
                 )
                 ON CONFLICT (uuid) DO NOTHING;
-            """
-            )
+            """)
 
     def _create_iam_project(self, session):
-        session.execute(
-            f"""
+        session.execute(f"""
             INSERT INTO iam_projects (
                 uuid, name, description, organization
             ) VALUES (
@@ -121,15 +117,13 @@ class MigrationStep(migrations.AbstarctMigrationStep):
                 '{GENESIS_CORE_ORG_UUID}'
             )
             ON CONFLICT (uuid) DO NOTHING;
-        """
-        )
+        """)
 
     def _create_bindings(self, session):
         bind_permissions = [USER_DELETE, ORG_CREATE, ORG_DELETE]
 
         for perm_name in bind_permissions:
-            session.execute(
-                f"""
+            session.execute(f"""
                 INSERT INTO iam_binding_permissions (
                     uuid, role, permission, project_id
                 ) VALUES (
@@ -138,8 +132,7 @@ class MigrationStep(migrations.AbstarctMigrationStep):
                     '{PERMISSION_UUIDS[perm_name]}',
                     '{IAM_PROJECT_UUID}'
                 );
-            """
-            )
+            """)
 
     def upgrade(self, session):
         self._create_permissions(session)
@@ -148,30 +141,24 @@ class MigrationStep(migrations.AbstarctMigrationStep):
 
     def _delete_bindings(self, session):
         for permission_uuid in PERMISSION_UUIDS.values():
-            session.execute(
-                f"""
+            session.execute(f"""
                 DELETE FROM iam_binding_permissions
                 WHERE
                     permission = '{permission_uuid}';
-            """
-            )
+            """)
 
     def _delete_iam_project(self, session):
-        session.execute(
-            f"""
+        session.execute(f"""
             DELETE FROM iam_projects
             WHERE uuid = '{IAM_PROJECT_UUID}';
-        """
-        )
+        """)
 
     def _delete_permissions(self, session):
         for permission_uuid in PERMISSION_UUIDS.values():
-            session.execute(
-                f"""
+            session.execute(f"""
                 DELETE FROM iam_permissions
                 WHERE uuid = '{permission_uuid}';
-            """
-            )
+            """)
 
     def downgrade(self, session):
         self._delete_bindings(session)

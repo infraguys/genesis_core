@@ -25,7 +25,6 @@ from genesis_core.common import config
 from genesis_core.common import log as infra_log
 from genesis_core.elements.dm import models
 
-
 cmd_opts = [
     cfg.StrOpt(
         "manifest-path",

@@ -28,7 +28,6 @@ from restalchemy.api import resources
 from genesis_core.user_api.dns.dm import models
 from genesis_core.user_api.api import versions
 
-
 CONF = cfg.CONF
 
 
