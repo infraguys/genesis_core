@@ -1,4 +1,4 @@
-#    Copyright 2025 Genesis Corporation.
+#    Copyright 2025-2026 Genesis Corporation.
 #
 #    All Rights Reserved.
 #
@@ -176,6 +176,11 @@ class UserController(
     )
 
     def create(self, **kwargs):
+        self.enforce(
+            c.PERMISSION_USER_CREATE,
+            do_raise=True,
+            exc=iam_e.CanNotCreateUser,
+        )
         self.validate_secret(kwargs)
         kwargs.pop("email_verified", None)
         user = super().create(**kwargs)

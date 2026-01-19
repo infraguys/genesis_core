@@ -1,4 +1,4 @@
-#    Copyright 2025 Genesis Corporation.
+#    Copyright 2025-2026 Genesis Corporation.
 #
 #    All Rights Reserved.
 #
@@ -13,9 +13,9 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+import contextlib
 import datetime
-from contextlib import nullcontext
-from urllib.parse import urljoin
+from urllib import parse as urllib_parse
 
 import pytest
 import requests
@@ -24,7 +24,7 @@ from gcl_iam.tests.functional import clients as iam_clients
 
 from genesis_core.common import constants as common_c
 from genesis_core.tests.functional.restapi.iam import base
-from genesis_core.user_api.iam import constants as c
+from genesis_core.user_api.iam import constants as iam_c
 from genesis_core.user_api.iam.dm import models as iam_models
 
 
@@ -33,16 +33,40 @@ class TestUsers(base.BaseIamResourceTest):
     USERS_ENDPOINT = "iam/users"
 
     @pytest.mark.parametrize("name", ["test", "Spider-Man"])
-    def test_create_user_success(self, name, user_api_noauth_client):
-        client = user_api_noauth_client()
+    def test_create_user_success(self, name, user_api_client, auth_user_admin):
+        client = user_api_client(
+            auth_user_admin,
+            permissions=[
+                iam_c.PERMISSION_USER_CREATE,
+            ],
+        )
 
         user = client.create_user(username=name, password="testtest")
 
         assert user["password"] == "*******"
         assert user["username"] == name
 
-    def test_create_user_400_error(self, user_api_noauth_client):
+    def test_create_user_unauthenticated_fails(self, user_api_noauth_client):
         client = user_api_noauth_client()
+
+        with pytest.raises(bazooka_exc.UnauthorizedError):
+            client.create_user(username="test_unauth", password="testtest")
+
+    def test_create_user_no_permission_fails(
+        self, user_api_client, auth_test1_user
+    ):
+        client = user_api_client(auth_test1_user)
+
+        with pytest.raises(bazooka_exc.ForbiddenError):
+            client.create_user(username="test_no_perm", password="testtest")
+
+    def test_create_user_400_error(self, user_api_client, auth_user_admin):
+        client = user_api_client(
+            auth_user_admin,
+            permissions=[
+                iam_c.PERMISSION_USER_CREATE,
+            ],
+        )
 
         with pytest.raises(bazooka_exc.BadRequestError):
             client.create_user(username="", password="test")
@@ -51,16 +75,28 @@ class TestUsers(base.BaseIamResourceTest):
         with pytest.raises(bazooka_exc.BadRequestError):
             client.create_user(username="test400", password="test test")
 
-    def test_create_user_space_login_400_error(self, user_api_noauth_client):
-        client = user_api_noauth_client()
+    def test_create_user_space_login_400_error(
+        self, user_api_client, auth_user_admin
+    ):
+        client = user_api_client(
+            auth_user_admin,
+            permissions=[
+                iam_c.PERMISSION_USER_CREATE,
+            ],
+        )
 
         with pytest.raises(bazooka_exc.BadRequestError):
             client.create_user(username=" ", password="test")
 
     def test_create_user_without_first_last_name_success(
-        self, user_api_noauth_client
+        self, user_api_client, auth_user_admin
     ):
-        client = user_api_noauth_client()
+        client = user_api_client(
+            auth_user_admin,
+            permissions=[
+                iam_c.PERMISSION_USER_CREATE,
+            ],
+        )
         for empty_name in ["", None]:
             name = f"test_no_names_{empty_name}".lower()
             user = client.create_user(
@@ -121,7 +157,7 @@ class TestUsers(base.BaseIamResourceTest):
         client = user_api_client(
             auth_test1_user,
             permissions=[
-                c.PERMISSION_USER_READ_ALL,
+                iam_c.PERMISSION_USER_READ_ALL,
             ],
         )
 
@@ -167,7 +203,7 @@ class TestUsers(base.BaseIamResourceTest):
         client = user_api_client(
             auth=auth_test1_user,
             permissions=[
-                c.PERMISSION_USER_LISTING,
+                iam_c.PERMISSION_USER_LISTING,
             ],
         )
 
@@ -206,7 +242,7 @@ class TestUsers(base.BaseIamResourceTest):
         client = user_api_client(
             auth_test1_user,
             permissions=[
-                c.PERMISSION_USER_WRITE_ALL,
+                iam_c.PERMISSION_USER_WRITE_ALL,
             ],
         )
         name = "testXXX"
@@ -258,7 +294,7 @@ class TestUsers(base.BaseIamResourceTest):
         client = user_api_client(
             auth_test1_user,
             permissions=[
-                c.PERMISSION_USER_WRITE_ALL,
+                iam_c.PERMISSION_USER_WRITE_ALL,
             ],
         )
 
@@ -344,7 +380,7 @@ class TestUsers(base.BaseIamResourceTest):
         client = user_api_client(
             auth_test1_user,
             permissions=[
-                c.PERMISSION_USER_DELETE,
+                iam_c.PERMISSION_USER_DELETE,
             ],
         )
 
@@ -358,7 +394,7 @@ class TestUsers(base.BaseIamResourceTest):
         client = user_api_client(
             auth_test1_user,
             permissions=[
-                c.PERMISSION_USER_DELETE_ALL,
+                iam_c.PERMISSION_USER_DELETE_ALL,
             ],
         )
 
@@ -372,7 +408,7 @@ class TestUsers(base.BaseIamResourceTest):
         client = user_api_client(
             auth_test1_user,
             permissions=[
-                c.PERMISSION_USER_DELETE,
+                iam_c.PERMISSION_USER_DELETE,
             ],
         )
 
@@ -413,33 +449,41 @@ class TestUsers(base.BaseIamResourceTest):
     @pytest.mark.parametrize(
         "grant_type, auth_param, expectation",
         [
-            (c.GRANT_TYPE_PASSWORD, "username", nullcontext()),
-            (c.GRANT_TYPE_PASSWORD_USERNAME, "username", nullcontext()),
-            (c.GRANT_TYPE_PASSWORD_EMAIL, "email", nullcontext()),
+            (iam_c.GRANT_TYPE_PASSWORD, "username", contextlib.nullcontext()),
             (
-                c.GRANT_TYPE_PASSWORD_PHONE,
+                iam_c.GRANT_TYPE_PASSWORD_USERNAME,
+                "username",
+                contextlib.nullcontext(),
+            ),
+            (
+                iam_c.GRANT_TYPE_PASSWORD_EMAIL,
+                "email",
+                contextlib.nullcontext(),
+            ),
+            (
+                iam_c.GRANT_TYPE_PASSWORD_PHONE,
                 "phone",
                 pytest.raises(bazooka_exc.BaseHTTPException),
                 # auth by phone is not implemented yet
             ),
             ("invalid_grant_type", "username", pytest.raises(ValueError)),
             (
-                c.GRANT_TYPE_PASSWORD,
+                iam_c.GRANT_TYPE_PASSWORD,
                 "login",
                 pytest.raises(bazooka_exc.BadRequestError),
             ),
             (
-                c.GRANT_TYPE_PASSWORD,
+                iam_c.GRANT_TYPE_PASSWORD,
                 "email",
                 pytest.raises(bazooka_exc.BadRequestError),
             ),
             (
-                c.GRANT_TYPE_PASSWORD_EMAIL,
+                iam_c.GRANT_TYPE_PASSWORD_EMAIL,
                 "username",
                 pytest.raises(bazooka_exc.BadRequestError),
             ),
             (
-                c.GRANT_TYPE_PASSWORD_LOGIN,
+                iam_c.GRANT_TYPE_PASSWORD_LOGIN,
                 "username",
                 pytest.raises(bazooka_exc.BadRequestError),
             ),
@@ -470,8 +514,8 @@ class TestUsers(base.BaseIamResourceTest):
     @pytest.mark.parametrize(
         "login, password, expectation",
         [
-            ("username", None, nullcontext()),
-            ("email", None, nullcontext()),
+            ("username", None, contextlib.nullcontext()),
+            ("email", None, contextlib.nullcontext()),
             ("phone", None, pytest.raises(bazooka_exc.BaseHTTPException)),
             ("username", "wrong", pytest.raises(bazooka_exc.BadRequestError)),
             ("username", "", pytest.raises(bazooka_exc.BadRequestError)),
@@ -489,7 +533,7 @@ class TestUsers(base.BaseIamResourceTest):
         params = {
             "username": "dummy_username",
             "password": auth_test1_user.password,
-            "grant_type": c.GRANT_TYPE_PASSWORD_LOGIN,
+            "grant_type": iam_c.GRANT_TYPE_PASSWORD_LOGIN,
             "login": getattr(auth_test1_user, login, "doesnt_exist"),
         }
         if password is not None:
@@ -506,10 +550,10 @@ class TestUsers(base.BaseIamResourceTest):
     @pytest.mark.parametrize(
         "grant_type,use_email,field_name",
         [
-            (c.GRANT_TYPE_PASSWORD_USERNAME, False, "username"),
-            (c.GRANT_TYPE_PASSWORD_LOGIN, False, "login"),
-            (c.GRANT_TYPE_PASSWORD_LOGIN, True, "login"),
-            (c.GRANT_TYPE_PASSWORD_EMAIL, True, "email"),
+            (iam_c.GRANT_TYPE_PASSWORD_USERNAME, False, "username"),
+            (iam_c.GRANT_TYPE_PASSWORD_LOGIN, False, "login"),
+            (iam_c.GRANT_TYPE_PASSWORD_LOGIN, True, "login"),
+            (iam_c.GRANT_TYPE_PASSWORD_EMAIL, True, "email"),
         ],
     )
     def test_auth_case_insensitivity(
@@ -551,7 +595,7 @@ class TestUsers(base.BaseIamResourceTest):
         # after confirm email (auth_test1_user) confirmation_code is None
         assert user.confirmation_code is None
 
-        url = urljoin(
+        url = urllib_parse.urljoin(
             user_api.base_url,
             f"iam/clients/{default_client_uuid}/actions/reset_password/invoke",
         )
@@ -565,7 +609,7 @@ class TestUsers(base.BaseIamResourceTest):
         assert user_updated.confirmation_code
 
         new_password = f"{auth_test1_user.password}_changed"
-        url = urljoin(
+        url = urllib_parse.urljoin(
             user_api.base_url,
             f"iam/users/{user.uuid}/actions/reset_password/invoke",
         )

@@ -1,4 +1,5 @@
 # Copyright 2025 Genesis Corporation
+# Copyright 2026 Genesis Corporation
 #
 # All Rights Reserved.
 #
@@ -102,6 +103,9 @@ class OrganizationRole(str, enum.Enum):
 
 # permissions
 # Users
+PERMISSION_USER_CREATE = rules.Rule.from_raw(
+    "iam.user.create",
+)
 PERMISSION_USER_LISTING = rules.Rule.from_raw(
     "iam.user.list",
 )
