@@ -1,4 +1,4 @@
-# Copyright 2025 Genesis Corporation
+# Copyright 2025-2026 Genesis Corporation
 #
 # All Rights Reserved.
 #
@@ -29,6 +29,13 @@ class CanNotSetOwner(exceptions.CommonForbiddenException, iam_exc.Forbidden):
         " the owner. This action requires the `{rule}` permission, which is"
         " not granted. Please contact your administrator to request the"
         " necessary access or retain the current owner value."
+    )
+
+
+class CanNotCreateUser(exceptions.CommonForbiddenException, iam_exc.Forbidden):
+    __template__ = (
+        "The current user is not permitted to create users. This action"
+        " requires the `{rule}`, which has not been granted."
     )
 
 
@@ -166,6 +173,34 @@ class CanNotDeleteIamClient(
 ):
     __template__ = (
         "The current user is not permitted to delete IAM client `{uuid}`."
+        " This action requires the `{rule}`, which has not been granted."
+    )
+
+
+class CanNotCreateIdp(exceptions.CommonForbiddenException, iam_exc.Forbidden):
+    __template__ = (
+        "The current user is not permitted to create an IDP `{name}`."
+        " This action requires the `{rule}`, which has not been granted."
+    )
+
+
+class CanNotListIdps(exceptions.CommonForbiddenException, iam_exc.Forbidden):
+    __template__ = (
+        "The current user is not permitted to list IDPs."
+        " This action requires the `{rule}`, which has not been granted."
+    )
+
+
+class CanNotUpdateIdp(exceptions.CommonForbiddenException, iam_exc.Forbidden):
+    __template__ = (
+        "The current user is not permitted to update IDP `{uuid}`."
+        " This action requires the `{rule}`, which has not been granted."
+    )
+
+
+class CanNotDeleteIdp(exceptions.CommonForbiddenException, iam_exc.Forbidden):
+    __template__ = (
+        "The current user is not permitted to delete IDP `{uuid}`."
         " This action requires the `{rule}`, which has not been granted."
     )
 

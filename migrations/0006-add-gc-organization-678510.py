@@ -17,7 +17,6 @@
 
 from restalchemy.storage.sql import migrations
 
-
 # NOTE(efrolov): copy-pasted from constants. Migration should have the
 #                same values for autonomous working.
 # Genesis Core Organization and Project Information

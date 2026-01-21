@@ -22,7 +22,6 @@ from oslo_config import cfg
 from genesis_core.common import constants
 from genesis_core import version
 
-
 GLOBAL_SERVICE_NAME = constants.GLOBAL_SERVICE_NAME
 _CONFIG_NOT_FOUND_MESSAGE = (
     "Unable to find configuration file in the"

@@ -26,7 +26,6 @@ from restalchemy.tests.functional.restapi.ra_based.microservice import service
 from gcl_sdk import migrations as sdk_migrations
 from gcl_sdk.tests.functional import conftest as sdk_conftest
 
-
 ENDPOINT_TEMPLATE = "http://127.0.0.1:%s/"
 
 
@@ -110,23 +109,19 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
     def get_all_views(cls, session=None) -> set[str]:
         with cls.engine.session_manager(session=session) as s:
             if session.engine.dialect.name == "mysql":
-                res = s.execute(
-                    """
+                res = s.execute("""
                     select
                         table_name as table_name
                     from information_schema.views
                     where table_schema = database();
-                """
-                ).fetchall()
+                """).fetchall()
             elif session.engine.dialect.name == "postgresql":
-                res = s.execute(
-                    """
+                res = s.execute("""
                     select
                         table_name as table_name
                     from information_schema.views
                     where table_schema = current_schema();
-                """
-                ).fetchall()
+                """).fetchall()
             else:
                 raise NotImplementedError("Unsupported dialect")
         return {row["table_name"] for row in res}

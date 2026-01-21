@@ -29,7 +29,6 @@ from genesis_core.tests.functional import conftest
 from genesis_core.orch_api.api import app as orch_app
 from genesis_core.cmd import orch_api as orch_api_cmd
 
-
 CONF = cfg.CONF
 
 

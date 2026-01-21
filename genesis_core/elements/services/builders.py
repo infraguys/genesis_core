@@ -21,7 +21,6 @@ from restalchemy.common import contexts
 
 from genesis_core.elements.dm import models
 
-
 LOG = logging.getLogger(__name__)
 
 

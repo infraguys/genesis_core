@@ -1,4 +1,4 @@
-#    Copyright 2025 Genesis Corporation.
+#    Copyright 2025-2026 Genesis Corporation.
 #
 #    All Rights Reserved.
 #
@@ -177,6 +177,11 @@ class UserController(
     )
 
     def create(self, **kwargs):
+        self.enforce(
+            c.PERMISSION_USER_CREATE,
+            do_raise=True,
+            exc=iam_e.CanNotCreateUser,
+        )
         self.validate_secret(kwargs)
         kwargs.pop("email_verified", None)
         user = super().create(**kwargs)
@@ -537,6 +542,37 @@ class IdpController(
         models.Idp,
         convert_underscore=False,
     )
+
+    def create(self, **kwargs):
+        if self.enforce(c.PERMISSION_IDP_CREATE):
+            return super().create(**kwargs)
+        raise iam_e.CanNotCreateIdp(
+            name=kwargs.get("name", ""),
+            rule=c.PERMISSION_IDP_CREATE,
+        )
+
+    def filter(self, filters, **kwargs):
+        if self.enforce(c.PERMISSION_IDP_READ_ALL):
+            return super().filter(filters, **kwargs)
+        raise iam_e.CanNotListIdps(
+            rule=c.PERMISSION_IDP_READ_ALL,
+        )
+
+    def update(self, uuid, **kwargs):
+        if self.enforce(c.PERMISSION_IDP_UPDATE):
+            return super().update(uuid, **kwargs)
+        raise iam_e.CanNotUpdateIdp(
+            uuid=uuid,
+            rule=c.PERMISSION_IDP_UPDATE,
+        )
+
+    def delete(self, uuid):
+        if self.enforce(c.PERMISSION_IDP_DELETE):
+            return super().delete(uuid)
+        raise iam_e.CanNotDeleteIdp(
+            uuid=uuid,
+            rule=c.PERMISSION_IDP_DELETE,
+        )
 
     def _get_request_params(self, resource):
         return {
