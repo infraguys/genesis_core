@@ -148,6 +148,9 @@ class PaasLB(IaasLB):
                 "cert": (
                     vhost.cert.dump_to_simple_view() if vhost.cert else None
                 ),
+                "ext_sources": [
+                    e.dump_to_simple_view() for e in vhost.external_sources
+                ],
             }
             rvhost["routes"] = {
                 str(r.uuid): {"cond": r.condition.dump_to_simple_view()}
