@@ -31,6 +31,7 @@ from restalchemy.storage.sql import orm
 from gcl_sdk.agents.universal.dm import models as ua_models
 
 from genesis_core.common import utils as u
+from genesis_core.secret import utils as su
 
 
 class LBStatus(str, enum.Enum):
@@ -197,6 +198,26 @@ PROTOCOL_CONFLICT_MAPPING = {
 }
 
 
+class LBExtSourceSSHKind(
+    types_dynamic.AbstractKindModel, models.SimpleViewMixin
+):
+    KIND = "ssh_forward"
+
+    host = properties.property(
+        types.String(min_length=1, max_length=260), required=True
+    )
+    port = properties.property(
+        types.Integer(min_value=1, max_value=65535), default=22
+    )
+    user = properties.property(
+        types.String(min_length=1, max_length=32), required=True
+    )
+    private_key = properties.property(
+        types.String(min_length=1, max_length=32768),
+        required=True,
+    )
+
+
 class Vhost(ChildModel):
     __tablename__ = "net_lb_vhosts"
 
@@ -228,6 +249,15 @@ class Vhost(ChildModel):
             )
         ),
         default=None,
+    )
+    external_sources = properties.property(
+        types.TypedList(
+            types_dynamic.KindModelSelectorType(
+                types_dynamic.KindModelType(LBExtSourceSSHKind),
+            )
+        ),
+        default=lambda: [],
+        required=True,
     )
 
     def _validate(self, check_all=False):
@@ -277,6 +307,13 @@ class Vhost(ChildModel):
                 "Protocol+port pair conflicts with another vhost %s."
                 % str(vhost.uuid)
             )
+        for source in self.external_sources:
+            if source.kind == "ssh_forward" and not su.validate_openssh_key(
+                source.private_key
+            ):
+                raise ValueError(
+                    "Private key for external_source with type ssh_forward is invalid."
+                )
 
     def insert(self, session=None):
         self._validate()
@@ -514,7 +551,7 @@ class AbstractHTTPRouteCondKind(AbstractRouteCondKind):
                 types_dynamic.KindModelType(ModifierRewriteUrlKind),
             )
         ),
-        default=list,
+        default=lambda: [],
     )
 
     def __init__(self, modifiers=None, **kwargs):
@@ -543,7 +580,7 @@ class RouteRegexConditionKind(AbstractHTTPRouteCondKind):
                 types_dynamic.KindModelType(ModifierRewriteUrlKind),
             )
         ),
-        default=[],
+        default=lambda: [],
     )
 
     def __init__(self, modifiers=None, **kwargs):
