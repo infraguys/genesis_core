@@ -24,6 +24,7 @@ from genesis_core.user_api.iam.api import routes as iam_routes
 from genesis_core.user_api.config.api import routes as config_routes
 from genesis_core.user_api.secret.api import routes as secret_routes
 from genesis_core.user_api.compute.api import routes as compute_routes
+from genesis_core.user_api.vs.api import routes as vs_routers
 
 
 # TODO(e.frolov): should be raw route
@@ -44,6 +45,7 @@ class ApiEndpointRoute(routes.Route):
     health = routes.route(HealthRoute)
     iam = routes.route(iam_routes.IamRoute)
     em = routes.route(em_routes.ElementManagerRoute)
+    vs = routes.route(vs_routers.VSRoute)
     config = routes.route(config_routes.ConfigRoute)
     secret = routes.route(secret_routes.SecretRoute)
     compute = routes.route(compute_routes.ComputeRoute)
