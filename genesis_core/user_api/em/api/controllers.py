@@ -16,11 +16,18 @@
 
 
 from gcl_iam import controllers as iam_controllers
+from restalchemy.dm import filters as dm_filters
 from restalchemy.api import actions
 from restalchemy.api import controllers
 from restalchemy.api import resources
+from restalchemy.common import exceptions as ra_e
 
 from genesis_core.elements.dm import models
+from genesis_core.vs.dm import models as vs_models
+
+
+class ElementHasNoProfileError(ra_e.ValidationErrorException):
+    message = "Element has no profile"
 
 
 class ElementManagerController(controllers.RoutesListController):
@@ -73,6 +80,33 @@ class ElementController(
             ],
         ),
     )
+
+    @actions.post
+    def set_profile(self, resource: models.Element, profile: str):
+        profile = vs_models.Profile.objects.get_one(
+            filters={"uuid": dm_filters.EQ(profile)},
+        )
+        resource.profile = profile
+        resource.update()
+
+        # Need to update force to rebuild the variables
+        # related to the profile
+        profile.update(force=True)
+        return resource
+
+    @actions.post
+    def clear_profile(self, resource: models.Element):
+        if not resource.profile:
+            raise ElementHasNoProfileError()
+
+        profile = resource.profile
+        resource.profile = None
+        resource.update()
+
+        # Need to update force to rebuild the variables
+        # related to the profile
+        profile.update(force=True)
+        return resource
 
 
 class ElementResourceController(
