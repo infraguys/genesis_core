@@ -33,6 +33,7 @@ from genesis_core.compute.scheduler.driver.filters import available
 from genesis_core.compute.scheduler.driver.filters import affinity
 from genesis_core.compute.scheduler.driver.weighter import relative
 from genesis_core.compute.scheduler import service as n_scheduler_service
+from genesis_core.vs.builders import service as vs_builder_svc
 from genesis_core.compute.builders import node as node_builder_svc
 from genesis_core.compute.builders import volume as volume_builder_svc
 from genesis_core.compute.builders import pool as pool_builder_svc
@@ -176,6 +177,12 @@ class GeneralService(basic.BasicService):
             orch_client=orch_db.DatabaseOrchClient(),
         )
 
+        # ValuesStore
+        vs_builder_service = vs_builder_svc.VSBuilderService(
+            uuid=sys_uuid.uuid5(ua_utils.system_uuid(), "vs_builder"),
+            orch_client=orch_db.DatabaseOrchClient(),
+        )
+
         cfg_service = config_service.ConfigServiceBuilder()
         secret_svc = secret_service.SecretServiceBuilder()
         event_sender = senders.EventSenderService.build_from_config()
@@ -188,6 +195,7 @@ class GeneralService(basic.BasicService):
         )
 
         self._services = [
+            vs_builder_service,
             set_builder,
             infra_scheduler,
             infra_agent,
