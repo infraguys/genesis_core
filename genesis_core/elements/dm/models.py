@@ -43,6 +43,7 @@ from genesis_core.common.dm import targets as ct
 from genesis_core.common import utils as cm_utils
 from genesis_core.elements.dm import utils
 from genesis_core.elements import constants as cc
+from genesis_core.vs.dm import models as vs_models
 
 LOG = logging.getLogger(__name__)
 
@@ -396,6 +397,7 @@ class Element(
         ra_types.Enum([s.value for s in INSTALL_TYPES]),
         default=INSTALL_TYPES.MANUAL.value,
     )
+    profile = relationships.relationship(vs_models.Profile, prefetch=True)
 
     @property
     def link(self):
