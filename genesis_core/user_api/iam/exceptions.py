@@ -226,13 +226,6 @@ class InvalidRedirectUri(
     __template__ = "Invalid or unregistered redirect_uri: {redirect_uri}"
 
 
-class CanNotCreateUser(
-    exceptions.CommonForbiddenException,
-    iam_exc.Forbidden,
-):
-    __template__ = "User creation failed: {message}"
-
-
 class AdminBypassValidationFailed(
     exceptions.CommonForbiddenException,
     iam_exc.Forbidden,

@@ -1,6 +1,6 @@
 from typing import Iterable
 
-from webob import Request
+import webob
 
 from genesis_core.user_api.iam import exceptions as iam_exceptions
 from genesis_core.user_api.iam.dm import models as iam_models
@@ -9,7 +9,7 @@ from genesis_core.user_api.iam.dm import models as iam_models
 class ClientRequestValidator:
     """Applies IamClient validation rules to a request."""
 
-    def validate(self, client: iam_models.IamClient, request: Request) -> None:
+    def validate(self, client: iam_models.IamClient, request: webob.Request) -> None:
         """Applies validation rules, first matching rule validates the request."""
         rules: Iterable = client.get_validation_rules()
         if not rules:

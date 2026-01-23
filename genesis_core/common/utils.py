@@ -16,7 +16,7 @@
 
 import typing as tp
 import uuid as sys_uuid
-from importlib.metadata import entry_points
+from importlib.metadata import EntryPoint, entry_points
 
 from gcl_sdk.events import clients as sdk_clients
 from gcl_sdk.agents.universal import utils as sdk_utils
@@ -42,7 +42,7 @@ def load_from_entry_point(group: str, name: str) -> tp.Any:
     raise RuntimeError(f"No class '{name}' found in entry points {group}")
 
 
-def load_group_from_entry_point(group: str) -> tp.Any:
+def load_group_from_entry_point(group: str) -> tp.List[EntryPoint]:
     """Load all entry points from a group using standard importlib.metadata API."""
     eps = entry_points()
     return list(eps.select(group=group))

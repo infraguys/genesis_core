@@ -36,11 +36,11 @@ class MigrationStep(migrations.AbstractMigrationStep):
                 ALTER TABLE
                     iam_clients
                 ADD COLUMN IF NOT EXISTS
-                    rules JSONB NULL DEFAULT '[]'::jsonb;
+                    rules JSONB[] NULL DEFAULT '{}';
             """,
             """
                 UPDATE iam_clients
-                SET rules = '[]'::jsonb
+                SET rules = '{}'
                 WHERE rules IS NULL;
             """,
         ]

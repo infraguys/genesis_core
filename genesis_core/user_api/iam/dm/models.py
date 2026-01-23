@@ -45,7 +45,7 @@ from genesis_core.common import constants as c
 from genesis_core.common import utils as u
 from genesis_core.events import payloads as event_payloads
 from genesis_core.secret.dm import models as secret_models
-from genesis_core.security.registry import ENTRY_POINT_GROUP
+from genesis_core.security import ENTRY_POINT_GROUP
 from genesis_core.user_api.iam import constants as iam_c
 from genesis_core.user_api.iam import exceptions as iam_exceptions
 from genesis_core.user_api.iam.clients import keycloak
@@ -997,10 +997,9 @@ class IamClient(
     models.ModelWithTimestamp,
     ModelWithSecret,
     ModelWithAlwaysActiveStatus,
-    orm.SQLStorableWithJSONFieldsMixin,
+    orm.SQLStorableMixin,
 ):
     __tablename__ = "iam_clients"
-    __jsonfields__ = ["rules"]
 
     # Cache verifier classes by kind not to load from EP on each request
     _verifier_cache: dict = {}

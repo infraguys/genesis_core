@@ -19,9 +19,9 @@ import logging
 from typing import Any
 
 import altcha
-from webob import Request
+import webob
 
-from genesis_core.security.interfaces import AbstractVerifier
+from genesis_core.security.base import AbstractVerifier
 from genesis_core.user_api.iam import exceptions as iam_exceptions
 
 
@@ -43,10 +43,10 @@ class CaptchaVerifier(AbstractVerifier):
     def __init__(self, config: dict[str, Any] = None):
         self.config = config or {}
 
-    def can_handle(self, request: Request) -> bool:
+    def can_handle(self, request: webob.Request) -> bool:
         return bool(request.headers.get(self.CAPTCHA_HEADER))
 
-    def _get_payload_from_request(self, request) -> dict | None:
+    def _get_payload_from_request(self, request: webob.Request) -> dict | None:
         """Extract and parse CAPTCHA payload from request header."""
         captcha_header = request.headers.get(self.CAPTCHA_HEADER)
         try:
@@ -55,7 +55,7 @@ class CaptchaVerifier(AbstractVerifier):
             log.exception("Failed to parse CAPTCHA payload.")
             return None
 
-    def verify(self, request) -> None:
+    def verify(self, request: webob.Request) -> None:
         payload = self._get_payload_from_request(request)
         if not payload:
             raise iam_exceptions.CaptchaValidationFailed(

@@ -18,12 +18,12 @@ from typing import Any
 
 import jwt.exceptions
 from restalchemy.dm import filters as ra_filters
-from webob import Request
+import webob
 
 from genesis_core.user_api.iam.dm import models
 from genesis_core.user_api.iam import exceptions as iam_exceptions
 from gcl_iam import tokens
-from genesis_core.security.interfaces import AbstractVerifier
+from genesis_core.security.base import AbstractVerifier
 from genesis_core.user_api.iam import drivers as iam_drivers
 
 
@@ -37,10 +37,10 @@ class AdminBypassVerifier(AbstractVerifier):
     def __init__(self, config: dict[str, Any] = None):
         self.config = config or {}
 
-    def can_handle(self, request: Request) -> bool:
+    def can_handle(self, request: webob.Request) -> bool:
         return request.headers.get("Authorization", "").startswith("Bearer ")
 
-    def verify(self, request) -> None:
+    def verify(self, request: webob.Request) -> None:
         auth = request.headers.get("Authorization", "")
         raw = auth[7:].strip()
         try:

@@ -15,16 +15,15 @@
 #    under the License.
 
 import abc
-from webob import Request
-from restalchemy.dm import types as ra_types
+import webob
 
 
 class AbstractVerifier(abc.ABC):
     @abc.abstractmethod
-    def can_handle(self, request: Request) -> bool:
+    def can_handle(self, request: webob.Request) -> bool:
         """Check if this verifier can handle the request."""
 
     @abc.abstractmethod
-    def verify(self, request: Request) -> None:
+    def verify(self, request: webob.Request) -> None:
         """Perform validation. Raises exception on failure, returns None on success. Called only if can_handle() returned True."""
 
