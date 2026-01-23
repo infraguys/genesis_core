@@ -224,3 +224,24 @@ class InvalidRedirectUri(
     iam_exc.InvalidGrantTypeError,
 ):
     __template__ = "Invalid or unregistered redirect_uri: {redirect_uri}"
+
+
+class AdminBypassValidationFailed(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = "Admin bypass validation failed."
+
+
+class CaptchaValidationFailed(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = "CAPTCHA validation failed: {message}"
+
+
+class FirebaseAppCheckValidationFailed(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = "Firebase App Check verification failed: {message}"

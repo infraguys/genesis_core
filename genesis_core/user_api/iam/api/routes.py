@@ -251,6 +251,12 @@ class LogoutAction(routes.Action):
     __controller__ = controllers.ClientsController
 
 
+class CreateUserAction(routes.Action):
+    """Handler for .../<uuid>/actions/create_user/invoke endpoint"""
+
+    __controller__ = controllers.ClientUserCreationController
+
+
 class IamClientsRoute(routes.Route):
     """Handler for /v1/iam/clients/ endpoint"""
 
@@ -265,6 +271,7 @@ class IamClientsRoute(routes.Route):
     logout = routes.action(LogoutAction, invoke=True)
     reset_password = routes.action(ResetPasswordEventAction, invoke=True)
     jwks = routes.action(JwksAction)
+    create_user = routes.action(CreateUserAction, invoke=True)
 
 
 class IamWebRoute(WebRoute):
