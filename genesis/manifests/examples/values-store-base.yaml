@@ -1,0 +1,62 @@
+name: "values-store-example"
+description: "Values store example"
+schema_version: 1
+version: "0.0.1"
+api_version: "v1"
+
+resources:
+  $core.vs.profiles:
+    default:
+      name: "default"
+      profile_type: "GLOBAL"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      description: "The default profile"
+    develop:
+      name: "develop"
+      profile_type: "GLOBAL"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      description: "The develop profile"
+
+  $core.vs.values:
+    int_value:
+      name: "int value"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      value: 1
+    
+    list_value:
+      name: "list value"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      value: [1, 2, 3]
+    
+    selector_value_foo:
+      name: "selector value foo"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      value: "foo"
+      variable: $core.vs.variables.$var_selector:uuid
+    
+    selector_value_bar:
+      name: "selector value bar"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      read_only: true
+      value: "bar"
+      variable: $core.vs.variables.$var_selector:uuid
+
+  $core.vs.variables:   
+    var_profile:
+      name: "var_profile"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      setter:
+        kind: profile
+        fallback_strategy: ignore
+        profiles:
+          - profile: $core.vs.profiles.$default:uuid
+            value: 1
+          - profile: $core.vs.profiles.$develop:uuid
+            value: 2
+    
+    var_selector:
+      name: "var_selector"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      setter:
+        kind: selector
+        selector_strategy: latest
