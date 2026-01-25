@@ -17,13 +17,14 @@
 from restalchemy.api import routes
 
 from genesis_core.user_api.api import controllers
+from genesis_core.user_api.config.api import routes as config_routes
+from genesis_core.user_api.compute.api import routes as compute_routes
 from genesis_core.user_api.dns.api import routes as dns_routes
-from genesis_core.user_api.network.api import routes as network_routes
 from genesis_core.user_api.em.api import routes as em_routes
 from genesis_core.user_api.iam.api import routes as iam_routes
-from genesis_core.user_api.config.api import routes as config_routes
+from genesis_core.user_api.network.api import routes as network_routes
 from genesis_core.user_api.secret.api import routes as secret_routes
-from genesis_core.user_api.compute.api import routes as compute_routes
+from genesis_core.user_api.security.api import routes as security_routes
 
 
 # TODO(e.frolov): should be raw route
@@ -46,5 +47,6 @@ class ApiEndpointRoute(routes.Route):
     em = routes.route(em_routes.ElementManagerRoute)
     config = routes.route(config_routes.ConfigRoute)
     secret = routes.route(secret_routes.SecretRoute)
+    security = routes.route(security_routes.SecurityRoute)
     compute = routes.route(compute_routes.ComputeRoute)
     network = routes.route(network_routes.NetworkRoute)
