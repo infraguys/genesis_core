@@ -25,7 +25,9 @@ from restalchemy.openapi import structures as openapi_structures
 from restalchemy.openapi import engines as openapi_engines
 
 from genesis_core import version
+from genesis_core.common import contexts as common_contexts
 from genesis_core.common.api.middlewares import errors as errors_mw
+from genesis_core.user_api.api import middlewares as user_api_mw
 from genesis_core.user_api.api import routes as app_routes
 from genesis_core.user_api.api import versions
 
@@ -119,12 +121,14 @@ def build_wsgi_application(context_storage, iam_engine_driver):
             openapi_engine=get_openapi_engine(),
         ),
         [
+            user_api_mw.SecurityRulesMiddlware,
             middlewares.configure_middleware(
                 iam_mw.GenesisCoreAuthMiddleware,
                 # service_name="iam",
                 context_kwargs={
                     "context_storage": context_storage,
                 },
+                context_class=common_contexts.GenesisCoreAuthContext,
                 iam_engine_driver=iam_engine_driver,
                 skip_auth_endpoints=skip_auth_endpoints,
             ),
