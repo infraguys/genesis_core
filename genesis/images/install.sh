@@ -41,7 +41,7 @@ CLI_DEV_MODE=$([ -d "$DEV_CLI_PATH" ] && echo "true" || echo "false")
 # Install packages
 sudo apt update
 sudo apt install yq postgresql libev-dev libvirt-dev \
-    tftpd-hpa nginx isc-dhcp-server -y
+    tftpd-hpa nginx-full isc-dhcp-server -y
 
 ALLOW_USER_PASSWD=${ALLOW_USER_PASSWD-}
 if [ -n "$ALLOW_USER_PASSWD" ]; then
@@ -99,7 +99,36 @@ sudo cp "$GC_ART_DIR/undionly.kpxe" /srv/tftp/bios/undionly.kpxe
 sudo cp "$GC_ART_DIR/initrd.img" /srv/tftp/bios/initrd.img
 sudo cp "$GC_ART_DIR/vmlinuz" /srv/tftp/bios/vmlinuz
 
-sudo rm /etc/nginx/sites-enabled/default
+# Prepare nginx for LB
+sudo mkdir -p /etc/nginx/ssl
+sudo chown www-data:www-data /etc/nginx/ssl
+sudo mkdir -p /etc/nginx/genesis/
+
+# Cert to restrict default_server
+sudo openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -subj "/C=PE/ST=Genesis/L=Genesis/O=Genesis core dummy cert. /OU=IT Department/CN=genesis.core" -keyout /etc/nginx/ssl/nginx.key -out /etc/nginx/ssl/nginx.crt
+
+# Block any connections not explicitly set
+cat <<EOF | sudo tee /etc/nginx/sites-enabled/default
+server {
+    listen 80 default_server reuseport;
+    listen 443 ssl default_server reuseport;
+    listen [::]:80 default_server;
+    listen [::]:443 ssl default_server;
+    server_name _;
+    ssl_certificate /etc/nginx/ssl/nginx.crt;
+    ssl_certificate_key /etc/nginx/ssl/nginx.key;
+
+    location / {
+        return 444;
+    }
+}
+EOF
+
+cat <<EOF | sudo tee -a /etc/nginx/nginx.conf
+include /etc/nginx/genesis/*.conf;
+EOF
+
+# Add web interface
 sudo rm -fr /var/www/html
 sudo tar -xf "$GC_ART_DIR/html.tgz" -C /var/www/
 sudo chown -R www-data:www-data /var/www/html
