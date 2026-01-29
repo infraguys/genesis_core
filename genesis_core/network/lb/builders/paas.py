@@ -59,16 +59,25 @@ class LBBuilder(builder.PaaSBuilder):
 
         actual_resources = []
 
-        nodes = self.get_actual_nodeset(instance).nodes
         vhosts = instance.get_vhosts()
         backend_pools = instance.get_backend_pools()
 
-        for node_uuid in nodes.keys():
-            nuuid = uuid.UUID(node_uuid)
+        if instance.type.kind == "core":
+            nodes = self.get_actual_nodeset(instance).nodes
+            for node_uuid in nodes.keys():
+                nuuid = uuid.UUID(node_uuid)
+                actual_resources.append(
+                    models.PaasLBNode(
+                        uuid=nuuid,
+                        agent_uuid=nuuid,
+                        vhosts=vhosts,
+                        backend_pools=backend_pools,
+                    )
+                )
+        elif instance.type.kind == "core_agent":
             actual_resources.append(
-                models.PaasLBNode(
-                    uuid=nuuid,
-                    agent_uuid=nuuid,
+                models.PaasLBAgent(
+                    uuid=instance.uuid,
                     vhosts=vhosts,
                     backend_pools=backend_pools,
                 )
