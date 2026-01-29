@@ -41,7 +41,7 @@ class LBStatus(str, enum.Enum):
     ERROR = "ERROR"
 
 
-class LBTypeKind(types_dynamic.AbstractKindModel, models.SimpleViewMixin):
+class LBTypeCoreKind(types_dynamic.AbstractKindModel, models.SimpleViewMixin):
     KIND = "core"
 
     cpu = properties.property(
@@ -58,6 +58,12 @@ class LBTypeKind(types_dynamic.AbstractKindModel, models.SimpleViewMixin):
     nodes_number = properties.property(
         types.Integer(min_value=1, max_value=16), default=1
     )
+
+
+class LBTypeCoreAgentKind(
+    types_dynamic.AbstractKindModel, models.SimpleViewMixin
+):
+    KIND = "core_agent"
 
 
 class LB(
@@ -80,9 +86,10 @@ class LB(
     )
     type = properties.property(
         types_dynamic.KindModelSelectorType(
-            types_dynamic.KindModelType(LBTypeKind),
+            types_dynamic.KindModelType(LBTypeCoreKind),
+            types_dynamic.KindModelType(LBTypeCoreAgentKind),
         ),
-        default=LBTypeKind(),
+        default=LBTypeCoreKind(),
         required=True,
     )
 
