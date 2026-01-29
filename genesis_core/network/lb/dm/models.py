@@ -61,10 +61,9 @@ class IaasLB(models.LB, ua_models.InstanceWithDerivativesMixin):
         )
 
 
-class PaasLBNode(
+class PaasLBAgent(
     ra_models.ModelWithUUID,
     ua_models.TargetResourceKindAwareMixin,
-    ua_models.SchedulableToAgentFromAgentUUIDMixin,
 ):
 
     status = properties.property(
@@ -76,8 +75,7 @@ class PaasLBNode(
 
     @classmethod
     def get_resource_kind(cls) -> str:
-        """Return the resource kind."""
-        return "paas_lb_node"
+        return "paas_lb_agent"
 
     def get_resource_target_fields(self) -> tp.Collection[str]:
         """Return the collection of target fields.
@@ -93,10 +91,20 @@ class PaasLBNode(
         )
 
 
+class PaasLBNode(
+    PaasLBAgent,
+    ua_models.SchedulableToAgentFromAgentUUIDMixin,
+):
+    @classmethod
+    def get_resource_kind(cls) -> str:
+        return "paas_lb_node"
+
+
 class PaasLB(IaasLB):
 
     __derivative_model_map__ = {
         "paas_lb_node": PaasLBNode,
+        "paas_lb_agent": PaasLBAgent,
     }
 
     @classmethod

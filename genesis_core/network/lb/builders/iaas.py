@@ -47,6 +47,9 @@ class LBBuilder(builder.CoreInfraBuilder):
     def create_infra(
         self, instance: models.IaasLB
     ) -> tp.Collection[ua_models.TargetResourceKindAwareMixin]:
+        if instance.type.kind != "core":
+            return []
+
         infra_objects = []
 
         node_set = models.TargetNodeSet(
@@ -71,6 +74,8 @@ class LBBuilder(builder.CoreInfraBuilder):
         instance: models.IaasLB,
         infra: builder.InfraCollection,
     ) -> tp.Collection[ua_models.TargetResourceKindAwareMixin]:
+        if instance.type.kind != "core":
+            return tuple()
         nodeset = None
         tgt_nodeset = None
 
