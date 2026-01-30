@@ -231,7 +231,7 @@ class AdminBypassVerifier(AbstractVerifier):
         if user_info is None:
             return False
 
-        allowed = {str(v).lower() for v in self.bypass_users}
+        allowed = {v.lower() for v in self.bypass_users}
 
         email = getattr(user_info, "email", None)
         if email and str(email).lower() in allowed:
