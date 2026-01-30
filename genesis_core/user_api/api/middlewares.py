@@ -15,7 +15,6 @@
 #    under the License.
 
 import dataclasses
-import uuid as sys_uuid
 
 from restalchemy.api import middlewares as ra_middlewares
 from restalchemy.common import contexts as ra_contexts
@@ -28,12 +27,15 @@ from genesis_core.user_api.security.dm import models as security_models
 
 @dataclasses.dataclass
 class RulesContext:
-    available: list
     and_rules: list
     or_rules: list
 
+    @property
+    def available(self) -> bool:
+        return bool(self.and_rules or self.or_rules)
 
-class SecurityRulesMiddlware(ra_middlewares.Middleware):
+
+class SecurityRulesMiddleware(ra_middlewares.Middleware):
 
     def process_request(self, req):
         context = ra_contexts.get_context()
@@ -69,7 +71,6 @@ class SecurityRulesMiddlware(ra_middlewares.Middleware):
             if rule.operator == security_models.OperatorEnum.OR.value
         ]
         return RulesContext(
-            available=available_rules,
             and_rules=and_rules,
             or_rules=or_rules,
         )

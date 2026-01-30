@@ -121,7 +121,7 @@ def build_wsgi_application(context_storage, iam_engine_driver):
             openapi_engine=get_openapi_engine(),
         ),
         [
-            user_api_mw.SecurityRulesMiddlware,
+            user_api_mw.SecurityRulesMiddleware,
             middlewares.configure_middleware(
                 iam_mw.GenesisCoreAuthMiddleware,
                 # service_name="iam",
