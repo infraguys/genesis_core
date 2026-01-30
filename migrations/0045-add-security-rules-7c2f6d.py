@@ -21,7 +21,7 @@ class MigrationStep(migrations.AbstractMigrationStep):
 
     def __init__(self):
         self._depends = [
-            "0043-add-user-source-4f5e1f.py",
+            "0044-add-lb-ext-source-ca08ef.py",
         ]
 
     @property
