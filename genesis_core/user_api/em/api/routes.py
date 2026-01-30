@@ -53,12 +53,26 @@ class ElementResourceRoute(routes.Route):
     __controller__ = controllers.ElementResourceController
 
 
+class ElementSetProfileActionRoute(routes.Action):
+    """Handler for /v1/em/elements/<uuid>/actions/set_profile/invoke endpoint"""
+
+    __controller__ = controllers.ElementController
+
+
+class ElementClearProfileActionRoute(routes.Action):
+    """Handler for /v1/em/elements/<uuid>/actions/clear_profile/invoke endpoint"""
+
+    __controller__ = controllers.ElementController
+
+
 class ElementRoute(routes.Route):
     """Handler for /v1/em/elements/<uuid>/ endpoint"""
 
     __controller__ = controllers.ElementController
 
     resources = routes.route(ElementResourceRoute, resource_route=True)
+    set_profile = routes.action(ElementSetProfileActionRoute, invoke=True)
+    clear_profile = routes.action(ElementClearProfileActionRoute, invoke=True)
 
 
 class ServicesRoute(routes.Route):
