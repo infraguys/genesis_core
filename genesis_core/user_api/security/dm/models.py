@@ -22,7 +22,8 @@ import re
 
 import altcha
 import firebase_admin
-from firebase_admin import app_check, credentials
+from firebase_admin import app_check
+from firebase_admin import credentials
 from firebase_admin import exceptions as firebase_exceptions
 from gcl_iam import exceptions as gcl_iam_exceptions
 from restalchemy.dm import models as ra_models
@@ -34,7 +35,7 @@ from restalchemy.storage.sql import orm
 from genesis_core.user_api.iam import constants as iam_c
 
 
-log = logging.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 
 class AbstractConditions(ra_types_dynamic.AbstractKindModel):
@@ -159,17 +160,17 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
         try:
             app_check_token = app_check.verify_token(token, app=app)
         except firebase_exceptions.FirebaseError as exc:
-            log.warning("Firebase App Check token verification failed: %s", exc)
+            LOG.warning("Firebase App Check token verification failed: %s", exc)
             return False
-        except ValueError as exc:
-            log.warning("Firebase App Check token ValueError: %s", exc)
+        except ValueError:
+            LOG.exception("Firebase App Check token ValueError:")
             return False
 
-        allowed_ids = set(self.allowed_app_ids or [])
-        if allowed_ids:
+        if self.allowed_app_ids:
+            allowed_ids = set(self.allowed_app_ids)
             app_id = app_check_token.get("app_id")
             if app_id not in allowed_ids:
-                log.info("Firebase App Check token app_id '%s' not in allowed list.", app_id)
+                LOG.warning("Firebase App Check token app_id '%s' not in allowed list.", app_id)
                 return False
 
         return True
@@ -196,7 +197,7 @@ class CaptchaVerifier(AbstractVerifier):
         try:
             payload = json.loads(captcha_header)
         except (TypeError, json.JSONDecodeError):
-            log.exception("Failed to parse CAPTCHA payload.")
+            LOG.exception("Failed to parse CAPTCHA payload.")
             return False
 
         verified, _error = altcha.verify_solution(
