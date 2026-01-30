@@ -105,7 +105,10 @@ class TestUserCreationSecurity(base.BaseIamResourceTest):
         self._create_firebase_rule(allowed_app_ids=["test-app-id"])
         self._create_captcha_rule()
         self._create_admin_bypass_rule(
-            allowed_identifiers=[auth_user_admin.email, str(auth_user_admin.uuid)]
+            allowed_identifiers=[
+                auth_user_admin.email,
+                str(auth_user_admin.uuid),
+            ]
         )
 
         mock_get_app.side_effect = ValueError("No app")
@@ -119,7 +122,9 @@ class TestUserCreationSecurity(base.BaseIamResourceTest):
             "Authorization": f"Bearer {admin_token}",
             "X-Firebase-AppCheck": "valid_firebase_token_12345",
         }
-        response = self._post_create_user(user_api, headers, username_suffix="firebase")
+        response = self._post_create_user(
+            user_api, headers, username_suffix="firebase"
+        )
         assert response.status_code in (200, 201)
 
         captcha_payload = json.dumps(

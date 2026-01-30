@@ -34,7 +34,6 @@ from restalchemy.storage.sql import orm
 
 from genesis_core.user_api.iam import constants as iam_c
 
-
 LOG = logging.getLogger(__name__)
 
 
@@ -160,7 +159,9 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
         try:
             app_check_token = app_check.verify_token(token, app=app)
         except firebase_exceptions.FirebaseError as exc:
-            LOG.warning("Firebase App Check token verification failed: %s", exc)
+            LOG.warning(
+                "Firebase App Check token verification failed: %s", exc
+            )
             return False
         except ValueError:
             LOG.exception("Firebase App Check token ValueError:")
@@ -170,7 +171,10 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
             allowed_ids = set(self.allowed_app_ids)
             app_id = app_check_token.get("app_id")
             if app_id not in allowed_ids:
-                LOG.warning("Firebase App Check token app_id '%s' not in allowed list.", app_id)
+                LOG.warning(
+                    "Firebase App Check token app_id '%s' not in allowed list.",
+                    app_id,
+                )
                 return False
 
         return True

@@ -94,7 +94,7 @@ responses.update(
                 "error": "invalid_client",
                 "error_description": "The provided otp code is invalid",
             },
-        }
+        },
     )
 )
 
