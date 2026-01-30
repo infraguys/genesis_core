@@ -26,6 +26,19 @@ from restalchemy.storage.sql import orm
 
 from genesis_core.user_api.iam import constants as iam_c
 
+# The http.HTTPMethod has all necessary methods, but it was added in 3.11
+HTTP_METHODS = (
+    "GET",
+    "POST",
+    "PUT",
+    "DELETE",
+    "PATCH",
+    "OPTIONS",
+    "HEAD",
+    "TRACE",
+    "CONNECT",
+)
+
 
 class AbstractConditions(ra_types_dynamic.AbstractKindModel):
     @abc.abstractmethod
@@ -41,14 +54,14 @@ class UriConditions(AbstractConditions):
         required=True,
     )
     method = properties.property(
-        ra_types.String(),
-        required=False,
+        ra_types.AllowNone(ra_types.Enum(HTTP_METHODS)),
+        default=None,
     )
 
     def can_handle(self, context):
         request = context.request
         if self.method:
-            if request.method.upper() != self.method.upper():
+            if request.method.upper() != self.method:
                 return False
         return request.path_info.lower() == self.uri.lower()
 
@@ -61,14 +74,14 @@ class UriRegexConditions(AbstractConditions):
         required=True,
     )
     method = properties.property(
-        ra_types.String(),
-        required=False,
+        ra_types.AllowNone(ra_types.Enum(HTTP_METHODS)),
+        default=None,
     )
 
     def can_handle(self, context):
         request = context.request
         if self.method:
-            if request.method.upper() != self.method.upper():
+            if request.method.upper() != self.method:
                 return False
         return (
             re.match(
