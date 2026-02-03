@@ -224,3 +224,10 @@ class InvalidRedirectUri(
     iam_exc.InvalidGrantTypeError,
 ):
     __template__ = "Invalid or unregistered redirect_uri: {redirect_uri}"
+
+
+class InvalidNonce(
+    exceptions.CommonValueErrorException,
+    iam_exc.InvalidGrantTypeError,
+):
+    __template__ = "Invalid or missing nonce: '{nonce}'"
