@@ -58,6 +58,11 @@ skip_auth_endpoints = [
         f"/v1/iam/clients/({ra_types.UUID_RE_TEMPLATE})/actions/jwks",
     ),
     iam_mw.EndpointComparator(
+        f"/v1/iam/clients/({ra_types.UUID_RE_TEMPLATE})"
+        "/actions/create_user/invoke",
+        methods=[ra_c.POST],
+    ),
+    iam_mw.EndpointComparator(
         f"/v1/iam/users/({ra_types.UUID_RE_TEMPLATE})"
         "/actions/confirm_email/invoke",
         methods=[ra_c.POST],
