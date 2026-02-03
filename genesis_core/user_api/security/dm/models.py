@@ -16,8 +16,16 @@
 
 import abc
 import enum
+import json
+import logging
 import re
 
+import altcha
+import firebase_admin
+from firebase_admin import app_check
+from firebase_admin import credentials
+from firebase_admin import exceptions as firebase_exceptions
+from gcl_iam import exceptions as gcl_iam_exceptions
 from restalchemy.dm import models as ra_models
 from restalchemy.dm import properties
 from restalchemy.dm import types as ra_types
@@ -25,6 +33,8 @@ from restalchemy.dm import types_dynamic as ra_types_dynamic
 from restalchemy.storage.sql import orm
 
 from genesis_core.user_api.iam import constants as iam_c
+
+LOG = logging.getLogger(__name__)
 
 # The http.HTTPMethod has all necessary methods, but it was added in 3.11
 HTTP_METHODS = (
@@ -116,6 +126,141 @@ class FieldNotInRequestVerifier(AbstractVerifier):
         return not any(field.lower() in json_keys for field in self.fields)
 
 
+class FirebaseAppCheckVerifier(AbstractVerifier):
+    """Verifier that checks Firebase App Check token in request headers."""
+
+    KIND = "firebase_app_check"
+
+    credentials_path = properties.property(
+        ra_types.String(),
+        required=True,
+    )
+    allowed_app_ids = properties.property(
+        ra_types.TypedList(ra_types.String()),
+        required=False,
+        default=list,
+    )
+
+    FIREBASE_HEADERS = (
+        "X-Firebase-AppCheck",
+        "X-Goog-Firebase-AppCheck",
+    )
+
+    def _get_token_from_headers(self, request):
+        for header_name in self.FIREBASE_HEADERS:
+            token = request.headers.get(header_name)
+            if token:
+                return token
+        return None
+
+    def _get_firebase_app(self):
+        """Return initialised default Firebase app, same semantics as original verifier."""
+        try:
+            return firebase_admin.get_app()
+        except ValueError:
+            cred = credentials.Certificate(self.credentials_path)
+            return firebase_admin.initialize_app(cred)
+
+    def verify(self, context):
+        request = context.request
+
+        token = self._get_token_from_headers(request)
+        if not token:
+            return False
+
+        app = self._get_firebase_app()
+        try:
+            app_check_token = app_check.verify_token(token, app=app)
+        except firebase_exceptions.FirebaseError as exc:
+            LOG.warning(
+                "Firebase App Check token verification failed: %s", exc
+            )
+            return False
+        except ValueError:
+            LOG.exception("Firebase App Check token ValueError:")
+            return False
+
+        if self.allowed_app_ids:
+            allowed_ids = set(self.allowed_app_ids)
+            app_id = app_check_token.get("app_id")
+            if app_id not in allowed_ids:
+                LOG.warning(
+                    "Firebase App Check token app_id '%s' not in allowed list.",
+                    app_id,
+                )
+                return False
+
+        return True
+
+
+class CaptchaVerifier(AbstractVerifier):
+    """Verifier that validates CAPTCHA solution from X-Captcha header."""
+
+    KIND = "captcha"
+
+    hmac_key = properties.property(
+        ra_types.String(),
+        required=True,
+    )
+
+    CAPTCHA_HEADER = "X-Captcha"
+
+    def verify(self, context):
+        request = context.request
+        captcha_header = request.headers.get(self.CAPTCHA_HEADER)
+        if not captcha_header:
+            return False
+
+        try:
+            payload = json.loads(captcha_header)
+        except (TypeError, json.JSONDecodeError):
+            LOG.exception("Failed to parse CAPTCHA payload.")
+            return False
+
+        verified, _error = altcha.verify_solution(
+            payload,
+            hmac_key=self.hmac_key,
+            check_expires=True,
+        )
+        return bool(verified)
+
+
+class AdminBypassVerifier(AbstractVerifier):
+    """Verifier that allows admin / trusted users to bypass other checks."""
+
+    KIND = "admin_bypass"
+
+    bypass_users = properties.property(
+        ra_types.TypedList(ra_types.String()),
+        required=True,
+        default=list,
+    )
+
+    def verify(self, context):
+        """Return True if current user is explicitly allowed to bypass."""
+        # Introspection info may be missing for unauthenticated requests
+        try:
+            info = context.iam_context.get_introspection_info()
+        except gcl_iam_exceptions.NoIamSessionStored:
+            return False
+
+        user_info = getattr(info, "user_info", None)
+        if user_info is None:
+            return False
+
+        allowed = {v.lower() for v in self.bypass_users}
+
+        email = getattr(user_info, "email", None)
+        if email and str(email).lower() in allowed:
+            return True
+
+        uuid_val = getattr(user_info, "uuid", None)
+        if uuid_val and str(uuid_val).lower() in allowed:
+            return True
+
+        return False
+
+
 class OperatorEnum(str, enum.Enum):
 
     OR = "OR"
@@ -151,6 +296,9 @@ class Rule(
     verifier = properties.property(
         ra_types_dynamic.KindModelSelectorType(
             ra_types_dynamic.KindModelType(FieldNotInRequestVerifier),
+            ra_types_dynamic.KindModelType(FirebaseAppCheckVerifier),
+            ra_types_dynamic.KindModelType(CaptchaVerifier),
+            ra_types_dynamic.KindModelType(AdminBypassVerifier),
         ),
         required=True,
     )
