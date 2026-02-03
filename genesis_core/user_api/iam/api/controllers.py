@@ -613,16 +613,16 @@ class IdpController(
         redirect_uri,
         state,
         response_type,
-        nonce,
         scope,
+        nonce=models.Idp.NONCE_DEFAULT,
     ):
         redirect_uri = resource.authorize(
             client_id=client_id,
             redirect_uri=redirect_uri,
             state=state,
             response_type=response_type,
-            nonce=nonce,
             scope=scope,
+            nonce=nonce,
         )
 
         return None, 307, [("Location", redirect_uri)]

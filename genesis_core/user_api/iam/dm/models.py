@@ -1473,6 +1473,8 @@ class Idp(
 ):
     __tablename__ = "iam_idp"
 
+    NONCE_DEFAULT = ""
+
     project_id = properties.property(
         ra_types.AllowNone(ra_types.UUID()),
         default=None,
@@ -1490,6 +1492,10 @@ class Idp(
     callback_uri = properties.property(
         ra_types.String(max_length=256),
         required=True,
+    )
+    nonce_required = properties.property(
+        ra_types.Boolean(),
+        default=True,
     )
 
     @property
@@ -1544,12 +1550,20 @@ class Idp(
         }
 
     def authorize(
-        self, client_id, redirect_uri, state, response_type, nonce, scope
+        self,
+        client_id,
+        redirect_uri,
+        state,
+        response_type,
+        scope,
+        nonce=NONCE_DEFAULT,
     ):
         if self.client_id != client_id:
             raise iam_exceptions.InvalidClientId(client_id=client_id)
         if self.callback_uri != redirect_uri:
             raise iam_exceptions.InvalidRedirectUri(redirect_uri=redirect_uri)
+        if self.nonce_required and not nonce:
+            raise iam_exceptions.InvalidNonce(nonce=nonce)
 
         ctx = contexts.get_context()
         app_url = ctx.get_real_url_with_prefix()
@@ -1627,13 +1641,18 @@ class IdpAuthorizationInfo(
         ctx = contexts.get_context()
         app_url = ctx.get_real_url_with_prefix()
 
+        if self.idp.nonce_required and not self.nonce:
+            raise iam_exceptions.InvalidNonce(nonce=self.nonce)
+        else:
+            nonce = self.nonce or Idp.NONCE_DEFAULT
+
         current_token = Token.my()
         self.token = Token(
             user=current_token.user,
             iam_client=self.idp.iam_client,
             scope=self.scope,
             project=current_token.project,
-            nonce=self.nonce,
+            nonce=nonce,
             audience=self.idp.iam_client.client_id,
             issuer=f"{app_url}/v1/iam/clients/{self.idp.iam_client.uuid}",
         )
