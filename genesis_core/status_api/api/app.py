@@ -22,6 +22,7 @@ from restalchemy.api.middlewares import errors as errors_mw
 from restalchemy.api.middlewares import logging as logging_mw
 from restalchemy.openapi import structures as openapi_structures
 from restalchemy.openapi import engines as openapi_engines
+from gcl_sdk.agents.universal.api import middlewares as sdk_middlewares
 
 from genesis_core.status_api.api import routes as app_routes
 from genesis_core.status_api.api import versions
@@ -64,7 +65,7 @@ def build_wsgi_application():
             openapi_engine=get_openapi_engine(),
         ),
         [
-            context_mw.ContextMiddleware,
+            sdk_middlewares.SdkContextMiddleware,
             errors_mw.ErrorsHandlerMiddleware,
             logging_mw.LoggingMiddleware,
         ],
