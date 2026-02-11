@@ -266,8 +266,15 @@ class Vhost(ChildModel):
         default=lambda: [],
         required=True,
     )
+    proxy_protocol_from = properties.property(
+        types.AllowNone(types_network.IpWithMask()), default=None
+    )
 
     def _validate(self, check_all=False):
+        if self.proxy_protocol_from and self.protocol == Protocol.UDP.value:
+            raise ValueError(
+                "'proxy_protocol_from' is only supported for 'tcp'-based protocols."
+            )
         if self.protocol.startswith("http"):
             if not self.domains:
                 raise ValueError(
