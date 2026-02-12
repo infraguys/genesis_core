@@ -20,15 +20,13 @@ from restalchemy.dm import types
 from genesis_core.compute.dm import models
 
 LOCAL_GC_HOST = "core.local.genesis-core.tech"
-LOCAL_GC_ORCH_API = "http://core.local.genesis-core.tech:11011"
-LOCAL_GC_STATUS_API = "http://core.local.genesis-core.tech:11012"
+LOCAL_GC_BOOT_API = "http://core.local.genesis-core.tech:11013"
 
 
 class MachineNetboot(models.Machine):
     __custom_properties__ = {
         "gc_host": types.String(max_length=255),
-        "gc_orch_api": types.String(max_length=255),
-        "gc_status_api": types.String(max_length=255),
+        "gc_boot_api": types.String(max_length=255),
         "kernel": types.AllowNone(types.String(max_length=255)),
         "initrd": types.AllowNone(types.String(max_length=255)),
     }
@@ -36,45 +34,37 @@ class MachineNetboot(models.Machine):
     def __init__(
         self,
         gc_host: str = LOCAL_GC_HOST,
-        gc_orch_api: str = LOCAL_GC_ORCH_API,
-        gc_status_api: str = LOCAL_GC_STATUS_API,
+        gc_boot_api: str = LOCAL_GC_BOOT_API,
         kernel: str | None = None,
         initrd: str | None = None,
         *args,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
-        self.set_netboot_params(
-            gc_host, gc_orch_api, gc_status_api, kernel, initrd
-        )
+        self.set_netboot_params(gc_host, gc_boot_api, kernel, initrd)
 
     @classmethod
     def restore_from_storage(
         cls,
         gc_host: str = LOCAL_GC_HOST,
-        gc_orch_api: str = LOCAL_GC_ORCH_API,
-        gc_status_api: str = LOCAL_GC_STATUS_API,
+        gc_boot_api: str = LOCAL_GC_BOOT_API,
         kernel: str | None = None,
         initrd: str | None = None,
         **kwargs,
     ):
         obj = super().restore_from_storage(**kwargs)
-        obj.set_netboot_params(
-            gc_host, gc_orch_api, gc_status_api, kernel, initrd
-        )
+        obj.set_netboot_params(gc_host, gc_boot_api, kernel, initrd)
         return obj
 
     def set_netboot_params(
         self,
         gc_host: str,
-        gc_orch_api: str,
-        gc_status_api: str,
+        gc_boot_api: str,
         kernel: str | None,
         initrd: str | None,
     ) -> None:
         self.gc_host = gc_host
-        self.gc_orch_api = gc_orch_api
-        self.gc_status_api = gc_status_api
+        self.gc_boot_api = gc_boot_api
 
         # Use tftp by default
         if kernel is None:

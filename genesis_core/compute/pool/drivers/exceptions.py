@@ -50,3 +50,15 @@ class VolumeNotAttachedError(exceptions.GCException):
     __template__ = "The volume {volume} is not attached to machine {machine}."
     volume: sys_uuid.UUID
     machine: sys_uuid.UUID
+
+
+class PortAlreadyAttachedError(exceptions.GCException):
+    __template__ = "The port {port} is already attached to machine {machine}."
+    port: sys_uuid.UUID
+    machine: sys_uuid.UUID
+
+
+class PortNotAttachedError(exceptions.GCException):
+    __template__ = "The port {port} is not attached to machine {machine}."
+    port: sys_uuid.UUID
+    machine: sys_uuid.UUID

@@ -211,7 +211,10 @@ class PoolMachine(
 
     @classmethod
     def from_machine_and_port(
-        cls, machine: Machine, port: models.Port
+        cls,
+        machine: Machine,
+        port: models.Port,
+        agent_uuid: str | None = None,
     ) -> "PoolMachine":
         return cls(
             uuid=machine.uuid,
@@ -221,18 +224,15 @@ class PoolMachine(
             ram=machine.ram,
             image=machine.image,
             machine_type=machine.machine_type,
-            # Always boot from network
-            # TODO(akremenetsky): Some machines in the future
-            # need to boot from hd0
-            boot=nc.BootAlternative.network.value,
+            boot=machine.boot,
             node=machine.node.uuid,
             pool=machine.pool.uuid,
+            agent_uuid=agent_uuid,
             port_info={
-                "uuid": str(port.uuid),
-                "ipv4": str(port.ipv4),
-                "mask": str(port.mask),
-                "mac": str(port.mac),
-                "subnet": str(port.subnet),
+                "ipv4": str(port.ipv4) if port.ipv4 else None,
+                "mask": str(port.mask) if port.mask else None,
+                "mac": port.mac,
+                "source": port.source,
             },
         )
 

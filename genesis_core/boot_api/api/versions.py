@@ -1,8 +1,6 @@
-#!/usr/bin/env bash
-
-# Copyright 2025 Genesis Corporation
+#    Copyright 2025 Genesis Corporation.
 #
-# All Rights Reserved.
+#    All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -16,20 +14,4 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-set -eu
-set -x
-set -o pipefail
-
-# Perform the bootstrap of GC
-gc-bootstrap
-
-
-# Configure NAT
-echo "net.ipv4.ip_forward=1" | sudo tee -a /etc/sysctl.conf
-sudo sysctl -p
-
-# Configure iptables
-sudo iptables -t nat -A POSTROUTING -o enp1s0 -j MASQUERADE
-
-# Save iptables rules
-sudo sh -c "iptables-save > /etc/iptables/rules.v4"
+API_VERSION_v1 = "v1"
