@@ -12,7 +12,7 @@ startup_entities:
         driver: flat_bridge
         dhcp_cfg: /etc/dhcp/dhcpd.conf
       subnets:
-        - name: flat-subnet
+        - name: genesis-core-net
           uuid: "c910a7e1-61ae-4d56-bdd6-a59faa3cbda3"
           cidr: "10.20.0.0/22"
           ip_range: "10.20.0.20-10.20.0.200"
@@ -21,4 +21,13 @@ startup_entities:
           routers:
             - to: "0.0.0.0/0"
               via: "10.20.0.1"
-          next_server: "10.20.0.2"
+          next_server: null
+        - name: genesis-core-boot-net
+          uuid: "86b2d256-079a-460e-a78f-bc9a7b4b2996"
+          cidr: "10.30.0.0/22"
+          ip_discovery_range: "10.30.0.10-10.30.0.254"
+          dns_servers: ["10.20.0.2"]
+          routers:
+            - to: "0.0.0.0/0"
+              via: "10.30.0.2"
+          next_server: "10.30.0.2"

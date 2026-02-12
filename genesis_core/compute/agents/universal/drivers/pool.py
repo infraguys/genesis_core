@@ -73,6 +73,7 @@ class MetaPool(meta.MetaCoordinatorDataPlaneModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.dp_machine_map = {}
+        self.dp_port_map = {}
         self.dp_volume_map = {}
         self.dp_storage_pool_map = {}
 
@@ -114,7 +115,8 @@ class MetaPool(meta.MetaCoordinatorDataPlaneModel):
         pool_info, storage_pools, machines, volumes = (
             driver.list_pool_resources()
         )
-        self.dp_machine_map = {m.uuid: m for m in machines}
+        self.dp_machine_map = {m.uuid: m for m, _ in machines}
+        self.dp_port_map = {m.uuid: ports for m, ports in machines}
         self.dp_volume_map = {v.uuid: v for v in volumes}
         self.dp_storage_pool_map = {p.uuid: p for p in storage_pools}
 
@@ -478,6 +480,28 @@ class MetaMachine(meta.MetaCoordinatorDataPlaneModel):
     )
     port_info = properties.property(types.Dict(), default=dict)
 
+    def _port(self) -> models.Port:
+        ipv4 = (
+            netaddr.IPAddress(self.port_info["ipv4"])
+            if self.port_info.get("ipv4")
+            else None
+        )
+        mask = (
+            netaddr.IPAddress(self.port_info["mask"])
+            if self.port_info.get("mask")
+            else None
+        )
+
+        return models.Port(
+            subnet=sys_uuid.uuid4(),
+            ipv4=ipv4,
+            mask=mask,
+            mac=self.port_info["mac"],
+            status=nc.PortStatus.ACTIVE,
+            project_id=self.project_id,
+            source=self.port_info.get("source"),
+        )
+
     def _create_machine(
         self,
         driver: driver_base.AbstractPoolDriver,
@@ -485,7 +509,7 @@ class MetaMachine(meta.MetaCoordinatorDataPlaneModel):
         volumes: tp.Collection[models.MachineVolume],
         ports: tp.Collection[models.Port],
     ) -> None:
-        dp_machine = driver.create_machine(dp_machine, volumes, ports)
+        dp_machine, _ = driver.create_machine(dp_machine, volumes, ports)
         self.status = dp_machine.status
         LOG.info("The machine %s created", self.uuid)
 
@@ -497,10 +521,25 @@ class MetaMachine(meta.MetaCoordinatorDataPlaneModel):
         driver.delete_machine(dp_machine)
         LOG.info("The machine %s deleted", self.uuid)
 
-    def _from_dp_machine(self, dp_machine: models.Machine) -> None:
+    def _from_dp_machine(
+        self, dp_machine: models.Machine, ports: tp.Collection[models.Port]
+    ) -> None:
         self.cores = dp_machine.cores
         self.ram = dp_machine.ram
         self.status = dp_machine.status
+        self.boot = dp_machine.boot
+
+        for port in ports:
+            # Only MAC and source are available in the data plane
+            self.port_info = {
+                "ipv4": self.port_info.get("ipv4"),
+                "mask": self.port_info.get("mask"),
+                "mac": port.mac,
+                "source": port.source,
+            }
+
+            # TODO(akremenetsky): Support multiple interfaces
+            break
 
         # Don't try to restore image from legacy machine since it is not
         # available in the data plane. So to avoid recreation of such
@@ -546,8 +585,6 @@ class MetaMachine(meta.MetaCoordinatorDataPlaneModel):
             "port_info",
             "image",
             "name",
-            # Temporary get boot field from meta
-            "boot",
         }
 
     def dump_to_dp(
@@ -608,17 +645,7 @@ class MetaMachine(meta.MetaCoordinatorDataPlaneModel):
 
         # TODO(akremenetsky): This simplest implementation is fine while
         # we have only single flat network.
-        ports = (
-            models.Port(
-                uuid=sys_uuid.UUID(self.port_info["uuid"]),
-                subnet=sys_uuid.UUID(self.port_info["subnet"]),
-                ipv4=netaddr.IPAddress(self.port_info["ipv4"]),
-                mask=netaddr.IPAddress(self.port_info["mask"]),
-                mac=self.port_info["mac"],
-                status=nc.PortStatus.ACTIVE,
-                project_id=self.project_id,
-            ),
-        )
+        ports = (self._port(),)
 
         self._create_machine(driver, dp_machine, pool_volumes, ports)
         self._allocate_resources(pool, self.cores, self.ram)
@@ -637,7 +664,8 @@ class MetaMachine(meta.MetaCoordinatorDataPlaneModel):
             raise ua_driver_exc.ResourceNotFound(resource=self)
 
         dp_machine = pool.dp_machine_map[self.uuid]
-        self._from_dp_machine(dp_machine)
+        dp_ports = pool.dp_port_map[self.uuid]
+        self._from_dp_machine(dp_machine, dp_ports)
 
     def delete_from_dp(
         self, pool: MetaPool, volumes: tp.Collection[MetaVolume]
@@ -719,17 +747,34 @@ class MetaMachine(meta.MetaCoordinatorDataPlaneModel):
         # Image
         if dp_machine.image and self.image != dp_machine.image:
             unknown_action = False
-            # Just recreate, Seed OS flash the new image
+
+            # Recreate the machine, Seed OS flashes the new image
             dp_machine.image = self.image
-            driver.recreate_machine(dp_machine)
+            dp_machine.boot = self.boot
+
+            # The node is going to be updated. The update process requires
+            # to switch the node into the boot network.
+            driver.recreate_machine(dp_machine, ports=(self._port(),))
             LOG.info("The machine %s image updated.", self.uuid)
 
+        # Boot (Finished update process)
+        # Switching boot mode means the node finished the update process.
+        # Need to switch back the node into the main network.
+        if dp_machine.boot != self.boot:
+            unknown_action = False
+
+            dp_machine.boot = self.boot
+            # The node has been updated.
+            # Switch back the node into the main network.
+            driver.recreate_machine(dp_machine, ports=(self._port(),))
+            LOG.info("The machine %s boot mode updated.", self.uuid)
+
         if unknown_action:
-            LOG.error("Unknown machine update action")
+            LOG.error("Unknown update action for machine %s", self.uuid)
 
         # Get the updated machine state from the driver
-        updated_machine = driver.get_machine(self.uuid)
-        self._from_dp_machine(updated_machine)
+        updated_machine, ports = driver.get_machine(self.uuid)
+        self._from_dp_machine(updated_machine, ports)
 
 
 class PoolAgentDriver(meta.MetaCoordinatorAgentDriver):
