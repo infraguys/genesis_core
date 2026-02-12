@@ -26,15 +26,15 @@ from genesis_core.compute.dm import models
 from genesis_core.common import constants as c
 from genesis_core.tests.functional import utils as test_utils
 from genesis_core.tests.functional import conftest
-from genesis_core.orch_api.api import app as orch_app
-from genesis_core.cmd import orch_api as orch_api_cmd
+from genesis_core.boot_api.api import app as orch_app
+from genesis_core.cmd import boot_api as boot_api_cmd
 
 CONF = cfg.CONF
 
 
-class TestNodeOrchApi:
+class TestComputeBootApi:
     @pytest.fixture(scope="class")
-    def orch_api_service(self):
+    def boot_api_service(self):
         class ApiRestService(test_utils.RestServiceTestCase):
             __FIRST_MIGRATION__ = conftest.FIRST_MIGRATION
             __APP__ = orch_app.build_wsgi_application()
@@ -47,20 +47,20 @@ class TestNodeOrchApi:
         rest_service.teardown_class()
 
     @pytest.fixture()
-    def orch_api(self, orch_api_service: test_utils.RestServiceTestCase):
-        orch_api_service.setup_method()
+    def boot_api(self, boot_api_service: test_utils.RestServiceTestCase):
+        boot_api_service.setup_method()
 
-        yield orch_api_service
+        yield boot_api_service
 
-        orch_api_service.teardown_method()
+        boot_api_service.teardown_method()
 
     def test_netboots_default_net(
-        self, orch_api: test_utils.RestServiceTestCase
+        self, boot_api: test_utils.RestServiceTestCase
     ):
-        CONF[orch_api_cmd.DOMAIN].gc_host = "10.20.0.2"
+        CONF[boot_api_cmd.DOMAIN].gc_host = "10.20.0.2"
 
         uuid = sys_uuid.uuid4()
-        url = urljoin(orch_api.base_url, f"boots/{str(uuid)}")
+        url = urljoin(boot_api.base_url, f"boots/{str(uuid)}")
 
         response = requests.get(url)
 
@@ -68,16 +68,15 @@ class TestNodeOrchApi:
         assert response.text.startswith("#!ipxe")
         assert "initrd" in response.text
         assert "vmlinuz" in response.text
-        assert "gc_orch_api" in response.text
-        assert "gc_status_api" in response.text
+        assert "gc_boot_api" in response.text
         assert "tftp://10.20.0.2" in response.text
 
     def test_netboots_hd_boot(
         self,
         pool_factory: tp.Callable,
-        orch_api: test_utils.RestServiceTestCase,
+        boot_api: test_utils.RestServiceTestCase,
     ):
-        CONF[orch_api_cmd.DOMAIN].gc_host = "10.20.0.2"
+        CONF[boot_api_cmd.DOMAIN].gc_host = "10.20.0.2"
 
         pool_view = pool_factory()
         pool_view["status"] = "ACTIVE"
@@ -97,7 +96,7 @@ class TestNodeOrchApi:
         )
         machine.insert()
 
-        url = urljoin(orch_api.base_url, f"boots/{machine.uuid}")
+        url = urljoin(boot_api.base_url, f"boots/{machine.uuid}")
 
         response = requests.get(url)
 
@@ -108,13 +107,13 @@ class TestNodeOrchApi:
         assert "0x80" in response.text
 
     def test_netboots_default_net_custom_kernel_initrd(
-        self, orch_api: test_utils.RestServiceTestCase
+        self, boot_api: test_utils.RestServiceTestCase
     ):
-        CONF[orch_api_cmd.DOMAIN].kernel = "https://kernel.org/vmlinuz"
-        CONF[orch_api_cmd.DOMAIN].initrd = "https://kernel.org/initrd.img"
+        CONF[boot_api_cmd.DOMAIN].kernel = "https://kernel.org/vmlinuz"
+        CONF[boot_api_cmd.DOMAIN].initrd = "https://kernel.org/initrd.img"
 
         uuid = sys_uuid.uuid4()
-        url = urljoin(orch_api.base_url, f"boots/{str(uuid)}")
+        url = urljoin(boot_api.base_url, f"boots/{str(uuid)}")
 
         response = requests.get(url)
 
@@ -122,8 +121,7 @@ class TestNodeOrchApi:
         assert response.text.startswith("#!ipxe")
         assert "initrd" in response.text
         assert "vmlinuz" in response.text
-        assert "gc_orch_api" in response.text
-        assert "gc_status_api" in response.text
+        assert "gc_boot_api" in response.text
         assert "tftp://" not in response.text
         assert "https://kernel.org/vmlinuz" in response.text
         assert "https://kernel.org/initrd.img" in response.text

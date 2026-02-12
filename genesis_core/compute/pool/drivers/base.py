@@ -13,6 +13,7 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+from __future__ import annotations
 
 import abc
 import uuid as sys_uuid
@@ -32,13 +33,15 @@ class AbstractPoolDriver(abc.ABC):
         self,
     ) -> tuple[
         models.MachinePool,
-        tp.Collection[models.Machine],
+        tp.Collection[tuple[models.Machine, tuple[models.Port, ...]]],
         tp.Collection[models.MachineVolume],
     ]:
         """List pool resources."""
 
     @abc.abstractmethod
-    def list_machines(self) -> tp.List[models.Machine]:
+    def list_machines(
+        self,
+    ) -> list[tuple[models.Machine, tuple[models.Port, ...]]]:
         """Return machine list from data plane."""
 
     @abc.abstractmethod
@@ -47,7 +50,7 @@ class AbstractPoolDriver(abc.ABC):
         machine: models.Machine,
         volumes: tp.Iterable[models.MachineVolume],
         ports: tp.Iterable[models.Port],
-    ) -> models.Machine:
+    ) -> tuple[models.Machine, tuple[models.Port, ...]]:
         """Create a new machine."""
 
     @abc.abstractmethod
@@ -57,7 +60,9 @@ class AbstractPoolDriver(abc.ABC):
         """Delete the machine from data plane."""
 
     @abc.abstractmethod
-    def get_machine(self, machine: sys_uuid.UUID) -> models.Machine:
+    def get_machine(
+        self, machine: sys_uuid.UUID
+    ) -> tuple[models.Machine, tuple[models.Port, ...]]:
         """Get machine from data plane."""
 
     @abc.abstractmethod
@@ -83,6 +88,14 @@ class AbstractPoolDriver(abc.ABC):
         """Detach the volume."""
 
     @abc.abstractmethod
+    def attach_port(self, machine: models.Machine, port: models.Port) -> None:
+        """Attach the port."""
+
+    @abc.abstractmethod
+    def detach_port(self, machine: models.Machine, port: models.Port) -> None:
+        """Detach the port."""
+
+    @abc.abstractmethod
     def list_volumes(
         self, machine: models.Machine | None = None
     ) -> tp.Iterable[models.MachineVolume]:
@@ -105,12 +118,26 @@ class AbstractPoolDriver(abc.ABC):
         """Reset the machine."""
 
     @abc.abstractmethod
-    def recreate_machine(self, machine: models.Machine) -> None:
+    def recreate_machine(
+        self,
+        machine: models.Machine,
+        ports: tp.Collection[models.Port] | None = None,
+    ) -> None:
         """Recreate the machine."""
 
     @abc.abstractmethod
     def rename_machine(self, machine: models.Machine, name: str) -> None:
         """Rename the machine."""
+
+    @abc.abstractmethod
+    def shutdown_machine(
+        self, machine: models.Machine, force: bool = False
+    ) -> None:
+        """Shutdown the machine."""
+
+    @abc.abstractmethod
+    def start_machine(self, machine: models.Machine) -> None:
+        """Start the machine."""
 
     @abc.abstractmethod
     def list_storage_pools(self) -> tp.Collection[models.AbstractStoragePool]:
@@ -132,13 +159,15 @@ class DummyPoolDriver(AbstractPoolDriver):
         self,
     ) -> tuple[
         models.MachinePool,
-        tp.Collection[models.Machine],
+        tp.Collection[tuple[models.Machine, tuple[models.Port, ...]]],
         tp.Collection[models.MachineVolume],
     ]:
         """List pool resources."""
         return models.MachinePool(), [], []
 
-    def list_machines(self) -> tp.List[models.Machine]:
+    def list_machines(
+        self,
+    ) -> tp.Collection[tuple[models.Machine, tuple[models.Port, ...]]]:
         """Create a machine."""
         return []
 
@@ -147,26 +176,31 @@ class DummyPoolDriver(AbstractPoolDriver):
         machine: models.Machine,
         volumes: tp.Iterable[models.MachineVolume],
         ports: tp.Iterable[models.Port],
-    ) -> models.Machine:
+    ) -> tuple[models.Machine, tuple[models.Port, ...]]:
         """Create a machine."""
-        return machine
+        return machine, ports
 
     def delete_machine(
         self, machine: models.Machine, delete_volumes: bool = True
     ) -> None:
         pass
 
-    def get_machine(self, machine: sys_uuid.UUID) -> models.Machine:
+    def get_machine(
+        self, machine: sys_uuid.UUID
+    ) -> tuple[models.Machine, tuple[models.Port, ...]]:
         """Get machine from data plane."""
         # Dummy implementation - return a dummy machine
-        return models.Machine(
-            uuid=machine,
-            name="dummy-machine",
-            cores=1,
-            ram=1024,
-            status="running",
-            pool_id=sys_uuid.uuid4(),
-            project_id=sys_uuid.uuid4(),
+        return (
+            models.Machine(
+                uuid=machine,
+                name="dummy-machine",
+                cores=1,
+                ram=1024,
+                status="running",
+                pool_id=sys_uuid.uuid4(),
+                project_id=sys_uuid.uuid4(),
+            ),
+            tuple(),
         )
 
     def create_volume(
@@ -197,6 +231,12 @@ class DummyPoolDriver(AbstractPoolDriver):
     def detach_volume(self, volume: models.MachineVolume) -> None:
         """Detach the volume."""
 
+    def attach_port(self, machine: models.Machine, port: models.Port) -> None:
+        """Attach the port."""
+
+    def detach_port(self, machine: models.Machine, port: models.Port) -> None:
+        """Detach the port."""
+
     def set_machine_cores(self, machine: models.Machine, cores: int) -> None:
         """Set machine cores."""
 
@@ -206,11 +246,23 @@ class DummyPoolDriver(AbstractPoolDriver):
     def reset_machine(self, machine: models.Machine) -> None:
         """Reset the machine."""
 
-    def recreate_machine(self, machine: models.Machine) -> None:
+    def recreate_machine(
+        self,
+        machine: models.Machine,
+        ports: tp.Collection[models.Port] | None = None,
+    ) -> None:
         """Recreate the machine."""
 
     def rename_machine(self, machine: models.Machine, name: str) -> None:
         """Rename the machine."""
+
+    def shutdown_machine(
+        self, machine: models.Machine, force: bool = False
+    ) -> None:
+        """Shutdown the machine."""
+
+    def start_machine(self, machine: models.Machine) -> None:
+        """Start the machine."""
 
     def list_storage_pools(self) -> tp.Collection[models.AbstractStoragePool]:
         """List storage pools."""

@@ -17,7 +17,26 @@
 from restalchemy.api import routes
 
 from gcl_sdk.agents.universal.orch_api import routes as orch_routes
-from genesis_core.orch_api.api import controllers
+from gcl_sdk.agents.universal.status_api import routes as status_routes
+from genesis_core.boot_api.api import controllers
+
+
+class NetbootRoute(routes.Route):
+    """Handler for /v1/boots/ endpoint"""
+
+    __controller__ = controllers.NetBootController
+    __allow_methods__ = [routes.GET]
+
+
+class UniversalAgentsRoute(orch_routes.UniversalAgentsRoute):
+    """Handler for /v1/agents/ endpoint"""
+
+    __allow_methods__ = [
+        routes.GET,
+        routes.CREATE,
+        routes.UPDATE,
+        routes.DELETE,
+    ]
 
 
 class ApiEndpointRoute(routes.Route):
@@ -26,4 +45,7 @@ class ApiEndpointRoute(routes.Route):
     __controller__ = controllers.ApiEndpointController
     __allow_methods__ = [routes.FILTER]
 
-    agents = routes.route(orch_routes.UniversalAgentsRoute)
+    nodes = routes.route(status_routes.NodesRoute)
+    boots = routes.route(NetbootRoute)
+    agents = routes.route(UniversalAgentsRoute)
+    kind = routes.route(status_routes.KindRoute)

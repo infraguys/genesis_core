@@ -114,6 +114,21 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
         )
         return ports, sorted(volumes, key=lambda v: v.index)
 
+    def _get_or_fetch_machine_ctx(
+        self,
+        machine: pool_models.Machine,
+    ) -> tuple[models.Port | None, models.MachineVolume | None]:
+        """Get or fetch the machine context."""
+        # Prepare dependencies. Firstly try to get them from the iteration
+        # context. If they are not found, fetch them from the database.
+        machine_ctx = self._get_machine_ctx(machine)
+        if machine_ctx is None:
+            ports, volumes = self._fetch_machine_deps(machine)
+            self._set_machine_ctx(machine, ports, volumes)
+            machine_ctx = self._get_machine_ctx(machine)
+
+        return machine_ctx
+
     def _reschedule_machine(
         self,
         machine: pool_models.Machine,
@@ -210,24 +225,10 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
         ) = None,
     ) -> tp.Collection[pool_models.PoolMachine | pool_models.GuestMachine]:
         """Actualize the machine derivatives."""
-        # Prepare dependencies. Firstly try to get them from the iteration
-        # context. If they are not found, fetch them from the database.
-        machine_ctx = self._get_machine_ctx(machine)
-        if machine_ctx is None:
-            ports, volumes = self._fetch_machine_deps(machine)
-            self._set_machine_ctx(machine, ports, volumes)
-            machine_ctx = self._get_machine_ctx(machine)
+        port, volume = self._get_or_fetch_machine_ctx(machine)
 
-        port, volume = machine_ctx
-
-        # Find the agent UUID for the pool
-        agent_uuid = self._agent_by_pool(machine.pool.uuid)
-
-        pool_machine = pool_models.PoolMachine.from_machine_and_port(
-            machine, port
-        )
-        pool_machine.agent_uuid = agent_uuid
-        pool_machine.image = volume.image
+        if port is None or volume is None:
+            raise ValueError(f"Machine {machine.uuid} has no port or volume")
 
         # Save guest agent to speed up scheduling process
         guest_agent = ua_models.UniversalAgent.objects.get_one_or_none(
@@ -241,16 +242,39 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
             )
             guest_agent.save()
 
-        # Switch to `network` for new machines and for machines where image
-        # for the root disk has been changed.
+        # The new machine and the machine with changed image should be booted
+        # in the private network with boot=`network`.
         boot = nc.BootAlternative.hd0.value
         if machine_guest_pair is None:
+            # It's a new machine, so it should be run in the
+            # `network` boot mode.
             boot = nc.BootAlternative.network.value
+            # Any port for the boot network is fine. The port will be replaced
+            # after the machine is flashed and switched to the main network.
+            port = models.Port.from_boot_network()
         else:
             _, guest_actual = machine_guest_pair
+            # The image is changed, so the machine should be booted in the
+            # `network` boot mode and flashed with a new image.
             if guest_actual and guest_actual.image != volume.image:
                 boot = nc.BootAlternative.network.value
+                # Any port for the boot network is fine. The port will be replaced
+                # after the machine is flashed and switched to the main network.
+                port = models.Port.from_boot_network()
 
+        # Set correct boot value for the machine (root model)
+        machine.boot = boot
+        machine.image = volume.image
+
+        # Find the agent UUID for the pool
+        agent_uuid = self._agent_by_pool(machine.pool.uuid)
+
+        # Pool machine
+        pool_machine = pool_models.PoolMachine.from_machine_and_port(
+            machine, port, agent_uuid=agent_uuid
+        )
+
+        # Guest machine
         guest = pool_models.GuestMachine(
             uuid=machine.uuid,
             image=volume.image,
@@ -258,10 +282,6 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
             hostname=machine.node.hostname or machine.node.name,
             boot=boot,
         )
-
-        # Also set correct boot value for the machine
-        machine.boot = boot
-        machine.image = volume.image
 
         return (pool_machine, guest)
 
@@ -290,18 +310,33 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
         if not target_pool_machine or not target_guest_machine:
             raise ValueError("Target pool machine or guest machine is missing")
 
-        # Actualize boot mode
+        # The machine has been flashed. Switch to the HD boot
+        # and the main network
         if (
             guest_machine is not None
             and guest_machine.boot == nc.BootAlternative.network
             and guest_machine.status == nc.MachineStatus.FLASHED
         ):
+            # Get the port from the main network for the machine
+            port, _ = self._get_or_fetch_machine_ctx(machine)
+            if port is None:
+                raise ValueError(f"Machine {machine.uuid} has no port")
+
             # FIXME(akremenetsky): Detect disk number
-            machine.boot = nc.BootAlternative.hd0.value
-            target_guest_machine.boot = nc.BootAlternative.hd0.value
-            # Always boot from network from hypervisor point of view
-            # TODO(akremenetsky): One day we need to support boot from HD
-            target_pool_machine.boot = nc.BootAlternative.network.value
+            boot = nc.BootAlternative.hd0.value
+
+            # Find the agent UUID for the pool
+            agent_uuid = self._agent_by_pool(machine.pool.uuid)
+            machine.boot = boot
+            target_guest_machine.boot = boot
+
+            # Rebuid the pool machine with correct boot mode and the port
+            # from the main network
+            target_pool_machine = (
+                pool_models.PoolMachine.from_machine_and_port(
+                    machine, port, agent_uuid=agent_uuid
+                )
+            )
 
         # Actualize status
         self._actualize_machine_status(
