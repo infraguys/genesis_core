@@ -327,11 +327,7 @@ class XMLLibvirtInstance(XMLLibvirtMixin):
         cls, domain: minidom.Document, boot: nc.BootType
     ) -> None:
         os_element = domain.getElementsByTagName("os")[0]
-
-        # TODO(akremenetsky): Fix this durty hack
-        # cls.document_set_tag(domain, "boot", parent=os_element, dev=boot)
-        cls.add_element(domain, "boot", parent=os_element, dev="network")
-        cls.add_element(domain, "boot", parent=os_element, dev="hd")
+        cls.document_set_tag(domain, "boot", parent=os_element, dev=boot)
 
     @classmethod
     def disk_device_xml(
@@ -378,6 +374,40 @@ class XMLLibvirtInstance(XMLLibvirtMixin):
         )
 
     @classmethod
+    def interface_xml(
+        cls,
+        iface_type: NetworkType = "network",
+        source: str | None = None,
+        model: str = "virtio",
+        mtu: int = 1450,
+        mac: str | None = None,
+        rom: str | None = None,
+    ) -> str:
+        interface = ET.Element("interface", type=iface_type)
+
+        ET.SubElement(interface, "model", type=model)
+        ET.SubElement(interface, "mtu", size=str(mtu))
+
+        if rom is not None:
+            ET.SubElement(interface, "rom", bar="on", file=rom)
+
+        mac_address = mac or models.Port.generate_mac()
+        ET.SubElement(interface, "mac", address=mac_address)
+
+        if iface_type == "bridge":
+            if source is None:
+                raise ValueError("Source is required for bridge interface")
+            ET.SubElement(interface, "source", bridge=source)
+        elif iface_type == "network":
+            if source is None:
+                raise ValueError("Source is required for network interface")
+            ET.SubElement(interface, "source", network=source)
+        else:
+            raise ValueError(f"Unsupported interface type: {iface_type}")
+
+        return ET.tostring(interface, encoding="unicode")
+
+    @classmethod
     def domain_add_interface(
         cls,
         domain: minidom.Document,
@@ -388,31 +418,18 @@ class XMLLibvirtInstance(XMLLibvirtMixin):
         mac: str | None = None,
         rom: str | None = None,
     ) -> None:
-        base_xml = "<interface type='{iface_type}'></interface>".format(
-            iface_type=iface_type
+        interface_xml = cls.interface_xml(
+            iface_type=iface_type,
+            source=source,
+            model=model,
+            mtu=mtu,
+            mac=mac,
+            rom=rom,
         )
-        document = minidom.parseString(base_xml)
-        cls.document_set_tag(document, "model", type=model)
-        cls.document_set_tag(document, "mtu", size=str(mtu))
-        if rom is not None:
-            cls.document_set_tag(document, "rom", bar="on", file=rom)
-
-        mac_address = mac or models.Port.generate_mac()
-        cls.document_set_tag(document, "mac", address=mac_address)
-
-        if iface_type == "bridge":
-            if source is None:
-                raise ValueError("Source is required for bridge interface")
-            cls.document_set_tag(document, "source", bridge=source)
-        elif iface_type == "network":
-            if source is None:
-                raise ValueError("Source is required for network interface")
-            cls.document_set_tag(document, "source", network=source)
-        else:
-            raise ValueError(f"Unsupported interface type: {iface_type}")
-
         device_element = domain.getElementsByTagName("devices")[0]
-        device_element.appendChild(document.firstChild)
+        device_element.appendChild(
+            minidom.parseString(interface_xml).firstChild
+        )
 
     def set_name(self, name: str) -> None:
         return self.domain_set_name(self._domain, name)
@@ -517,7 +534,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
 
     def _domain2machine(
         self, domain: libvirt.virDomain, element: ET.Element | None = None
-    ) -> models.Machine:
+    ) -> tuple[models.Machine, tuple[models.Port, ...]]:
         element = element or ET.fromstring(domain.XMLDesc())
 
         cores_xml = element.find(f".//{{{GENESIS_NS}}}vcpu")
@@ -527,8 +544,42 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         image_el = element.find(f".//{{{GENESIS_NS}}}image")
         image = image_el.get("uri") if image_el is not None else None
 
-        return models.Machine(
-            uuid=sys_uuid.UUID(domain.UUIDString()),
+        # Determine the boot device. For the backward compatibility
+        # the disk boot device is considered if such option is present
+        # in the XML and not matter which order it has.
+        boot = nc.BootAlternative.network.value
+        for boot_el in element.findall(".//os/boot"):
+            boot = boot_el.get("dev")
+            if nc.BootAlternative.hd0.value.startswith(boot):
+                boot = nc.BootAlternative.hd0.value
+                break
+
+        machine_uuid = sys_uuid.UUID(domain.UUIDString())
+
+        # Extract network interfaces as ports
+        ports = []
+        for iface in element.findall(".//devices/interface"):
+            mac_el = iface.find("mac")
+            source_el = iface.find("source")
+            mac = mac_el.get("address")
+            source = source_el.get(self._spec.network_type)
+
+            if not mac or not source:
+                raise ValueError(f"Interface {iface} has no mac or source")
+
+            ports.append(
+                models.Port(
+                    uuid=sys_uuid.UUID("00000000-0000-0000-0000-000000000000"),
+                    machine=machine_uuid,
+                    mac=mac,
+                    project_id=c.SERVICE_PROJECT_ID,
+                    source=source,
+                    status=nc.PortStatus.ACTIVE.value,
+                )
+            )
+
+        machine = models.Machine(
+            uuid=machine_uuid,
             name=self._domain2machine_name(domain.name()),
             machine_type=nc.NodeType.VM.value,
             cores=cores,
@@ -539,7 +590,10 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
             # These fields don't make sense for data plane entities
             pool=self._pool.uuid,
             project_id=c.SERVICE_PROJECT_ID,
+            boot=boot,
         )
+
+        return machine, tuple(ports)
 
     def _vir_volume_name(
         self,
@@ -578,26 +632,28 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
 
     def _list_interfaces(self, machine: models.Machine) -> list[models.Port]:
         """List all interfaces of the machine."""
-        # TODO(akremenetsky): The `Port` model is used to represent
-        # an interface. We need more appropriate model.
-        ports = []
-
         domain = self._client.lookupByUUIDString(str(machine.uuid))
-        domain_xml = minidom.parseString(domain.XMLDesc())
+        element = ET.fromstring(domain.XMLDesc())
 
-        for iface in domain_xml.getElementsByTagName("interface"):
-            mac_tags = iface.getElementsByTagName("mac")
-            if len(mac_tags) != 1 or not mac_tags[0].getAttribute("address"):
-                LOG.error("Unable to detect MAC address for %s", iface)
-                continue
+        # Extract network interfaces as ports
+        ports = []
+        for iface in element.findall(".//devices/interface"):
+            mac_el = iface.find("mac")
+            source_el = iface.find("source")
+            mac = mac_el.get("address")
+            source = source_el.get(self._spec.network_type)
 
-            mac = mac_tags[0].getAttribute("address")
+            if not mac or not source:
+                raise ValueError(f"Interface {iface} has no mac or source")
+
             ports.append(
                 models.Port(
                     uuid=sys_uuid.UUID("00000000-0000-0000-0000-000000000000"),
                     machine=machine.uuid,
                     mac=mac,
                     project_id=c.SERVICE_PROJECT_ID,
+                    source=source,
+                    status=nc.PortStatus.ACTIVE.value,
                 )
             )
 
@@ -668,7 +724,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
     def _list_machines(
         self,
         domains: tp.Collection[tuple[libvirt.virDomain, ET.Element | None]],
-    ) -> tp.List[models.Machine]:
+    ) -> list[tuple[models.Machine, tuple[models.Port, ...]]]:
         """Return machine list from data plane."""
         # If the filter prefix is not set, return all domains
         if not self._spec.machine_prefix:
@@ -767,7 +823,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         self,
     ) -> tuple[
         models.MachinePool,
-        tp.Collection[models.Machine],
+        tp.Collection[tuple[models.Machine, tuple[models.Port, ...]]],
         tp.Collection[models.MachineVolume],
     ]:
         pool = self.get_pool_info()
@@ -1053,7 +1109,92 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         # Ordinary resize via qemu-img
         vir_volume.resize(new_size_bytes)
 
-    def list_machines(self) -> tp.List[models.Machine]:
+    def attach_port(self, machine: models.Machine, port: models.Port) -> None:
+        """Attach the port to the machine."""
+        # Lookup domain by machine UUID
+        try:
+            domain = self._client.lookupByUUIDString(str(machine.uuid))
+        except libvirt.libvirtError as e:
+            if e.get_error_code() == libvirt.VIR_ERR_NO_DOMAIN:
+                raise pool_exc.MachineNotFoundError(machine=machine.uuid)
+            raise
+
+        # Build interface XML
+        interface_xml = XMLLibvirtInstance.interface_xml(
+            iface_type=self._spec.network_type,
+            mac=port.mac,
+            rom=self._spec.iface_rom_file,
+            mtu=self._spec.iface_mtu,
+            source=port.source or self._spec.iface_source,
+        )
+
+        # Attach the interface both to live domain and persistent config
+        flags = (
+            libvirt.VIR_DOMAIN_AFFECT_LIVE | libvirt.VIR_DOMAIN_AFFECT_CONFIG
+        )
+        try:
+            domain.attachDeviceFlags(interface_xml, flags)
+        except libvirt.libvirtError as e:
+            if e.get_error_code() == libvirt.VIR_ERR_OPERATION_INVALID:
+                raise pool_exc.PortAlreadyAttachedError(
+                    port=port.uuid,
+                    machine=machine.uuid,
+                )
+            raise
+
+    def detach_port(self, machine: models.Machine, port: models.Port) -> None:
+        """Detach the port from the machine."""
+        # Lookup domain by machine UUID
+        try:
+            domain = self._client.lookupByUUIDString(str(machine.uuid))
+        except libvirt.libvirtError as e:
+            if e.get_error_code() == libvirt.VIR_ERR_NO_DOMAIN:
+                raise pool_exc.MachineNotFoundError(machine=machine.uuid)
+            raise
+
+        domain_xml = domain.XMLDesc()
+        domain_element = ET.fromstring(domain_xml)
+
+        # Find the interface with matching MAC address
+        devices = domain_element.find("devices")
+        interfaces = devices.findall("interface")
+
+        target_interface = None
+        for interface in interfaces:
+            mac_element = interface.find("mac")
+            if (
+                mac_element is not None
+                and mac_element.get("address") == port.mac
+            ):
+                target_interface = interface
+                break
+
+        if target_interface is None:
+            raise pool_exc.PortNotAttachedError(
+                port=port.uuid,
+                machine=machine.uuid,
+            )
+
+        # Detach the interface both from live domain and persistent config
+        flags = (
+            libvirt.VIR_DOMAIN_AFFECT_LIVE | libvirt.VIR_DOMAIN_AFFECT_CONFIG
+        )
+
+        try:
+            domain.detachDeviceFlags(
+                ET.tostring(target_interface, "unicode"), flags
+            )
+        except libvirt.libvirtError as e:
+            if e.get_error_code() == libvirt.VIR_ERR_OPERATION_INVALID:
+                raise pool_exc.PortNotAttachedError(
+                    port=port.uuid,
+                    machine=machine.uuid,
+                )
+            raise
+
+    def list_machines(
+        self,
+    ) -> list[tuple[models.Machine, tuple[models.Port, ...]]]:
         """Return machine list from data plane."""
         domains = self._client.listAllDomains()
         return self._list_machines(tuple((d, None) for d in domains))
@@ -1064,7 +1205,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         volumes: tp.Iterable[models.MachineVolume],
         ports: tp.Iterable[models.Port],
         legacy_machine: bool = False,
-    ) -> models.Machine:
+    ) -> tuple[models.Machine, tuple[models.Port, ...]]:
         """Create a new LibVirt domain."""
         domain = XMLLibvirtInstance(domain_template)
 
@@ -1084,7 +1225,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
                 # TODO(akremenetsky): This parameter should be taken from
                 # the network
                 iface_type=self._spec.network_type,
-                source=self._spec.network,
+                source=port.source,
             )
 
         # Prepare volume paths
@@ -1124,7 +1265,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
             machine.uuid,
             domain_spec,
         )
-        return machine
+        return machine, tuple(ports)
 
     def delete_machine(
         self, machine: models.Machine, delete_volumes: bool = True
@@ -1151,7 +1292,9 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
 
         LOG.debug("The domain %s has been destroyed", machine.uuid)
 
-    def get_machine(self, machine: sys_uuid.UUID) -> models.Machine:
+    def get_machine(
+        self, machine: sys_uuid.UUID
+    ) -> tuple[models.Machine, tuple[models.Port, ...]]:
         """Get machine from data plane."""
         domain = self._client.lookupByUUIDString(str(machine))
         return self._domain2machine(domain)
@@ -1214,6 +1357,23 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         domain.create()
         LOG.debug("The domain %s was reset", str(machine.uuid))
 
+    def shutdown_machine(
+        self, machine: models.Machine, force: bool = False
+    ) -> None:
+        """Shutdown the machine."""
+        domain = self._client.lookupByUUIDString(str(machine.uuid))
+        if force:
+            domain.destroy()
+        else:
+            domain.shutdown()
+        LOG.debug("The domain %s was shutdown(forced=%s)", machine.uuid, force)
+
+    def start_machine(self, machine: models.Machine) -> None:
+        """Start the machine."""
+        domain = self._client.lookupByUUIDString(str(machine.uuid))
+        domain.create()
+        LOG.debug("The domain %s was started", machine.uuid)
+
     def rename_machine(self, machine: models.Machine, name: str) -> None:
         """Rename the machine."""
         origin_name = machine.name
@@ -1242,9 +1402,15 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
             raise
         LOG.debug("The domain %s was renamed to %s", origin_name, name)
 
-    def recreate_machine(self, machine: models.Machine) -> None:
+    def recreate_machine(
+        self,
+        machine: models.Machine,
+        ports: tp.Collection[models.Port] | None = None,
+    ) -> None:
         """Recreate the machine."""
-        ports = self._list_interfaces(machine)
+        if ports is None:
+            ports = self._list_interfaces(machine)
+
         volumes = self.list_volumes(machine)
 
         # TODO(akremenetsky): It's only for backward compatibility

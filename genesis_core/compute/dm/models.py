@@ -30,6 +30,7 @@ from restalchemy.dm import types_network as types_net
 from restalchemy.dm import filters as dm_filters
 from restalchemy.storage.sql import orm
 from gcl_sdk.infra.dm import models as infra_models
+from gcl_sdk.agents.universal.api import crypto as ua_crypto
 from gcl_sdk.agents.universal.dm import models as ua_models
 
 from genesis_core.common import utils
@@ -367,6 +368,28 @@ class Node(
             volume = Volume.restore_from_simple_view(**view)
             volume.insert(session=session)
 
+        # Generate private key for the node
+        _, key_base64 = ua_crypto.generate_key_base64()
+        private_key = ua_models.NodeEncryptionKey(
+            uuid=self.uuid,
+            private_key=key_base64,
+        )
+        private_key.insert(session=session)
+
+    def delete(self, session=None):
+        # NOTE(akremenetsky): Perhaps it's better to add a `foreign key`
+        # constraint to the `node_encryption_keys` table but not all
+        # nodes present in the `nodes` table. So do cleanup here.
+        keys = ua_models.NodeEncryptionKey.objects.get_all(
+            filters={"uuid": dm_filters.EQ(self.uuid)},
+            session=session,
+        )
+
+        for key in keys:
+            key.delete(session=session)
+
+        super().delete(session=session)
+
 
 class Machine(
     cm.ModelWithFullAsset, orm.SQLStorableMixin, models.SimpleViewMixin
@@ -570,7 +593,7 @@ class Subnet(
         default=lambda: [],
     )
     next_server = properties.property(
-        types.String(max_length=256), default="127.0.0.1"
+        types.AllowNone(types.String(max_length=256)), default=None
     )
 
     def port(
@@ -656,6 +679,10 @@ class Port(
         types.Enum([s.value for s in nc.PortStatus]),
         default=nc.PortStatus.NEW.value,
     )
+    source = properties.property(
+        types.AllowNone(types.String(max_length=128)),
+        default=None,
+    )
 
     @staticmethod
     def generate_mac(virtual_machine: bool = True) -> str:
@@ -665,6 +692,27 @@ class Port(
             return "52:54:00:%02x:%02x:%02x" % octets[2:]
 
         return "a9:%02x:%02x:%02x:%02x:%02x" % octets
+
+    @classmethod
+    def from_boot_network(cls):
+        # NOTE(akremenetsky): There is not SDK at the moment
+        # so only single boot network is supported
+        boot_subnet = Subnet.objects.get_one(
+            filters={
+                "next_server": dm_filters.IsNot(None),
+            }
+        )
+        return cls(
+            # The UUID is not important for port in boot network.
+            # It is just a placeholder.
+            uuid=sys_uuid.UUID("00000000-0000-0000-0000-000000000000"),
+            project_id=cc.SERVICE_PROJECT_ID,
+            name="bootnet_port",
+            subnet=boot_subnet.uuid,
+            source=boot_subnet.name,
+            mac=Port.generate_mac(),
+            status=nc.PortStatus.ACTIVE.value,
+        )
 
 
 class NodeWithoutPorts(Node):

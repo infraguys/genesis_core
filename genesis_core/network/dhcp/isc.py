@@ -150,7 +150,11 @@ def dhcp_config(subnets: tp.Dict[models.Subnet, tp.List[models.Port]]) -> str:
                 hostname=f"P_{str(port.uuid)}",
             )
 
-        netboot = _netboot_template.format(next_server=subnet.next_server)
+        if subnet.next_server and ";" not in subnet.next_server:
+            netboot = _netboot_template.format(next_server=subnet.next_server)
+        else:
+            netboot = ""
+
         dns_servers = ",".join(subnet.dns_servers)
 
         routes = [StaticRoute(**r) for r in subnet.routers]
