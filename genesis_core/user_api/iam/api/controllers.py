@@ -24,8 +24,11 @@ from urllib import parse as urllib_parse
 
 from authlib.integrations import requests_client
 import jinja2
-from gcl_iam import controllers as iam_controllers
+from gcl_iam.api import controllers as iam_controllers
+from gcl_iam.api import field_perms as iam_fp
+from gcl_iam import rules
 from restalchemy.api import actions
+from restalchemy.api import constants as ra_c
 from restalchemy.api import controllers
 from restalchemy.api import resources
 from restalchemy.common import contexts
@@ -127,50 +130,40 @@ class UserController(
         models.User,
         convert_underscore=False,
         process_filters=True,
-        hidden_fields=resources.HiddenFieldMap(
-            get=[
-                "user_source",
-                "salt",
-                "secret_hash",
-                "secret",
-                "otp_secret",
-                "confirmation_code",
-                "confirmation_code_made_at",
-            ],
-            create=[
-                "salt",
-                "secret_hash",
-                "otp_secret",
-                "confirmation_code",
-                "confirmation_code_made_at",
-            ],
-            update=[
-                "user_source",
-                "salt",
-                "secret_hash",
-                "secret",
-                "otp_secret",
-                "confirmation_code",
-                "confirmation_code_made_at",
-            ],
-            filter=[
-                "user_source",
-                "salt",
-                "secret_hash",
-                "secret",
-                "otp_secret",
-                "confirmation_code",
-                "confirmation_code_made_at",
-            ],
-            action_post=[
-                "user_source",
-                "salt",
-                "secret_hash",
-                "secret",
-                "otp_secret",
-                "confirmation_code",
-                "confirmation_code_made_at",
-            ],
+        fields_permissions=iam_fp.FieldsIamPermissions(
+            default=iam_fp.Permissions.RW,
+            fields={
+                "salt": {ra_c.ALL: iam_fp.Permissions.HIDDEN},
+                "user_source": {
+                    ra_c.ALL: iam_fp.Permissions.HIDDEN,
+                    ra_c.CREATE: iam_fp.Permissions.RW,
+                },
+                "secret": {
+                    ra_c.ALL: iam_fp.Permissions.HIDDEN,
+                    ra_c.CREATE: iam_fp.Permissions.RW,
+                },
+                "secret_hash": {ra_c.ALL: iam_fp.Permissions.HIDDEN},
+                "otp_secret": {ra_c.ALL: iam_fp.Permissions.HIDDEN},
+                "confirmation_code": {ra_c.ALL: iam_fp.Permissions.HIDDEN},
+                "confirmation_code_made_at": {
+                    ra_c.ALL: iam_fp.Permissions.HIDDEN
+                },
+                "custom_props": {
+                    ra_c.GET: rules.Rule("iam", "user_custom_props", "read"),
+                    ra_c.FILTER: rules.Rule(
+                        "iam", "user_custom_props", "list"
+                    ),
+                    ra_c.CREATE: rules.Rule(
+                        "iam", "user_custom_props", "create"
+                    ),
+                    ra_c.UPDATE: rules.Rule(
+                        "iam", "user_custom_props", "update"
+                    ),
+                    ra_c.DELETE: rules.Rule(
+                        "iam", "user_custom_props", "delete"
+                    ),
+                },
+            },
         ),
         name_map={"secret": "password", "name": "username"},
     )

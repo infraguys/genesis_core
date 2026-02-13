@@ -159,6 +159,11 @@ class PaasLB(IaasLB):
                 "ext_sources": [
                     e.dump_to_simple_view() for e in vhost.external_sources
                 ],
+                "proxy_proto_from": (
+                    str(vhost.proxy_protocol_from)
+                    if vhost.proxy_protocol_from
+                    else None
+                ),
             }
             rvhost["routes"] = {
                 str(r.uuid): {"cond": r.condition.dump_to_simple_view()}
