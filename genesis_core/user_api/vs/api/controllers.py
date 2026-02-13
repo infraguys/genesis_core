@@ -23,7 +23,7 @@ from restalchemy.dm import filters as dm_filters
 from restalchemy.api import field_permissions as field_p
 from restalchemy.common import exceptions as ra_e
 from gcl_sdk.infra import constants as infra_c
-from gcl_iam import controllers as iam_controllers
+from gcl_iam.api import controllers as iam_controllers
 
 from genesis_core.vs.dm import models as models
 

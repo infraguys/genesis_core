@@ -15,7 +15,7 @@
 #    under the License.
 
 from oslo_config import cfg
-from gcl_iam import controllers as iam_controllers
+from gcl_iam.api import controllers as iam_controllers
 from restalchemy.api import controllers as ra_controllers
 from restalchemy.api import constants
 from restalchemy.api import field_permissions as field_p

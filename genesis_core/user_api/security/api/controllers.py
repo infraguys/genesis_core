@@ -14,7 +14,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from gcl_iam import controllers as iam_controllers
+from gcl_iam.api import controllers as iam_controllers
 from restalchemy.api import controllers as ra_controllers
 from restalchemy.api import resources
 
