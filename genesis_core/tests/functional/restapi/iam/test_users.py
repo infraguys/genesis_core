@@ -239,7 +239,7 @@ class TestUsers(base.BaseIamResourceTest):
     ):
         client = user_api_client(auth_test1_user)
 
-        with pytest.raises(bazooka_exc.BadRequestError):
+        with pytest.raises(bazooka_exc.ForbiddenError):
             client.update_user(
                 auth_test1_user.uuid,
                 password="new password",
