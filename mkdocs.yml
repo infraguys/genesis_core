@@ -1,0 +1,76 @@
+site_name: genesis_core
+site_url: https://github.com/infraguys/
+repo_name: genesis_core
+repo_url: https://github.com/infraguys/genesis_core
+edit_uri: browse/docs/
+
+theme:
+  name: material
+  custom_dir: docs/overrides
+  language: ru
+  features:
+    - search.suggest
+    - search.highlight
+    - navigation.tabs
+    - toc.integrate
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/lightbulb-outline
+        name: Switch to dark mode
+    - scheme: slate
+      toggle:
+        icon: material/lightbulb
+        name: Switch to light mode
+
+plugins:
+  - search:
+      lang:
+        - en
+        - ru
+  - glightbox
+
+extra:
+  repo_icon: github
+
+markdown_extensions:
+  - meta
+  - admonition
+  - footnotes
+  - attr_list
+  - codehilite:
+      guess_lang: false
+  - toc:
+      slugify: !!python/name:pymdownx.slugs.uslugify
+      permalink: '#'
+  - pymdownx.arithmatex
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.keys
+  - pymdownx.emoji:
+      emoji_index: !!python/name:pymdownx.emoji.gemoji
+      emoji_generator: !!python/name:pymdownx.emoji.to_svg
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.inlinehilite
+  - pymdownx.magiclink
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      preserve_tabs: true
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+  - pymdownx.tabbed:
+      alternate_style: true
+
+nav:
+  - Software:
+    - Общее: index.md
+    - Лендинг: onepager.md
+  - Вопросы и ответы: faq.md
