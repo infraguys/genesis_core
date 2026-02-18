@@ -232,6 +232,35 @@ class KeycloakUserSource(AbstractUserSource):
         user.update()
 
 
+class IamUserCustomProps(ra_types_dynamic.AbstractKindModel):
+    KIND = "basic"
+
+    role = properties.property(
+        ra_types.String(min_length=0, max_length=255),
+        default=None,
+    )
+    legal_entity = properties.property(
+        ra_types.String(min_length=0, max_length=255),
+        default=None,
+    )
+    employment_format = properties.property(
+        ra_types.String(min_length=0, max_length=255),
+        default=None,
+    )
+    hire_date = properties.property(
+        ra_types.AllowNone(ra_types.UTCDateTimeZ()),
+        default=None,
+    )
+    birth_date = properties.property(
+        ra_types.AllowNone(ra_types.UTCDateTimeZ()),
+        default=None,
+    )
+    other = properties.property(
+        ra_types.Dict(),
+        default=dict,
+    )
+
+
 class User(
     models.ModelWithUUID,
     models.ModelWithRequiredNameDesc,
@@ -297,6 +326,15 @@ class User(
     otp_enabled = properties.property(
         ra_types.Boolean(),
         default=False,
+    )
+
+    custom_props = properties.property(
+        ra_types.AllowNone(
+            KindModelSelectorType(
+                ra_types_dynamic.KindModelType(IamUserCustomProps),
+            )
+        ),
+        default=None,
     )
 
     def get_response_body(self):
@@ -792,6 +830,7 @@ class MeInfo:
             "confirmation_code",
             "confirmation_code_made_at",
             "user_source",
+            "custom_props",
         ]
         user = self._user.get_storable_snapshot()
         for drop_field in skip_fields:
