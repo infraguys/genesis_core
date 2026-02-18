@@ -104,7 +104,6 @@ class UriRegexConditions(AbstractConditions):
 
 
 class AbstractVerifier(ra_types_dynamic.AbstractKindModel):
-
     @abc.abstractmethod
     def verify(self, context):
         raise NotImplementedError()
@@ -172,9 +171,7 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
         try:
             app_check_token = app_check.verify_token(token, app=app)
         except firebase_exceptions.FirebaseError as exc:
-            LOG.warning(
-                "Firebase App Check token verification failed: %s", exc
-            )
+            LOG.warning("Firebase App Check token verification failed: %s", exc)
             return False
         except ValueError:
             LOG.exception("Firebase App Check token ValueError:")
@@ -262,13 +259,11 @@ class AdminBypassVerifier(AbstractVerifier):
 
 
 class OperatorEnum(str, enum.Enum):
-
     OR = "OR"
     AND = "AND"
 
 
 class ModelWithAlwaysActiveStatus(ra_models.Model):
-
     STATUS = iam_c.AlwaysActiveStatus
 
     status = properties.property(

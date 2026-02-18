@@ -33,7 +33,6 @@ OWNER_ROLE_DESCRIPTION = (
 
 
 class MigrationStep(migrations.AbstarctMigrationStep):
-
     def __init__(self):
         self._depends = ["0006-add-gc-organization-678510.py"]
 
@@ -74,10 +73,8 @@ class MigrationStep(migrations.AbstarctMigrationStep):
 
     def downgrade(self, session):
         delete_queries = [
-            "DELETE FROM iam_binding_roles WHERE"
-            f"  role = '{NEWCOMER_ROLE_UUID}';",
-            "DELETE FROM iam_binding_roles WHERE"
-            f"  role = '{OWNER_ROLE_UUID}';",
+            f"DELETE FROM iam_binding_roles WHERE  role = '{NEWCOMER_ROLE_UUID}';",
+            f"DELETE FROM iam_binding_roles WHERE  role = '{OWNER_ROLE_UUID}';",
             f"DELETE FROM iam_roles WHERE uuid = '{NEWCOMER_ROLE_UUID}';",
             f"DELETE FROM iam_roles WHERE uuid = '{OWNER_ROLE_UUID}';",
         ]

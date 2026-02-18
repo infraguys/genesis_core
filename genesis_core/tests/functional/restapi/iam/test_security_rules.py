@@ -212,9 +212,7 @@ class TestSecurityRules:
             name="Read rule",
         )
 
-        resource_url = client.build_resource_uri(
-            ["security/rules/", created["uuid"]]
-        )
+        resource_url = client.build_resource_uri(["security/rules/", created["uuid"]])
         fetched = client.get(resource_url).json()
 
         assert fetched["uuid"] == created["uuid"]
@@ -235,9 +233,7 @@ class TestSecurityRules:
             name="Update rule",
         )
 
-        resource_url = client.build_resource_uri(
-            ["security/rules/", created["uuid"]]
-        )
+        resource_url = client.build_resource_uri(["security/rules/", created["uuid"]])
         updated = client.put(
             resource_url,
             json={"name": "Update rule updated"},
@@ -261,9 +257,7 @@ class TestSecurityRules:
             name="Delete rule",
         )
 
-        resource_url = client.build_resource_uri(
-            ["security/rules/", created["uuid"]]
-        )
+        resource_url = client.build_resource_uri(["security/rules/", created["uuid"]])
         delete_response = client.delete(resource_url)
 
         assert delete_response.status_code == 204
@@ -300,9 +294,7 @@ class TestSecurityRules:
         )
 
         client = user_api_client(auth_test1_user)
-        resource_url = client.build_resource_uri(
-            ["security/rules/", created["uuid"]]
-        )
+        resource_url = client.build_resource_uri(["security/rules/", created["uuid"]])
 
         with pytest.raises(bazooka_exc.ForbiddenError):
             client.get(resource_url)
@@ -324,9 +316,7 @@ class TestSecurityRules:
         )
 
         client = user_api_client(auth_test1_user)
-        resource_url = client.build_resource_uri(
-            ["security/rules/", created["uuid"]]
-        )
+        resource_url = client.build_resource_uri(["security/rules/", created["uuid"]])
 
         with pytest.raises(bazooka_exc.ForbiddenError):
             client.put(resource_url, json={"name": "Denied"})
@@ -348,9 +338,7 @@ class TestSecurityRules:
         )
 
         client = user_api_client(auth_test1_user)
-        resource_url = client.build_resource_uri(
-            ["security/rules/", created["uuid"]]
-        )
+        resource_url = client.build_resource_uri(["security/rules/", created["uuid"]])
 
         with pytest.raises(bazooka_exc.ForbiddenError):
             client.delete(resource_url)

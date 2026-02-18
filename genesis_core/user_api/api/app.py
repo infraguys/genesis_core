@@ -37,29 +37,25 @@ skip_auth_endpoints = [
     iam_mw.EndpointComparator("/v1/health/"),
     iam_mw.EndpointComparator("/v1/iam/"),
     iam_mw.EndpointComparator(
-        f"/v1/iam/users/({ra_types.UUID_RE_TEMPLATE})"
-        "/actions/reset_password/invoke",
+        f"/v1/iam/users/({ra_types.UUID_RE_TEMPLATE})/actions/reset_password/invoke",
         methods=[ra_c.POST],
     ),
     iam_mw.EndpointComparator(
         f"/v1/iam/clients/({ra_types.UUID_RE_TEMPLATE})",
     ),
     iam_mw.EndpointComparator(
-        f"/v1/iam/clients/({ra_types.UUID_RE_TEMPLATE})"
-        "/actions/get_token/invoke",
+        f"/v1/iam/clients/({ra_types.UUID_RE_TEMPLATE})/actions/get_token/invoke",
         methods=[ra_c.POST],
     ),
     iam_mw.EndpointComparator(
-        f"/v1/iam/clients/({ra_types.UUID_RE_TEMPLATE})"
-        "/actions/reset_password/invoke",
+        f"/v1/iam/clients/({ra_types.UUID_RE_TEMPLATE})/actions/reset_password/invoke",
         methods=[ra_c.POST],
     ),
     iam_mw.EndpointComparator(
         f"/v1/iam/clients/({ra_types.UUID_RE_TEMPLATE})/actions/jwks",
     ),
     iam_mw.EndpointComparator(
-        f"/v1/iam/users/({ra_types.UUID_RE_TEMPLATE})"
-        "/actions/confirm_email/invoke",
+        f"/v1/iam/users/({ra_types.UUID_RE_TEMPLATE})/actions/confirm_email/invoke",
         methods=[ra_c.POST],
     ),
     iam_mw.EndpointComparator(
@@ -69,12 +65,10 @@ skip_auth_endpoints = [
         f"/v1/iam/idp/({ra_types.UUID_RE_TEMPLATE})/.well-known/",
     ),
     iam_mw.EndpointComparator(
-        f"/v1/iam/idp/({ra_types.UUID_RE_TEMPLATE})"
-        "/.well-known/openid-configuration",
+        f"/v1/iam/idp/({ra_types.UUID_RE_TEMPLATE})/.well-known/openid-configuration",
     ),
     iam_mw.EndpointComparator(
-        f"/v1/iam/idp/({ra_types.UUID_RE_TEMPLATE})"
-        "/actions/authorize/invoke",
+        f"/v1/iam/idp/({ra_types.UUID_RE_TEMPLATE})/actions/authorize/invoke",
     ),
     iam_mw.EndpointComparator(
         f"/v1/iam/idp/({ra_types.UUID_RE_TEMPLATE})/actions/login/invoke",

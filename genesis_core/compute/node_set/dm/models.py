@@ -18,8 +18,6 @@ from __future__ import annotations
 import typing as tp
 import uuid as sys_uuid
 
-from restalchemy.dm import types_dynamic
-
 from genesis_core.compute import constants as nc
 from genesis_core.compute.dm import models as compute_models
 
@@ -47,9 +45,7 @@ class NodeSet(compute_models.NodeSet):
     def gen_nodes(
         self,
         project_id: sys_uuid.UUID,
-        placement_policies: tp.Collection[
-            compute_models.PlacementPolicy
-        ] = tuple(),
+        placement_policies: tp.Collection[compute_models.PlacementPolicy] = tuple(),
     ) -> tp.Collection[Node]:
         """Generate nodes for the node set."""
         # FIXME(akremenetsky): Perhaps this method should be moved to

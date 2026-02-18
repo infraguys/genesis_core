@@ -64,7 +64,6 @@ class Volume(
 
 
 class VolumeBuilderService(sdk_builder.UniversalBuilderService):
-
     def __init__(
         self,
         iter_min_period: int = 1,

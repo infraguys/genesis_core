@@ -28,7 +28,6 @@ LOG = logging.getLogger(__name__)
 
 
 class CommonBuilder(builder.PaaSBuilder):
-
     @classmethod
     def service_uuid_by_node_path(
         cls, node_uuid: sys_uuid.UUID, path: str
@@ -37,7 +36,6 @@ class CommonBuilder(builder.PaaSBuilder):
 
 
 class ServiceNodeBuilder(CommonBuilder):
-
     def __init__(
         self,
         instance_model: tp.Type[res_models.Service] = res_models.Service,

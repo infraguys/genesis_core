@@ -59,9 +59,7 @@ class TestNetworkService:
     def _get_network_driver(self) -> driver_base.AbstractNetworkDriver:
         return self.__class__.network_driver
 
-    def _schedule_pool(
-        self, pool_uuid: str, agent_uuid: str
-    ) -> models.MachinePool:
+    def _schedule_pool(self, pool_uuid: str, agent_uuid: str) -> models.MachinePool:
         pool = models.MachinePool.objects.get_one(
             filters={
                 "uuid": dm_filters.EQ(pool_uuid),
@@ -87,9 +85,7 @@ class TestNetworkService:
         node.insert()
         return node
 
-    def _add_network(
-        self, **kwargs
-    ) -> tp.Tuple[models.Network, models.Subnet]:
+    def _add_network(self, **kwargs) -> tp.Tuple[models.Network, models.Subnet]:
         network = models.Network(
             name="foo-network",
             driver_spec={"driver": "dummy"},
@@ -244,9 +240,7 @@ class TestNetworkService:
             def create_subnet(self, subnet: models.Subnet) -> models.Subnet:
                 self.__class__.create_subnet_called = True
 
-            def list_ports(
-                self, subnet: models.Subnet
-            ) -> tp.Iterable[models.Port]:
+            def list_ports(self, subnet: models.Subnet) -> tp.Iterable[models.Port]:
                 port.status = nc.PortStatus.ACTIVE.value
                 return [port]
 
@@ -283,9 +277,7 @@ class TestNetworkService:
             def create_subnet(self, subnet: models.Subnet) -> models.Subnet:
                 self.__class__.create_subnet_called = True
 
-            def list_ports(
-                self, subnet: models.Subnet
-            ) -> tp.Iterable[models.Port]:
+            def list_ports(self, subnet: models.Subnet) -> tp.Iterable[models.Port]:
                 port.status = nc.PortStatus.ACTIVE.value
                 return [port]
 
@@ -403,8 +395,6 @@ class TestNetworkService:
 
     @pytest.mark.usefixtures("user_api_client", "auth_user_admin")
     def test_new_hw_node_without_machine(self):
-        node = self._add_node(node_type="HW")
-
         extra = {"ip_range": netaddr.IPRange("10.0.0.100", "10.0.0.200")}
         _, subnet = self._add_network(**extra)
         port_uuid = None
@@ -464,9 +454,7 @@ class TestNetworkService:
             ipv4=netaddr.IPAddress("10.0.0.253"),
             mask=netaddr.IPAddress("255.255.255.0"),
         )
-        hw_interface = models.Interface.restore_from_simple_view(
-            **hw_interface
-        )
+        hw_interface = models.Interface.restore_from_simple_view(**hw_interface)
         hw_interface.insert()
 
         # HW node

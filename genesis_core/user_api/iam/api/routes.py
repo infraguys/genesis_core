@@ -20,12 +20,9 @@ from genesis_core.user_api.iam.api import controllers
 
 
 class WebRoute(routes.Route):
-
     def do(self, parent_resource=None):
         controller = self.get_controller(self._req)
-        return controller.do(
-            path=self._req.path_info, parent_resource=parent_resource
-        )
+        return controller.do(path=self._req.path_info, parent_resource=parent_resource)
 
 
 class ChangePasswordAction(routes.Action):
@@ -177,9 +174,7 @@ class IdpRoute(routes.Route):
 
 
 # add well-known route to IdpRoute
-setattr(
-    IdpRoute, ".well_known", routes.route(WellKnownRoute, resource_route=True)
-)
+setattr(IdpRoute, ".well_known", routes.route(WellKnownRoute, resource_route=True))
 
 
 class ConfirmAuthorizationRequestAction(routes.Action):

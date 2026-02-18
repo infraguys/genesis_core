@@ -18,7 +18,6 @@ from restalchemy.storage.sql import migrations
 
 
 class MigrationStep(migrations.AbstarctMigrationStep):
-
     def __init__(self):
         self._depends = ["0012-compute-permissions-aac851.py"]
 
@@ -43,9 +42,7 @@ class MigrationStep(migrations.AbstarctMigrationStep):
         """)
 
     def downgrade(self, session):
-        session.execute(
-            'ALTER TABLE "iam_tokens" DROP COLUMN expiration_delta;'
-        )
+        session.execute('ALTER TABLE "iam_tokens" DROP COLUMN expiration_delta;')
         session.execute(
             'ALTER TABLE "iam_tokens" DROP COLUMN refresh_expiration_delta;'
         )

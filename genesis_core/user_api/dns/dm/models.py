@@ -18,7 +18,6 @@ import re
 import uuid as sys_uuid
 
 from oslo_config import cfg
-from restalchemy.common import contexts
 from restalchemy.common import exceptions
 from restalchemy.dm import filters
 from restalchemy.dm import models
@@ -49,9 +48,7 @@ class CommonModel(
     pass
 
 
-class Domain(
-    CommonModel, models.ModelWithProject, ua_models.TargetResourceMixin
-):
+class Domain(CommonModel, models.ModelWithProject, ua_models.TargetResourceMixin):
     __tablename__ = "dns_domains"
     name = properties.property(types.String(), required=True)
     # Used only for PDNS
@@ -70,9 +67,9 @@ class Domain(
     @classmethod
     def get_next_domain_id(cls, session=None):
         with cls._get_engine().session_manager(session=session) as s:
-            return s.execute(
-                "SELECT nextval('dns_domain_id_seq') as val"
-            ).fetchall()[0]["val"]
+            return s.execute("SELECT nextval('dns_domain_id_seq') as val").fetchall()[
+                0
+            ]["val"]
 
     def __init__(self, session=None, **kwargs):
         super().__init__(id=self.get_next_domain_id(session=session), **kwargs)
@@ -114,9 +111,7 @@ class Domain(
 
 class AbstractRecord(types_dynamic.AbstractKindModel):
     def get_name(self, domain) -> str:
-        return (
-            (".").join((self.name, domain.name)) if self.name else domain.name
-        )
+        return (".").join((self.name, domain.name)) if self.name else domain.name
 
     def get_content(self, domain) -> str:
         return str(self.content)
@@ -186,9 +181,7 @@ class NSRecord(AbstractRecord):
     )
 
 
-class Record(
-    CommonModel, models.ModelWithProject, ua_models.TargetResourceMixin
-):
+class Record(CommonModel, models.ModelWithProject, ua_models.TargetResourceMixin):
     __tablename__ = "dns_records"
     domain = relationships.relationship(Domain, required=True)
     domain_id = properties.property(types.Integer())

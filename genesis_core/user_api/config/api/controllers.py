@@ -23,7 +23,6 @@ from genesis_core.config import constants as cc
 
 
 class ConfigController(controllers.RoutesListController):
-
     __TARGET_PATH__ = "/v1/config/"
 
 

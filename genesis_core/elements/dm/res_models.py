@@ -59,7 +59,6 @@ class Service(
     models.Service,
     ua_models.InstanceWithDerivativesMixin,
 ):
-
     # __master_model__ = sdk_models.NodeSet
     __derivative_model_map__ = {
         "service_agent_node": ServiceNode,

@@ -29,11 +29,7 @@ class ExpiredEmailConfirmationCodeJanitorService(basic.BasicService):
             dm_filters.OR(
                 # actually expired codes:
                 dm_filters.AND(
-                    {
-                        "confirmation_code_made_at": dm_filters.LT(
-                            expiration_time
-                        )
-                    }
+                    {"confirmation_code_made_at": dm_filters.LT(expiration_time)}
                 ),
                 # self-heal codes without timestamps:
                 dm_filters.AND(

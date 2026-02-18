@@ -43,7 +43,6 @@ from genesis_core.user_api.iam import exceptions as iam_e
 
 
 class EnforceMixin:
-
     def enforce(self, rule, do_raise=False, exc=None):
         iam = contexts.get_context().iam_context
         return iam.enforcer.enforce(rule, do_raise, exc)
@@ -64,11 +63,10 @@ class ValidateMixin:
         error = None
         if value is None:
             error = "Value is required"
-        elif (
-            self.__validate_min_length__
-            and len(value) < self.__validate_min_length__
-        ):
-            error = f"Value must be at least {self.__validate_min_length__} characters long"
+        elif self.__validate_min_length__ and len(value) < self.__validate_min_length__:
+            error = (
+                f"Value must be at least {self.__validate_min_length__} characters long"
+            )
         elif self.__validate_not_contain__:
             value_set = set(value)
             for not_contain in self.__validate_not_contain__:
@@ -81,9 +79,7 @@ class ValidateMixin:
                 if not set(required) & value_set:
                     error = f"Value must contain one of {required}"
                     break
-        elif self.__validate_regex__ and not re.match(
-            self.__validate_regex__, value
-        ):
+        elif self.__validate_regex__ and not re.match(self.__validate_regex__, value):
             error = f"Value must match regex {self.__validate_regex__}"
         if error:
             raise ValidationException(description=error)
@@ -96,7 +92,6 @@ class ValidateSecretMixin(ValidateMixin):
 
 
 class IamController(controllers.RoutesListController):
-
     __TARGET_PATH__ = "/v1/iam/"
 
 
@@ -109,10 +104,7 @@ def _get_app_endpoint(req):
 
     parsed_referer = urllib_parse.urlparse(origin)
 
-    if (
-        parsed_referer.scheme not in ("http", "https")
-        or not parsed_referer.netloc
-    ):
+    if parsed_referer.scheme not in ("http", "https") or not parsed_referer.netloc:
         return result
 
     return f"{parsed_referer.scheme}://{parsed_referer.netloc}"
@@ -200,9 +192,7 @@ class UserController(
         is_me = models.User.me().uuid == uuid
         if self.enforce(c.PERMISSION_USER_WRITE_ALL) or is_me:
             return super().update(uuid, **kwargs)
-        raise iam_e.CanNotUpdateUser(
-            uuid=uuid, rule=c.PERMISSION_USER_WRITE_ALL
-        )
+        raise iam_e.CanNotUpdateUser(uuid=uuid, rule=c.PERMISSION_USER_WRITE_ALL)
 
     def delete(self, uuid):
         is_me = models.User.me().uuid == uuid
@@ -239,9 +229,7 @@ class UserController(
             )
             # TODO: get better issuer name?
             return {
-                "otp_uri": pyotp.totp.TOTP(
-                    resource.otp_secret
-                ).provisioning_uri(
+                "otp_uri": pyotp.totp.TOTP(resource.otp_secret).provisioning_uri(
                     name=resource.email, issuer_name="Genesis IAM"
                 )
             }
@@ -314,9 +302,7 @@ class UserController(
         is_me = models.User.me() == resource
         if self.enforce(c.PERMISSION_USER_READ_ALL) or is_me:
             return resource.get_my_roles().get_response_body()
-        raise iam_e.CanNotReadUser(
-            uuid=resource.uuid, rule=c.PERMISSION_USER_READ_ALL
-        )
+        raise iam_e.CanNotReadUser(uuid=resource.uuid, rule=c.PERMISSION_USER_READ_ALL)
 
 
 class OrganizationController(
@@ -353,9 +339,7 @@ class OrganizationController(
     def update(self, uuid, **kwargs):
         pclass = iam_controllers.PolicyBasedWithoutProjectController
         org = self.get(uuid)
-        if org.are_i_owner() or self.enforce(
-            c.PERMISSION_ORGANIZATION_WRITE_ALL
-        ):
+        if org.are_i_owner() or self.enforce(c.PERMISSION_ORGANIZATION_WRITE_ALL):
             return super(pclass, self).update(uuid, **kwargs)
         raise iam_e.CanNotUpdateOrganization(name=org.name)
 
@@ -405,9 +389,7 @@ class OrganizationMemberController(
         raise iam_e.CanNotUpdateOrganization(name=organization.name)
 
 
-class ProjectController(
-    controllers.BaseResourceControllerPaginated, EnforceMixin
-):
+class ProjectController(controllers.BaseResourceControllerPaginated, EnforceMixin):
     __resource__ = resources.ResourceByRAModel(
         models.Project,
         convert_underscore=False,
@@ -419,9 +401,7 @@ class ProjectController(
             or self.enforce(c.PERMISSION_PROJECT_WRITE_ALL)
             or self.enforce(c.PERMISSION_ORGANIZATION_WRITE_ALL)
         ):
-            raise iam_e.CanNotCreateProjectInOrganization(
-                uuid=organization.uuid
-            )
+            raise iam_e.CanNotCreateProjectInOrganization(uuid=organization.uuid)
 
         project = super().create(organization=organization, **kwargs)
         project.add_owner(models.User.me())
@@ -525,7 +505,6 @@ class WellKnownController(
     controllers.BaseNestedResourceController,
     EnforceMixin,
 ):
-
     def get(self, parent_resource, uuid):
         return parent_resource.get_wellknown_info()
 
@@ -644,9 +623,7 @@ class IdpController(
         return token
 
 
-class ClientsController(
-    controllers.BaseResourceControllerPaginated, EnforceMixin
-):
+class ClientsController(controllers.BaseResourceControllerPaginated, EnforceMixin):
     __resource__ = resources.ResourceByModelWithCustomProps(
         models.IamClient,
         convert_underscore=False,
@@ -788,9 +765,7 @@ class ClientsController(
     def reset_password(self, resource, email=None):
         email = email or self._req.params.get("email")
         app_endpoint = _get_app_endpoint(req=self._req)
-        resource.send_reset_password_event(
-            email=email, app_endpoint=app_endpoint
-        )
+        resource.send_reset_password_event(email=email, app_endpoint=app_endpoint)
 
     @actions.post
     def logout(self, resource):
@@ -804,7 +779,6 @@ class ClientsController(
 
 
 class WebController:
-
     def __init__(self, request):
         super().__init__()
         self._req = request
@@ -821,7 +795,6 @@ class WebController:
 
 
 class IamWebController(WebController):
-
     TEMPLATE_DIR = os_path.abspath("web")
 
     ERROR_FILES = {
@@ -852,9 +825,7 @@ class IamWebController(WebController):
         except OSError as e:
             full_path = os_path.join(self.TEMPLATE_DIR, self.ERROR_FILES[500])
             if e.errno == errno.ENOENT:
-                full_path = os_path.join(
-                    self.TEMPLATE_DIR, self.ERROR_FILES[404]
-                )
+                full_path = os_path.join(self.TEMPLATE_DIR, self.ERROR_FILES[404])
                 http_code = 404
             buff = self._get_file_body(full_path)
             file_mimetype = mimetypes.guess_file_type(full_path)[0]

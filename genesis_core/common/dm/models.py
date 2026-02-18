@@ -32,9 +32,7 @@ class CastToBaseMixin:
 
     def cast_to_base(self) -> models.SimpleViewMixin:
         # Convert to simple view without relations
-        fields = self.__cast_fields__ or tuple(
-            self.properties.properties.keys()
-        )
+        fields = self.__cast_fields__ or tuple(self.properties.properties.keys())
         view = self.dump_to_simple_view(skip=fields)
 
         # Translate relations into uuid
@@ -50,8 +48,6 @@ class CastToBaseMixin:
                 base_class = base
                 break
         else:
-            raise RuntimeError(
-                f"Failed to find base class for {self.__class__}"
-            )
+            raise RuntimeError(f"Failed to find base class for {self.__class__}")
 
         return base_class.restore_from_simple_view(**view)

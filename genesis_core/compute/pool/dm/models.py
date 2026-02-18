@@ -15,7 +15,6 @@
 #    under the License.
 from __future__ import annotations
 
-from email.policy import default
 import uuid as sys_uuid
 import typing as tp
 
@@ -33,7 +32,6 @@ from genesis_core.compute import constants as nc
 
 
 class SchedulableToAgentFromAgentFieldMixin(ua_models.SchedulableToAgentMixin):
-
     def schedule_to_ua_agent(self, **kwargs) -> sys_uuid.UUID | None:
         """Schedule the resource to the UA agent.
 
@@ -44,7 +42,6 @@ class SchedulableToAgentFromAgentFieldMixin(ua_models.SchedulableToAgentMixin):
 
 
 class SchedulableToAgentFromPoolMixin(ua_models.SchedulableToAgentMixin):
-
     def schedule_to_ua_agent(
         self, builder: sdk_builder.UniversalBuilderService, **kwargs
     ) -> sys_uuid.UUID | None:
@@ -71,7 +68,6 @@ class Pool(
     ua_models.InstanceMixin,
     SchedulableToAgentFromAgentFieldMixin,
 ):
-
     @classmethod
     def get_resource_kind(cls) -> str:
         return "pool"
@@ -105,7 +101,6 @@ class MachineVolume(
     ua_models.InstanceMixin,
     SchedulableToAgentFromPoolMixin,
 ):
-
     pool = relationships.relationship(Pool, prefetch=True)
     machine = relationships.relationship(models.Machine, prefetch=True)
 
@@ -155,9 +150,7 @@ class PoolMachine(
     ra_models.ModelWithUUID,
 ):
     name = properties.property(types.String(max_length=255), default="")
-    cores = properties.property(
-        types.Integer(min_value=0, max_value=4096), default=0
-    )
+    cores = properties.property(types.Integer(min_value=0, max_value=4096), default=0)
     ram = properties.property(types.Integer(min_value=0), default=0)
     status = properties.property(
         types.Enum([s.value for s in nc.MachineStatus]),
@@ -177,9 +170,7 @@ class PoolMachine(
         types.AllowNone(types.String(max_length=255)), default=None
     )
 
-    project_id = properties.property(
-        types.UUID(), required=True, read_only=True
-    )
+    project_id = properties.property(types.UUID(), required=True, read_only=True)
 
     port_info = properties.property(types.Dict(), default=dict)
 

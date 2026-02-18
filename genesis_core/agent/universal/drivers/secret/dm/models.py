@@ -104,20 +104,14 @@ class Certificate(Secret, orm.SQLStorableMixin):
         )
 
     def is_under_threshold(self) -> bool:
-        if self.expiration_at < datetime.datetime.now(
-            tz=datetime.timezone.utc
-        ):
+        if self.expiration_at < datetime.datetime.now(tz=datetime.timezone.utc):
             return True
         else:
-            delta = self.expiration_at - datetime.datetime.now(
-                tz=datetime.timezone.utc
-            )
+            delta = self.expiration_at - datetime.datetime.now(tz=datetime.timezone.utc)
             return delta.days < self.meta["expiration_threshold"]
 
     def to_resource_value(self) -> dict[str, tp.Any]:
-        expiration_at = self.expiration_at.replace(
-            tzinfo=datetime.timezone.utc
-        )
+        expiration_at = self.expiration_at.replace(tzinfo=datetime.timezone.utc)
         expiration_at = expiration_at.strftime(c.DEFAULT_DATETIME_FORMAT)
 
         value = self.meta

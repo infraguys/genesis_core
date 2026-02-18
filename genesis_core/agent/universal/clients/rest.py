@@ -34,9 +34,7 @@ class GCRestApiBackendClient(rest.RestApiBackendClient):
         collection_map: dict[str:str],
         project_id: sys_uuid.UUID,
     ) -> None:
-        super().__init__(
-            http_client=http_client, collection_map=collection_map
-        )
+        super().__init__(http_client=http_client, collection_map=collection_map)
         self._project_id = str(project_id)
 
     def create(self, resource: models.Resource) -> dict[str, tp.Any]:

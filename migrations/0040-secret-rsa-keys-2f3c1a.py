@@ -18,7 +18,6 @@ from restalchemy.storage.sql import migrations
 
 
 class MigrationStep(migrations.AbstractMigrationStep):
-
     def __init__(self):
         self._depends = [
             "0039-add-oidc-structures-e5d2a8.py",

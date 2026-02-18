@@ -22,7 +22,6 @@ from restalchemy.dm import models
 from restalchemy.dm import properties
 from restalchemy.dm import types
 from restalchemy.dm import types_dynamic
-from restalchemy.dm import filters as dm_filters
 from restalchemy.storage.sql import orm
 
 from gcl_sdk.agents.universal.dm import models as ua_models
@@ -33,10 +32,7 @@ from genesis_core.common import constants as c
 from genesis_core.config import constants as cc
 
 
-class AbstractContentor(
-    types_dynamic.AbstractKindModel, models.SimpleViewMixin
-):
-
+class AbstractContentor(types_dynamic.AbstractKindModel, models.SimpleViewMixin):
     def render(self) -> str:
         return ""
 
@@ -65,9 +61,7 @@ class TemplateBodyConfig(AbstractContentor):
         raise NotImplementedError()
 
 
-class OnChangeNoAction(
-    types_dynamic.AbstractKindModel, models.SimpleViewMixin
-):
+class OnChangeNoAction(types_dynamic.AbstractKindModel, models.SimpleViewMixin):
     KIND = "no_action"
 
 
@@ -163,20 +157,12 @@ class Config(
         return resource
 
     @classmethod
-    def get_new_configs(
-        cls, limit: int = c.DEFAULT_SQL_LIMIT
-    ) -> list["Config"]:
-        return cls.get_new_entities(
-            cls.__tablename__, cc.CONFIG_KIND, limit=limit
-        )
+    def get_new_configs(cls, limit: int = c.DEFAULT_SQL_LIMIT) -> list["Config"]:
+        return cls.get_new_entities(cls.__tablename__, cc.CONFIG_KIND, limit=limit)
 
     @classmethod
-    def get_updated_configs(
-        cls, limit: int = c.DEFAULT_SQL_LIMIT
-    ) -> list["Config"]:
-        return cls.get_updated_entities(
-            cls.__tablename__, cc.CONFIG_KIND, limit=limit
-        )
+    def get_updated_configs(cls, limit: int = c.DEFAULT_SQL_LIMIT) -> list["Config"]:
+        return cls.get_updated_entities(cls.__tablename__, cc.CONFIG_KIND, limit=limit)
 
     @classmethod
     def get_deleted_config_renders(

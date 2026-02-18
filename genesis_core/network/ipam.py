@@ -48,7 +48,6 @@ class IpamIpRangeOverlap(net_exceptions.CGNetException):
 
 
 class Ipam:
-
     def __init__(
         self,
         subnet_map: tp.Dict[net_models.Subnet : tp.List[net_models.Port]],
@@ -88,8 +87,7 @@ class Ipam:
 
         # IP range and discovery range should not overlap
         if subnet.ip_discovery_range and (
-            netaddr.IPSet(subnet.ip_discovery_range)
-            & netaddr.IPSet(subnet.ip_range)
+            netaddr.IPSet(subnet.ip_discovery_range) & netaddr.IPSet(subnet.ip_range)
         ):
             raise IpamIpRangeOverlap(
                 ip_range_a=subnet.ip_range,
@@ -100,10 +98,7 @@ class Ipam:
         for port in ports:
             if port.ipv4 is not None:
                 # Exclude IPs from the discovery range
-                if (
-                    subnet.ip_discovery_range
-                    and port.ipv4 in subnet.ip_discovery_range
-                ):
+                if subnet.ip_discovery_range and port.ipv4 in subnet.ip_discovery_range:
                     continue
 
                 ip = int(netaddr.IPAddress(port.ipv4))

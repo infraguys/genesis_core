@@ -22,14 +22,12 @@ import uuid as sys_uuid
 
 import pytest
 import netaddr
-from gcl_iam import algorithms
 from gcl_iam import tokens
 from gcl_iam.tests.functional import clients as iam_clients
 from gcl_sdk.events import clients as sdk_clients
 from gcl_sdk.infra.dm import models as sdk_infra_models
 from gcl_sdk.agents.universal.dm import models as sdk_ua_models
 from restalchemy.dm import filters as dm_filters
-from restalchemy.tests.functional.conftest import setup_db_for_worker
 
 from genesis_core.common import constants as c
 from genesis_core.common.dm import targets as ct
@@ -363,9 +361,7 @@ def node_factory():
         **kwargs,
     ) -> tp.Dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
-        status_value = (
-            nc.NodeStatus.NEW.value if status is None else status.value
-        )
+        status_value = nc.NodeStatus.NEW.value if status is None else status.value
         node = node_models.Node(
             uuid=uuid,
             name=name,
@@ -432,12 +428,8 @@ def pool_factory():
         **kwargs,
     ) -> tp.Dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
-        driver_spec = (
-            {"driver": "libvirt"} if driver_spec is None else driver_spec
-        )
-        status_value = (
-            nc.MachinePoolStatus.ACTIVE.value if status is None else status
-        )
+        driver_spec = {"driver": "libvirt"} if driver_spec is None else driver_spec
+        status_value = nc.MachinePoolStatus.ACTIVE.value if status is None else status
         storage_pool = node_models.ThinStoragePool(
             pool_type="dummy",
             capacity_usable=1000,
@@ -555,9 +547,7 @@ def password_factory():
             if constructor is None
             else constructor
         )
-        status_value = (
-            cc.ConfigStatus.NEW.value if status is None else status.value
-        )
+        status_value = cc.ConfigStatus.NEW.value if status is None else status.value
         obj = secret_models.Password(
             uuid=uuid,
             name=name,
@@ -598,14 +588,8 @@ def cert_factory():
             if constructor is None
             else constructor
         )
-        method = (
-            secret_models.DNSCoreCertificateMethod()
-            if method is None
-            else method
-        )
-        status_value = (
-            cc.ConfigStatus.NEW.value if status is None else status.value
-        )
+        method = secret_models.DNSCoreCertificateMethod() if method is None else method
+        status_value = cc.ConfigStatus.NEW.value if status is None else status.value
         obj = secret_models.Certificate(
             uuid=uuid,
             name=name,
@@ -655,9 +639,7 @@ def ssh_key_factory():
             if constructor is None
             else constructor
         )
-        status_value = (
-            cc.ConfigStatus.NEW.value if status is None else status.value
-        )
+        status_value = cc.ConfigStatus.NEW.value if status is None else status.value
         obj = secret_models.SSHKey(
             uuid=uuid,
             name=name,

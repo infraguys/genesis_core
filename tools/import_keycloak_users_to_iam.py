@@ -151,9 +151,7 @@ def _create_user(
         "Authorization": auth_header_value,
         "Content-Type": "application/json",
     }
-    response = session.post(
-        url, headers=headers, json=payload, timeout=timeout
-    )
+    response = session.post(url, headers=headers, json=payload, timeout=timeout)
 
     if response.status_code in {200, 201}:
         return response.json()
@@ -284,9 +282,7 @@ def main(argv: list[str] | None = None) -> int:
         log_username = username or email or ""
 
         if not user_uuid:
-            logging.warning(
-                "Skipping user without uuid. username=%s", log_username
-            )
+            logging.warning("Skipping user without uuid. username=%s", log_username)
             skipped += 1
             continue
 
@@ -332,9 +328,7 @@ def main(argv: list[str] | None = None) -> int:
             include_uuid=not args.ignore_uuid,
         )
 
-        logging.info(
-            "Creating user. username=%s uuid=%s", log_username, user_uuid
-        )
+        logging.info("Creating user. username=%s uuid=%s", log_username, user_uuid)
         try:
             _create_user(
                 session=session,
@@ -371,9 +365,7 @@ def main(argv: list[str] | None = None) -> int:
             failed += 1
             continue
 
-    logging.info(
-        "Done. created=%s skipped=%s failed=%s", created, skipped, failed
-    )
+    logging.info("Done. created=%s skipped=%s failed=%s", created, skipped, failed)
     return 0
 
 

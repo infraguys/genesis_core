@@ -293,9 +293,7 @@ class Manifest(
                     resource.save()
                 else:
                     resource = Resource(
-                        uuid=cm_utils.get_or_create_uuid_from_dict(
-                            resource_value
-                        ),
+                        uuid=cm_utils.get_or_create_uuid_from_dict(resource_value),
                         name=resource_name,
                         **res_kwargs,
                     )
@@ -641,8 +639,7 @@ class Resource(
             return str(value)
         except ValueError as e:
             raise ValueError(
-                f"Can't render value `{var}` for resource"
-                f" `{repr(self)}` by reason: {e}"
+                f"Can't render value `{var}` for resource `{repr(self)}` by reason: {e}"
             )
 
     def _render_value(self, value, engine):
@@ -727,9 +724,7 @@ class Resource(
     @property
     def kind(self):
         parts = [
-            p
-            for p in self.resource_link_prefix.split(".")[1:]
-            if not p.startswith("$")
+            p for p in self.resource_link_prefix.split(".")[1:] if not p.startswith("$")
         ]
 
         provider_element = self.get_provider_element()
@@ -767,9 +762,7 @@ class Resource(
         hash = sdk_utils.calculate_hash(target_state)
         self.full_hash = self.calculate_full_hash(target_state)
         if self.target_resource is None:
-            res_uuid = sdk_models.TargetResource.gen_res_uuid(
-                self.uuid, self.kind
-            )
+            res_uuid = sdk_models.TargetResource.gen_res_uuid(self.uuid, self.kind)
             target_resource = sdk_models.TargetResource(
                 uuid=self.uuid,
                 kind=self.kind,
@@ -900,7 +893,6 @@ class Import(
 
 
 class ImportedResource:
-
     def __init__(self, element, resource, name):
         super().__init__()
         self._element = element
@@ -927,7 +919,6 @@ class ImportedResource:
 
 
 class OutdatedResources(models.ModelWithUUID, orm.SQLStorableMixin):
-
     __tablename__ = "em_outdated_resources_view"
 
     em_resource = relationships.relationship(
@@ -942,9 +933,7 @@ class OutdatedResources(models.ModelWithUUID, orm.SQLStorableMixin):
     )
 
 
-class ResourceIncorrectStatusesView(
-    models.ModelWithUUID, orm.SQLStorableMixin
-):
+class ResourceIncorrectStatusesView(models.ModelWithUUID, orm.SQLStorableMixin):
     __tablename__ = "em_incorrect_resource_statuses_view"
 
     current_status = properties.property(
@@ -970,7 +959,6 @@ class ResourceIncorrectStatusesView(
 
 
 class Namespace:
-
     def __init__(self, element):
         super().__init__()
         self._element = element
@@ -1043,12 +1031,8 @@ class ManifestParserV1(BaseManifestParser):
         data = self._manifest.get("Resources", {})
         for resource_link_prefix, resource_data in data.items():
             for resource_name, resource_data in resource_data.items():
-                resource_uuid = resource_data.get(
-                    "uuid", str(sys_uuid.uuid4())
-                )
-                project_id = resource_data.get(
-                    "project_id", str(element.project_id)
-                )
+                resource_uuid = resource_data.get("uuid", str(sys_uuid.uuid4()))
+                project_id = resource_data.get("project_id", str(element.project_id))
                 raw_properties = resource_data.copy()
                 raw_properties.update(
                     {
@@ -1068,7 +1052,6 @@ class ManifestParserV1(BaseManifestParser):
 
 
 class ElementEngine:
-
     MANIFEST_PARSER_MAP = {
         ManifestParserV1.SCHEMA_VERSION: ManifestParserV1,
     }
@@ -1178,9 +1161,7 @@ class ElementEngine:
 
     def remove_element(self, element):
         if element.link not in self._namespaces:
-            raise ValueError(
-                f"Can't remove element {element}. Element does not exist."
-            )
+            raise ValueError(f"Can't remove element {element}. Element does not exist.")
 
         del self._namespaces[element.link]
 
@@ -1193,8 +1174,7 @@ class ElementEngine:
 
         if export_resource.link in self._resource_exports:
             raise ValueError(
-                f"Resource export with link '{export_resource.link}' "
-                "already exists."
+                f"Resource export with link '{export_resource.link}' already exists."
             )
         self._resource_exports[export_resource.link] = resource
 
@@ -1222,8 +1202,7 @@ class ServiceTarget(srv_models.ServiceTarget):
             filters={"uuid": ra_filters.EQ(self.service)}
         ):
             raise ValueError(
-                "Service %s does not exist. Please create it first."
-                % self.service
+                "Service %s does not exist. Please create it first." % self.service
             )
 
     @classmethod
@@ -1248,9 +1227,7 @@ class ServiceTarget(srv_models.ServiceTarget):
         return bool(self._fetch_services())
 
     def get_dp_obj(self):
-        service = Service.objects.get_one(
-            filters={"uuid": ra_filters.EQ(self.service)}
-        )
+        service = Service.objects.get_one(filters={"uuid": ra_filters.EQ(self.service)})
         return srv_models.ServiceDPTarget(
             service=self.service, service_name=service.name
         )

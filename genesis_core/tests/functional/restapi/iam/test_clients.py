@@ -18,19 +18,14 @@ import uuid as sys_uuid
 
 from bazooka import exceptions as bazooka_exc
 import pytest
-from restalchemy.common import contexts
 
 from genesis_core.tests.functional.restapi.iam import base
-from genesis_core.user_api.iam.dm import models as iam_models
 
 TEST_PROJECT_ID = str(sys_uuid.uuid4())
 
 
 class TestClients(base.BaseIamResourceTest):
-
-    def test_create_iam_client_by_admin(
-        self, user_api_client, auth_user_admin
-    ):
+    def test_create_iam_client_by_admin(self, user_api_client, auth_user_admin):
         client = user_api_client(auth_user_admin)
         iam_client_name = "test_client[admin-user]"
 
@@ -49,9 +44,7 @@ class TestClients(base.BaseIamResourceTest):
 
         assert iam_client["name"] == iam_client_name
 
-    def test_create_iam_client_by_user1(
-        self, user_api_client, auth_test1_user
-    ):
+    def test_create_iam_client_by_user1(self, user_api_client, auth_test1_user):
         client = user_api_client(auth_test1_user)
         iam_client_name = "test_client[admin-user]"
 
@@ -98,9 +91,7 @@ class TestClients(base.BaseIamResourceTest):
 
         assert iam_client["uuid"] == iam_client_uuid
 
-    def test_update_iam_clients_by_admin(
-        self, user_api_client, auth_user_admin
-    ):
+    def test_update_iam_clients_by_admin(self, user_api_client, auth_user_admin):
         client = user_api_client(auth_user_admin)
         iam_client_uuid = "00000000-0000-0000-0000-000000000000"
         new_name = "new_name"
@@ -112,9 +103,7 @@ class TestClients(base.BaseIamResourceTest):
 
         assert result["name"] == new_name
 
-    def test_update_iam_clients_by_user(
-        self, user_api_client, auth_test1_user
-    ):
+    def test_update_iam_clients_by_user(self, user_api_client, auth_test1_user):
         client = user_api_client(auth_test1_user)
         iam_client_uuid = "00000000-0000-0000-0000-000000000000"
         new_name = "new_name"
@@ -125,9 +114,7 @@ class TestClients(base.BaseIamResourceTest):
                 name=new_name,
             )
 
-    def test_delete_iam_clients_by_admin(
-        self, user_api_client, auth_user_admin
-    ):
+    def test_delete_iam_clients_by_admin(self, user_api_client, auth_user_admin):
         client = user_api_client(auth_user_admin)
         iam_client_uuid = "00000000-0000-0000-0000-000000000000"
 
@@ -135,18 +122,14 @@ class TestClients(base.BaseIamResourceTest):
 
         assert iam_client is None
 
-    def test_delete_iam_clients_by_user(
-        self, user_api_client, auth_test1_user
-    ):
+    def test_delete_iam_clients_by_user(self, user_api_client, auth_test1_user):
         client = user_api_client(auth_test1_user)
         iam_client_uuid = "00000000-0000-0000-0000-000000000000"
 
         with pytest.raises(bazooka_exc.ForbiddenError):
             client.delete_iam_client(uuid=iam_client_uuid)
 
-    def test_me_wo_organization_success(
-        self, user_api_client, auth_test1_user
-    ):
+    def test_me_wo_organization_success(self, user_api_client, auth_test1_user):
         client = user_api_client(auth_test1_user)
 
         result = client.me()
@@ -155,9 +138,7 @@ class TestClients(base.BaseIamResourceTest):
         assert result["organization"] == []
         assert result["project_id"] is None
 
-    def test_me_with_organization_success(
-        self, user_api_client, auth_test1_user
-    ):
+    def test_me_with_organization_success(self, user_api_client, auth_test1_user):
         client = user_api_client(
             auth_test1_user,
         )
@@ -201,9 +182,7 @@ class TestClients(base.BaseIamResourceTest):
 
         assert token_info["refresh_expires_in"] == 1
 
-    def test_logout_deletes_token_from_db(
-        self, user_api_client, auth_test1_user
-    ):
+    def test_logout_deletes_token_from_db(self, user_api_client, auth_test1_user):
         client = user_api_client(auth_test1_user)
         me = client.me()
 
@@ -269,9 +248,7 @@ class TestClients(base.BaseIamResourceTest):
 
         assert type(no_user_exc.value) is type(wrong_password_exc.value)
         assert not isinstance(no_user_exc.value, bazooka_exc.NotFoundError)
-        assert not isinstance(
-            wrong_password_exc.value, bazooka_exc.NotFoundError
-        )
+        assert not isinstance(wrong_password_exc.value, bazooka_exc.NotFoundError)
 
     @pytest.fixture(
         scope="function",

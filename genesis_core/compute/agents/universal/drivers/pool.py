@@ -90,9 +90,7 @@ class MetaPool(meta.MetaCoordinatorDataPlaneModel):
         # TODO(akremenetsky): Use dynamic typing for this field
         driver_kind = self.driver_spec["driver"]
 
-        class_ = utils.load_from_entry_point(
-            nc.EP_MACHINE_POOL_DRIVERS, driver_kind
-        )
+        class_ = utils.load_from_entry_point(nc.EP_MACHINE_POOL_DRIVERS, driver_kind)
         driver = class_(self)
         self.__driver_map__[driver_key] = driver
         return driver
@@ -111,9 +109,7 @@ class MetaPool(meta.MetaCoordinatorDataPlaneModel):
     def restore_from_dp(self, **kwargs) -> None:
         """Load the pool information."""
         driver = self.load_driver()
-        pool_info, storage_pools, machines, volumes = (
-            driver.list_pool_resources()
-        )
+        pool_info, storage_pools, machines, volumes = driver.list_pool_resources()
         self.dp_machine_map = {m.uuid: m for m in machines}
         self.dp_volume_map = {v.uuid: v for v in volumes}
         self.dp_storage_pool_map = {p.uuid: p for p in storage_pools}
@@ -127,9 +123,7 @@ class MetaPool(meta.MetaCoordinatorDataPlaneModel):
         self.avail_cores = self.all_cores - sum(
             m.cores for m in self.dp_machine_map.values()
         )
-        self.avail_ram = self.all_ram - sum(
-            m.ram for m in self.dp_machine_map.values()
-        )
+        self.avail_ram = self.all_ram - sum(m.ram for m in self.dp_machine_map.values())
 
     def dump_to_dp(self, **kwargs) -> None:
         """Configure the pool."""
@@ -163,9 +157,7 @@ class MetaVolume(meta.MetaCoordinatorDataPlaneModel):
         types.Enum([s.value for s in nc.VolumeStatus]),
         default=nc.VolumeStatus.NEW.value,
     )
-    project_id = properties.property(
-        types.UUID(), required=True, read_only=True
-    )
+    project_id = properties.property(types.UUID(), required=True, read_only=True)
 
     def _from_dp_volume(self, dp_volume: models.MachineVolume) -> None:
         self.name = dp_volume.name
@@ -287,9 +279,7 @@ class MetaVolume(meta.MetaCoordinatorDataPlaneModel):
     def _is_root_volume(self) -> bool:
         return self.machine and self.index == 0
 
-    def _has_storage_capacity(
-        self, pool: MetaPool, size: int | None = None
-    ) -> bool:
+    def _has_storage_capacity(self, pool: MetaPool, size: int | None = None) -> bool:
         if not pool.storage_pools:
             return False
 
@@ -299,9 +289,7 @@ class MetaVolume(meta.MetaCoordinatorDataPlaneModel):
         # but we need to support multiple storage pools
         return pool.storage_pools[0].has_capacity(size)
 
-    def _allocate_capacity(
-        self, pool: MetaPool, size: int | None = None
-    ) -> None:
+    def _allocate_capacity(self, pool: MetaPool, size: int | None = None) -> None:
         size = size if size is not None else self.size
         storage_pool = pool.storage_pools[0]
         storage_pool.allocate_capacity(size)
@@ -364,9 +352,7 @@ class MetaVolume(meta.MetaCoordinatorDataPlaneModel):
         # Don't attach volumes if they belongs to a machine
         # but the machine doesn't exist.
         if self.machine not in pool.dp_machine_map:
-            LOG.debug(
-                "The machine %s doesn't exist, skip attaching", self.machine
-            )
+            LOG.debug("The machine %s doesn't exist, skip attaching", self.machine)
             return
 
         # It's a root volume. It will be attached in the machine model.
@@ -379,9 +365,7 @@ class MetaVolume(meta.MetaCoordinatorDataPlaneModel):
         """Load the pool information."""
         # Prevent actualization when pool is not provided
         if pool is None:
-            raise ValueError(
-                f"The pool is not provided for volume {self.uuid}"
-            )
+            raise ValueError(f"The pool is not provided for volume {self.uuid}")
 
         if self.uuid not in pool.dp_volume_map:
             raise ua_driver_exc.ResourceNotFound(resource=self)
@@ -419,9 +403,7 @@ class MetaVolume(meta.MetaCoordinatorDataPlaneModel):
         # Resize the volume
         if self.size != dp_volume.size:
             # Check the storage pool has enough capacity
-            if not self._has_storage_capacity(
-                pool, self.size - dp_volume.size
-            ):
+            if not self._has_storage_capacity(pool, self.size - dp_volume.size):
                 self.status = nc.VolumeStatus.ERROR.value
                 return
 
@@ -452,9 +434,7 @@ class MetaMachine(meta.MetaCoordinatorDataPlaneModel):
     """Machine meta model."""
 
     name = properties.property(types.String(max_length=255), default="")
-    cores = properties.property(
-        types.Integer(min_value=0, max_value=4096), default=0
-    )
+    cores = properties.property(types.Integer(min_value=0, max_value=4096), default=0)
     ram = properties.property(types.Integer(min_value=0), default=0)
     status = properties.property(
         types.Enum([s.value for s in nc.MachineStatus]),
@@ -473,9 +453,7 @@ class MetaMachine(meta.MetaCoordinatorDataPlaneModel):
     image = properties.property(
         types.AllowNone(types.String(max_length=512)), default=None
     )
-    project_id = properties.property(
-        types.UUID(), required=True, read_only=True
-    )
+    project_id = properties.property(types.UUID(), required=True, read_only=True)
     port_info = properties.property(types.Dict(), default=dict)
 
     def _create_machine(
@@ -550,9 +528,7 @@ class MetaMachine(meta.MetaCoordinatorDataPlaneModel):
             "boot",
         }
 
-    def dump_to_dp(
-        self, pool: MetaPool, volumes: tp.Collection[MetaVolume]
-    ) -> None:
+    def dump_to_dp(self, pool: MetaPool, volumes: tp.Collection[MetaVolume]) -> None:
         """Create the machine in the pool."""
         driver: driver_base.AbstractPoolDriver = pool.load_driver()
 
@@ -629,9 +605,7 @@ class MetaMachine(meta.MetaCoordinatorDataPlaneModel):
         """Load the machine from the data plane."""
         # Prevent actualization when pool is not provided
         if pool is None:
-            raise ValueError(
-                f"The pool is not provided for machine {self.uuid}"
-            )
+            raise ValueError(f"The pool is not provided for machine {self.uuid}")
 
         if self.uuid not in pool.dp_machine_map:
             raise ua_driver_exc.ResourceNotFound(resource=self)
@@ -650,9 +624,7 @@ class MetaMachine(meta.MetaCoordinatorDataPlaneModel):
         dp_machine = pool.dp_machine_map[self.uuid]
         self._delete_machine(driver, dp_machine)
 
-    def update_on_dp(
-        self, pool: MetaPool, volumes: tp.Collection[MetaVolume]
-    ) -> None:
+    def update_on_dp(self, pool: MetaPool, volumes: tp.Collection[MetaVolume]) -> None:
         """Update the machine on the data plane."""
         if self.uuid not in pool.dp_machine_map:
             raise ua_driver_exc.ResourceNotFound(resource=self)
@@ -673,9 +645,7 @@ class MetaMachine(meta.MetaCoordinatorDataPlaneModel):
             need_cores = self.cores - dp_machine.cores
             if not self._has_enough_resources(pool, cores=need_cores):
                 self.status = nc.MachineStatus.ERROR.value
-                LOG.error(
-                    "Not enough Cores to update the machine %s", self.uuid
-                )
+                LOG.error("Not enough Cores to update the machine %s", self.uuid)
                 return
 
             # NOTE(akremenetsky): Legacy machines always have image=None.
@@ -733,7 +703,6 @@ class MetaMachine(meta.MetaCoordinatorDataPlaneModel):
 
 
 class PoolAgentDriver(meta.MetaCoordinatorAgentDriver):
-
     # Order matters
     __model_map__ = {
         "pool": MetaPool,

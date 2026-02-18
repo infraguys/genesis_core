@@ -1,0 +1,13 @@
+services:
+  postgres:
+    image: postgres:latest
+    command: -c 'max_connections=100'
+    environment:
+      POSTGRES_USER: genesis_core
+      POSTGRES_PASSWORD: genesis_core
+      POSTGRES_DB: genesis_core
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data/pgdata

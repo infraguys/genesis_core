@@ -27,7 +27,6 @@ CONF = cfg.CONF
 
 
 class NetworkController(ra_controllers.RoutesListController):
-
     __TARGET_PATH__ = "/v1/network/"
 
 

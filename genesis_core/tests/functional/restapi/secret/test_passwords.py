@@ -25,7 +25,6 @@ from genesis_core.secret.dm import models as secret_models
 
 
 class TestPasswordsUserApi:
-
     # Utils
 
     @staticmethod

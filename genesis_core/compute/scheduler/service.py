@@ -21,7 +21,6 @@ import uuid as sys_uuid
 import typing as tp
 
 from restalchemy.common import contexts
-from restalchemy.storage import exceptions as ra_exceptions
 from restalchemy.dm import filters as dm_filters
 from gcl_looper.services import basic
 from gcl_sdk.agents.universal.dm import models as ua_models
@@ -36,7 +35,6 @@ MACHINE_POOL_CAP = "pool"
 
 
 class SchedulerService(basic.BasicService):
-
     def __init__(
         self,
         pool_filters: list[base.MachinePoolAbstractFilter],
@@ -73,9 +71,7 @@ class SchedulerService(basic.BasicService):
             filters={
                 "pool": dm_filters.IsNot(None),
                 "builder": dm_filters.Is(None),
-                "build_status": dm_filters.EQ(
-                    nc.MachineBuildStatus.IN_BUILD.value
-                ),
+                "build_status": dm_filters.EQ(nc.MachineBuildStatus.IN_BUILD.value),
             },
             limit=limit,
         )
@@ -155,9 +151,7 @@ class SchedulerService(basic.BasicService):
             limit=limit,
         )
 
-    def _get_pools(
-        self, limit: int = nc.DEF_SQL_LIMIT
-    ) -> list[base.MachinePoolBundle]:
+    def _get_pools(self, limit: int = nc.DEF_SQL_LIMIT) -> list[base.MachinePoolBundle]:
         """Fetch pools and available volumes in the pools."""
         pools = models.MachinePool.objects.get_all(
             filters={
@@ -230,10 +224,7 @@ class SchedulerService(basic.BasicService):
             # We can take less than required size and resize it later
             # NOTE(akremenetsky): Need to think about target fileds for
             # volumes. Is the size is a target or actual field?
-            if (
-                pool_volume.image == volume.image
-                and pool_volume.size <= volume.size
-            ):
+            if pool_volume.image == volume.image and pool_volume.size <= volume.size:
                 volumes.append(pool_volume)
 
         # No volumes found, just create a new volume later
@@ -296,9 +287,7 @@ class SchedulerService(basic.BasicService):
         # Place volumes into the pool
         volume_allocations = []
         for node_volume in node.volumes:
-            volume_allocations.append(
-                self._place_volume_into_pool(node_volume, pool)
-            )
+            volume_allocations.append(self._place_volume_into_pool(node_volume, pool))
 
         # Set pool to machine, node and volumes
         machine.pool = pool.pool.uuid
@@ -332,14 +321,10 @@ class SchedulerService(basic.BasicService):
         idle_machines = self._get_idle_machines()
 
         idle_hws = [
-            m
-            for m in idle_machines
-            if m.machine.machine_type == nc.NodeType.HW.value
+            m for m in idle_machines if m.machine.machine_type == nc.NodeType.HW.value
         ]
         idle_vms = [
-            m
-            for m in idle_machines
-            if m.machine.machine_type == nc.NodeType.VM.value
+            m for m in idle_machines if m.machine.machine_type == nc.NodeType.VM.value
         ]
         vms = []
 
@@ -445,9 +430,7 @@ class SchedulerService(basic.BasicService):
                 pools = filter.filter(node, pools)
 
             if not pools:
-                LOG.warning(
-                    "No pools found to schedule node %s", node.node.uuid
-                )
+                LOG.warning("No pools found to schedule node %s", node.node.uuid)
                 continue
 
             # Weighting. We weight pools and choose the best one.
@@ -466,9 +449,7 @@ class SchedulerService(basic.BasicService):
             index = accumulated_weights.index(max(accumulated_weights))
             pool = pools[index]
             if not pool:
-                LOG.warning(
-                    "No pools found to schedule node %s", node.node.uuid
-                )
+                LOG.warning("No pools found to schedule node %s", node.node.uuid)
                 continue
 
             # The final step is to place the node into the pool
@@ -481,9 +462,7 @@ class SchedulerService(basic.BasicService):
                     pool.pool.uuid,
                 )
 
-    def _schedule_pools(
-        self, pool_builders: list[ua_models.UniversalAgent]
-    ) -> None:
+    def _schedule_pools(self, pool_builders: list[ua_models.UniversalAgent]) -> None:
         unsheduled = self._get_unscheduled_pools()
         if not unsheduled:
             LOG.debug("Nothing to schedule, no unscheduled pools")
@@ -495,9 +474,7 @@ class SchedulerService(basic.BasicService):
             LOG.warning("No pool builders found to schedule pools %s", pools)
             return
 
-        machine_agents = ua_models.UniversalAgent.have_capabilities(
-            (MACHINE_POOL_CAP,)
-        )
+        machine_agents = ua_models.UniversalAgent.have_capabilities((MACHINE_POOL_CAP,))
 
         # TODO(akremenetsky): We need to rebalance pools among agents
         # and builders. Also we need to track died agents and builders.
@@ -523,9 +500,7 @@ class SchedulerService(basic.BasicService):
             except Exception:
                 LOG.exception("Error scheduling pool %s", pool.uuid)
 
-    def _schedule_volume_on_pools(
-        self, pools: list[base.MachinePoolBundle]
-    ) -> None:
+    def _schedule_volume_on_pools(self, pools: list[base.MachinePoolBundle]) -> None:
         """Schedule volumes on pools."""
         unscheduled_volumes = self._get_unscheduled_volumes()
         if not unscheduled_volumes:

@@ -23,7 +23,6 @@ from genesis_core.user_api.iam import constants as iam_c
 
 
 class TestIdp(base.BaseIamResourceTest):
-
     IDP_ENDPOINT = "iam/idp"
 
     def _collection_url(self, client):
@@ -45,9 +44,7 @@ class TestIdp(base.BaseIamResourceTest):
 
     def _create_idp(self, client, iam_client_uuid: str):
         url = self._collection_url(client)
-        response = client.post(
-            url, json=self._build_create_payload(iam_client_uuid)
-        )
+        response = client.post(url, json=self._build_create_payload(iam_client_uuid))
         assert response.status_code == 201
         return response.json()
 
@@ -63,9 +60,7 @@ class TestIdp(base.BaseIamResourceTest):
                 ),
             )
 
-    def test_create_idp_no_permission_fails(
-        self, user_api_client, auth_test1_user
-    ):
+    def test_create_idp_no_permission_fails(self, user_api_client, auth_test1_user):
         client = user_api_client(auth_test1_user)
         url = self._collection_url(client)
 
@@ -77,33 +72,25 @@ class TestIdp(base.BaseIamResourceTest):
                 ),
             )
 
-    def test_create_idp_with_permission_success(
-        self, user_api_client, auth_test1_user
-    ):
+    def test_create_idp_with_permission_success(self, user_api_client, auth_test1_user):
         client = user_api_client(
             auth_test1_user,
             permissions=[
                 iam_c.PERMISSION_IDP_CREATE,
             ],
         )
-        idp = self._create_idp(
-            client, iam_client_uuid=auth_test1_user.client_uuid
-        )
+        idp = self._create_idp(client, iam_client_uuid=auth_test1_user.client_uuid)
 
         assert idp["name"] == "test-idp"
 
-    def test_list_idp_no_permission_fails(
-        self, user_api_client, auth_test1_user
-    ):
+    def test_list_idp_no_permission_fails(self, user_api_client, auth_test1_user):
         client = user_api_client(auth_test1_user)
         url = self._collection_url(client)
 
         with pytest.raises(bazooka_exc.ForbiddenError):
             client.get(url)
 
-    def test_list_idp_with_permission_success(
-        self, user_api_client, auth_user_admin
-    ):
+    def test_list_idp_with_permission_success(self, user_api_client, auth_user_admin):
         admin_client = user_api_client(
             auth_user_admin,
             permissions=[
@@ -143,9 +130,7 @@ class TestIdp(base.BaseIamResourceTest):
         with pytest.raises(bazooka_exc.ForbiddenError):
             client.put(url, json={"name": "updated"})
 
-    def test_update_idp_with_permission_success(
-        self, user_api_client, auth_user_admin
-    ):
+    def test_update_idp_with_permission_success(self, user_api_client, auth_user_admin):
         admin_client = user_api_client(
             auth_user_admin,
             permissions=[
@@ -184,9 +169,7 @@ class TestIdp(base.BaseIamResourceTest):
         with pytest.raises(bazooka_exc.ForbiddenError):
             client.delete(url)
 
-    def test_delete_idp_with_permission_success(
-        self, user_api_client, auth_user_admin
-    ):
+    def test_delete_idp_with_permission_success(self, user_api_client, auth_user_admin):
         admin_client = user_api_client(
             auth_user_admin,
             permissions=[

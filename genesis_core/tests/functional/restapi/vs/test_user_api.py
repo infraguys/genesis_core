@@ -25,7 +25,6 @@ from genesis_core.common import constants as c
 
 
 class TestVSUserApi:
-
     @staticmethod
     def _profile_factory(
         uuid: sys_uuid.UUID | None = None,

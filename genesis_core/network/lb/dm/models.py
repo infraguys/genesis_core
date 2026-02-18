@@ -36,7 +36,6 @@ class TargetNodeSet(sdk_models.NodeSet):
 
 
 class IaasLB(models.LB, ua_models.InstanceWithDerivativesMixin):
-
     __derivative_model_map__ = {
         "target_node_set": TargetNodeSet,
     }
@@ -65,7 +64,6 @@ class PaasLBAgent(
     ra_models.ModelWithUUID,
     ua_models.TargetResourceKindAwareMixin,
 ):
-
     status = properties.property(
         types.Enum([status.value for status in models.LBStatus]),
         default=models.LBStatus.NEW.value,
@@ -101,7 +99,6 @@ class PaasLBNode(
 
 
 class PaasLB(IaasLB):
-
     __derivative_model_map__ = {
         "paas_lb_node": PaasLBNode,
         "paas_lb_agent": PaasLBAgent,
@@ -153,9 +150,7 @@ class PaasLB(IaasLB):
                 "proto": vhost.protocol,
                 "port": vhost.port,
                 "domains": vhost.domains,
-                "cert": (
-                    vhost.cert.dump_to_simple_view() if vhost.cert else None
-                ),
+                "cert": (vhost.cert.dump_to_simple_view() if vhost.cert else None),
                 "ext_sources": [
                     e.dump_to_simple_view() for e in vhost.external_sources
                 ],
@@ -179,7 +174,5 @@ class PaasLB(IaasLB):
                 "endpoints": [e.dump_to_simple_view() for e in b.endpoints],
                 "balance": b.balance,
             }
-            for b in models.BackendPool.objects.get_all(
-                filters={"parent": self.uuid}
-            )
+            for b in models.BackendPool.objects.get_all(filters={"parent": self.uuid})
         }

@@ -49,9 +49,7 @@ class CertBotBackendClient(base.AbstractBackendClient):
         self._dns_client = dns_client
         self._admin_email = admin_email
         self._client_acme: acme_lib_client.ClientV2 | None = None
-        self._private_key = acme.get_or_create_client_private_key(
-            private_key_path
-        )
+        self._private_key = acme.get_or_create_client_private_key(private_key_path)
 
     def _get_or_create_acme_client(self) -> acme_lib_client.ClientV2:
         if self._client_acme is None:

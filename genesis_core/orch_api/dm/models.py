@@ -44,9 +44,7 @@ class MachineNetboot(models.Machine):
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
-        self.set_netboot_params(
-            gc_host, gc_orch_api, gc_status_api, kernel, initrd
-        )
+        self.set_netboot_params(gc_host, gc_orch_api, gc_status_api, kernel, initrd)
 
     @classmethod
     def restore_from_storage(
@@ -59,9 +57,7 @@ class MachineNetboot(models.Machine):
         **kwargs,
     ):
         obj = super().restore_from_storage(**kwargs)
-        obj.set_netboot_params(
-            gc_host, gc_orch_api, gc_status_api, kernel, initrd
-        )
+        obj.set_netboot_params(gc_host, gc_orch_api, gc_status_api, kernel, initrd)
         return obj
 
     def set_netboot_params(

@@ -21,8 +21,6 @@ import os
 import socket
 import subprocess
 from contextlib import closing
-import typing as tp
-import uuid as sys_uuid
 from urllib.parse import urlparse
 
 import pytest
@@ -47,9 +45,7 @@ def pdns_server(user_api, tmp_path_factory: pytest.TempPathFactory):
     if result.scheme != "postgresql":
         pytest.skip("Only PostgreSQL is supported for PowerDNS tests")
     if not os.path.exists(PDNS_BIN):
-        pytest.skip(
-            "PowerDNS server binary not found, dataplane can't be checked"
-        )
+        pytest.skip("PowerDNS server binary not found, dataplane can't be checked")
 
     port = result.port
 

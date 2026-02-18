@@ -28,7 +28,6 @@ from genesis_core.compute.dm import models as nm
 
 
 class AbstractTarget(types_dynamic.AbstractKindModel, models.SimpleViewMixin):
-
     def target_nodes(self) -> tp.List[sys_uuid.UUID]:
         """Returns list of target nodes where config should be deployed."""
         return []

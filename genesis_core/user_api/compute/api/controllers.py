@@ -39,7 +39,6 @@ class VolumeNotAttachedError(ra_e.ValidationErrorException):
 
 
 class ComputeController(controllers.RoutesListController):
-
     __TARGET_PATH__ = "/v1/compute/"
 
 
@@ -187,10 +186,7 @@ class HypervisorsController(
     )
 
     def create(self, **kwargs):
-        if (
-            "machine_type" in kwargs
-            and kwargs["machine_type"] != nc.NodeType.VM.value
-        ):
+        if "machine_type" in kwargs and kwargs["machine_type"] != nc.NodeType.VM.value:
             raise ValueError("Hyper must be VM type")
 
         return super().create(**kwargs)

@@ -34,7 +34,6 @@ TARGET_IP_KEY = "target_ipv4"
 
 
 class NetworkService(basic.BasicService):
-
     def _get_new_vm_nodes(self) -> tp.List[models.NodeWithoutPorts]:
         return models.NodeWithoutPorts.get_vm_nodes()
 
@@ -73,9 +72,7 @@ class NetworkService(basic.BasicService):
         subnets = net_models.Subnet.objects.get_all()
         ports = net_models.Port.objects.get_all(
             filters={
-                "subnet": dm_filters.In(
-                    [str(subnet.uuid) for subnet in subnets]
-                ),
+                "subnet": dm_filters.In([str(subnet.uuid) for subnet in subnets]),
             }
         )
 
@@ -146,9 +143,7 @@ class NetworkService(basic.BasicService):
                     target_ports,
                 )
             except Exception:
-                LOG.exception(
-                    "Error actualizing subnet %s", actual_subnet.uuid
-                )
+                LOG.exception("Error actualizing subnet %s", actual_subnet.uuid)
 
     def _actualize_subnet(
         self,
@@ -170,9 +165,7 @@ class NetworkService(basic.BasicService):
                 target_subnet.next_server = subnet.next_server
                 target_subnet.update()
             except Exception:
-                LOG.exception(
-                    "Error actualizing subnet %s", actual_subnet.uuid
-                )
+                LOG.exception("Error actualizing subnet %s", actual_subnet.uuid)
 
         # Create ports
         ports = tuple(
@@ -196,7 +189,7 @@ class NetworkService(basic.BasicService):
 
             try:
                 # Update `default_network` for the node
-                if not "port" in target_port.node.default_network:
+                if "port" not in target_port.node.default_network:
                     target_port.node.update_default_network(p)
                 target_port.update()
             except Exception:
@@ -226,9 +219,7 @@ class NetworkService(basic.BasicService):
                 try:
                     driver.update_port(target_port.cast_to_base())
                 except Exception:
-                    LOG.exception(
-                        "Error actualizing port %s", actual_port.uuid
-                    )
+                    LOG.exception("Error actualizing port %s", actual_port.uuid)
 
             # Actualize status
             if (
@@ -317,15 +308,11 @@ class NetworkService(basic.BasicService):
                     port = self._allocate_port(node, ipam, subnet_map)
                     port.insert()
                 except ValueError:
-                    LOG.error(
-                        "No suitable subnet found for node %s", node.uuid
-                    )
+                    LOG.error("No suitable subnet found for node %s", node.uuid)
                     continue
                 except Exception:
                     ipam.deallocate_ip(port.subnet, port.ipv4)
-                    LOG.exception(
-                        "Error allocating port for node %s", node.uuid
-                    )
+                    LOG.exception("Error allocating port for node %s", node.uuid)
 
             # There are new HW ports. Allocate IPs to them.
             for port in new_hw_ports:
@@ -337,9 +324,7 @@ class NetworkService(basic.BasicService):
                     port.insert()
                     subnet_map[port.subnet].append(port)
                 except Exception:
-                    LOG.exception(
-                        "Error allocating IP for machine %s", port.machine
-                    )
+                    LOG.exception("Error allocating IP for machine %s", port.machine)
 
             # Actualize ports and subnets on the data plane
             for network, net_subnet_map in network_map.items():

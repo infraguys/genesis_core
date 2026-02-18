@@ -73,9 +73,7 @@ def remove_all_dm(dm_class, filters, session=None, **kwargs):
         dm.delete(session=session, **kwargs)
 
 
-def remove_nested_dm(
-    dm_class, parent_field_name, parent, session=None, **kwargs
-):
+def remove_nested_dm(dm_class, parent_field_name, parent, session=None, **kwargs):
     remove_all_dm(
         dm_class,
         filters={parent_field_name: dm_filters.EQ(parent)},

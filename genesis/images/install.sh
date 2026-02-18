@@ -41,7 +41,9 @@ CLI_DEV_MODE=$([ -d "$DEV_CLI_PATH" ] && echo "true" || echo "false")
 # Install packages
 sudo apt update
 sudo apt install yq postgresql libev-dev libvirt-dev \
-    tftpd-hpa nginx-full isc-dhcp-server -y
+    tftpd-hpa nginx-full isc-dhcp-server curl -y
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source "$HOME"/.local/bin/env
 
 ALLOW_USER_PASSWD=${ALLOW_USER_PASSWD-}
 if [ -n "$ALLOW_USER_PASSWD" ]; then
@@ -139,17 +141,14 @@ sudo cp "$GC_PATH/genesis/manifests/core.yaml" $GC_CFG_DIR/
 sudo cp "$GC_PATH/genesis/images/startup_cfg.yaml" $GC_CFG_DIR/
 sudo cp "$GC_PATH/genesis/images/bootstrap.sh" $BOOTSTRAP_PATH/0100-gc-bootstrap.sh
 
-mkdir -p "$VENV_PATH"
-python3 -m venv "$VENV_PATH"
+cd "$GC_PATH"
+uv sync --extra base
 source "$GC_PATH"/.venv/bin/activate
-pip install pip --upgrade
-pip install -r "$GC_PATH"/requirements.txt
-pip install -e "$GC_PATH"
 
 # In the dev mode the gcl_sdk package is installed from the local machine
 if [[ "$SDK_DEV_MODE" == "true" ]]; then
-    pip uninstall -y gcl_sdk
-    pip install -e "$DEV_SDK_PATH"
+    uv pip uninstall -y gcl_sdk
+    uv pip install -e "$DEV_SDK_PATH"
 fi
 
 # Configuration for universal agent
@@ -160,9 +159,9 @@ ra-apply-migration --config-dir "$GC_PATH/etc/genesis_core/" --path "$GC_PATH/mi
 
 # Install CLI
 if [[ "$CLI_DEV_MODE" == "true" ]]; then
-    pip install -e "$DEV_CLI_PATH"
+    uv pip install -e "$DEV_CLI_PATH"
 else
-    pip install genesis-ci-tools
+    uv pip install genesis-ci-tools
 fi
 
 deactivate

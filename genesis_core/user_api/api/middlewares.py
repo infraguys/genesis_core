@@ -36,7 +36,6 @@ class RulesContext:
 
 
 class SecurityRulesMiddleware(ra_middlewares.Middleware):
-
     def process_request(self, req):
         context = ra_contexts.get_context()
         rules_context = self._prepare_rules(context)
@@ -46,9 +45,7 @@ class SecurityRulesMiddleware(ra_middlewares.Middleware):
 
     def _prepare_rules(self, context):
         try:
-            project_id = (
-                context.iam_context.get_introspection_info().project_id
-            )
+            project_id = context.iam_context.get_introspection_info().project_id
         except gcl_iam_exceptions.NoIamSessionStored:
             project_id = None
 

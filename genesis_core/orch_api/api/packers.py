@@ -38,7 +38,6 @@ sanboot --no-describe --drive 0x8{disk_number}
 
 
 class IPXEPacker(packers.JSONPacker):
-
     def pack(self, obj: models.MachineNetboot):
         boot = nc.BootAlternative[obj.boot]
 

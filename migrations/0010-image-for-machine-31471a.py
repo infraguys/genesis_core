@@ -19,7 +19,6 @@ from restalchemy.storage.sql import migrations
 
 
 class MigrationStep(migrations.AbstarctMigrationStep):
-
     def __init__(self):
         self._depends = ["0009-node-builder-entities-0d8f66.py"]
 
@@ -32,19 +31,23 @@ class MigrationStep(migrations.AbstarctMigrationStep):
         return False
 
     def upgrade(self, session):
-        sql_expressions = ["""
+        sql_expressions = [
+            """
             ALTER TABLE machines 
                 ADD IF NOT EXISTS image varchar(255) NULL DEFAULT NULL;
-            """]
+            """
+        ]
 
         for expr in sql_expressions:
             session.execute(expr, None)
 
     def downgrade(self, session):
-        sql_expressions = ["""
+        sql_expressions = [
+            """
             ALTER TABLE machines 
                 DROP COLUMN IF EXISTS image;
-            """]
+            """
+        ]
 
         for expr in sql_expressions:
             session.execute(expr, None)

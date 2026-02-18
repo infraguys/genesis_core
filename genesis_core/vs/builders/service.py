@@ -63,15 +63,13 @@ class Variable(
         """
         if isinstance(self.setter, models.ProfileVariableSetter):
             return tuple(
-                ua_models.RI("vs_profile", p["profile"])
-                for p in self.setter.profiles
+                ua_models.RI("vs_profile", p["profile"]) for p in self.setter.profiles
             )
 
         return tuple()
 
 
 class VSBuilderService(sdk_builder.CollectionUniversalBuilderService):
-
     def __init__(
         self,
         uuid: sys_uuid.UUID,

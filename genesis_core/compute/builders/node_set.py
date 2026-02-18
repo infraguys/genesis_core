@@ -29,7 +29,6 @@ LOG = logging.getLogger(__name__)
 
 
 class NodeSetBuilderService(builder.CoreInfraBuilder):
-
     def __init__(
         self,
         instance_model: tp.Type[models.NodeSet],
@@ -46,12 +45,10 @@ class NodeSetBuilderService(builder.CoreInfraBuilder):
         # NOTE(akremenetsky): Default placement policy is soft-anti-affinity
         policy_uuid = sys_uuid.uuid5(instance.uuid, "soft-anti-affinity")
 
-        soft_anti_affinity = (
-            compute_models.PlacementPolicy.objects.get_one_or_none(
-                filters={
-                    "uuid": dm_filters.EQ(policy_uuid),
-                },
-            )
+        soft_anti_affinity = compute_models.PlacementPolicy.objects.get_one_or_none(
+            filters={
+                "uuid": dm_filters.EQ(policy_uuid),
+            },
         )
 
         if not soft_anti_affinity:
@@ -59,8 +56,7 @@ class NodeSetBuilderService(builder.CoreInfraBuilder):
                 uuid=policy_uuid,
                 name="soft-anti-affinity",
                 description=(
-                    "Soft anti-affinity placement policy "
-                    f"for node set {instance.uuid}"
+                    f"Soft anti-affinity placement policy for node set {instance.uuid}"
                 ),
                 kind=nc.PlacementPolicyKind.SOFT_ANTI_AFFINITY.value,
                 domain=None,
