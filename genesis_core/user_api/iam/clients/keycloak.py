@@ -20,7 +20,6 @@ import bazooka
 
 
 class KeycloakClient:
-
     def __init__(self, endpoint, timeout=5):
         super().__init__()
         self._endpoint = endpoint

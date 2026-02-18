@@ -13,7 +13,6 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from __future__ import annotations
 
 import json
 import itertools
@@ -45,15 +44,13 @@ class Profile(
         default=lambda: sys_uuid.uuid4(),
     )
 
-    def activate(self, session: tp.Any | None = None) -> None:
+    def activate(self, session: tp.Any = None) -> None:
         if self.profile_type != infra_c.ProfileType.GLOBAL:
             raise ValueError("Only global profiles can be activated")
 
         global_profiles = Profile.objects.get_all(
             filters={
-                "profile_type": dm_filters.EQ(
-                    infra_c.ProfileType.GLOBAL.value
-                ),
+                "profile_type": dm_filters.EQ(infra_c.ProfileType.GLOBAL.value),
             },
             session=session,
         )
@@ -66,18 +63,16 @@ class Profile(
         self.update(session=session)
 
     @classmethod
-    def global_profile(cls, session: tp.Any | None = None) -> "Profile":
+    def global_profile(cls, session: tp.Any = None) -> "Profile":
         return cls.objects.get_one(
             filters={
-                "profile_type": dm_filters.EQ(
-                    infra_c.ProfileType.GLOBAL.value
-                ),
+                "profile_type": dm_filters.EQ(infra_c.ProfileType.GLOBAL.value),
                 "active": dm_filters.EQ(True),
             },
             session=session,
         )
 
-    def _validate_not_used(self, session: tp.Any | None = None) -> None:
+    def _validate_not_used(self, session: tp.Any = None) -> None:
         # FIXME(akremenetsky): Listing all variables
         # is not efficient but:
         # 1. Deleting a profile is not a frequent operation.
@@ -87,8 +82,7 @@ class Profile(
         #    table to keep binding between profiles and variables.
         #    For now, we keep it simple.
         expression = (
-            "SELECT * FROM vs_variables vars  "
-            "WHERE vars.setter->>'kind' = 'profile';"
+            "SELECT * FROM vs_variables vars  WHERE vars.setter->>'kind' = 'profile';"
         )
 
         if not session:
@@ -102,13 +96,11 @@ class Profile(
 
         me = str(self.uuid)
 
-        for p in itertools.chain.from_iterable(
-            r["setter"]["profiles"] for r in resp
-        ):
+        for p in itertools.chain.from_iterable(r["setter"]["profiles"] for r in resp):
             if p["profile"] == me:
                 raise infra_exc.ProfileInUse(profile=self.uuid)
 
-    def delete(self, session: tp.Any | None = None):
+    def delete(self, session: tp.Any = None):
         # Check the profile is not used by any variable
         # before deleting it.
         self._validate_not_used(session=session)
@@ -142,7 +134,7 @@ class ProfileVariableSetter(infra_models.ProfileVariableSetter):
 
         If the value cannot be determined, the method raises an exception.
         """
-        profile: Profile | None = None
+        profile: tp.Optional[Profile] = None
 
         # If the variable is binded to an element,
         # we check if the element exists and has profile
@@ -194,7 +186,7 @@ class SelectorVariableSetter(infra_models.SelectorVariableSetter):
     """
 
     def _set_value_latest_strategy(
-        self, variable: "Variable", values: list["Value"]
+        self, variable: "Variable", values: tp.List["Value"]
     ) -> None:
         """Determine a value based on the `latest` strategy."""
         # If there is no manual selected value, select
@@ -278,7 +270,7 @@ class Variable(
     )
 
     @property
-    def selected_value(self) -> "Value" | None:
+    def selected_value(self) -> tp.Optional["Value"]:
         """Returns the selected value for the variable."""
         var_values = Value.objects.get_all(
             filters={"variable": dm_filters.EQ(self)},
@@ -315,32 +307,28 @@ class Value(
     )
     variable = relationships.relationship(Variable, prefetch=True)
 
-    def insert(self, session: tp.Any | None = None) -> None:
+    def insert(self, session: tp.Any = None) -> None:
         super().insert(session=session)
 
         # Notify the variable that a new value has been inserted
         if self.variable:
             self.variable.update(session=session, force=True)
 
-    def update(
-        self, session: tp.Any | None = None, force: bool = False
-    ) -> None:
+    def update(self, session: tp.Any = None, force: bool = False) -> None:
         super().update(session=session, force=force)
 
         # Notify the variable that a new value has been inserted
         if self.variable:
             self.variable.update(session=session, force=True)
 
-    def delete(self, session: tp.Any | None = None):
+    def delete(self, session: tp.Any = None):
         super().delete(session=session)
 
         # Notify the variable that a value has been deleted
         if self.variable:
             self.variable.update(session=session, force=True)
 
-    def select_me(
-        self, variable: Variable, session: tp.Any | None = None
-    ) -> None:
+    def select_me(self, variable: Variable, session: tp.Any = None) -> None:
         if self.variable != variable:
             raise ValueError("Value does not belong to the variable")
 

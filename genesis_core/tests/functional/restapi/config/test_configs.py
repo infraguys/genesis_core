@@ -25,7 +25,6 @@ from genesis_core.config.dm import models
 
 
 class TestConfigUserApi:
-
     # Utils
 
     @staticmethod
@@ -198,9 +197,7 @@ class TestConfigUserApi:
         assert response.status_code == 201
 
         # Manually change status
-        config_obj = models.Config.objects.get_one(
-            filters={"uuid": output["uuid"]}
-        )
+        config_obj = models.Config.objects.get_one(filters={"uuid": output["uuid"]})
         config_obj.status = "IN_PROGRESS"
         config_obj.update()
 

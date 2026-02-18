@@ -13,7 +13,6 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from __future__ import annotations
 
 import logging
 import uuid as sys_uuid
@@ -63,15 +62,13 @@ class Variable(
         """
         if isinstance(self.setter, models.ProfileVariableSetter):
             return tuple(
-                ua_models.RI("vs_profile", p["profile"])
-                for p in self.setter.profiles
+                ua_models.RI("vs_profile", p["profile"]) for p in self.setter.profiles
             )
 
         return tuple()
 
 
 class VSBuilderService(sdk_builder.CollectionUniversalBuilderService):
-
     def __init__(
         self,
         uuid: sys_uuid.UUID,
@@ -114,9 +111,9 @@ class VSBuilderService(sdk_builder.CollectionUniversalBuilderService):
 
     def post_update_instance_resource(
         self,
-        instance: models.InstanceMixin,
-        resource: models.TargetResource,
-        derivatives: tp.Collection[models.TargetResource] = tuple(),
+        instance: ua_models.InstanceMixin,
+        resource: ua_models.TargetResource,
+        derivatives: tp.Collection[ua_models.TargetResource] = tuple(),
     ) -> None:
         """The hook is performed after updating instance resource."""
         # Skip Profile and Value instances

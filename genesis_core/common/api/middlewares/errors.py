@@ -23,7 +23,6 @@ from genesis_core.common import exceptions as common_exc
 
 
 class ErrorsHandlerMiddleware(middlewares.ErrorsHandlerMiddleware):
-
     not_found_exc = middlewares.ErrorsHandlerMiddleware.not_found_exc + (
         common_exc.CommonNotFoundException,
     )

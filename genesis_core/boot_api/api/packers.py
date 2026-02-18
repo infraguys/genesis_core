@@ -13,7 +13,6 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from __future__ import annotations
 
 from restalchemy.api import packers
 
@@ -38,7 +37,6 @@ sanboot --no-describe --drive 0x8{disk_number}
 
 
 class IPXEPacker(packers.JSONPacker):
-
     def pack(self, obj: models.MachineNetboot):
         boot = nc.BootAlternative[obj.boot]
 

@@ -13,7 +13,6 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from __future__ import annotations
 
 import logging
 import datetime
@@ -23,7 +22,6 @@ import uuid as sys_uuid
 
 from restalchemy.common import contexts
 from restalchemy.dm import filters as dm_filters
-from restalchemy.storage import exceptions as ra_exceptions
 from gcl_looper.services import basic
 from gcl_sdk.agents.universal.dm import models as ua_models
 
@@ -38,31 +36,30 @@ DEF_OUTDATE_MIN_PERIOD = datetime.timedelta(minutes=10)
 
 
 class ConfigServiceBuilder(basic.BasicService):
-
     def _get_new_configs(
         self,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> list[models.Config]:
+    ) -> tp.List[models.Config]:
         return models.Config.get_new_configs(limit=limit)
 
     def _get_changed_configs(
         self,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> list[models.Config]:
+    ) -> tp.List[models.Config]:
         return models.Config.get_updated_configs(limit=limit)
 
     def _get_deleted_configs(
         self,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> list[ua_models.TargetResource]:
+    ) -> tp.List[ua_models.TargetResource]:
         return models.Config.get_deleted_config_renders(limit=limit)
 
     def _get_outdated_renders(
         self,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> dict[
+    ) -> tp.Dict[
         sys_uuid.UUID,
-        list[tuple[ua_models.TargetResource, ua_models.Resource]],
+        tp.List[tp.Tuple[ua_models.TargetResource, ua_models.Resource]],
     ]:
         renders = ua_models.OutdatedResource.objects.get_all(
             filters={"kind": dm_filters.EQ(cc.RENDER_KIND)},
@@ -78,7 +75,7 @@ class ConfigServiceBuilder(basic.BasicService):
 
     def _get_outdated_configs(
         self, config_uuids: tp.Collection[sys_uuid.UUID]
-    ) -> list[tuple[models.Config, ua_models.TargetResource]]:
+    ) -> tp.List[tp.Tuple[models.Config, ua_models.TargetResource]]:
         configs = models.Config.objects.get_all(
             filters={"uuid": dm_filters.In(str(cfg) for cfg in config_uuids)},
             order_by={"uuid": "asc"},
@@ -96,7 +93,7 @@ class ConfigServiceBuilder(basic.BasicService):
     def _actualize_new_config(
         self,
         config: models.Config,
-        target_nodes: list[node_models.Node],
+        target_nodes: tp.List[node_models.Node],
     ) -> None:
         # Validate the owners exist
         # FIXME(akremenetsky): Only nodes as owners are supported for now.
@@ -138,7 +135,7 @@ class ConfigServiceBuilder(basic.BasicService):
         LOG.debug("Config resource %s created", config_resource.uuid)
 
     def _actualize_new_configs(
-        self, configs: list[models.Config] | None = None
+        self, configs: tp.Optional[tp.List[models.Config]] = None
     ) -> None:
         """Actualize new configs."""
         configs = configs or self._get_new_configs()
@@ -163,9 +160,7 @@ class ConfigServiceBuilder(basic.BasicService):
         # Make renders for each new config
         for config in configs:
             # Collect all available nodes for the config
-            target_nodes = tuple(
-                nodes[n] for n in config.target_nodes() if n in nodes
-            )
+            target_nodes = tuple(nodes[n] for n in config.target_nodes() if n in nodes)
             try:
                 self._actualize_new_config(config, target_nodes)
             except Exception:
@@ -187,9 +182,7 @@ class ConfigServiceBuilder(basic.BasicService):
         )
         render_resources = ua_models.TargetResource.objects.get_all(
             filters={
-                "master": dm_filters.In(
-                    str(uc.uuid) for uc in changed_configs
-                ),
+                "master": dm_filters.In(str(uc.uuid) for uc in changed_configs),
                 "kind": dm_filters.EQ(cc.RENDER_KIND),
             }
         )
@@ -205,7 +198,7 @@ class ConfigServiceBuilder(basic.BasicService):
         self,
         config: models.Config,
         config_resource: ua_models.TargetResource,
-        renders: list[tuple[ua_models.TargetResource, ua_models.Resource]],
+        renders: tp.List[tp.Tuple[ua_models.TargetResource, ua_models.Resource]],
     ) -> None:
         """Actualize outdated config."""
         if len(renders) == 0:
@@ -261,9 +254,7 @@ class ConfigServiceBuilder(basic.BasicService):
         for config, config_resource in configs:
             renders = render_map[config.uuid]
             try:
-                self._actualize_outdated_config(
-                    config, config_resource, renders
-                )
+                self._actualize_outdated_config(config, config_resource, renders)
             except Exception:
                 LOG.exception("Error actualizing config %s", config.uuid)
 
@@ -286,9 +277,7 @@ class ConfigServiceBuilder(basic.BasicService):
         for resource in render_resources + deleted_config_resources:
             try:
                 resource.delete()
-                LOG.debug(
-                    "Resource(%s) %s deleted", resource.kind, resource.uuid
-                )
+                LOG.debug("Resource(%s) %s deleted", resource.kind, resource.uuid)
             except Exception:
                 LOG.exception("Error deleting resource %s", resource.uuid)
 
@@ -300,9 +289,7 @@ class ConfigServiceBuilder(basic.BasicService):
             return
 
         # Take N oldest handled configs check if they are orphan
-        outdated_ts = (
-            datetime.datetime.now(datetime.timezone.utc) - outdate_min_period
-        )
+        outdated_ts = datetime.datetime.now(datetime.timezone.utc) - outdate_min_period
         outdated_configs = models.Config.objects.get_all(
             filters={"updated_at": dm_filters.LT(outdated_ts)},
             limit=30,

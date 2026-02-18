@@ -55,9 +55,7 @@ class CanNotUpdateUser(exceptions.CommonForbiddenException, iam_exc.Forbidden):
     )
 
 
-class CanNotConfirmUser(
-    exceptions.CommonForbiddenException, iam_exc.Forbidden
-):
+class CanNotConfirmUser(exceptions.CommonForbiddenException, iam_exc.Forbidden):
     __template__ = "The code `{code}` is not valid. Please request a new code."
 
 
@@ -76,9 +74,7 @@ class CanNotReadUser(exceptions.CommonForbiddenException, iam_exc.Forbidden):
     )
 
 
-class CanNotReadProject(
-    exceptions.CommonForbiddenException, iam_exc.Forbidden
-):
+class CanNotReadProject(exceptions.CommonForbiddenException, iam_exc.Forbidden):
     __template__ = (
         "The current user is not permitted to read the project `{uuid}`."
         " This action requires the `{rule}`, which has not been granted."
@@ -148,9 +144,7 @@ class CanNotCreateIamClient(
     )
 
 
-class CanNotListIamClients(
-    exceptions.CommonForbiddenException, iam_exc.Forbidden
-):
+class CanNotListIamClients(exceptions.CommonForbiddenException, iam_exc.Forbidden):
     __template__ = (
         "The current user is not permitted to list IAM clients."
         " This action requires the `{rule}`, which has not been granted."

@@ -82,17 +82,13 @@ class DHCPContext:
             }
             json.dump(data, fctx, indent=2)
 
-        LOG.debug(
-            "Saved dhcp context to %s, hash: %s", ctx_path, self.cfg_hash
-        )
+        LOG.debug("Saved dhcp context to %s, hash: %s", ctx_path, self.cfg_hash)
 
     def is_empty(self) -> bool:
         return self.cfg_hash == ""
 
     @classmethod
-    def load_ctx(
-        cls, ctx_path: str, empty_if_missing: bool = True
-    ) -> "DHCPContext":
+    def load_ctx(cls, ctx_path: str, empty_if_missing: bool = True) -> "DHCPContext":
         if not os.path.exists(ctx_path):
             if empty_if_missing:
                 return cls.fill_empty_ctx(ctx_path, force=True)
@@ -103,10 +99,7 @@ class DHCPContext:
             data = json.load(fctx)
 
         cfg_hash = data["cfg_hash"]
-        subnets = [
-            models.Subnet.restore_from_simple_view(**s)
-            for s in data["subnets"]
-        ]
+        subnets = [models.Subnet.restore_from_simple_view(**s) for s in data["subnets"]]
         port_map = collections.defaultdict(list)
         for uuid, ports in data["port_map"].items():
             port_map[sys_uuid.UUID(uuid)] = [
@@ -116,9 +109,7 @@ class DHCPContext:
         return cls(subnets=subnets, port_map=port_map, cfg_hash=cfg_hash)
 
     @classmethod
-    def fill_empty_ctx(
-        cls, ctx_path: str, force: bool = False
-    ) -> "DHCPContext":
+    def fill_empty_ctx(cls, ctx_path: str, force: bool = False) -> "DHCPContext":
         if not force and os.path.exists(ctx_path):
             raise FileExistsError()
 
@@ -268,9 +259,7 @@ class FlatBridgeNetworkDriver(base.AbstractNetworkDriver):
 
         return port
 
-    def create_ports(
-        self, ports: tp.List[models.Port]
-    ) -> tp.List[models.Port]:
+    def create_ports(self, ports: tp.List[models.Port]) -> tp.List[models.Port]:
         """Create a list of ports."""
         ctx = self._load_ctx()
         new_ports = []

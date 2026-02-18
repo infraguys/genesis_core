@@ -18,7 +18,6 @@ from restalchemy.storage.sql import migrations
 
 
 class MigrationStep(migrations.AbstarctMigrationStep):
-
     def __init__(self):
         self._depends = ["0025-secret-ssh-keys-ad3fad.py"]
 
@@ -33,7 +32,7 @@ class MigrationStep(migrations.AbstarctMigrationStep):
     def upgrade(self, session):
         expression = """
             DROP INDEX IF EXISTS iam_users_name_idx;
-            CREATE UNIQUE INDEX iam_users_name_lower_idx ON iam_users (
+            CREATE UNIQUE INDEX IF NOT EXISTS iam_users_name_lower_idx ON iam_users (
                 LOWER(name)
             );
         """
@@ -42,7 +41,7 @@ class MigrationStep(migrations.AbstarctMigrationStep):
     def downgrade(self, session):
         expression = """
             DROP INDEX IF EXISTS iam_users_name_lower_idx;
-            CREATE UNIQUE INDEX iam_users_name_idx ON iam_users (name);
+            CREATE UNIQUE INDEX IF NOT EXISTS iam_users_name_idx ON iam_users (name);
         """
         session.execute(expression)
 

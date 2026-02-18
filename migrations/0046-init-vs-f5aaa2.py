@@ -20,7 +20,6 @@ from restalchemy.storage.sql import migrations
 
 
 class MigrationStep(migrations.AbstractMigrationStep):
-
     def __init__(self):
         self._depends = ["0045-add-security-rules-7c2f6d.py"]
 

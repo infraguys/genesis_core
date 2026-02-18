@@ -51,7 +51,7 @@ def get_openapi_engine():
     openapi_engine = openapi_engines.OpenApiEngine(
         info=openapi_structures.OpenApiInfo(
             title=f"Genesis Core {versions.API_VERSION_v1} Boot API",
-            version=version.version_info.release_string(),
+            version=version.version_info,
             description=f"OpenAPI - Genesis Core {versions.API_VERSION_v1}",
         ),
         paths=openapi_structures.OpenApiPaths(),

@@ -14,22 +14,21 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from __future__ import annotations
-
 import os
 import typing as tp
+from urllib.parse import urlparse
 import uuid as sys_uuid
 
 import pytest
 import netaddr
-from gcl_iam import algorithms
 from gcl_iam import tokens
 from gcl_iam.tests.functional import clients as iam_clients
 from gcl_sdk.events import clients as sdk_clients
 from gcl_sdk.infra.dm import models as sdk_infra_models
 from gcl_sdk.agents.universal.dm import models as sdk_ua_models
 from restalchemy.dm import filters as dm_filters
-from restalchemy.tests.functional.conftest import setup_db_for_worker
+from restalchemy.tests.functional import consts
+from restalchemy.storage.sql import engines
 
 from genesis_core.common import constants as c
 from genesis_core.common.dm import targets as ct
@@ -319,8 +318,8 @@ def user_api_client(user_api, auth_user_admin):
 
     def build_client(
         auth: iam_clients.GenesisCoreAuth,
-        permissions: list[str] = None,
-        project_id: str = None,
+        permissions: tp.Optional[tp.List[str]] = None,
+        project_id: tp.Optional[str] = None,
     ):
         permissions = permissions or []
         client = iam_clients.GenericAutoRefreshRESTClient(
@@ -353,19 +352,17 @@ def user_api_noauth_client(user_api):
 @pytest.fixture
 def node_factory():
     def factory(
-        uuid: sys_uuid.UUID | None = None,
+        uuid: tp.Optional[sys_uuid.UUID] = None,
         name: str = "node",
         cores: int = 1,
         ram: int = 1024,
         image: str = "ubuntu_24.04",
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
-        status: str | None = None,
+        status: tp.Optional[str] = None,
         **kwargs,
     ) -> tp.Dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
-        status_value = (
-            nc.NodeStatus.NEW.value if status is None else status.value
-        )
+        status_value = nc.NodeStatus.NEW.value if status is None else status.value
         node = node_models.Node(
             uuid=uuid,
             name=name,
@@ -388,7 +385,7 @@ def node_factory():
 @pytest.fixture
 def node_set_factory():
     def factory(
-        uuid: sys_uuid.UUID | None = None,
+        uuid: tp.Optional[sys_uuid.UUID] = None,
         name: str = "node_set",
         cores: int = 1,
         ram: int = 1024,
@@ -420,11 +417,11 @@ def node_set_factory():
 @pytest.fixture
 def pool_factory():
     def factory(
-        uuid: sys_uuid.UUID | None = None,
-        agent: sys_uuid.UUID | None = None,
+        uuid: tp.Optional[sys_uuid.UUID] = None,
+        agent: tp.Optional[sys_uuid.UUID] = None,
         name: str = "pool-default",
-        driver_spec: dict | None = None,
-        status: str | None = None,
+        driver_spec: tp.Optional[dict] = None,
+        status: tp.Optional[str] = None,
         avail_cores: int = 8,
         avail_ram: int = 16384,
         all_cores: int = 8,
@@ -432,12 +429,8 @@ def pool_factory():
         **kwargs,
     ) -> tp.Dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
-        driver_spec = (
-            {"driver": "libvirt"} if driver_spec is None else driver_spec
-        )
-        status_value = (
-            nc.MachinePoolStatus.ACTIVE.value if status is None else status
-        )
+        driver_spec = {"driver": "libvirt"} if driver_spec is None else driver_spec
+        status_value = nc.MachinePoolStatus.ACTIVE.value if status is None else status
         storage_pool = node_models.ThinStoragePool(
             pool_type="dummy",
             capacity_usable=1000,
@@ -470,8 +463,8 @@ def pool_factory():
 @pytest.fixture
 def machine_factory(default_pool: tp.Dict[str, tp.Any]):
     def factory(
-        uuid: sys_uuid.UUID | None = None,
-        pool: sys_uuid.UUID | None = None,
+        uuid: tp.Optional[sys_uuid.UUID] = None,
+        pool: tp.Optional[sys_uuid.UUID] = None,
         name: str = "node",
         cores: int = 1,
         ram: int = 1024,
@@ -503,11 +496,11 @@ def machine_factory(default_pool: tp.Dict[str, tp.Any]):
 def config_factory():
     def factory(
         target_node: sys_uuid.UUID,
-        uuid: sys_uuid.UUID | None = None,
+        uuid: tp.Optional[sys_uuid.UUID] = None,
         name: str = "config",
         path: str = "/etc/genesis-configs/config.conf",
         content_body: str = "test",
-        on_change_cmd: str | None = None,
+        on_change_cmd: tp.Optional[str] = None,
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
         status: str = cc.ConfigStatus.NEW.value,
         **kwargs,
@@ -540,13 +533,13 @@ def config_factory():
 @pytest.fixture
 def password_factory():
     def factory(
-        uuid: sys_uuid.UUID | None = None,
+        uuid: tp.Optional[sys_uuid.UUID] = None,
         name: str = "password",
-        constructor: secret_models.AbstractSecretConstructor | None = None,
+        constructor: tp.Optional[secret_models.AbstractSecretConstructor] = None,
         method: sc.SecretMethod = sc.SecretMethod.AUTO_HEX,
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
-        status: cc.ConfigStatus | None = None,
-        value: str | None = None,
+        status: tp.Optional[cc.ConfigStatus] = None,
+        value: tp.Optional[str] = None,
         **kwargs,
     ) -> tp.Dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
@@ -555,9 +548,7 @@ def password_factory():
             if constructor is None
             else constructor
         )
-        status_value = (
-            cc.ConfigStatus.NEW.value if status is None else status.value
-        )
+        status_value = cc.ConfigStatus.NEW.value if status is None else status.value
         obj = secret_models.Password(
             uuid=uuid,
             name=name,
@@ -580,16 +571,16 @@ def password_factory():
 @pytest.fixture
 def cert_factory():
     def factory(
-        uuid: sys_uuid.UUID | None = None,
+        uuid: tp.Optional[sys_uuid.UUID] = None,
         name: str = "cert",
         domains: tp.Collection[str] = ("genesis-core.tech",),
         email: str = "user@genesis-core.tech",
-        key: str | None = None,
-        cert: str | None = None,
-        constructor: secret_models.AbstractSecretConstructor | None = None,
-        method: secret_models.AbstractCertificateMethod | None = None,
+        key: tp.Optional[str] = None,
+        cert: tp.Optional[str] = None,
+        constructor: tp.Optional[secret_models.AbstractSecretConstructor] = None,
+        method: tp.Optional[secret_models.AbstractCertificateMethod] = None,
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
-        status: cc.ConfigStatus | None = None,
+        status: tp.Optional[cc.ConfigStatus] = None,
         **kwargs,
     ) -> tp.Dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
@@ -598,14 +589,8 @@ def cert_factory():
             if constructor is None
             else constructor
         )
-        method = (
-            secret_models.DNSCoreCertificateMethod()
-            if method is None
-            else method
-        )
-        status_value = (
-            cc.ConfigStatus.NEW.value if status is None else status.value
-        )
+        method = secret_models.DNSCoreCertificateMethod() if method is None else method
+        status_value = cc.ConfigStatus.NEW.value if status is None else status.value
         obj = secret_models.Certificate(
             uuid=uuid,
             name=name,
@@ -639,11 +624,11 @@ def ssh_key_factory():
     def factory(
         target_node: sys_uuid.UUID,
         target_public_key: str,
-        uuid: sys_uuid.UUID | None = None,
+        uuid: tp.Optional[sys_uuid.UUID] = None,
         name: str = "key",
-        constructor: secret_models.AbstractSecretConstructor | None = None,
+        constructor: tp.Optional[secret_models.AbstractSecretConstructor] = None,
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
-        status: cc.ConfigStatus | None = None,
+        status: tp.Optional[cc.ConfigStatus] = None,
         user: str = "root",
         authorized_keys=".ssh/authorized_keys",
         **kwargs,
@@ -655,9 +640,7 @@ def ssh_key_factory():
             if constructor is None
             else constructor
         )
-        status_value = (
-            cc.ConfigStatus.NEW.value if status is None else status.value
-        )
+        status_value = cc.ConfigStatus.NEW.value if status is None else status.value
         obj = secret_models.SSHKey(
             uuid=uuid,
             name=name,
@@ -682,7 +665,7 @@ def ssh_key_factory():
 @pytest.fixture
 def pool_builder_factory() -> tp.Callable:
     def factory(
-        uuid: sys_uuid.UUID | None = None,
+        uuid: tp.Optional[sys_uuid.UUID] = None,
         status: str = nc.BuilderStatus.ACTIVE.value,
         **kwargs,
     ) -> sdk_ua_models.UniversalAgent:
@@ -711,8 +694,8 @@ def pool_builder_factory() -> tp.Callable:
 @pytest.fixture
 def interface_factory() -> tp.Callable:
     def factory(
-        uuid: sys_uuid.UUID | None = None,
-        mac: str | None = None,
+        uuid: tp.Optional[sys_uuid.UUID] = None,
+        mac: tp.Optional[str] = None,
         **kwargs,
     ) -> tp.Dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
@@ -731,8 +714,8 @@ def interface_factory() -> tp.Callable:
 def machine_pool_reservation_factory() -> tp.Callable:
     def factory(
         pool: sys_uuid.UUID,
-        uuid: sys_uuid.UUID | None = None,
-        machine: sys_uuid.UUID | None = None,
+        uuid: tp.Optional[sys_uuid.UUID] = None,
+        machine: tp.Optional[sys_uuid.UUID] = None,
         cores: int = 1,
         ram: int = 1024,
         **kwargs,
@@ -829,7 +812,7 @@ def default_subnet(
 def default_machine_agent(
     user_api_client: iam_clients.GenesisCoreTestRESTClient,
     auth_user_admin: iam_clients.GenesisCoreAuth,
-) -> dict[str, tp.Any]:
+) -> tp.Dict[str, tp.Any]:
     uuid = sys_uuid.UUID("00000000-1112-0100-0000-000000000211")
     agent = sdk_ua_models.UniversalAgent(
         uuid=uuid,
@@ -848,7 +831,7 @@ def default_machine_agent(
 def default_pool_builder(
     user_api_client: iam_clients.GenesisCoreTestRESTClient,
     auth_user_admin: iam_clients.GenesisCoreAuth,
-) -> dict[str, tp.Any]:
+) -> tp.Dict[str, tp.Any]:
     uuid = sys_uuid.UUID("00000000-1112-0100-0000-000000000322")
     agent = sdk_ua_models.UniversalAgent(
         uuid=uuid,
@@ -867,3 +850,68 @@ def default_pool_builder(
     agent.insert()
 
     return agent.dump_to_simple_view()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_db_for_worker(worker_id):
+    db_uri = consts.get_database_uri()
+    if not worker_id:
+        yield
+        return
+
+    parsed = urlparse(db_uri)
+    worker_db_name_with_slash = f"{parsed.path}_{worker_id}"
+    worker_db_name = worker_db_name_with_slash.strip("/")
+    db_type = parsed.scheme
+    db_created = False
+    engines.engine_factory.configure_factory(db_url=db_uri)
+    engine = engines.engine_factory.get_engine()
+    conn = engine.get_connection()
+
+    # Check if database exists
+    if db_type == "postgresql":
+        conn.autocommit = True
+        c = conn.execute(
+            "SELECT 1 FROM pg_database WHERE datname = %s", (worker_db_name,)
+        )
+        exists = c.fetchall()
+    elif db_type == "mysql":
+        c = conn.cursor()
+        c.execute(
+            "SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = %s",
+            (worker_db_name,),
+        )
+        exists = c.fetchall()
+    else:
+        raise ValueError(f"Unsupported database type: {db_type}")
+
+    if not exists:
+        db_created = True
+        if db_type == "postgresql":
+            conn.autocommit = True
+            conn.execute(f"CREATE DATABASE {worker_db_name}")
+        elif db_type == "mysql":
+            conn.cursor().execute(f"CREATE DATABASE {worker_db_name}")
+
+    engine.close_connection(conn)
+    del engine
+    engines.engine_factory.destroy_engine()
+
+    os.environ["DATABASE_URI"] = parsed._replace(
+        path=worker_db_name_with_slash
+    ).geturl()
+    yield
+
+    if db_created:
+        engines.engine_factory.configure_factory(db_url=db_uri)
+        engine = engines.engine_factory.get_engine()
+        conn = engine.get_connection()
+        if db_type == "postgresql":
+            conn.autocommit = True
+            conn.execute(f"DROP DATABASE IF EXISTS {worker_db_name} WITH (FORCE)")
+        elif db_type == "mysql":
+            conn.cursor().execute(f"DROP DATABASE IF EXISTS {worker_db_name}")
+
+        engine.close_connection(conn)
+        del engine
+        engines.engine_factory.destroy_engine()

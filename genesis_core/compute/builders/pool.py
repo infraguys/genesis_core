@@ -13,7 +13,6 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from __future__ import annotations
 
 import logging
 import functools
@@ -34,7 +33,6 @@ LOG = logging.getLogger(__name__)
 
 
 class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
-
     def __init__(
         self,
         uuid: sys_uuid.UUID,
@@ -90,7 +88,7 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
     def _get_machine_ctx(
         self,
         machine: pool_models.Machine,
-    ) -> tuple[models.Port, models.MachineVolume] | None:
+    ) -> tp.Optional[tp.Tuple[models.Port, models.MachineVolume]]:
         """Get the machine context."""
         if machine.uuid not in self._iteration_context:
             return None
@@ -102,9 +100,7 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
     def _fetch_machine_deps(
         self,
         machine: pool_models.Machine,
-    ) -> tuple[
-        tp.Collection[models.Port], tp.Collection[models.MachineVolume]
-    ]:
+    ) -> tp.Tuple[tp.Collection[models.Port], tp.Collection[models.MachineVolume]]:
         """Fetch the machine dependencies."""
         ports = models.Port.objects.get_all(
             filters={"node": dm_filters.EQ(machine.node.uuid)}
@@ -117,7 +113,7 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
     def _get_or_fetch_machine_ctx(
         self,
         machine: pool_models.Machine,
-    ) -> tuple[models.Port | None, models.MachineVolume | None]:
+    ) -> tp.Tuple[tp.Optional[models.Port], tp.Optional[models.MachineVolume]]:
         """Get or fetch the machine context."""
         # Prepare dependencies. Firstly try to get them from the iteration
         # context. If they are not found, fetch them from the database.
@@ -141,7 +137,7 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
         self,
         pool: pool_models.Pool,
         target_machine: pool_models.Machine,
-        actual_machine: pool_models.Machine | None = None,
+        actual_machine: tp.Optional[pool_models.Machine] = None,
     ) -> bool:
         """Check if the pool has enough resources to create the machine."""
         # Calculate how many resources we need to create the machine
@@ -216,12 +212,16 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
         self,
         machine: pool_models.Machine,
         machine_pool_pair: (
-            tuple[pool_models.PoolMachine, pool_models.PoolMachine | None]
-            | None
+            tp.Optional[
+                tp.Tuple[pool_models.PoolMachine, tp.Optional[pool_models.PoolMachine]]
+            ]
         ) = None,
         machine_guest_pair: (
-            tuple[pool_models.GuestMachine, pool_models.GuestMachine | None]
-            | None
+            tp.Optional[
+                tp.Tuple[
+                    pool_models.GuestMachine, tp.Optional[pool_models.GuestMachine]
+                ]
+            ]
         ) = None,
     ) -> tp.Collection[pool_models.PoolMachine | pool_models.GuestMachine]:
         """Actualize the machine derivatives."""
@@ -289,10 +289,11 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
         self,
         machine: pool_models.Machine,
         derivative_pairs: tp.Collection[
-            tuple[
+            tp.Tuple[
                 ua_models.TargetResourceKindAwareMixin,  # The target resource
-                ua_models.TargetResourceKindAwareMixin
-                | None,  # The actual resource
+                tp.Optional[
+                    ua_models.TargetResourceKindAwareMixin
+                ],  # The actual resource
             ]
         ],
     ) -> tp.Collection[ua_models.TargetResourceKindAwareMixin]:
@@ -332,10 +333,8 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
 
             # Rebuid the pool machine with correct boot mode and the port
             # from the main network
-            target_pool_machine = (
-                pool_models.PoolMachine.from_machine_and_port(
-                    machine, port, agent_uuid=agent_uuid
-                )
+            target_pool_machine = pool_models.PoolMachine.from_machine_and_port(
+                machine, port, agent_uuid=agent_uuid
             )
 
         # Actualize status
@@ -350,8 +349,8 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
     def _actualize_machine_status(
         self,
         machine: pool_models.Machine,
-        pool_machine: pool_models.PoolMachine | None,
-        guest_machine: pool_models.GuestMachine | None,
+        pool_machine: tp.Optional[pool_models.PoolMachine],
+        guest_machine: tp.Optional[pool_models.GuestMachine],
     ) -> None:
         """Actualize the machine status."""
 
@@ -382,9 +381,7 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
         # TODO(akremenetsky): Support more statuses
         machine.status = nc.MachineStatus.IN_PROGRESS.value
 
-    def _pre_delete_machine_resource(
-        self, resource: ua_models.TargetResource
-    ) -> None:
+    def _pre_delete_machine_resource(self, resource: ua_models.TargetResource) -> None:
         """The hook is performed before deleting machine resource."""
         # There is a chance the `guest_machine` actual resource won't
         # be deleted since the node will be dropped first and agent
@@ -410,7 +407,7 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
         self,
         pool: pool_models.Pool,
         target_volume: pool_models.MachineVolume,
-        actual_volume: pool_models.MachineVolume | None = None,
+        actual_volume: tp.Optional[pool_models.MachineVolume] = None,
     ) -> bool:
         """Check if the pool has enough resources to create the machine."""
         # Calculate how many resources we need to create the machine
@@ -492,7 +489,7 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
 
     # Builder lifecycle hooks
 
-    def prepare_iteration(self) -> dict[str, tp.Any]:
+    def prepare_iteration(self) -> tp.Dict[str, tp.Any]:
         """Perform actions before iteration and return the iteration context.
 
         The result is a dictionary that is passed to the iteration context.
@@ -513,9 +510,7 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
     @functools.singledispatchmethod
     def can_create_instance_resource(
         self,
-        instance: (
-            pool_models.Machine | pool_models.MachineVolume | pool_models.Pool
-        ),
+        instance: (pool_models.Machine | pool_models.MachineVolume | pool_models.Pool),
     ) -> bool:
         """The hook to check if the instance can be created.
 
@@ -571,10 +566,11 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
         instance: pool_models.Machine,
         resource: ua_models.TargetResource,
         derivative_pairs: tp.Collection[
-            tuple[
+            tp.Tuple[
                 ua_models.TargetResourceKindAwareMixin,  # The target resource
-                ua_models.TargetResourceKindAwareMixin
-                | None,  # The actual resource
+                tp.Optional[
+                    ua_models.TargetResourceKindAwareMixin
+                ],  # The actual resource
             ]
         ],
     ) -> tp.Collection[pool_models.PoolMachine | pool_models.GuestMachine]:
@@ -600,9 +596,7 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
     @functools.singledispatchmethod
     def can_update_instance_resource(
         self,
-        instance: (
-            pool_models.Machine | pool_models.MachineVolume | pool_models.Pool
-        ),
+        instance: (pool_models.Machine | pool_models.MachineVolume | pool_models.Pool),
         resource: ua_models.TargetResource,
     ) -> bool:
         """The hook to check if the instance can be updated.
@@ -685,10 +679,11 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
         self,
         instance: pool_models.Machine,
         derivative_pairs: tp.Collection[
-            tuple[
+            tp.Tuple[
                 ua_models.TargetResourceKindAwareMixin,  # The target resource
-                ua_models.TargetResourceKindAwareMixin
-                | None,  # The actual resource
+                tp.Optional[
+                    ua_models.TargetResourceKindAwareMixin
+                ],  # The actual resource
             ]
         ],
     ) -> tp.Collection[ua_models.TargetResourceKindAwareMixin]:
@@ -697,9 +692,7 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
             instance, derivative_pairs
         )
 
-    def pre_delete_instance_resource(
-        self, resource: ua_models.TargetResource
-    ) -> None:
+    def pre_delete_instance_resource(self, resource: ua_models.TargetResource) -> None:
         """The hook is performed before deleting instance resource."""
         if resource.kind == "machine":
             return self._pre_delete_machine_resource(resource)

@@ -67,7 +67,6 @@ class RelativeCoreRamWeighter(base.MachinePoolAbstractWeighter):
 
 
 class SimpleMachineWeighter(base.MachineAbstractWeighter):
-
     def _ratio(self, machine: models.Machine) -> int:
         """Some empirical formula to calculate the ratio of the machine."""
         # 1 cpu == 8192 Mb ram

@@ -13,9 +13,7 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from __future__ import annotations
 
-from email.policy import default
 import uuid as sys_uuid
 import typing as tp
 
@@ -33,8 +31,7 @@ from genesis_core.compute import constants as nc
 
 
 class SchedulableToAgentFromAgentFieldMixin(ua_models.SchedulableToAgentMixin):
-
-    def schedule_to_ua_agent(self, **kwargs) -> sys_uuid.UUID | None:
+    def schedule_to_ua_agent(self, **kwargs) -> tp.Optional[sys_uuid.UUID]:
         """Schedule the resource to the UA agent.
 
         The method returns the node UUID that is equal to the
@@ -44,10 +41,9 @@ class SchedulableToAgentFromAgentFieldMixin(ua_models.SchedulableToAgentMixin):
 
 
 class SchedulableToAgentFromPoolMixin(ua_models.SchedulableToAgentMixin):
-
     def schedule_to_ua_agent(
         self, builder: sdk_builder.UniversalBuilderService, **kwargs
-    ) -> sys_uuid.UUID | None:
+    ) -> tp.Optional[sys_uuid.UUID]:
         """Schedule the resource to the UA agent.
 
         The method returns the node UUID that is equal to the
@@ -71,15 +67,14 @@ class Pool(
     ua_models.InstanceMixin,
     SchedulableToAgentFromAgentFieldMixin,
 ):
-
     @classmethod
     def get_resource_kind(cls) -> str:
         return "pool"
 
     @classmethod
     def get_filter_clause(
-        cls, builder: sys_uuid.UUID, pools: list[Pool]
-    ) -> dict[str, dm_filters.AbstractClause] | None:
+        cls, builder: sys_uuid.UUID, pools: tp.List["Pool"]
+    ) -> tp.Optional[tp.Dict[str, dm_filters.AbstractClause]]:
         """Get filter clause for the instance model.
 
         The clause is returned back to the service to take a chance for
@@ -105,7 +100,6 @@ class MachineVolume(
     ua_models.InstanceMixin,
     SchedulableToAgentFromPoolMixin,
 ):
-
     pool = relationships.relationship(Pool, prefetch=True)
     machine = relationships.relationship(models.Machine, prefetch=True)
 
@@ -115,8 +109,8 @@ class MachineVolume(
 
     @classmethod
     def get_filter_clause(
-        cls, builder: sys_uuid.UUID, pools: list[Pool]
-    ) -> dict[str, dm_filters.AbstractClause] | None:
+        cls, builder: sys_uuid.UUID, pools: tp.List[Pool]
+    ) -> tp.Optional[tp.Dict[str, dm_filters.AbstractClause]]:
         """Get filter clause for the instance model.
 
         The clause is returned back to the service to take a chance for
@@ -155,9 +149,7 @@ class PoolMachine(
     ra_models.ModelWithUUID,
 ):
     name = properties.property(types.String(max_length=255), default="")
-    cores = properties.property(
-        types.Integer(min_value=0, max_value=4096), default=0
-    )
+    cores = properties.property(types.Integer(min_value=0, max_value=4096), default=0)
     ram = properties.property(types.Integer(min_value=0), default=0)
     status = properties.property(
         types.Enum([s.value for s in nc.MachineStatus]),
@@ -177,9 +169,7 @@ class PoolMachine(
         types.AllowNone(types.String(max_length=255)), default=None
     )
 
-    project_id = properties.property(
-        types.UUID(), required=True, read_only=True
-    )
+    project_id = properties.property(types.UUID(), required=True, read_only=True)
 
     port_info = properties.property(types.Dict(), default=dict)
 
@@ -212,9 +202,9 @@ class PoolMachine(
     @classmethod
     def from_machine_and_port(
         cls,
-        machine: Machine,
+        machine: "Machine",
         port: models.Port,
-        agent_uuid: str | None = None,
+        agent_uuid: tp.Optional[str] = None,
     ) -> "PoolMachine":
         return cls(
             uuid=machine.uuid,
@@ -292,8 +282,8 @@ class Machine(
 
     @classmethod
     def get_filter_clause(
-        cls, builder: sys_uuid.UUID, pools: list[Pool]
-    ) -> dict[str, dm_filters.AbstractClause] | None:
+        cls, builder: sys_uuid.UUID, pools: tp.List[Pool]
+    ) -> tp.Optional[tp.Dict[str, dm_filters.AbstractClause]]:
         """Get filter clause for the instance model.
 
         The clause is returned back to the service to take a chance for

@@ -21,10 +21,7 @@ from genesis_core.tests.functional.restapi.iam import base
 
 
 class TestPermissionBindings(base.BaseIamResourceTest):
-
-    def test_create_permission_binding_by_admin(
-        self, user_api_client, auth_user_admin
-    ):
+    def test_create_permission_binding_by_admin(self, user_api_client, auth_user_admin):
         client = user_api_client(auth_user_admin)
         permission_name = "iam.test.create"
         permission_binding_uuid = "15489734-6528-4d0c-ba5b-0f8e2d8b9b5f"
@@ -58,26 +55,20 @@ class TestPermissionBindings(base.BaseIamResourceTest):
                 uuid=permission_binding_uuid,
             )
 
-    def test_list_permission_binding_by_admin(
-        self, user_api_client, auth_user_admin
-    ):
+    def test_list_permission_binding_by_admin(self, user_api_client, auth_user_admin):
         client = user_api_client(auth_user_admin)
 
         permissions = client.list_permission_bindings()
 
         assert len(permissions) > 0
 
-    def test_create_permission_binding_by_user(
-        self, user_api_client, auth_test1_user
-    ):
+    def test_create_permission_binding_by_user(self, user_api_client, auth_test1_user):
         client = user_api_client(auth_test1_user)
 
         with pytest.raises(bazooka_exc.ForbiddenError):
             client.list_permission_bindings()
 
-    def test_get_permission_binding_by_admin(
-        self, user_api_client, auth_user_admin
-    ):
+    def test_get_permission_binding_by_admin(self, user_api_client, auth_user_admin):
         client = user_api_client(auth_user_admin)
 
         permission = client.get_permission_binding(
@@ -86,19 +77,13 @@ class TestPermissionBindings(base.BaseIamResourceTest):
 
         assert permission["uuid"] == "00000000-0000-0000-0000-000000000000"
 
-    def test_get_permission_binding_by_user(
-        self, user_api_client, auth_test1_user
-    ):
+    def test_get_permission_binding_by_user(self, user_api_client, auth_test1_user):
         client = user_api_client(auth_test1_user)
 
         with pytest.raises(bazooka_exc.ForbiddenError):
-            client.get_permission_binding(
-                uuid="00000000-0000-0000-0000-000000000000"
-            )
+            client.get_permission_binding(uuid="00000000-0000-0000-0000-000000000000")
 
-    def test_update_permission_binding_by_admin(
-        self, user_api_client, auth_user_admin
-    ):
+    def test_update_permission_binding_by_admin(self, user_api_client, auth_user_admin):
         client = user_api_client(auth_user_admin)
         permission_name = "iam.test.create"
         permission_binding_uuid = "15489734-6528-4d0c-ba5b-0f8e2d8b9b5f"
@@ -140,9 +125,7 @@ class TestPermissionBindings(base.BaseIamResourceTest):
                 permission_uuid=permission["uuid"],
             )
 
-    def test_delete_permission_binding_by_admin(
-        self, user_api_client, auth_user_admin
-    ):
+    def test_delete_permission_binding_by_admin(self, user_api_client, auth_user_admin):
         client = user_api_client(auth_user_admin)
 
         result = client.delete_permission_binding(
@@ -151,9 +134,7 @@ class TestPermissionBindings(base.BaseIamResourceTest):
 
         assert result is None
 
-    def test_delete_permission_binding_by_user(
-        self, user_api_client, auth_test1_user
-    ):
+    def test_delete_permission_binding_by_user(self, user_api_client, auth_test1_user):
         client = user_api_client(auth_test1_user)
 
         with pytest.raises(bazooka_exc.ForbiddenError):

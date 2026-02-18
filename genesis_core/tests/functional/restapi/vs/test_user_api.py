@@ -13,7 +13,6 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from __future__ import annotations
 
 import uuid as sys_uuid
 import typing as tp
@@ -25,11 +24,10 @@ from genesis_core.common import constants as c
 
 
 class TestVSUserApi:
-
     @staticmethod
     def _profile_factory(
-        uuid: sys_uuid.UUID | None = None,
-        name: str | None = None,
+        uuid: tp.Optional[sys_uuid.UUID] = None,
+        name: tp.Optional[str] = None,
         description: str = "test profile",
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
         profile_type: str = "GLOBAL",
@@ -48,11 +46,11 @@ class TestVSUserApi:
 
     @staticmethod
     def _variable_factory(
-        uuid: sys_uuid.UUID | None = None,
-        name: str | None = None,
+        uuid: tp.Optional[sys_uuid.UUID] = None,
+        name: tp.Optional[str] = None,
         description: str = "test variable",
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
-        setter: tp.Dict[str, tp.Any] | None = None,
+        setter: tp.Optional[tp.Dict[str, tp.Any]] = None,
         **kwargs,
     ) -> tp.Dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
@@ -70,12 +68,12 @@ class TestVSUserApi:
 
     @staticmethod
     def _value_factory(
-        uuid: sys_uuid.UUID | None = None,
-        name: str | None = None,
+        uuid: tp.Optional[sys_uuid.UUID] = None,
+        name: tp.Optional[str] = None,
         description: str = "test value",
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
         value: tp.Any = 1,
-        variable: str | None = None,
+        variable: tp.Optional[str] = None,
         **kwargs,
     ) -> tp.Dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()

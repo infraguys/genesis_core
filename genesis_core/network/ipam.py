@@ -13,7 +13,6 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from __future__ import annotations
 
 import logging
 import netaddr
@@ -48,10 +47,9 @@ class IpamIpRangeOverlap(net_exceptions.CGNetException):
 
 
 class Ipam:
-
     def __init__(
         self,
-        subnet_map: tp.Dict[net_models.Subnet : tp.List[net_models.Port]],
+        subnet_map: tp.Dict[net_models.Subnet, tp.List[net_models.Port]],
     ) -> None:
         """
         Initialize IPAM with a subnet map.
@@ -88,8 +86,7 @@ class Ipam:
 
         # IP range and discovery range should not overlap
         if subnet.ip_discovery_range and (
-            netaddr.IPSet(subnet.ip_discovery_range)
-            & netaddr.IPSet(subnet.ip_range)
+            netaddr.IPSet(subnet.ip_discovery_range) & netaddr.IPSet(subnet.ip_range)
         ):
             raise IpamIpRangeOverlap(
                 ip_range_a=subnet.ip_range,
@@ -100,10 +97,7 @@ class Ipam:
         for port in ports:
             if port.ipv4 is not None:
                 # Exclude IPs from the discovery range
-                if (
-                    subnet.ip_discovery_range
-                    and port.ipv4 in subnet.ip_discovery_range
-                ):
+                if subnet.ip_discovery_range and port.ipv4 in subnet.ip_discovery_range:
                     continue
 
                 ip = int(netaddr.IPAddress(port.ipv4))
@@ -145,7 +139,7 @@ class Ipam:
     def allocate_ip(
         self,
         subnet: net_models.Subnet,
-        target_ip: netaddr.IPAddress | None = None,
+        target_ip: tp.Optional[netaddr.IPAddress] = None,
     ) -> netaddr.IPAddress:
         if subnet not in self._pool_map:
             raise IpamUndefinedSubnet(subnet=str(subnet.uuid))

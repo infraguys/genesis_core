@@ -23,7 +23,6 @@ from genesis_core.user_api.iam.dm import models
 
 
 class TestExpiredEmailConfirmationCodeJanitorService:
-
     def setup_method(self) -> None:
         # Run service
         self._service = service.ExpiredEmailConfirmationCodeJanitorService()
@@ -42,25 +41,19 @@ class TestExpiredEmailConfirmationCodeJanitorService:
         ],
     )
     def test_service_wipes_bad_codes(self, auth_test1_user, code_made_at):
-        user = models.User.objects.get_one(
-            filters={"uuid": auth_test1_user.uuid}
-        )
+        user = models.User.objects.get_one(filters={"uuid": auth_test1_user.uuid})
         user.create_confirmation_code()
         user.confirmation_code_made_at = code_made_at
         user.save()
 
         self._service._iteration()
 
-        user = models.User.objects.get_one(
-            filters={"uuid": auth_test1_user.uuid}
-        )
+        user = models.User.objects.get_one(filters={"uuid": auth_test1_user.uuid})
         assert user.confirmation_code is None
         assert user.confirmation_code_made_at is None
 
     def test_service_keeps_active_codes(self, auth_test1_user):
-        user = models.User.objects.get_one(
-            filters={"uuid": auth_test1_user.uuid}
-        )
+        user = models.User.objects.get_one(filters={"uuid": auth_test1_user.uuid})
         user.create_confirmation_code()
         # Check the code is valid right now:
         assert user.check_confirmation_code(user.confirmation_code)

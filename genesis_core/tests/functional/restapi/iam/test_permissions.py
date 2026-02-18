@@ -21,10 +21,7 @@ from genesis_core.tests.functional.restapi.iam import base
 
 
 class TestPermissions(base.BaseIamResourceTest):
-
-    def test_create_permission_by_admin(
-        self, user_api_client, auth_user_admin
-    ):
+    def test_create_permission_by_admin(self, user_api_client, auth_user_admin):
         client = user_api_client(auth_user_admin)
         permission_name = "iam.test.create"
 
@@ -32,9 +29,7 @@ class TestPermissions(base.BaseIamResourceTest):
 
         assert permission["name"] == permission_name
 
-    def test_create_permission_by_user1(
-        self, user_api_client, auth_test1_user
-    ):
+    def test_create_permission_by_user1(self, user_api_client, auth_test1_user):
         client = user_api_client(auth_test1_user)
         permission_name = "iam.test.create"
 
@@ -57,9 +52,7 @@ class TestPermissions(base.BaseIamResourceTest):
     def test_get_permission_by_admin(self, user_api_client, auth_user_admin):
         client = user_api_client(auth_user_admin)
 
-        permission = client.get_permission(
-            uuid="00000000-0000-0000-0000-000000000000"
-        )
+        permission = client.get_permission(uuid="00000000-0000-0000-0000-000000000000")
 
         assert permission["uuid"] == "00000000-0000-0000-0000-000000000000"
 
@@ -69,9 +62,7 @@ class TestPermissions(base.BaseIamResourceTest):
         with pytest.raises(bazooka_exc.ForbiddenError):
             client.get_permission(uuid="00000000-0000-0000-0000-000000000000")
 
-    def test_update_permission_by_admin(
-        self, user_api_client, auth_user_admin
-    ):
+    def test_update_permission_by_admin(self, user_api_client, auth_user_admin):
         client = user_api_client(auth_user_admin)
 
         permission = client.update_permission(
@@ -89,9 +80,7 @@ class TestPermissions(base.BaseIamResourceTest):
                 name="iam.test.update",
             )
 
-    def test_delete_permission_by_admin(
-        self, user_api_client, auth_user_admin
-    ):
+    def test_delete_permission_by_admin(self, user_api_client, auth_user_admin):
         client = user_api_client(auth_user_admin)
         permission = client.create_permission(name="iam.test.delete")
 
