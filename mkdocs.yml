@@ -73,4 +73,8 @@ nav:
   - Software:
     - Общее: index.md
     - Лендинг: onepager.md
+  - Element Manager:
+      - Service as a Service API: element_manager/service.md
+  - Network:
+      - Load Balancer: network/load_balancer.md
   - Вопросы и ответы: faq.md
