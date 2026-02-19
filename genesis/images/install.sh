@@ -41,7 +41,7 @@ CLI_DEV_MODE=$([ -d "$DEV_CLI_PATH" ] && echo "true" || echo "false")
 # Install packages
 sudo apt update
 sudo apt install yq postgresql libev-dev libvirt-dev \
-    tftpd-hpa nginx-full isc-dhcp-server -y
+    tftpd-hpa nginx-full isc-dhcp-server iptables-persistent -y
 
 ALLOW_USER_PASSWD=${ALLOW_USER_PASSWD-}
 if [ -n "$ALLOW_USER_PASSWD" ]; then
@@ -169,6 +169,7 @@ deactivate
 
 # Create links to venv
 sudo ln -sf "$VENV_PATH/bin/gc-user-api" "/usr/bin/gc-user-api"
+sudo ln -sf "$VENV_PATH/bin/gc-boot-api" "/usr/bin/gc-boot-api"
 sudo ln -sf "$VENV_PATH/bin/gc-orch-api" "/usr/bin/gc-orch-api"
 sudo ln -sf "$VENV_PATH/bin/gc-status-api" "/usr/bin/gc-status-api"
 sudo ln -sf "$VENV_PATH/bin/gc-gservice" "/usr/bin/gc-gservice"
@@ -180,6 +181,7 @@ sudo ln -sf "$VENV_PATH/bin/genesis-ci" "/usr/bin/gctl"
 
 # Install Systemd service files
 sudo cp "$GC_PATH/etc/systemd/gc-user-api.service" $SYSTEMD_SERVICE_DIR
+sudo cp "$GC_PATH/etc/systemd/gc-boot-api.service" $SYSTEMD_SERVICE_DIR
 sudo cp "$GC_PATH/etc/systemd/gc-orch-api.service" $SYSTEMD_SERVICE_DIR
 sudo cp "$GC_PATH/etc/systemd/gc-status-api.service" $SYSTEMD_SERVICE_DIR
 sudo cp "$GC_PATH/etc/systemd/gc-gservice.service" $SYSTEMD_SERVICE_DIR
@@ -188,10 +190,15 @@ sudo cp "$GC_PATH/etc/systemd/genesis-universal-agent.service" $SYSTEMD_SERVICE_
 sudo cp "$GC_PATH/etc/systemd/genesis-universal-scheduler.service" $SYSTEMD_SERVICE_DIR
 
 # Enable genesis core services
-sudo systemctl enable gc-user-api gc-orch-api gc-status-api gc-gservice gc-core-agent \
+sudo systemctl enable \
+    gc-user-api \
+    gc-boot-api \
+    gc-orch-api \
+    gc-status-api \
+    gc-gservice \
+    gc-core-agent \
     genesis-universal-agent \
     genesis-universal-scheduler
-
 
 # Prepare DNSaaS
 

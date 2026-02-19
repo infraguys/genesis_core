@@ -60,6 +60,7 @@ class NetworkService(basic.BasicService):
                         node=node.node,
                         machine=node.machine,
                         mask=subnet.cidr.netmask,
+                        source=subnet.name,
                     )
                     ports.append(port)
 
@@ -257,7 +258,8 @@ class NetworkService(basic.BasicService):
         self, node: models.NodeWithoutPorts, subnet: net_models.Subnet
     ) -> bool:
         # TODO(akremenetsky): Only single network is supported for now
-        return True
+        # TODO(akremenetsky): Remove the dirty hack to exclude boot network
+        return subnet.next_server is None
 
     def _allocate_port(
         self,
@@ -288,6 +290,7 @@ class NetworkService(basic.BasicService):
             mac=models.Port.generate_mac(),
             project_id=node.project_id,
             subnet=subnet.uuid,
+            source=subnet.name,
         )
         net_port = net_models.Port.restore_from_simple_view(
             **port.dump_to_simple_view()

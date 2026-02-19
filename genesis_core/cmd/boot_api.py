@@ -23,7 +23,7 @@ from oslo_config import cfg
 from restalchemy.common import config_opts as ra_config_opts
 from restalchemy.storage.sql import engines
 
-from genesis_core.orch_api.api import app
+from genesis_core.boot_api.api import app
 from genesis_core.common import config
 from genesis_core.common import log as infra_log
 
@@ -35,7 +35,7 @@ api_cli_opts = [
     ),
     cfg.IntOpt(
         "bind-port",
-        default=11011,
+        default=11013,
         help="The port to bind to",
     ),
     cfg.IntOpt(
@@ -43,10 +43,30 @@ api_cli_opts = [
         default=1,
         help="How many http servers should be started",
     ),
+    cfg.StrOpt(
+        "gc_host",
+        default="core.local.genesis-core.tech",
+        help="GC host",
+    ),
+    cfg.StrOpt(
+        "gc_boot_api",
+        default="http://core.local.genesis-core.tech:11013",
+        help="GC boot API",
+    ),
+    cfg.StrOpt(
+        "kernel",
+        default=None,
+        help="Endpoint for Linux kernel",
+    ),
+    cfg.StrOpt(
+        "initrd",
+        default=None,
+        help="Endpoint for Linux initrd",
+    ),
 ]
 
 
-DOMAIN = "orch_api"
+DOMAIN = "boot_api"
 
 CONF = cfg.CONF
 CONF.register_cli_opts(api_cli_opts, DOMAIN)

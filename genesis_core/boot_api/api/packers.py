@@ -18,11 +18,11 @@ from __future__ import annotations
 from restalchemy.api import packers
 
 from genesis_core.compute import constants as nc
-from genesis_core.orch_api.dm import models
+from genesis_core.boot_api.dm import models
 
 _from_net_template = """#!ipxe
 :kernel
-kernel {kernel} showopts ip=dhcp net.ifnames=0 biosdevname=0 gc_orch_api={gc_orch_api} gc_status_api={gc_status_api} || goto kernel
+kernel {kernel} showopts ip=dhcp net.ifnames=0 biosdevname=0 gc_boot_api={gc_boot_api} || goto kernel
 
 :initrd
 initrd {initrd} || goto initrd
@@ -44,8 +44,7 @@ class IPXEPacker(packers.JSONPacker):
 
         if boot == nc.BootAlternative.network:
             return _from_net_template.format(
-                gc_orch_api=obj.gc_orch_api,
-                gc_status_api=obj.gc_status_api,
+                gc_boot_api=obj.gc_boot_api,
                 kernel=obj.kernel,
                 initrd=obj.initrd,
             )

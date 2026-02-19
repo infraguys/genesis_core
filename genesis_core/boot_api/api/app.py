@@ -14,6 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import functools
+
 from restalchemy.api import applications
 from restalchemy.api import middlewares
 from restalchemy.api import routes
@@ -22,32 +24,33 @@ from restalchemy.api.middlewares import logging as logging_mw
 from restalchemy.openapi import structures as openapi_structures
 from restalchemy.openapi import engines as openapi_engines
 from gcl_sdk.agents.universal.api import middlewares as sdk_mw
+from gcl_sdk.agents.universal.api import packers as sdk_packers
 
-from genesis_core.status_api.api import routes as app_routes
-from genesis_core.status_api.api import versions
+from genesis_core.boot_api.api import routes as app_routes
+from genesis_core.boot_api.api import versions
 from genesis_core import version
 
 
-class StatusApiApp(routes.RootRoute):
+class BootApiApp(routes.RootRoute):
     pass
 
 
 # Route to /v1/ endpoint.
 setattr(
-    StatusApiApp,
+    BootApiApp,
     versions.API_VERSION_v1,
     routes.route(app_routes.ApiEndpointRoute),
 )
 
 
 def get_api_application():
-    return StatusApiApp
+    return BootApiApp
 
 
 def get_openapi_engine():
     openapi_engine = openapi_engines.OpenApiEngine(
         info=openapi_structures.OpenApiInfo(
-            title=f"Genesis Core {versions.API_VERSION_v1} Status API",
+            title=f"Genesis Core {versions.API_VERSION_v1} Boot API",
             version=version.version_info.release_string(),
             description=f"OpenAPI - Genesis Core {versions.API_VERSION_v1}",
         ),
@@ -64,7 +67,14 @@ def build_wsgi_application():
             openapi_engine=get_openapi_engine(),
         ),
         [
-            sdk_mw.SdkContextMiddleware,
+            functools.partial(
+                sdk_mw.SdkContextMiddleware,
+                context_kwargs={
+                    "encryption_information_class": (
+                        sdk_packers.NoEncryptionInformation
+                    )
+                },
+            ),
             errors_mw.ErrorsHandlerMiddleware,
             logging_mw.LoggingMiddleware,
         ],
