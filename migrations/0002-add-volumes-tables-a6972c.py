@@ -21,7 +21,6 @@ from genesis_core.compute import constants as nc
 
 
 class MigrationStep(migrations.AbstarctMigrationStep):
-
     def __init__(self):
         self._depends = ["0001-init-all-tables-f47bad.py"]
 

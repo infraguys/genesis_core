@@ -20,7 +20,6 @@ from genesis_core.user_api.iam.dm import types
 
 
 class TestUsernameTestCase:
-
     @pytest.fixture
     def test_instance(self):
         return types.Username(min_length=1, max_length=20)
@@ -71,7 +70,6 @@ class TestUsernameTestCase:
 
 
 class TestNameTestCase:
-
     @pytest.fixture
     def test_instance(self):
         return types.Name(min_length=1, max_length=20)

@@ -41,7 +41,6 @@ DNS_PROJECT_UUID = _u("GenesisCore-Dns-Project")
 
 
 class MigrationStep(migrations.AbstarctMigrationStep):
-
     def __init__(self):
         self._depends = ["0020-init-secret-a643b1.py"]
 

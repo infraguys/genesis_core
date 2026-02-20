@@ -21,13 +21,11 @@ from gcl_iam.tests.functional import clients as iam_clients
 from gcl_sdk.agents.universal.dm import models as ua_models
 
 from genesis_core.tests.functional import stubs
-from genesis_core.secret import constants as sc
 from genesis_core.secret import service
 from genesis_core.secret.dm import models
 
 
 class TestSecretsServiceBuilder:
-
     def setup_method(self) -> None:
         # Run service
         self._service = service.SecretServiceBuilder()
@@ -116,9 +114,7 @@ class TestSecretsServiceBuilder:
         view["full_hash"] = "1111"
         view["value"]["status"] = "ACTIVE"
         view["value"]["value"] = "mynewpassword"
-        render_actual_resource = ua_models.Resource.restore_from_simple_view(
-            **view
-        )
+        render_actual_resource = ua_models.Resource.restore_from_simple_view(**view)
         render_actual_resource.insert()
 
         self._service._iteration()
@@ -164,9 +160,7 @@ class TestSecretsServiceBuilder:
         view["full_hash"] = "1111"
         view["value"]["status"] = "ACTIVE"
         view["value"]["value"] = "mynewpassword"
-        render_actual_resource = ua_models.Resource.restore_from_simple_view(
-            **view
-        )
+        render_actual_resource = ua_models.Resource.restore_from_simple_view(**view)
         render_actual_resource.insert()
 
         self._service._iteration()
@@ -175,13 +169,9 @@ class TestSecretsServiceBuilder:
         assert password.status == "ACTIVE"
 
         update = {"name": "test"}
-        url = client.build_resource_uri(
-            ["secret/passwords", str(password.uuid)]
-        )
+        url = client.build_resource_uri(["secret/passwords", str(password.uuid)])
         response = client.put(url, json=update)
         assert response.status_code == 200
-
-        output = response.json()
 
         password = stubs.Password.objects.get_one()
         assert password.status == "NEW"
@@ -262,9 +252,7 @@ class TestSecretsServiceBuilder:
         view["hash"] = "222"
         view["value"]["status"] = "ACTIVE"
         view["value"]["value"] = "mynewpassword"
-        render_actual_resource = ua_models.Resource.restore_from_simple_view(
-            **view
-        )
+        render_actual_resource = ua_models.Resource.restore_from_simple_view(**view)
         render_actual_resource.insert()
 
         self._service._iteration()
@@ -356,9 +344,7 @@ class TestSecretsServiceBuilder:
         view["value"]["status"] = "ACTIVE"
         view["value"]["key"] = "mykey"
         view["value"]["cert"] = "mycert"
-        render_actual_resource = ua_models.Resource.restore_from_simple_view(
-            **view
-        )
+        render_actual_resource = ua_models.Resource.restore_from_simple_view(**view)
         render_actual_resource.insert()
 
         self._service._iteration()
@@ -406,9 +392,7 @@ class TestSecretsServiceBuilder:
         view["value"]["status"] = "ACTIVE"
         view["value"]["key"] = "mykey"
         view["value"]["cert"] = "mycert"
-        render_actual_resource = ua_models.Resource.restore_from_simple_view(
-            **view
-        )
+        render_actual_resource = ua_models.Resource.restore_from_simple_view(**view)
         render_actual_resource.insert()
 
         self._service._iteration()
@@ -417,9 +401,7 @@ class TestSecretsServiceBuilder:
         assert cert.status == "ACTIVE"
 
         update = {"name": "test"}
-        url = client.build_resource_uri(
-            ["secret/certificates", str(cert.uuid)]
-        )
+        url = client.build_resource_uri(["secret/certificates", str(cert.uuid)])
         response = client.put(url, json=update)
         assert response.status_code == 200
 
@@ -506,9 +488,7 @@ class TestSecretsServiceBuilder:
         view["value"]["status"] = "ACTIVE"
         view["value"]["key"] = "mykey"
         view["value"]["cert"] = "mycert"
-        render_actual_resource = ua_models.Resource.restore_from_simple_view(
-            **view
-        )
+        render_actual_resource = ua_models.Resource.restore_from_simple_view(**view)
         render_actual_resource.insert()
 
         self._service._iteration()
@@ -560,9 +540,7 @@ class TestSecretsServiceBuilder:
 
         assert len(target_resources) == 2
         assert len(keys) == 1
-        host_key = [r for r in target_resources if r.kind == "ssh_key_target"][
-            0
-        ]
+        host_key = [r for r in target_resources if r.kind == "ssh_key_target"][0]
         key = keys[0]
 
         assert key.status == "IN_PROGRESS"
@@ -639,9 +617,7 @@ class TestSecretsServiceBuilder:
         assert key.status == "IN_PROGRESS"
 
         target_resources = stubs.TargetResource.objects.get_all()
-        host_key = [r for r in target_resources if r.kind == "ssh_key_target"][
-            0
-        ]
+        host_key = [r for r in target_resources if r.kind == "ssh_key_target"][0]
         view = host_key.dump_to_simple_view()
         view.pop("master", None)
         view.pop("master_hash", None)
@@ -650,9 +626,7 @@ class TestSecretsServiceBuilder:
         view.pop("tracked_at", None)
         view["status"] = "ACTIVE"
         view["full_hash"] = "1111"
-        host_actual_resource = ua_models.Resource.restore_from_simple_view(
-            **view
-        )
+        host_actual_resource = ua_models.Resource.restore_from_simple_view(**view)
         host_actual_resource.insert()
 
         self._service._iteration()
@@ -694,9 +668,7 @@ class TestSecretsServiceBuilder:
         assert key.status == "IN_PROGRESS"
 
         target_resources = stubs.TargetResource.objects.get_all()
-        host_key = [r for r in target_resources if r.kind == "ssh_key_target"][
-            0
-        ]
+        host_key = [r for r in target_resources if r.kind == "ssh_key_target"][0]
         view = host_key.dump_to_simple_view()
         view.pop("master", None)
         view.pop("master_hash", None)
@@ -705,9 +677,7 @@ class TestSecretsServiceBuilder:
         view.pop("tracked_at", None)
         view["status"] = "ACTIVE"
         view["full_hash"] = "1111"
-        host_actual_resource = ua_models.Resource.restore_from_simple_view(
-            **view
-        )
+        host_actual_resource = ua_models.Resource.restore_from_simple_view(**view)
         host_actual_resource.insert()
 
         self._service._iteration()

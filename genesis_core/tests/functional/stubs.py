@@ -22,15 +22,12 @@ from restalchemy.storage.sql import orm as sql_orm
 
 from genesis_core.secret.dm import models
 
-INTERNAL_IAM_CLIENT_SECRET_UUID = sys_uuid.UUID(
-    "00000000-0000-0000-0000-000000000001"
-)
+INTERNAL_IAM_CLIENT_SECRET_UUID = sys_uuid.UUID("00000000-0000-0000-0000-000000000001")
 
 INTERNAL_IAM_CLIENT_SECRET_UUID_STR = str(INTERNAL_IAM_CLIENT_SECRET_UUID)
 
 
 class ObjectCollection(sql_orm.ObjectCollection):
-
     def get_all(self, *args, **kwargs):
         objects = super().get_all(*args, **kwargs)
 
@@ -38,11 +35,7 @@ class ObjectCollection(sql_orm.ObjectCollection):
             return objects
 
         internal_uuid_str = str(INTERNAL_IAM_CLIENT_SECRET_UUID)
-        return [
-            o
-            for o in objects
-            if str(getattr(o, "uuid", "")) != internal_uuid_str
-        ]
+        return [o for o in objects if str(getattr(o, "uuid", "")) != internal_uuid_str]
 
     def get_one(self, *args, **kwargs):
         if args or kwargs:
@@ -60,10 +53,8 @@ class ObjectCollection(sql_orm.ObjectCollection):
 
 
 class TargetResource(ua_models.TargetResource):
-
     _ObjectCollection = ObjectCollection
 
 
 class Password(models.Password):
-
     _ObjectCollection = ObjectCollection

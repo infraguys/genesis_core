@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import enum
 import logging
-import sys
 import time
 import typing as tp
 import uuid as sys_uuid
@@ -62,9 +61,7 @@ class StoragePoolType(enum.Enum):
             return name
         return name + ext
 
-    def legacy_volume_name(
-        self, name: str, machine_uuid: sys_uuid.UUID
-    ) -> str:
+    def legacy_volume_name(self, name: str, machine_uuid: sys_uuid.UUID) -> str:
         """Use only for backward compatibility with old volume naming."""
         ext = self.volume_extension()
         return f"{name}_{machine_uuid}{ext}"
@@ -171,7 +168,6 @@ domain_template = """
 
 
 class XMLLibvirtMixin:
-
     @classmethod
     def add_element(
         cls,
@@ -238,7 +234,6 @@ class XMLLibvirtMixin:
 
 
 class XMLLibvirtVolume(XMLLibvirtMixin):
-
     def __init__(self, volume: libvirt.virStorageVol | str):
         if isinstance(volume, libvirt.virStorageVol):
             self._volume = minidom.parseString(volume.XMLDesc())
@@ -254,9 +249,7 @@ class XMLLibvirtVolume(XMLLibvirtMixin):
         cls, pool: libvirt.virStoragePool, name: str, size: int
     ) -> str:
         pool_type = (
-            minidom.parseString(pool.XMLDesc())
-            .firstChild.attributes["type"]
-            .value
+            minidom.parseString(pool.XMLDesc()).firstChild.attributes["type"].value
         )
         if pool_type == "zfs":
             return volume_template.format(name=name, size=size)
@@ -267,7 +260,6 @@ class XMLLibvirtVolume(XMLLibvirtMixin):
 
 
 class XMLLibvirtInstance(XMLLibvirtMixin):
-
     def __init__(self, domain: libvirt.virDomain | str):
         if isinstance(domain, libvirt.virDomain):
             self._domain = minidom.parseString(domain.XMLDesc())
@@ -283,9 +275,7 @@ class XMLLibvirtInstance(XMLLibvirtMixin):
         cls.document_set_tag(domain, "name", text=name)
 
     @classmethod
-    def domain_set_uuid(
-        cls, domain: minidom.Document, uuid: sys_uuid.UUID
-    ) -> None:
+    def domain_set_uuid(cls, domain: minidom.Document, uuid: sys_uuid.UUID) -> None:
         cls.document_set_tag(domain, "uuid", text=str(uuid))
 
     @classmethod
@@ -323,9 +313,7 @@ class XMLLibvirtInstance(XMLLibvirtMixin):
         )
 
     @classmethod
-    def domain_set_boot(
-        cls, domain: minidom.Document, boot: nc.BootType
-    ) -> None:
+    def domain_set_boot(cls, domain: minidom.Document, boot: nc.BootType) -> None:
         os_element = domain.getElementsByTagName("os")[0]
 
         # TODO(akremenetsky): Fix this durty hack
@@ -372,9 +360,7 @@ class XMLLibvirtInstance(XMLLibvirtMixin):
     ) -> None:
         device_element = domain.getElementsByTagName("devices")[0]
         device_element.appendChild(
-            minidom.parseString(
-                cls.disk_device_xml(image_path, device, bus)
-            ).firstChild
+            minidom.parseString(cls.disk_device_xml(image_path, device, bus)).firstChild
         )
 
     @classmethod
@@ -474,7 +460,6 @@ class LibvirtPoolDriverSpec(tp.NamedTuple):
 
 
 class LibvirtPoolDriver(base.AbstractPoolDriver):
-
     def __init__(self, pool: models.MachinePool):
         self._spec = LibvirtPoolDriverSpec(**pool.driver_spec)
         self._pool = pool
@@ -619,16 +604,12 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
 
                 source = disk.find("source")
                 if source is None:
-                    LOG.warning(
-                        "Unable to detect source for %s", ET.tostring(disk)
-                    )
+                    LOG.warning("Unable to detect source for %s", ET.tostring(disk))
                     continue
 
                 path = source.get("file") or source.get("dev")
                 if path is None:
-                    LOG.warning(
-                        "Unable to detect path for %s", ET.tostring(disk)
-                    )
+                    LOG.warning("Unable to detect path for %s", ET.tostring(disk))
                     continue
 
                 volume = path_map.get(path)
@@ -656,9 +637,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
             )
             try:
                 result.append(
-                    self._vir_volume2machine_volume(
-                        volume, machine_uuid, index=idx
-                    )
+                    self._vir_volume2machine_volume(volume, machine_uuid, index=idx)
                 )
             except Exception:
                 LOG.debug("Failed to parse volume %s", volume.name())
@@ -732,9 +711,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
 
             source = disk.find("source")
             if source is None:
-                LOG.warning(
-                    "Unable to detect source for %s", ET.tostring(disk)
-                )
+                LOG.warning("Unable to detect source for %s", ET.tostring(disk))
                 continue
 
             path = source.get("file") or source.get("dev")
@@ -771,13 +748,10 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         tp.Collection[models.MachineVolume],
     ]:
         pool = self.get_pool_info()
-        vir_storage_pool = self._client.storagePoolLookupByName(
-            self._spec.storage_pool
-        )
+        vir_storage_pool = self._client.storagePoolLookupByName(self._spec.storage_pool)
         volumes = vir_storage_pool.listAllVolumes()
         domains = tuple(
-            (d, ET.fromstring(d.XMLDesc()))
-            for d in self._client.listAllDomains()
+            (d, ET.fromstring(d.XMLDesc())) for d in self._client.listAllDomains()
         )
 
         volumes = self._list_volumes(domains, volumes)
@@ -801,13 +775,10 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
     def list_volumes(
         self, machine: models.Machine | None = None
     ) -> tp.Iterable[models.MachineVolume]:
-        storage_pool = self._client.storagePoolLookupByName(
-            self._spec.storage_pool
-        )
+        storage_pool = self._client.storagePoolLookupByName(self._spec.storage_pool)
         volumes = storage_pool.listAllVolumes()
         domains = tuple(
-            (d, ET.fromstring(d.XMLDesc()))
-            for d in self._client.listAllDomains()
+            (d, ET.fromstring(d.XMLDesc())) for d in self._client.listAllDomains()
         )
 
         volumes = self._list_volumes(domains, volumes)
@@ -818,9 +789,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         return [v for v in volumes if v.machine == machine.uuid]
 
     def get_volume(self, volume: sys_uuid.UUID) -> models.MachineVolume:
-        storage_pool = self._client.storagePoolLookupByName(
-            self._spec.storage_pool
-        )
+        storage_pool = self._client.storagePoolLookupByName(self._spec.storage_pool)
         pool_xml = ET.fromstring(storage_pool.XMLDesc())
         pool_type = StoragePoolType(pool_xml.get("type"))
         name = pool_type.volume_name(str(volume))
@@ -842,12 +811,8 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
 
         raise pool_exc.VolumeNotFoundError(volume=volume)
 
-    def create_volume(
-        self, volume: models.MachineVolume
-    ) -> models.MachineVolume:
-        storage_pool = self._client.storagePoolLookupByName(
-            self._spec.storage_pool
-        )
+    def create_volume(self, volume: models.MachineVolume) -> models.MachineVolume:
+        storage_pool = self._client.storagePoolLookupByName(self._spec.storage_pool)
 
         # TODO(akremenetsky): Rework `xml_from_base_template` to use
         # the correct name format
@@ -869,14 +834,12 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         return volume
 
     def delete_volume(self, volume: models.MachineVolume) -> None:
-        storage_pool = self._client.storagePoolLookupByName(
-            self._spec.storage_pool
-        )
+        storage_pool = self._client.storagePoolLookupByName(self._spec.storage_pool)
         name = self._vir_volume_name(storage_pool, volume)
 
         try:
             v = storage_pool.storageVolLookupByName(name)
-        except libvirt.libvirtError as e:
+        except libvirt.libvirtError:
             LOG.exception("The volume %s has not been found:", volume.uuid)
             return
 
@@ -890,7 +853,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         for i in range(max_iters + 1):
             try:
                 v.delete()
-            except libvirt.libvirtError as e:
+            except libvirt.libvirtError:
                 if i == max_iters:
                     raise
                 # Volume may be busy, just wait a little bit
@@ -928,9 +891,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
                 )
 
         # Lookup storage pool and volume
-        storage_pool = self._client.storagePoolLookupByName(
-            self._spec.storage_pool
-        )
+        storage_pool = self._client.storagePoolLookupByName(self._spec.storage_pool)
         volume_name = self._vir_volume_name(storage_pool, volume)
 
         try:
@@ -950,9 +911,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         disk_xml = XMLLibvirtInstance.disk_device_xml(image_path, device_name)
 
         # Attach the device both to live domain and persistent config
-        flags = (
-            libvirt.VIR_DOMAIN_AFFECT_LIVE | libvirt.VIR_DOMAIN_AFFECT_CONFIG
-        )
+        flags = libvirt.VIR_DOMAIN_AFFECT_LIVE | libvirt.VIR_DOMAIN_AFFECT_CONFIG
         try:
             domain.attachDeviceFlags(disk_xml, flags)
         except libvirt.libvirtError as e:
@@ -989,9 +948,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
             )
 
         # Detach the device both from live domain and persistent config
-        flags = (
-            libvirt.VIR_DOMAIN_AFFECT_LIVE | libvirt.VIR_DOMAIN_AFFECT_CONFIG
-        )
+        flags = libvirt.VIR_DOMAIN_AFFECT_LIVE | libvirt.VIR_DOMAIN_AFFECT_CONFIG
 
         try:
             domain.detachDeviceFlags(ET.tostring(disk, "unicode"), flags)
@@ -1007,9 +964,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
 
     def resize_volume(self, volume: models.MachineVolume) -> None:
         """Resize the volume."""
-        storage_pool = self._client.storagePoolLookupByName(
-            self._spec.storage_pool
-        )
+        storage_pool = self._client.storagePoolLookupByName(self._spec.storage_pool)
         volume_name = self._vir_volume_name(storage_pool, volume)
 
         try:
@@ -1088,9 +1043,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
             )
 
         # Prepare volume paths
-        storage_pool = self._client.storagePoolLookupByName(
-            self._spec.storage_pool
-        )
+        storage_pool = self._client.storagePoolLookupByName(self._spec.storage_pool)
 
         storage_pool_xml = ET.fromstring(storage_pool.XMLDesc())
         pool_type = StoragePoolType(storage_pool_xml.get("type"))
@@ -1176,9 +1129,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
             ports=ports,
             legacy_machine=legacy_domain,
         )
-        LOG.debug(
-            "The domain %s was updated with cores %s", machine.uuid, cores
-        )
+        LOG.debug("The domain %s was updated with cores %s", machine.uuid, cores)
 
     def set_machine_ram(self, machine: models.Machine, ram: int) -> None:
         """Set machine ram."""
@@ -1225,9 +1176,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
             # This part has to be removed once all machines are migrated.
             # Or this part can be reworked to convert legacy to new format.
             domain = self._client.lookupByUUIDString(str(machine.uuid))
-            legacy_domain = self._is_legacy_domain(
-                ET.fromstring(domain.XMLDesc())
-            )
+            legacy_domain = self._is_legacy_domain(ET.fromstring(domain.XMLDesc()))
 
             self.delete_machine(machine, delete_volumes=False)
             machine.name = name

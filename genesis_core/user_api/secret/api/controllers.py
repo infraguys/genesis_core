@@ -25,7 +25,6 @@ from genesis_core.secret import constants as sc
 
 
 class SecretController(controllers.RoutesListController):
-
     __TARGET_PATH__ = "/v1/secret/"
 
 

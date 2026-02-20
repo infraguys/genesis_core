@@ -25,7 +25,6 @@ LOG = logging.getLogger(__name__)
 
 
 class ElementManagerBuilder(basic.BasicService):
-
     def __init__(
         self,
         iter_min_period: int = 1,

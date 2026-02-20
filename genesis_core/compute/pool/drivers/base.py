@@ -22,7 +22,6 @@ from genesis_core.compute.dm import models
 
 
 class AbstractPoolDriver(abc.ABC):
-
     @abc.abstractmethod
     def get_pool_info(self) -> models.MachinePool:
         """Get pool info."""
@@ -61,9 +60,7 @@ class AbstractPoolDriver(abc.ABC):
         """Get machine from data plane."""
 
     @abc.abstractmethod
-    def create_volume(
-        self, volume: models.MachineVolume
-    ) -> models.MachineVolume:
+    def create_volume(self, volume: models.MachineVolume) -> models.MachineVolume:
         """Create a new volume."""
 
     @abc.abstractmethod
@@ -169,9 +166,7 @@ class DummyPoolDriver(AbstractPoolDriver):
             project_id=sys_uuid.uuid4(),
         )
 
-    def create_volume(
-        self, volume: models.MachineVolume
-    ) -> models.MachineVolume:
+    def create_volume(self, volume: models.MachineVolume) -> models.MachineVolume:
         """Create a new volume."""
         pass
 

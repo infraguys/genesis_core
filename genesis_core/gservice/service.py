@@ -53,16 +53,13 @@ from genesis_core.compute.node_set.dm import models as node_set_models
 from genesis_core.compute import constants as nc
 
 LOG = logging.getLogger(__name__)
-NODE_SET_TF_STORAGE = (
-    "/var/lib/genesis/genesis_core/node_set/target_fields.json"
-)
+NODE_SET_TF_STORAGE = "/var/lib/genesis/genesis_core/node_set/target_fields.json"
 NODE_SET_TARGET_TF_STORAGE = (
     "/var/lib/genesis/genesis_core/target_node_set/target_fields.json"
 )
 
 
 class GeneralService(basic.BasicService):
-
     def __init__(self, iter_min_period=1, iter_pause=0.1):
         super().__init__(iter_min_period, iter_pause)
 
@@ -92,9 +89,7 @@ class GeneralService(basic.BasicService):
             iter_min_period=1,
             iter_pause=0.1,
         )
-        n_network = n_network_service.NetworkService(
-            iter_min_period=1, iter_pause=0.1
-        )
+        n_network = n_network_service.NetworkService(iter_min_period=1, iter_pause=0.1)
         node_builder = node_builder_svc.NodeBuilderService(
             iter_min_period=1, iter_pause=0.1
         )
@@ -104,9 +99,7 @@ class GeneralService(basic.BasicService):
         pool_driver = ua_pool_drivers.PoolAgentDriver(
             meta_file="/var/lib/genesis/genesis_core/pool_agent_meta.json"
         )
-        agent_uuid = sys_uuid.uuid5(
-            ua_utils.system_uuid(), "machine_pool_agent"
-        )
+        agent_uuid = sys_uuid.uuid5(ua_utils.system_uuid(), "machine_pool_agent")
         machine_pool_agent = ua_agent_service.UniversalAgentService(
             agent_uuid=agent_uuid,
             orch_client=orch_db.DatabaseOrchClient(),

@@ -51,9 +51,7 @@ class Profile(
 
         global_profiles = Profile.objects.get_all(
             filters={
-                "profile_type": dm_filters.EQ(
-                    infra_c.ProfileType.GLOBAL.value
-                ),
+                "profile_type": dm_filters.EQ(infra_c.ProfileType.GLOBAL.value),
             },
             session=session,
         )
@@ -69,9 +67,7 @@ class Profile(
     def global_profile(cls, session: tp.Any | None = None) -> "Profile":
         return cls.objects.get_one(
             filters={
-                "profile_type": dm_filters.EQ(
-                    infra_c.ProfileType.GLOBAL.value
-                ),
+                "profile_type": dm_filters.EQ(infra_c.ProfileType.GLOBAL.value),
                 "active": dm_filters.EQ(True),
             },
             session=session,
@@ -87,8 +83,7 @@ class Profile(
         #    table to keep binding between profiles and variables.
         #    For now, we keep it simple.
         expression = (
-            "SELECT * FROM vs_variables vars  "
-            "WHERE vars.setter->>'kind' = 'profile';"
+            "SELECT * FROM vs_variables vars  WHERE vars.setter->>'kind' = 'profile';"
         )
 
         if not session:
@@ -102,9 +97,7 @@ class Profile(
 
         me = str(self.uuid)
 
-        for p in itertools.chain.from_iterable(
-            r["setter"]["profiles"] for r in resp
-        ):
+        for p in itertools.chain.from_iterable(r["setter"]["profiles"] for r in resp):
             if p["profile"] == me:
                 raise infra_exc.ProfileInUse(profile=self.uuid)
 
@@ -322,9 +315,7 @@ class Value(
         if self.variable:
             self.variable.update(session=session, force=True)
 
-    def update(
-        self, session: tp.Any | None = None, force: bool = False
-    ) -> None:
+    def update(self, session: tp.Any | None = None, force: bool = False) -> None:
         super().update(session=session, force=force)
 
         # Notify the variable that a new value has been inserted
@@ -338,9 +329,7 @@ class Value(
         if self.variable:
             self.variable.update(session=session, force=True)
 
-    def select_me(
-        self, variable: Variable, session: tp.Any | None = None
-    ) -> None:
+    def select_me(self, variable: Variable, session: tp.Any | None = None) -> None:
         if self.variable != variable:
             raise ValueError("Value does not belong to the variable")
 

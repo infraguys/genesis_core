@@ -30,7 +30,6 @@ from genesis_core.common import config
 from genesis_core.common import constants as c
 from genesis_core.common import log as infra_log
 from genesis_core.common import utils
-from genesis_core.user_api.iam import constants as iam_c
 from genesis_core.user_api.iam import drivers as iam_drivers
 
 api_cli_opts = [
@@ -115,9 +114,7 @@ def main():
         )
 
         service.add_setup(
-            lambda: engines.engine_factory.configure_postgresql_factory(
-                conf=CONF
-            )
+            lambda: engines.engine_factory.configure_postgresql_factory(conf=CONF)
         )
 
         serv_hub.add_service(service)

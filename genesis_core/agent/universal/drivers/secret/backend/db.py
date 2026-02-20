@@ -60,16 +60,10 @@ class DatabaseSecretBackendClient(base.AbstractBackendClient):
         password = secret_dm.Password.from_ua_resource(resource)
 
         # Validate structure of password model
-        if (
-            sc.SecretMethod[password.method].is_auto
-            and password.value is not None
-        ):
+        if sc.SecretMethod[password.method].is_auto and password.value is not None:
             raise ValueError("Cannot create auto-generated password.")
 
-        if (
-            not sc.SecretMethod[password.method].is_auto
-            and password.value is None
-        ):
+        if not sc.SecretMethod[password.method].is_auto and password.value is None:
             raise ValueError("Cannot create non-auto-generated password.")
 
         # Generate plain password

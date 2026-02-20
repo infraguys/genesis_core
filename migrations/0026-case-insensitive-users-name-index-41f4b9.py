@@ -18,7 +18,6 @@ from restalchemy.storage.sql import migrations
 
 
 class MigrationStep(migrations.AbstarctMigrationStep):
-
     def __init__(self):
         self._depends = ["0025-secret-ssh-keys-ad3fad.py"]
 

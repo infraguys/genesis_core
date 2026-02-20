@@ -80,9 +80,7 @@ def main():
         )
 
         service.add_setup(
-            lambda: engines.engine_factory.configure_postgresql_factory(
-                conf=CONF
-            )
+            lambda: engines.engine_factory.configure_postgresql_factory(conf=CONF)
         )
 
         serv_hub.add_service(service)

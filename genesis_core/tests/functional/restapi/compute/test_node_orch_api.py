@@ -54,9 +54,7 @@ class TestNodeOrchApi:
 
         orch_api_service.teardown_method()
 
-    def test_netboots_default_net(
-        self, orch_api: test_utils.RestServiceTestCase
-    ):
+    def test_netboots_default_net(self, orch_api: test_utils.RestServiceTestCase):
         CONF[orch_api_cmd.DOMAIN].gc_host = "10.20.0.2"
 
         uuid = sys_uuid.uuid4()

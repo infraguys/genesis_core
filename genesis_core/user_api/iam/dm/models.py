@@ -53,7 +53,6 @@ class KindModelSelectorType(ra_types_dynamic.KindModelSelectorType):
 
 
 class ModelWithSecret(models.Model, models.CustomPropertiesMixin):
-
     __custom_properties__ = {
         "secret": ra_types.String(min_length=5, max_length=128),
     }
@@ -135,7 +134,6 @@ class ModelWithSecret(models.Model, models.CustomPropertiesMixin):
 
 
 class ModelWithStatus(models.Model):
-
     STATUS = iam_c.Status
 
     status = properties.property(
@@ -145,7 +143,6 @@ class ModelWithStatus(models.Model):
 
 
 class ModelWithAlwaysActiveStatus(models.Model):
-
     STATUS = iam_c.AlwaysActiveStatus
 
     status = properties.property(
@@ -155,7 +152,6 @@ class ModelWithAlwaysActiveStatus(models.Model):
 
 
 class RolesInfo:
-
     def __init__(self, roles):
         super().__init__()
         self._roles = roles
@@ -173,7 +169,6 @@ class IdpResponseType(str, enum.Enum):
 
 
 class AbstractUserSource(ra_types_dynamic.AbstractKindModel):
-
     def process_secret(self, user, secret):
         raise NotImplementedError()
 
@@ -311,9 +306,7 @@ class User(
 
     @classmethod
     def me(cls, token_info=None):
-        token_info = (
-            token_info or contexts.get_context().iam_context.token_info
-        )
+        token_info = token_info or contexts.get_context().iam_context.token_info
         return User.objects.get_one(
             filters={"uuid": ra_filters.EQ(token_info.user_uuid)}
         )
@@ -439,15 +432,11 @@ class User(
         # to set confirmation_code and confirmation_code_made_at to nulls,
         # hourly, for all expired codes.
         self.confirmation_code = self.confirmation_code or sys_uuid.uuid4()
-        self.confirmation_code_made_at = datetime.datetime.now(
-            datetime.timezone.utc
-        )
+        self.confirmation_code_made_at = datetime.datetime.now(datetime.timezone.utc)
         self.save()
 
     def check_confirmation_code(self, code):
-        if not (
-            code and self.confirmation_code and self.confirmation_code_made_at
-        ):
+        if not (code and self.confirmation_code and self.confirmation_code_made_at):
             return False
 
         now = datetime.datetime.now(datetime.timezone.utc)
@@ -659,10 +648,7 @@ class Project(
             },
             order_by={"created_at": "asc"},
         ):
-            if (
-                role_binding.project
-                and role_binding.project.organization == org
-            ):
+            if role_binding.project and role_binding.project.organization == org:
                 return role_binding.project
         return None
 
@@ -745,7 +731,6 @@ class Introspection(
     models.ModelWithUUID,
     models.ModelWithTimestamp,
 ):
-
     user = relationships.relationship(
         User,
         required=True,
@@ -768,14 +753,11 @@ class Introspection(
             "user_info": self.user.get_response_body(),
             "project_id": str(self.project.uuid) if self.project else None,
             "otp_verified": self.otp_verified,
-            "permissions": [
-                permission.name for permission in self.permissions
-            ],
+            "permissions": [permission.name for permission in self.permissions],
         }
 
 
 class MeInfo:
-
     def __init__(self):
         super().__init__()
         self._user = self.get_user()
@@ -815,7 +797,6 @@ class MeInfo:
 
 
 class Userinfo:
-
     def __init__(self):
         super().__init__()
         self._token = Token.my()
@@ -1009,9 +990,7 @@ class IamClient(
             where_values=(username.lower(),),
             limit=1,
         )
-        return self._get_token_by_password_and_smth(
-            users_query=users_query, **kwargs
-        )
+        return self._get_token_by_password_and_smth(users_query=users_query, **kwargs)
 
     def get_token_by_password_username(self, username, **kwargs):
         """
@@ -1025,12 +1004,8 @@ class IamClient(
         """
         Get auth token by email + password.
         """
-        users_query = User.objects.get_all(
-            filters={"email": ra_filters.EQ(email)}
-        )
-        return self._get_token_by_password_and_smth(
-            users_query=users_query, **kwargs
-        )
+        users_query = User.objects.get_all(filters={"email": ra_filters.EQ(email)})
+        return self._get_token_by_password_and_smth(users_query=users_query, **kwargs)
 
     def get_token_by_password_phone(self, phone, **kwargs):
         """
@@ -1061,9 +1036,7 @@ class IamClient(
             ignore_expiration=True,
         )
         for token in Token.objects.get_all(
-            filters={
-                "refresh_token_uuid": ra_filters.EQ(refresh_token_info.uuid)
-            }
+            filters={"refresh_token_uuid": ra_filters.EQ(refresh_token_info.uuid)}
         ):
             token.validate_refresh_expiration()
             token.refresh(scope=scope)
@@ -1090,9 +1063,7 @@ class IamClient(
     def userinfo(self):
         return Userinfo()
 
-    def send_reset_password_event(
-        self, email, app_endpoint="http://localhost/"
-    ):
+    def send_reset_password_event(self, email, app_endpoint="http://localhost/"):
         email = email.lower()
         # Result for non-existing email should not differ from existing one
         #  to mitigate with email enumeration.
@@ -1121,9 +1092,7 @@ class IamClient(
                 private_key=secret.private_key,
                 public_key=secret.public_key,
                 previous_public_key=(
-                    None
-                    if previous_secret is None
-                    else previous_secret.public_key
+                    None if previous_secret is None else previous_secret.public_key
                 ),
             )
 
@@ -1333,9 +1302,7 @@ class Token(
             struct_dict["sub"] = str(self.user.uuid)
 
         if "profile" in splitted_scope:
-            struct_dict["name"] = (
-                f" {self.user.first_name} {self.user.last_name}"
-            )
+            struct_dict["name"] = f" {self.user.first_name} {self.user.last_name}"
             struct_dict["given_name"] = self.user.first_name
             struct_dict["family_name"] = self.user.last_name
             struct_dict["middle_name"] = self.user.surname
@@ -1374,8 +1341,6 @@ class Token(
         self.update()
 
     def get_response_body(self):
-        ctx = contexts.get_context()
-
         now = datetime.datetime.now(datetime.timezone.utc)
         algorithm = self.iam_client.get_token_algorithm()
 
@@ -1430,9 +1395,7 @@ class Token(
 
     @classmethod
     def my(cls, token_info=None):
-        token_info = (
-            token_info or contexts.get_context().iam_context.token_info
-        )
+        token_info = token_info or contexts.get_context().iam_context.token_info
         for token in Token.objects.get_all(
             filters={"uuid": ra_filters.EQ(token_info.uuid)},
             limit=1,
@@ -1510,10 +1473,7 @@ class Idp(
     def well_known_endpoint(self):
         ctx = contexts.get_context()
         app_url = ctx.get_real_url_with_prefix()
-        return (
-            f"{app_url}/v1/iam/idp/{self.uuid}/"
-            ".well-known/openid-configuration"
-        )
+        return f"{app_url}/v1/iam/idp/{self.uuid}/.well-known/openid-configuration"
 
     def get_wellknown_info(self):
         ctx = contexts.get_context()
@@ -1522,19 +1482,17 @@ class Idp(
         return {
             "issuer": (f"{app_url}/v1/iam/clients/{self.iam_client.uuid}"),
             "authorization_endpoint": (
-                f"{app_url}/v1/iam/idp/{self.uuid}" "/actions/authorize/invoke"
+                f"{app_url}/v1/iam/idp/{self.uuid}/actions/authorize/invoke"
             ),
             "token_endpoint": (
                 f"{app_url}/v1/iam/clients/{self.iam_client.uuid}"
                 "/actions/get_token/invoke"
             ),
             "userinfo_endpoint": (
-                f"{app_url}/v1/iam/clients/{self.iam_client.uuid}"
-                "/actions/userinfo"
+                f"{app_url}/v1/iam/clients/{self.iam_client.uuid}/actions/userinfo"
             ),
             "jwks_uri": (
-                f"{app_url}/v1/iam/clients/{self.iam_client.uuid}"
-                "/actions/jwks"
+                f"{app_url}/v1/iam/clients/{self.iam_client.uuid}/actions/jwks"
             ),
             "response_types_supported": IdpResponseType.list_response_types(),
             "subject_types_supported": ["public"],
@@ -1544,8 +1502,7 @@ class Idp(
             "scopes_supported": ["openid", "profile", "email"],
             "claims_supported": ["sub", "iss", "name", "email"],
             "end_session_endpoint": (
-                f"{app_url}/v1/iam/clients/{self.iam_client.uuid}"
-                "/actions/logout/invoke"
+                f"{app_url}/v1/iam/clients/{self.iam_client.uuid}/actions/logout/invoke"
             ),
         }
 
@@ -1586,10 +1543,7 @@ class Idp(
         )
 
     def construct_callback_uri(self, auth_info):
-        return (
-            self.callback_uri + f"?code={auth_info.code}"
-            f"&state={auth_info.state}"
-        )
+        return self.callback_uri + f"?code={auth_info.code}&state={auth_info.state}"
 
 
 class IdpAuthorizationInfo(

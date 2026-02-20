@@ -17,11 +17,8 @@
 
 from restalchemy.storage.sql import migrations
 
-from genesis_core.compute import constants as nc
-
 
 class MigrationStep(migrations.AbstarctMigrationStep):
-
     def __init__(self):
         self._depends = ["0008-add-iam-permissions-d81bba.py"]
 

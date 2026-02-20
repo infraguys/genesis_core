@@ -29,7 +29,6 @@ from genesis_core.user_api.iam.dm import models as iam_models
 
 
 class TestUsers(base.BaseIamResourceTest):
-
     USERS_ENDPOINT = "iam/users"
 
     @pytest.mark.parametrize("name", ["test", "Spider-Man"])
@@ -52,9 +51,7 @@ class TestUsers(base.BaseIamResourceTest):
         with pytest.raises(bazooka_exc.UnauthorizedError):
             client.create_user(username="test_unauth", password="testtest")
 
-    def test_create_user_no_permission_fails(
-        self, user_api_client, auth_test1_user
-    ):
+    def test_create_user_no_permission_fails(self, user_api_client, auth_test1_user):
         client = user_api_client(auth_test1_user)
 
         with pytest.raises(bazooka_exc.ForbiddenError):
@@ -75,9 +72,7 @@ class TestUsers(base.BaseIamResourceTest):
         with pytest.raises(bazooka_exc.BadRequestError):
             client.create_user(username="test400", password="test test")
 
-    def test_create_user_space_login_400_error(
-        self, user_api_client, auth_user_admin
-    ):
+    def test_create_user_space_login_400_error(self, user_api_client, auth_user_admin):
         client = user_api_client(
             auth_user_admin,
             permissions=[
@@ -142,9 +137,7 @@ class TestUsers(base.BaseIamResourceTest):
         assert result["user"]["first_name"] == ""
         assert result["user"]["last_name"] == ""
 
-    def test_create_user_and_check_roles(
-        self, user_api_client, auth_test1_user
-    ):
+    def test_create_user_and_check_roles(self, user_api_client, auth_test1_user):
         client = user_api_client(auth_test1_user)
 
         roles = client.get_user_roles(auth_test1_user.uuid)
@@ -179,9 +172,7 @@ class TestUsers(base.BaseIamResourceTest):
         with pytest.raises(bazooka_exc.UnauthorizedError):
             client.list_users()
 
-    def test_list_users_admin_auth_success(
-        self, user_api_client, auth_user_admin
-    ):
+    def test_list_users_admin_auth_success(self, user_api_client, auth_user_admin):
         client = user_api_client(auth_user_admin)
 
         result = client.list_users()
@@ -189,17 +180,13 @@ class TestUsers(base.BaseIamResourceTest):
         assert isinstance(result, list)
         assert len(result) == 1
 
-    def test_list_users_test1_auth_forbidden(
-        self, user_api_client, auth_test1_user
-    ):
+    def test_list_users_test1_auth_forbidden(self, user_api_client, auth_test1_user):
         client = user_api_client(auth_test1_user)
 
         with pytest.raises(bazooka_exc.ForbiddenError):
             client.list_users()
 
-    def test_list_users_test1_auth_success(
-        self, user_api_client, auth_test1_user
-    ):
+    def test_list_users_test1_auth_success(self, user_api_client, auth_test1_user):
         client = user_api_client(
             auth=auth_test1_user,
             permissions=[
@@ -221,9 +208,7 @@ class TestUsers(base.BaseIamResourceTest):
 
         assert result["uuid"] == auth_user_admin.uuid
 
-    def test_update_my_user_test1_auth_success(
-        self, user_api_client, auth_test1_user
-    ):
+    def test_update_my_user_test1_auth_success(self, user_api_client, auth_test1_user):
         client = user_api_client(auth_test1_user)
         name = "testXXX"
         result = client.update_user(auth_test1_user.uuid, username=name)
@@ -311,9 +296,7 @@ class TestUsers(base.BaseIamResourceTest):
         user_api_noauth_client,
         auth_test1_user,
     ):
-        user = iam_models.User.objects.get_one(
-            filters={"uuid": auth_test1_user.uuid}
-        )
+        user = iam_models.User.objects.get_one(filters={"uuid": auth_test1_user.uuid})
         user.email_verified = False
         user.create_confirmation_code()
         user.save()
@@ -358,9 +341,7 @@ class TestUsers(base.BaseIamResourceTest):
     def test_confirm_email_expired_code_400_error(
         self, user_api_noauth_client, auth_test1_user, code_made_at
     ):
-        user = iam_models.User.objects.get_one(
-            filters={"uuid": auth_test1_user.uuid}
-        )
+        user = iam_models.User.objects.get_one(filters={"uuid": auth_test1_user.uuid})
         user.email_verified = False
         user.create_confirmation_code()
         user.confirmation_code_made_at = code_made_at
@@ -374,9 +355,7 @@ class TestUsers(base.BaseIamResourceTest):
                 code=str(user.confirmation_code),
             )
 
-    def test_delete_my_user_test1_auth_success(
-        self, user_api_client, auth_test1_user
-    ):
+    def test_delete_my_user_test1_auth_success(self, user_api_client, auth_test1_user):
         client = user_api_client(
             auth_test1_user,
             permissions=[
@@ -559,9 +538,7 @@ class TestUsers(base.BaseIamResourceTest):
     def test_auth_case_insensitivity(
         self, user_api, auth_test1_user, grant_type, use_email, field_name
     ):
-        user = iam_models.User.objects.get_one(
-            filters={"uuid": auth_test1_user.uuid}
-        )
+        user = iam_models.User.objects.get_one(filters={"uuid": auth_test1_user.uuid})
         user.name = user.name.title()
         user.email = "Test1@mail.com"
         user.save()
@@ -589,9 +566,7 @@ class TestUsers(base.BaseIamResourceTest):
     def test_reset_password_success(
         self, auth_test1_user, user_api, default_client_uuid
     ):
-        user = iam_models.User.objects.get_one(
-            filters={"uuid": auth_test1_user.uuid}
-        )
+        user = iam_models.User.objects.get_one(filters={"uuid": auth_test1_user.uuid})
         # after confirm email (auth_test1_user) confirmation_code is None
         assert user.confirmation_code is None
 

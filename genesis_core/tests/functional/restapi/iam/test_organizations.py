@@ -22,13 +22,10 @@ from genesis_core.user_api.iam import constants as c
 
 
 class TestOrganizations(base.BaseIamResourceTest):
-
     ORGS_ENDPOINT = "iam/organizations"
     ORGS_BINDINGS_ENDPOINT = "iam/organization_members"
 
-    def test_create_organization_wo_auth_unauthorized(
-        self, user_api_noauth_client
-    ):
+    def test_create_organization_wo_auth_unauthorized(self, user_api_noauth_client):
         client = user_api_noauth_client()
 
         with pytest.raises(bazooka_exc.UnauthorizedError):
@@ -172,9 +169,7 @@ class TestOrganizations(base.BaseIamResourceTest):
         org1 = admin_client.create_organization(name="TestOrganization1")
 
         with pytest.raises(bazooka_exc.ForbiddenError):
-            test_user_client.update_organization(
-                uuid=org1["uuid"], name=new_name
-            )
+            test_user_client.update_organization(uuid=org1["uuid"], name=new_name)
 
     def test_update_other_organization_test1_auth_success(
         self, user_api_client, auth_user_admin, auth_test1_user

@@ -37,7 +37,6 @@ from genesis_core.secret import constants as sc
 class AbstractSecretConstructor(
     types_dynamic.AbstractKindModel, ra_models.SimpleViewMixin
 ):
-
     def build(self, plain_secret: str) -> str:
         raise NotImplementedError()
 
@@ -97,12 +96,8 @@ class Password(
         }
 
     @classmethod
-    def get_new_passwords(
-        cls, limit: int = c.DEFAULT_SQL_LIMIT
-    ) -> list["Password"]:
-        return cls.get_new_entities(
-            cls.__tablename__, sc.PASSWORD_KIND, limit=limit
-        )
+    def get_new_passwords(cls, limit: int = c.DEFAULT_SQL_LIMIT) -> list["Password"]:
+        return cls.get_new_entities(cls.__tablename__, sc.PASSWORD_KIND, limit=limit)
 
     @classmethod
     def get_updated_passwords(
@@ -164,9 +159,7 @@ class Certificate(
         default=None,
     )
     # Count of days before expiration when the certificate should be renewed
-    expiration_threshold = properties.property(
-        types.Integer(min_value=0), default=14
-    )
+    expiration_threshold = properties.property(types.Integer(min_value=0), default=14)
     # Two meanings:
     # - CP: ability to overcome the expiration threshold. `True` means it's
     #       possible to overcome and the certificate won't be renewed.
@@ -195,9 +188,7 @@ class Certificate(
     def get_new_certificates(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
     ) -> list["Certificate"]:
-        return cls.get_new_entities(
-            cls.__tablename__, sc.CERTIFICATE_KIND, limit=limit
-        )
+        return cls.get_new_entities(cls.__tablename__, sc.CERTIFICATE_KIND, limit=limit)
 
     @classmethod
     def get_updated_certificates(
@@ -256,10 +247,7 @@ class RSAKey(
 
         bitness = bitness or 2048
         if private_key is None:
-
-            private_key = iam_algorithms.generate_rsa_private_key_pem(
-                bitness=bitness
-            )
+            private_key = iam_algorithms.generate_rsa_private_key_pem(bitness=bitness)
             public_key = iam_algorithms.generate_rsa_public_key_pem(
                 private_key_pem=private_key
             )
@@ -370,9 +358,7 @@ class SSHKey(
         properties["uuid"] = sys_uuid.uuid5(self.uuid, str(node))
         host_ssh = SSHHostKey(**properties)
 
-        resource = host_ssh.to_ua_resource(
-            sc.SSH_KEY_TARGET_KIND, master=master
-        )
+        resource = host_ssh.to_ua_resource(sc.SSH_KEY_TARGET_KIND, master=master)
         if status is not None:
             resource.status = status.value
         # Place the key on the node
@@ -382,17 +368,11 @@ class SSHKey(
 
     @classmethod
     def get_new_keys(cls, limit: int = c.DEFAULT_SQL_LIMIT) -> list["SSHKey"]:
-        return cls.get_new_entities(
-            cls.__tablename__, sc.SSH_KEY_KIND, limit=limit
-        )
+        return cls.get_new_entities(cls.__tablename__, sc.SSH_KEY_KIND, limit=limit)
 
     @classmethod
-    def get_updated_keys(
-        cls, limit: int = c.DEFAULT_SQL_LIMIT
-    ) -> list["SSHKey"]:
-        return cls.get_updated_entities(
-            cls.__tablename__, sc.SSH_KEY_KIND, limit=limit
-        )
+    def get_updated_keys(cls, limit: int = c.DEFAULT_SQL_LIMIT) -> list["SSHKey"]:
+        return cls.get_updated_entities(cls.__tablename__, sc.SSH_KEY_KIND, limit=limit)
 
     @classmethod
     def get_deleted_keys(

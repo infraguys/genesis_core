@@ -23,7 +23,6 @@ import uuid as sys_uuid
 
 from restalchemy.common import contexts
 from restalchemy.dm import filters as dm_filters
-from restalchemy.storage import exceptions as ra_exceptions
 from gcl_looper.services import basic
 from gcl_sdk.agents.universal.dm import models as ua_models
 
@@ -38,7 +37,6 @@ DEF_OUTDATE_MIN_PERIOD = datetime.timedelta(minutes=10)
 
 
 class ConfigServiceBuilder(basic.BasicService):
-
     def _get_new_configs(
         self,
         limit: int = c.DEFAULT_SQL_LIMIT,
@@ -163,9 +161,7 @@ class ConfigServiceBuilder(basic.BasicService):
         # Make renders for each new config
         for config in configs:
             # Collect all available nodes for the config
-            target_nodes = tuple(
-                nodes[n] for n in config.target_nodes() if n in nodes
-            )
+            target_nodes = tuple(nodes[n] for n in config.target_nodes() if n in nodes)
             try:
                 self._actualize_new_config(config, target_nodes)
             except Exception:
@@ -187,9 +183,7 @@ class ConfigServiceBuilder(basic.BasicService):
         )
         render_resources = ua_models.TargetResource.objects.get_all(
             filters={
-                "master": dm_filters.In(
-                    str(uc.uuid) for uc in changed_configs
-                ),
+                "master": dm_filters.In(str(uc.uuid) for uc in changed_configs),
                 "kind": dm_filters.EQ(cc.RENDER_KIND),
             }
         )
@@ -261,9 +255,7 @@ class ConfigServiceBuilder(basic.BasicService):
         for config, config_resource in configs:
             renders = render_map[config.uuid]
             try:
-                self._actualize_outdated_config(
-                    config, config_resource, renders
-                )
+                self._actualize_outdated_config(config, config_resource, renders)
             except Exception:
                 LOG.exception("Error actualizing config %s", config.uuid)
 
@@ -286,9 +278,7 @@ class ConfigServiceBuilder(basic.BasicService):
         for resource in render_resources + deleted_config_resources:
             try:
                 resource.delete()
-                LOG.debug(
-                    "Resource(%s) %s deleted", resource.kind, resource.uuid
-                )
+                LOG.debug("Resource(%s) %s deleted", resource.kind, resource.uuid)
             except Exception:
                 LOG.exception("Error deleting resource %s", resource.uuid)
 
@@ -300,9 +290,7 @@ class ConfigServiceBuilder(basic.BasicService):
             return
 
         # Take N oldest handled configs check if they are orphan
-        outdated_ts = (
-            datetime.datetime.now(datetime.timezone.utc) - outdate_min_period
-        )
+        outdated_ts = datetime.datetime.now(datetime.timezone.utc) - outdate_min_period
         outdated_configs = models.Config.objects.get_all(
             filters={"updated_at": dm_filters.LT(outdated_ts)},
             limit=30,

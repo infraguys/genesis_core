@@ -19,7 +19,6 @@ from restalchemy.storage.sql import migrations
 
 
 class MigrationStep(migrations.AbstarctMigrationStep):
-
     def __init__(self):
         # self._depends = ["MANUAL-fix-usernames-6b042b.py"]
         self._depends = ["0024-user_confirmation_code_made_at-added-435e66.py"]

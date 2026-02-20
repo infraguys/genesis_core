@@ -25,10 +25,7 @@ from genesis_core.user_api.iam import constants as c
 
 
 class TestProjects(base.BaseIamResourceTest):
-
-    def test_create_user_and_check_roles(
-        self, user_api_client, auth_test1_user
-    ):
+    def test_create_user_and_check_roles(self, user_api_client, auth_test1_user):
         client = user_api_client(auth_test1_user)
         org = client.create_organization(
             name="TestOrganization",
@@ -42,18 +39,14 @@ class TestProjects(base.BaseIamResourceTest):
 
         assert self._has_role(roles, common_c.OWNER_ROLE_UUID)
 
-    def test_list_projects_wo_user_projects(
-        self, user_api_client, auth_test1_user
-    ):
+    def test_list_projects_wo_user_projects(self, user_api_client, auth_test1_user):
         client = user_api_client(auth_test1_user)
 
         projects = client.list_projects()
 
         assert len(projects) == 0
 
-    def test_list_projects_one_project(
-        self, user_api_client, auth_test1_p1_user
-    ):
+    def test_list_projects_one_project(self, user_api_client, auth_test1_p1_user):
         client = user_api_client(auth_test1_p1_user)
 
         projects = client.list_projects()
@@ -223,9 +216,7 @@ class TestProjects(base.BaseIamResourceTest):
         client = user_api_client(auth_test1_p1_user)
         u1p1 = client.list_projects()[0]
 
-        project = client.update_project(
-            u1p1["uuid"], name="Updated Project Name"
-        )
+        project = client.update_project(u1p1["uuid"], name="Updated Project Name")
 
         assert project["uuid"] == u1p1["uuid"]
         assert project["name"] != u1p1["name"]

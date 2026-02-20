@@ -27,7 +27,6 @@ from genesis_core.compute.scheduler.driver.weighter import relative
 
 
 class TestSchedulerService:
-
     def setup_method(self) -> None:
         # Run service
         pool_filters = [

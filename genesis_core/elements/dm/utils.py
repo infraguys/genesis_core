@@ -26,7 +26,6 @@ def clear_parameters(resource_link):
 
 
 class ResourceLink:
-
     def __init__(self, link_string):
         super().__init__()
         self._link_string = link_string
@@ -60,7 +59,6 @@ def get_project_id():
 def get_required_field(data, field_name):
     if field_name not in data:
         raise ValueError(
-            f"required field '{field_name}' is missing in the provided"
-            f" data: {data}"
+            f"required field '{field_name}' is missing in the provided data: {data}"
         )
     return data[field_name]

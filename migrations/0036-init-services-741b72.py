@@ -19,7 +19,6 @@ from restalchemy.storage.sql import migrations
 
 
 class MigrationStep(migrations.AbstractMigrationStep):
-
     def __init__(self):
         self._depends = ["0035-dummy-placement-e6d5dc.py"]
 

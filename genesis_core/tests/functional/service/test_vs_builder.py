@@ -29,7 +29,6 @@ from genesis_core.vs.dm import models
 
 
 class TestVSServiceBuilder:
-
     def setup_method(self) -> None:
         self._service = service.VSBuilderService(
             uuid=sys_uuid.uuid4(),

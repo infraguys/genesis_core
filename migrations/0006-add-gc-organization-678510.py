@@ -29,7 +29,6 @@ GENESIS_CORE_ORGANIZATION_DESCRIPTION = (
 
 
 class MigrationStep(migrations.AbstarctMigrationStep):
-
     def __init__(self):
         self._depends = ["0005-add-organization-info-4fac91.py"]
 

@@ -28,7 +28,6 @@ LOG = logging.getLogger(__name__)
 
 
 class MigrationEngine(migrations.MigrationEngine):
-
     def apply_migration(self, migration_name, session):
         filename = self.get_file_name(migration_name)
         self._init_migration_table(session)
@@ -54,7 +53,6 @@ class MigrationEngine(migrations.MigrationEngine):
 
 
 class MigrationStep(migrations.AbstarctMigrationStep):
-
     def __init__(self):
         self._depends = ["0028-add-api-version-to-manifest-8de907.py"]
 
