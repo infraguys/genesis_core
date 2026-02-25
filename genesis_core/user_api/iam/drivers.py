@@ -20,7 +20,6 @@ from genesis_core.user_api.iam.dm import models
 
 
 class DirectDriver(iam_drivers.AbstractAuthDriver):
-
     def get_introspection_info(self, token_info, otp_code=None):
         token = models.Token.my(token_info=token_info)
         token.validate_expiration()
@@ -52,12 +51,8 @@ class DirectDriver(iam_drivers.AbstractAuthDriver):
                 private_key=secret.private_key,
                 public_key=secret.public_key,
                 previous_public_key=(
-                    None
-                    if previous_secret is None
-                    else previous_secret.public_key
+                    None if previous_secret is None else previous_secret.public_key
                 ),
             )
 
-        raise ValueError(
-            f"Unknown signature algorithm: {signature_algorithm.kind}"
-        )
+        raise ValueError(f"Unknown signature algorithm: {signature_algorithm.kind}")

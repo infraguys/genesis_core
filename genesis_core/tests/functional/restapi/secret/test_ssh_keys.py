@@ -25,7 +25,6 @@ from genesis_core.secret.dm import models as secret_models
 
 
 class TestSSHKeysUserApi:
-
     # Utils
 
     @staticmethod
@@ -190,9 +189,7 @@ class TestSSHKeysUserApi:
         assert self._secret_cmp_shallow(key, output)
 
         # Manually change status
-        key_obj = secret_models.SSHKey.objects.get_one(
-            filters={"uuid": output["uuid"]}
-        )
+        key_obj = secret_models.SSHKey.objects.get_one(filters={"uuid": output["uuid"]})
         key_obj.status = "IN_PROGRESS"
         key_obj.update()
 

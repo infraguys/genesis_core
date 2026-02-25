@@ -44,9 +44,7 @@ class LBStatus(str, enum.Enum):
 class LBTypeCoreKind(types_dynamic.AbstractKindModel, models.SimpleViewMixin):
     KIND = "core"
 
-    cpu = properties.property(
-        types.Integer(min_value=1, max_value=128), default=1
-    )
+    cpu = properties.property(types.Integer(min_value=1, max_value=128), default=1)
     ram = properties.property(
         types.Integer(min_value=512, max_value=1024**3), default=512
     )
@@ -60,9 +58,7 @@ class LBTypeCoreKind(types_dynamic.AbstractKindModel, models.SimpleViewMixin):
     )
 
 
-class LBTypeCoreAgentKind(
-    types_dynamic.AbstractKindModel, models.SimpleViewMixin
-):
+class LBTypeCoreAgentKind(types_dynamic.AbstractKindModel, models.SimpleViewMixin):
     KIND = "core_agent"
 
 
@@ -135,12 +131,8 @@ class BackendHostKind(types_dynamic.AbstractKindModel, models.SimpleViewMixin):
     host = properties.property(
         types.String(min_length=1, max_length=260), required=True
     )
-    port = properties.property(
-        types.Integer(min_value=80, max_value=65535), default=80
-    )
-    weight = properties.property(
-        types.Integer(min_value=0, max_value=1000), default=1
-    )
+    port = properties.property(types.Integer(min_value=80, max_value=65535), default=80)
+    weight = properties.property(types.Integer(min_value=0, max_value=1000), default=1)
 
 
 class BalanceTypes(str, enum.Enum):
@@ -169,17 +161,11 @@ class BackendPool(ChildModel):
 
     def delete(self, session=None, **kwargs):
         # TODO: optimize this "foreign key" check
-        for v in Vhost.objects.get_all(
-            filters={"parent": dm_filters.EQ(self.parent)}
-        ):
-            for r in Route.objects.get_all(
-                filters={"parent": dm_filters.EQ(v.uuid)}
-            ):
+        for v in Vhost.objects.get_all(filters={"parent": dm_filters.EQ(self.parent)}):
+            for r in Route.objects.get_all(filters={"parent": dm_filters.EQ(v.uuid)}):
                 for a in r.condition.actions:
                     if a.kind == "backend" and a.pool == self.uuid:
-                        raise ValueError(
-                            "Backend pool in use, remove route first"
-                        )
+                        raise ValueError("Backend pool in use, remove route first")
         return super().delete(session=session, **kwargs)
 
 
@@ -205,20 +191,14 @@ PROTOCOL_CONFLICT_MAPPING = {
 }
 
 
-class LBExtSourceSSHKind(
-    types_dynamic.AbstractKindModel, models.SimpleViewMixin
-):
+class LBExtSourceSSHKind(types_dynamic.AbstractKindModel, models.SimpleViewMixin):
     KIND = "ssh_forward"
 
     host = properties.property(
         types.String(min_length=1, max_length=260), required=True
     )
-    port = properties.property(
-        types.Integer(min_value=1, max_value=65535), default=22
-    )
-    user = properties.property(
-        types.String(min_length=1, max_length=32), required=True
-    )
+    port = properties.property(types.Integer(min_value=1, max_value=65535), default=22)
+    user = properties.property(types.String(min_length=1, max_length=32), required=True)
     private_key = properties.property(
         types.String(min_length=1, max_length=32768),
         required=True,
@@ -240,13 +220,9 @@ class Vhost(ChildModel):
     )
     # TODO: should we allow ports less than 80? If yes - think how not to
     #  collide with VM internal services like ssh
-    port = properties.property(
-        types.Integer(min_value=80, max_value=65535), default=80
-    )
+    port = properties.property(types.Integer(min_value=80, max_value=65535), default=80)
     domains = properties.property(
-        types.AllowNone(
-            types.TypedList(types.String(min_length=1, max_length=255))
-        ),
+        types.AllowNone(types.TypedList(types.String(min_length=1, max_length=255))),
         default=None,
     )
     cert = properties.property(
@@ -282,9 +258,7 @@ class Vhost(ChildModel):
                 )
             if self.protocol == Protocol.HTTPS.value:
                 if self.cert is None:
-                    raise ValueError(
-                        "Certificate is required for HTTPS protocol."
-                    )
+                    raise ValueError("Certificate is required for HTTPS protocol.")
                 try:
                     x509.load_pem_x509_certificate(
                         self.cert.crt.encode("utf-8"), default_backend()
@@ -301,25 +275,18 @@ class Vhost(ChildModel):
                     raise ValueError("cert=key is invalid.")
         else:
             if self.domains:
-                raise ValueError(
-                    "L4 protocols don't support `domains` field yet."
-                )
+                raise ValueError("L4 protocols don't support `domains` field yet.")
             if self.cert:
-                raise ValueError(
-                    "L4 protocols don't support `cert` field yet."
-                )
+                raise ValueError("L4 protocols don't support `cert` field yet.")
         fltr = {
             "uuid": dm_filters.NE(self.uuid),
             "parent": dm_filters.EQ(self.parent),
             "port": dm_filters.EQ(self.port),
-            "protocol": dm_filters.In(
-                PROTOCOL_CONFLICT_MAPPING[self.protocol]
-            ),
+            "protocol": dm_filters.In(PROTOCOL_CONFLICT_MAPPING[self.protocol]),
         }
         for vhost in Vhost.objects.get_all(filters=fltr, limit=1):
             raise ValueError(
-                "Protocol+port pair conflicts with another vhost %s."
-                % str(vhost.uuid)
+                "Protocol+port pair conflicts with another vhost %s." % str(vhost.uuid)
             )
         for source in self.external_sources:
             if source.kind == "ssh_forward" and not su.validate_openssh_key(
@@ -346,9 +313,7 @@ class PathType(types.BaseCompiledRegExpTypeFromAttr):
     pattern = re.compile(r"^\/(.*)$")
 
 
-class AbstractBackendProtoKind(
-    types_dynamic.AbstractKindModel, models.SimpleViewMixin
-):
+class AbstractBackendProtoKind(types_dynamic.AbstractKindModel, models.SimpleViewMixin):
     pass
 
 
@@ -361,9 +326,7 @@ class BackendProtoHTTPSKind(AbstractBackendProtoKind):
     verify = properties.property(types.Boolean(), default=True)
 
 
-class AbstractRuleKind(
-    types_dynamic.AbstractKindModel, models.SimpleViewMixin
-):
+class AbstractRuleKind(types_dynamic.AbstractKindModel, models.SimpleViewMixin):
     # TODO: there may be `condition` field in future to select actions
     pass
 
@@ -390,9 +353,7 @@ class RuleHTTPBackendKind(AbstractRuleKind):
 class RuleRedirectKind(AbstractRuleKind):
     KIND = "redirect"
     url = properties.property(types.Url(), required=True)
-    code = properties.property(
-        types.Integer(min_value=300, max_value=399), default=301
-    )
+    code = properties.property(types.Integer(min_value=300, max_value=399), default=301)
 
 
 class AllowedPathType(types.BaseCompiledRegExpTypeFromAttr):
@@ -419,9 +380,7 @@ class RuleStaticDownloadKind(AbstractRuleKind):
     is_spa = properties.property(types.Boolean(), default=True)
 
 
-class AbstractModifierKind(
-    types_dynamic.AbstractKindModel, models.SimpleViewMixin
-):
+class AbstractModifierKind(types_dynamic.AbstractKindModel, models.SimpleViewMixin):
     pass
 
 
@@ -499,9 +458,7 @@ class Regex(types.String):
 class ModifierRewriteUrlKind(AbstractModifierKind):
     KIND = "rewrite_url"
     regex = properties.property(Regex(min_length=1, max_length=10000))
-    replacement = properties.property(
-        types.String(min_length=1, max_length=10000)
-    )
+    replacement = properties.property(types.String(min_length=1, max_length=10000))
 
 
 # class ConnectionUrlCodeKind(ConnectionUrlKind):
@@ -513,14 +470,10 @@ class ModifierRewriteUrlKind(AbstractModifierKind):
 #     )
 
 
-class AbstractRouteCondKind(
-    types_dynamic.AbstractKindModel, models.SimpleViewMixin
-):
+class AbstractRouteCondKind(types_dynamic.AbstractKindModel, models.SimpleViewMixin):
     allowed_ips = properties.property(
         types.TypedList(types_network.IpWithMask()),
-        default=lambda: [
-            types_network.IpWithMask().from_simple_type("0.0.0.0/0")
-        ],
+        default=lambda: [types_network.IpWithMask().from_simple_type("0.0.0.0/0")],
     )
 
 

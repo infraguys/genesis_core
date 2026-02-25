@@ -33,7 +33,6 @@ NODE_SET_KIND = models.TargetNodeSet.get_resource_kind()
 
 
 class LBBuilder(builder.CoreInfraBuilder):
-
     _name_prefix = "lbaas"
 
     def __init__(

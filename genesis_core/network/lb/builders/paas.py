@@ -30,7 +30,6 @@ LOG = logging.getLogger(__name__)
 
 
 class LBBuilder(builder.PaaSBuilder):
-
     def __init__(
         self,
         instance_model: tp.Type[models.PaasLB] = models.PaasLB,

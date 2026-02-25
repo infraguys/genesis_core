@@ -13,7 +13,6 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from __future__ import annotations
 
 import uuid as sys_uuid
 import typing as tp
@@ -28,7 +27,6 @@ DEF_DOMAIN = "core.internal"
 
 
 class TestDnsApi:
-
     # Utils
 
     @staticmethod
@@ -79,7 +77,7 @@ class TestDnsApi:
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
         domain1: tp.Dict,
-        pdns_server: int | None,
+        pdns_server: tp.Optional[int],
     ):
         client = user_api_client(auth_user_admin)
 
@@ -96,8 +94,7 @@ class TestDnsApi:
         assert records[0]["type"] == "SOA"
         assert records[0]["record"]["name"] == "@"
         assert (
-            records[0]["record"]["primary_dns"]
-            == "a.misconfigured.dns.server.invalid"
+            records[0]["record"]["primary_dns"] == "a.misconfigured.dns.server.invalid"
         )
 
         if pdns_server:
@@ -131,7 +128,7 @@ class TestDnsApi:
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
         domain1: tp.Dict,
-        pdns_server: int | None,
+        pdns_server: tp.Optional[int],
     ):
         client = user_api_client(auth_user_admin)
 
@@ -180,7 +177,7 @@ class TestDnsApi:
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
         domain1: tp.Dict,
-        pdns_server: int | None,
+        pdns_server: tp.Optional[int],
     ):
         client = user_api_client(auth_user_admin)
 
@@ -218,9 +215,7 @@ class TestDnsApi:
             assert len(answer) == 1
             # TXT records may not fit in one UDP frame, so there'll be many
             #  strings inside
-            assert (
-                "".join([i.decode() for i in answer[0].strings]) == "a" * 5000
-            )
+            assert "".join([i.decode() for i in answer[0].strings]) == "a" * 5000
 
         # Delete
         response = client.delete(url)

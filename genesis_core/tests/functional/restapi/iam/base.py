@@ -16,7 +16,6 @@
 
 
 class BaseIamResourceTest:
-
     def _has_role(self, roles, role_uuid):
         for role in roles:
             if role["uuid"] == role_uuid:

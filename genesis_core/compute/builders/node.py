@@ -13,7 +13,6 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from __future__ import annotations
 
 import logging
 import typing as tp
@@ -60,7 +59,6 @@ class Node(
 
 
 class NodeBuilderService(sdk_builder.UniversalBuilderService):
-
     def __init__(
         self,
         iter_min_period: int = 1,
@@ -125,9 +123,7 @@ class NodeBuilderService(sdk_builder.UniversalBuilderService):
     def _is_root_volume(self, volume: models.Volume) -> bool:
         return volume.index == 0
 
-    def _actualize_volume(
-        self, target: models.Volume, actual: models.Volume
-    ) -> None:
+    def _actualize_volume(self, target: models.Volume, actual: models.Volume) -> None:
         actual.size = target.size
         actual.image = target.image
         actual.name = target.name

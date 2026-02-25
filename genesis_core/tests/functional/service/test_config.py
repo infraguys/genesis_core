@@ -25,7 +25,6 @@ from genesis_core.config.dm import models
 
 
 class TestConfigServiceBuilder:
-
     def setup_method(self) -> None:
         # Run service
         self._service = service.ConfigServiceBuilder()
@@ -55,9 +54,7 @@ class TestConfigServiceBuilder:
 
         client = user_api_client(auth_user_admin)
 
-        config = config_factory(
-            target_node=sys_uuid.UUID(default_node["uuid"])
-        )
+        config = config_factory(target_node=sys_uuid.UUID(default_node["uuid"]))
 
         url = client.build_collection_uri(["config/configs"])
         response = client.post(url, json=config)
@@ -182,9 +179,7 @@ class TestConfigServiceBuilder:
         view.pop("tracked_at", None)
         view["status"] = "ACTIVE"
         view["full_hash"] = "1111"
-        render_actual_resource = ua_models.Resource.restore_from_simple_view(
-            **view
-        )
+        render_actual_resource = ua_models.Resource.restore_from_simple_view(**view)
         render_actual_resource.insert()
 
         self._service._iteration()
@@ -303,9 +298,7 @@ class TestConfigServiceBuilder:
         view.pop("tracked_at", None)
         view["status"] = "ACTIVE"
         view["full_hash"] = "1111"
-        render_actual_resource = ua_models.Resource.restore_from_simple_view(
-            **view
-        )
+        render_actual_resource = ua_models.Resource.restore_from_simple_view(**view)
         render_actual_resource.insert()
 
         self._service._iteration()

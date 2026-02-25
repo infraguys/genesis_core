@@ -13,7 +13,6 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from __future__ import annotations
 
 import secrets
 import logging
@@ -35,7 +34,7 @@ LOG = logging.getLogger(__name__)
 class DatabaseSecretBackendClient(base.AbstractBackendClient):
     """Secret Backend client based on SQL database."""
 
-    def get(self, resource: models.Resource) -> dict[str, tp.Any]:
+    def get(self, resource: models.Resource) -> tp.Dict[str, tp.Any]:
         """Get the resource value in dictionary format."""
         try:
             driver_password = driver_dm.Password.objects.get_one(
@@ -48,7 +47,7 @@ class DatabaseSecretBackendClient(base.AbstractBackendClient):
 
         return driver_password.meta
 
-    def create(self, resource: models.Resource) -> dict[str, tp.Any]:
+    def create(self, resource: models.Resource) -> tp.Dict[str, tp.Any]:
         """Creates the resource. Returns the created resource."""
         try:
             self.get(resource)
@@ -60,16 +59,10 @@ class DatabaseSecretBackendClient(base.AbstractBackendClient):
         password = secret_dm.Password.from_ua_resource(resource)
 
         # Validate structure of password model
-        if (
-            sc.SecretMethod[password.method].is_auto
-            and password.value is not None
-        ):
+        if sc.SecretMethod[password.method].is_auto and password.value is not None:
             raise ValueError("Cannot create auto-generated password.")
 
-        if (
-            not sc.SecretMethod[password.method].is_auto
-            and password.value is None
-        ):
+        if not sc.SecretMethod[password.method].is_auto and password.value is None:
             raise ValueError("Cannot create non-auto-generated password.")
 
         # Generate plain password
@@ -93,14 +86,14 @@ class DatabaseSecretBackendClient(base.AbstractBackendClient):
         driver_password.save()
         return driver_password.meta
 
-    def update(self, resource: models.Resource) -> dict[str, tp.Any]:
+    def update(self, resource: models.Resource) -> tp.Dict[str, tp.Any]:
         """Update the resource. Returns the updated resource."""
 
         # The simplest implementation. Update via recreation.
         self.delete(resource)
         return self.create(resource)
 
-    def list(self, kind: str, **kwargs) -> list[dict[str, tp.Any]]:
+    def list(self, kind: str, **kwargs) -> tp.List[tp.Dict[str, tp.Any]]:
         """Lists all resources by kind."""
         secrets = driver_dm.Password.objects.get_all()
         return [s.meta for s in secrets]

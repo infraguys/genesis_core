@@ -13,7 +13,6 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from __future__ import annotations
 
 import logging
 import typing as tp
@@ -64,7 +63,6 @@ class Volume(
 
 
 class VolumeBuilderService(sdk_builder.UniversalBuilderService):
-
     def __init__(
         self,
         iter_min_period: int = 1,
@@ -79,7 +77,7 @@ class VolumeBuilderService(sdk_builder.UniversalBuilderService):
     # Internal methods
 
     def _actualize_machine_volume(
-        self, target: Volume, actual: Volume | None = None
+        self, target: Volume, actual: tp.Optional[Volume] = None
     ) -> None:
         """Update volume based on actual node data."""
         # Check if volumes are already up to date

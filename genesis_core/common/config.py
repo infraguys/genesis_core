@@ -41,7 +41,7 @@ def parse(args, conf: tp.Optional[cfg.ConfigOpts] = None):
         version="%s %s"
         % (
             GLOBAL_SERVICE_NAME.capitalize(),
-            version.version_info.release_string(),
+            version.version_info,
         ),
     )
     if not conf.config_file:

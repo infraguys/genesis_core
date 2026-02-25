@@ -20,7 +20,6 @@ _DEFAULT_IAM_CLIENT_UUID = "00000000-0000-0000-0000-000000000000"
 
 
 class MigrationStep(migrations.AbstractMigrationStep):
-
     def __init__(self):
         self._depends = [
             "0038-init-lb-e88603.py",

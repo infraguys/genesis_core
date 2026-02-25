@@ -13,7 +13,6 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from __future__ import annotations
 
 import typing as tp
 import uuid as sys_uuid
@@ -29,7 +28,6 @@ from genesis_core.vs.dm import models
 
 
 class TestVSServiceBuilder:
-
     def setup_method(self) -> None:
         self._service = service.VSBuilderService(
             uuid=sys_uuid.uuid4(),
@@ -41,7 +39,7 @@ class TestVSServiceBuilder:
 
     def test_variables_value_depends_on_active_global_profile(
         self,
-        default_node: dict[str, tp.Any],
+        default_node: tp.Dict[str, tp.Any],
     ):
         profile_1 = models.Profile(
             name="p1",
@@ -83,7 +81,7 @@ class TestVSServiceBuilder:
 
     def test_variables_value_set_undefined_profile(
         self,
-        default_node: dict[str, tp.Any],
+        default_node: tp.Dict[str, tp.Any],
     ):
         profile_1 = models.Profile(
             name="p1",
@@ -132,7 +130,7 @@ class TestVSServiceBuilder:
 
     def test_variables_selector_strategy_latest(
         self,
-        default_node: dict[str, tp.Any],
+        default_node: tp.Dict[str, tp.Any],
     ):
         variable = models.Variable(
             name="var_selector",
@@ -171,7 +169,7 @@ class TestVSServiceBuilder:
 
     def test_variables_selector_recalculate_on_delete(
         self,
-        default_node: dict[str, tp.Any],
+        default_node: tp.Dict[str, tp.Any],
     ):
         variable = models.Variable(
             name="var_selector",
@@ -220,7 +218,7 @@ class TestVSServiceBuilder:
 
     def test_variables_undefined_no_value_field_in_ua_resource(
         self,
-        default_node: dict[str, tp.Any],
+        default_node: tp.Dict[str, tp.Any],
     ):
         variable = models.Variable(
             name="var_selector",

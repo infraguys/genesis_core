@@ -13,7 +13,8 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from __future__ import annotations
+
+import typing as tp
 
 from restalchemy.dm import types
 
@@ -35,8 +36,8 @@ class MachineNetboot(models.Machine):
         self,
         gc_host: str = LOCAL_GC_HOST,
         gc_boot_api: str = LOCAL_GC_BOOT_API,
-        kernel: str | None = None,
-        initrd: str | None = None,
+        kernel: tp.Optional[str] = None,
+        initrd: tp.Optional[str] = None,
         *args,
         **kwargs,
     ):
@@ -48,8 +49,8 @@ class MachineNetboot(models.Machine):
         cls,
         gc_host: str = LOCAL_GC_HOST,
         gc_boot_api: str = LOCAL_GC_BOOT_API,
-        kernel: str | None = None,
-        initrd: str | None = None,
+        kernel: tp.Optional[str] = None,
+        initrd: tp.Optional[str] = None,
         **kwargs,
     ):
         obj = super().restore_from_storage(**kwargs)
@@ -60,8 +61,8 @@ class MachineNetboot(models.Machine):
         self,
         gc_host: str,
         gc_boot_api: str,
-        kernel: str | None,
-        initrd: str | None,
+        kernel: tp.Optional[str],
+        initrd: tp.Optional[str],
     ) -> None:
         self.gc_host = gc_host
         self.gc_boot_api = gc_boot_api

@@ -57,7 +57,6 @@ IAM_PROJECT_UUID = generate_uuid("GenesisCore-IAM-Project")
 
 
 class MigrationStep(migrations.AbstarctMigrationStep):
-
     def __init__(self):
         self._depends = ["0007-add-default-roles-73f4c4.py"]
 
