@@ -22,7 +22,6 @@ from genesis_core.compute.scheduler.driver import base
 
 
 class DummySoftAntiAffinityFilter(base.MachinePoolAbstractFilter):
-
     def filter(
         self,
         node: base.NodeBundle,
@@ -40,12 +39,10 @@ class DummySoftAntiAffinityFilter(base.MachinePoolAbstractFilter):
         if not allocations:
             return pools
 
-        nodes_in_allocations = (
-            models.PlacementPolicyAllocation.objects.get_all(
-                filters={
-                    "policy": dm_filters.In(a.policy for a in allocations),
-                }
-            )
+        nodes_in_allocations = models.PlacementPolicyAllocation.objects.get_all(
+            filters={
+                "policy": dm_filters.In(a.policy for a in allocations),
+            }
         )
 
         # TODO(akremenetsky): So far all policies are soft anti affinity

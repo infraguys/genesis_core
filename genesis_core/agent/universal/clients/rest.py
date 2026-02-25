@@ -13,7 +13,6 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from __future__ import annotations
 
 import typing as tp
 import uuid as sys_uuid
@@ -31,15 +30,13 @@ class GCRestApiBackendClient(rest.RestApiBackendClient):
     def __init__(
         self,
         http_client: http.CollectionBaseClient,
-        collection_map: dict[str:str],
+        collection_map: tp.Dict[str, str],
         project_id: sys_uuid.UUID,
     ) -> None:
-        super().__init__(
-            http_client=http_client, collection_map=collection_map
-        )
+        super().__init__(http_client=http_client, collection_map=collection_map)
         self._project_id = str(project_id)
 
-    def create(self, resource: models.Resource) -> dict[str, tp.Any]:
+    def create(self, resource: models.Resource) -> tp.Dict[str, tp.Any]:
         """Creates the resource. Returns the created resource."""
         # Inject mandatory fields
         resource.value["uuid"] = str(resource.uuid)
@@ -51,7 +48,7 @@ class GCRestApiBackendClient(rest.RestApiBackendClient):
 
         return super().create(resource)
 
-    def update(self, resource: models.Resource) -> dict[str, tp.Any]:
+    def update(self, resource: models.Resource) -> tp.Dict[str, tp.Any]:
         """Update the resource. Returns the updated resource."""
         # FIXME(akremenetsky): Not the best implementation
         # Remove popential RO fields
@@ -64,6 +61,6 @@ class GCRestApiBackendClient(rest.RestApiBackendClient):
 
         return super().update(resource)
 
-    def list(self, kind: str) -> list[dict[str, tp.Any]]:
+    def list(self, kind: str) -> tp.List[tp.Dict[str, tp.Any]]:
         """Lists all resources by kind."""
         return super().list(kind, project_id=self._project_id)

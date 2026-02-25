@@ -13,7 +13,6 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from __future__ import annotations
 
 import logging
 import typing as tp
@@ -48,10 +47,8 @@ class CertBotBackendClient(base.AbstractBackendClient):
     ) -> None:
         self._dns_client = dns_client
         self._admin_email = admin_email
-        self._client_acme: acme_lib_client.ClientV2 | None = None
-        self._private_key = acme.get_or_create_client_private_key(
-            private_key_path
-        )
+        self._client_acme: tp.Optional[acme_lib_client.ClientV2] = None
+        self._private_key = acme.get_or_create_client_private_key(private_key_path)
 
     def _get_or_create_acme_client(self) -> acme_lib_client.ClientV2:
         if self._client_acme is None:
@@ -60,7 +57,7 @@ class CertBotBackendClient(base.AbstractBackendClient):
             )
         return self._client_acme
 
-    def get(self, resource: models.Resource) -> dict[str, tp.Any]:
+    def get(self, resource: models.Resource) -> tp.Dict[str, tp.Any]:
         """Get the resource value in dictionary format."""
         try:
             cert = driver_dm.Certificate.objects.get_one(
@@ -73,7 +70,7 @@ class CertBotBackendClient(base.AbstractBackendClient):
 
         return cert.to_resource_value()
 
-    def create(self, resource: models.Resource) -> dict[str, tp.Any]:
+    def create(self, resource: models.Resource) -> tp.Dict[str, tp.Any]:
         """Creates the resource. Returns the created resource."""
         try:
             self.get(resource)
@@ -101,7 +98,7 @@ class CertBotBackendClient(base.AbstractBackendClient):
         driver_cert.save()
         return driver_cert.to_resource_value()
 
-    def update(self, resource: models.Resource) -> dict[str, tp.Any]:
+    def update(self, resource: models.Resource) -> tp.Dict[str, tp.Any]:
         """Update the resource. Returns the updated resource."""
         try:
             cert = driver_dm.Certificate.objects.get_one(
@@ -141,7 +138,7 @@ class CertBotBackendClient(base.AbstractBackendClient):
         driver_cert.save()
         return driver_cert.to_resource_value()
 
-    def list(self, kind: str, **kwargs) -> list[dict[str, tp.Any]]:
+    def list(self, kind: str, **kwargs) -> tp.List[tp.Dict[str, tp.Any]]:
         """Lists all resources by kind."""
         certs = driver_dm.Certificate.objects.get_all()
 

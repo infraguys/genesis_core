@@ -13,7 +13,6 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from __future__ import annotations
 
 import datetime
 import typing as tp
@@ -51,7 +50,7 @@ class Password(Secret, orm.SQLStorableMixin):
     @classmethod
     def from_password_resource(
         cls, resource: ua_models.TargetResource, password_value: str
-    ) -> Password:
+    ) -> "Password":
         meta = resource.value.copy()
         meta["value"] = password_value
         meta["status"] = sc.SecretStatus.ACTIVE.value
@@ -89,7 +88,7 @@ class Certificate(Secret, orm.SQLStorableMixin):
         csr_pem: bytes,
         fullchain_pem: str,
         expiration_at: datetime.datetime,
-    ) -> Certificate:
+    ) -> "Certificate":
         meta = resource.value.copy()
         meta["status"] = sc.SecretStatus.ACTIVE.value
 
@@ -104,20 +103,14 @@ class Certificate(Secret, orm.SQLStorableMixin):
         )
 
     def is_under_threshold(self) -> bool:
-        if self.expiration_at < datetime.datetime.now(
-            tz=datetime.timezone.utc
-        ):
+        if self.expiration_at < datetime.datetime.now(tz=datetime.timezone.utc):
             return True
         else:
-            delta = self.expiration_at - datetime.datetime.now(
-                tz=datetime.timezone.utc
-            )
+            delta = self.expiration_at - datetime.datetime.now(tz=datetime.timezone.utc)
             return delta.days < self.meta["expiration_threshold"]
 
-    def to_resource_value(self) -> dict[str, tp.Any]:
-        expiration_at = self.expiration_at.replace(
-            tzinfo=datetime.timezone.utc
-        )
+    def to_resource_value(self) -> tp.Dict[str, tp.Any]:
+        expiration_at = self.expiration_at.replace(tzinfo=datetime.timezone.utc)
         expiration_at = expiration_at.strftime(c.DEFAULT_DATETIME_FORMAT)
 
         value = self.meta

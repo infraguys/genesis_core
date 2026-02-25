@@ -37,7 +37,6 @@ COMPUTE_PROJECT_UUID = _u("GenesisCore-Compute-Project")
 
 
 class MigrationStep(migrations.AbstarctMigrationStep):
-
     def __init__(self):
         self._depends = ["0030-compute-node-sets-b1869c.py"]
 

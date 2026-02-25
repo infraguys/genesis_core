@@ -14,10 +14,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import collections
-import urllib.parse
-
-import netaddr
 from oslo_config import cfg
 from gcl_iam import controllers as iam_controllers
 from restalchemy.api import controllers as ra_controllers
@@ -26,13 +22,11 @@ from restalchemy.api import field_permissions as field_p
 from restalchemy.api import resources
 
 from genesis_core.user_api.dns.dm import models
-from genesis_core.user_api.api import versions
 
 CONF = cfg.CONF
 
 
 class DnsController(ra_controllers.RoutesListController):
-
     __TARGET_PATH__ = "/v1/dns/"
 
 

@@ -29,7 +29,6 @@ LOG = logging.getLogger(__name__)
 
 
 class MigrationStep(migrations.AbstractMigrationStep):
-
     def __init__(self):
         self._depends = ["0050-subnet-source-6c071d.py"]
 

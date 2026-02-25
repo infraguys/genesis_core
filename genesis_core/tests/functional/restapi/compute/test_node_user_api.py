@@ -24,7 +24,6 @@ from genesis_core.compute import constants as nc
 
 
 class TestNodeUserApi:
-
     # Utils
 
     @staticmethod
@@ -253,9 +252,7 @@ class TestNodeUserApi:
         assert response.status_code == 201
 
         update = {"name": "foo", "description": "bar"}
-        url = client.build_resource_uri(
-            ["compute", "hypervisors", pool["uuid"]]
-        )
+        url = client.build_resource_uri(["compute", "hypervisors", pool["uuid"]])
         response = client.put(url, json=update)
         output = response.json()
 
@@ -277,9 +274,7 @@ class TestNodeUserApi:
 
         assert response.status_code == 201
 
-        url = client.build_resource_uri(
-            ["compute", "hypervisors", pool["uuid"]]
-        )
+        url = client.build_resource_uri(["compute", "hypervisors", pool["uuid"]])
         response = client.delete(url)
 
         assert response.status_code == 204
@@ -340,9 +335,7 @@ class TestNodeUserApi:
         )
 
         client = user_api_client(auth_test1_p1_user)
-        node = node_factory(
-            project_id=sys_uuid.UUID(auth_test1_p1_user.project_id)
-        )
+        node = node_factory(project_id=sys_uuid.UUID(auth_test1_p1_user.project_id))
         node_uuid = node["uuid"]
         url = client.build_collection_uri(["compute", "nodes"])
         response = admin_client.post(url, json=node)

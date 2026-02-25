@@ -13,14 +13,12 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from __future__ import annotations
 
 import random
 import typing as tp
-import netaddr
 import uuid as sys_uuid
-
 import netaddr
+
 from restalchemy.dm import models
 from restalchemy.dm import properties
 from restalchemy.dm import relationships
@@ -38,6 +36,10 @@ from genesis_core.common import system
 from genesis_core.common import constants as cc
 from genesis_core.common.dm import models as cm
 from genesis_core.compute import constants as nc
+
+if tp.TYPE_CHECKING:
+    from genesis_core.compute.pool.drivers.base import AbstractPoolDriver
+    from genesis_core.network.driver.base import AbstractNetworkDriver
 
 
 class IPRange(types.BaseType):
@@ -108,18 +110,12 @@ class ThinStoragePool(
 
     KIND = "thin_storage_pool"
 
-    capacity_usable = properties.property(
-        types.Integer(min_value=0), default=0
-    )
-    capacity_provisioned = properties.property(
-        types.Integer(min_value=0), default=0
-    )
+    capacity_usable = properties.property(types.Integer(min_value=0), default=0)
+    capacity_provisioned = properties.property(types.Integer(min_value=0), default=0)
     oversubscription_ratio = properties.property(
         types.Float(min_value=0.0), default=1.0
     )
-    available_actual = properties.property(
-        types.Integer(min_value=0), default=0
-    )
+    available_actual = properties.property(types.Integer(min_value=0), default=0)
 
     @property
     def capacity(self) -> int:
@@ -184,7 +180,7 @@ class MachinePool(
         return bool(self.driver_spec)
 
     @classmethod
-    def default_hw_pool(cls) -> "MachinePool" | None:
+    def default_hw_pool(cls) -> tp.Optional["MachinePool"]:
         """Get the default pool for HW machines if exists.
 
         The method returns the default pool if only a pool
@@ -218,9 +214,7 @@ class MachinePool(
         if driver_key in self.__driver_map__:
             return self.__driver_map__[driver_key]
 
-        ep_group = utils.load_group_from_entry_point(
-            nc.EP_MACHINE_POOL_DRIVERS
-        )
+        ep_group = utils.load_group_from_entry_point(nc.EP_MACHINE_POOL_DRIVERS)
         for e in ep_group:
             try:
                 class_ = e.load()
@@ -310,7 +304,7 @@ class Node(
         """Return the list of volumes for this node."""
         return self.disk_spec.volumes(self)
 
-    def update_default_network(self, port: Port) -> None:
+    def update_default_network(self, port: "Port") -> None:
         self.default_network = {
             "subnet": str(port.subnet),
             "port": str(port.uuid),
@@ -391,9 +385,7 @@ class Node(
         super().delete(session=session)
 
 
-class Machine(
-    cm.ModelWithFullAsset, orm.SQLStorableMixin, models.SimpleViewMixin
-):
+class Machine(cm.ModelWithFullAsset, orm.SQLStorableMixin, models.SimpleViewMixin):
     __tablename__ = "machines"
 
     cores = properties.property(
@@ -438,9 +430,7 @@ class MachineVolume(
 
     pool = properties.property(types.AllowNone(types.UUID()), default=None)
     machine = properties.property(types.AllowNone(types.UUID()), default=None)
-    node_volume = properties.property(
-        types.AllowNone(types.UUID()), default=None
-    )
+    node_volume = properties.property(types.AllowNone(types.UUID()), default=None)
     size = properties.property(types.Integer(min_value=1, max_value=1000000))
     image = properties.property(
         types.AllowNone(types.String(max_length=255)), default=None
@@ -470,9 +460,7 @@ class UnscheduledNode(models.ModelWithUUID, orm.SQLStorableMixin):
     )
 
 
-class Netboot(
-    models.ModelWithUUID, orm.SQLStorableMixin, models.SimpleViewMixin
-):
+class Netboot(models.ModelWithUUID, orm.SQLStorableMixin, models.SimpleViewMixin):
     __tablename__ = "netboots"
 
     boot = properties.property(
@@ -510,9 +498,7 @@ class MachinePoolReservations(
         required=True,
         default=0,
     )
-    ram = properties.property(
-        types.Integer(min_value=0), required=True, default=0
-    )
+    ram = properties.property(types.Integer(min_value=0), required=True, default=0)
 
 
 class Network(
@@ -574,9 +560,7 @@ class Subnet(
     )
 
     dns_servers = properties.property(
-        types.AllowNone(
-            types.TypedList(types.String(min_length=1, max_length=128))
-        ),
+        types.AllowNone(types.TypedList(types.String(min_length=1, max_length=128))),
         default=lambda: [],
     )
     routers = properties.property(
@@ -598,15 +582,15 @@ class Subnet(
 
     def port(
         self,
-        target_ipv4: netaddr.IPAddress | None = None,
-        ipv4: netaddr.IPAddress | None = None,
-        target_mask: netaddr.IPAddress | None = None,
-        mask: netaddr.IPAddress | None = None,
-        mac: str | None = None,
-        node_uuid: sys_uuid.UUID | None = None,
-        machine_uuid: sys_uuid.UUID | None = None,
-        project_id: str | None = None,
-    ) -> Port:
+        target_ipv4: tp.Optional[netaddr.IPAddress] = None,
+        ipv4: tp.Optional[netaddr.IPAddress] = None,
+        target_mask: tp.Optional[netaddr.IPAddress] = None,
+        mask: tp.Optional[netaddr.IPAddress] = None,
+        mac: tp.Optional[str] = None,
+        node_uuid: tp.Optional[sys_uuid.UUID] = None,
+        machine_uuid: tp.Optional[sys_uuid.UUID] = None,
+        project_id: tp.Optional[str] = None,
+    ) -> "Port":
         port = Port(
             subnet=self.uuid,
             target_ipv4=target_ipv4,
@@ -623,7 +607,7 @@ class Subnet(
     @property
     def ip_range_pair(
         self,
-    ) -> tp.Tuple[netaddr.IPAddress, netaddr.IPAddress] | None:
+    ) -> tp.Optional[tp.Tuple[netaddr.IPAddress, netaddr.IPAddress]]:
         if self.ip_range is None:
             return None
 
@@ -635,7 +619,7 @@ class Subnet(
     @property
     def ip_discovery_range_pair(
         self,
-    ) -> tp.Tuple[netaddr.IPAddress, netaddr.IPAddress] | None:
+    ) -> tp.Optional[tp.Tuple[netaddr.IPAddress, netaddr.IPAddress]]:
         if self.ip_discovery_range is None:
             return None
 
@@ -645,9 +629,7 @@ class Subnet(
         )
 
 
-class Port(
-    cm.ModelWithFullAsset, orm.SQLStorableMixin, models.SimpleViewMixin
-):
+class Port(cm.ModelWithFullAsset, orm.SQLStorableMixin, models.SimpleViewMixin):
     __tablename__ = "compute_ports"
 
     subnet = properties.property(types.UUID())
@@ -667,9 +649,7 @@ class Port(
         types.AllowNone(types_net.IPAddress()),
         default=None,
     )
-    ipv4 = properties.property(
-        types.AllowNone(types_net.IPAddress()), default=None
-    )
+    ipv4 = properties.property(types.AllowNone(types_net.IPAddress()), default=None)
     mask = properties.property(
         types.AllowNone(types_net.IPAddress()),
         default=None,
@@ -754,16 +734,12 @@ class Interface(
 
     machine = properties.property(types.UUID())
     mac = properties.property(types.Mac(), required=True)
-    ipv4 = properties.property(
-        types.AllowNone(types_net.IPAddress()), default=None
-    )
+    ipv4 = properties.property(types.AllowNone(types_net.IPAddress()), default=None)
     mask = properties.property(
         types.AllowNone(types_net.IPAddress()),
         default=None,
     )
-    mtu = properties.property(
-        types.Integer(min_value=1, max_value=65536), default=1500
-    )
+    mtu = properties.property(types.Integer(min_value=1, max_value=65536), default=1500)
 
     @classmethod
     def from_system(cls) -> tp.List["Interface"]:

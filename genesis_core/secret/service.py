@@ -13,7 +13,6 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from __future__ import annotations
 
 import logging
 import typing as tp
@@ -33,68 +32,67 @@ LOG = logging.getLogger(__name__)
 
 
 class SecretServiceBuilder(basic.BasicService):
-
     def _get_new_passwords(
         self,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> list[models.Password]:
+    ) -> tp.List[models.Password]:
         return models.Password.get_new_passwords(limit=limit)
 
     def _get_changed_passwords(
         self,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> list[models.Password]:
+    ) -> tp.List[models.Password]:
         return models.Password.get_updated_passwords(limit=limit)
 
     def _get_deleted_passwords(
         self,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> list[ua_models.TargetResource]:
+    ) -> tp.List[ua_models.TargetResource]:
         return models.Password.get_deleted_passwords(limit=limit)
 
     def _get_new_certificates(
         self,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> list[models.Certificate]:
+    ) -> tp.List[models.Certificate]:
         return models.Certificate.get_new_certificates(limit=limit)
 
     def _get_changed_certificates(
         self,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> list[models.Certificate]:
+    ) -> tp.List[models.Certificate]:
         return models.Certificate.get_updated_certificates(limit=limit)
 
     def _get_deleted_certificates(
         self,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> list[ua_models.TargetResource]:
+    ) -> tp.List[ua_models.TargetResource]:
         return models.Certificate.get_deleted_certificates(limit=limit)
 
     def _get_new_ssh_keys(
         self,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> list[models.SSHKey]:
+    ) -> tp.List[models.SSHKey]:
         return models.SSHKey.get_new_keys(limit=limit)
 
     def _get_changed_ssh_keys(
         self,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> list[models.SSHKey]:
+    ) -> tp.List[models.SSHKey]:
         return models.SSHKey.get_updated_keys(limit=limit)
 
     def _get_deleted_ssh_keys(
         self,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> list[ua_models.TargetResource]:
+    ) -> tp.List[ua_models.TargetResource]:
         return models.SSHKey.get_deleted_keys(limit=limit)
 
     def _get_outdated_resources(
         self,
         kind: str,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> dict[
+    ) -> tp.Dict[
         sys_uuid.UUID,  # Resource UUID
-        tuple[ua_models.TargetResource, ua_models.Resource],
+        tp.Tuple[ua_models.TargetResource, ua_models.Resource],
     ]:
         outdated = ua_models.OutdatedResource.objects.get_all(
             filters={"kind": dm_filters.EQ(kind)},
@@ -112,7 +110,7 @@ class SecretServiceBuilder(basic.BasicService):
         self,
         model: models.Secret,
         uuids: tp.Collection[sys_uuid.UUID],
-    ) -> list[models.Secret]:
+    ) -> tp.List[models.Secret]:
         return model.objects.get_all(
             filters={"uuid": dm_filters.In(str(p) for p in uuids)},
         )
@@ -120,9 +118,9 @@ class SecretServiceBuilder(basic.BasicService):
     def _get_outdated_ssh_key_hosts(
         self,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> dict[
+    ) -> tp.Dict[
         sys_uuid.UUID,  # Master UUID
-        list[tuple[ua_models.TargetResource, ua_models.Resource]],
+        tp.List[tp.Tuple[ua_models.TargetResource, ua_models.Resource]],
     ]:
         outdated = ua_models.OutdatedResource.objects.get_all(
             filters={"kind": dm_filters.EQ(sc.SSH_KEY_TARGET_KIND)},
@@ -139,7 +137,7 @@ class SecretServiceBuilder(basic.BasicService):
     def _get_outdated_ssh_keys(
         self,
         masters: tp.Collection[sys_uuid.UUID],
-    ) -> list[tuple[models.SSHKey, ua_models.TargetResource]]:
+    ) -> tp.List[tp.Tuple[models.SSHKey, ua_models.TargetResource]]:
         ssh_key_resources = ua_models.TargetResource.objects.get_all(
             filters={
                 "uuid": dm_filters.In(m for m in masters),
@@ -156,9 +154,7 @@ class SecretServiceBuilder(basic.BasicService):
         )
 
         if len(ssh_keys) != len(ssh_key_resources):
-            raise RuntimeError(
-                "Number of SSH keys and SSH key resources not equal"
-            )
+            raise RuntimeError("Number of SSH keys and SSH key resources not equal")
 
         return list(zip(ssh_keys, ssh_key_resources))
 
@@ -179,14 +175,12 @@ class SecretServiceBuilder(basic.BasicService):
                 secret_resource.status = secret.status
 
                 secret_resource.update()
-                LOG.info(
-                    "Certificate resource %s created", secret_resource.uuid
-                )
+                LOG.info("Certificate resource %s created", secret_resource.uuid)
             except Exception:
                 LOG.exception("Error creating cert resource %s", secret.uuid)
 
     def _actualize_changed_secrets(
-        self, kind: str, changed_secrets: dict[sys_uuid.UUID, models.Secret]
+        self, kind: str, changed_secrets: tp.Dict[sys_uuid.UUID, models.Secret]
     ) -> None:
         """Actualize secrets changed by user."""
         if len(changed_secrets) == 0:
@@ -214,13 +208,10 @@ class SecretServiceBuilder(basic.BasicService):
                 resource.tracked_at = secret.updated_at
                 resource.status = secret.status
                 resource.update()
-                LOG.debug(
-                    "Secret(%s) resource %s updated", kind, resource.uuid
-                )
+                LOG.debug("Secret resource %s updated", resource.uuid)
             except Exception:
                 LOG.exception(
-                    "Error updating secret(%s) resource %s",
-                    kind,
+                    "Error updating secret resource %s",
                     resource.uuid,
                 )
 
@@ -248,11 +239,9 @@ class SecretServiceBuilder(basic.BasicService):
             target, actual = resource_map[secret.uuid]
             try:
                 secret_handler(secret, target, actual)
-                LOG.debug("Secret(%s) %s actualized", kind, secret.uuid)
+                LOG.debug("Secret %s actualized", secret.uuid)
             except Exception:
-                LOG.exception(
-                    "Error actualizing secret(%s) %s", kind, secret.uuid
-                )
+                LOG.exception("Error actualizing secret %s", secret.uuid)
 
     def _actualize_deleted_secrets(
         self, secrets: tp.Collection[ua_models.TargetResource]
@@ -315,10 +304,7 @@ class SecretServiceBuilder(basic.BasicService):
             password_updated = True
 
         # Actualize resource
-        if (
-            password_updated
-            or actual_resource.full_hash != target_resource.full_hash
-        ):
+        if password_updated or actual_resource.full_hash != target_resource.full_hash:
             if status_updated:
                 target_resource.status = actual_resource.status
             target_resource.full_hash = actual_resource.full_hash
@@ -351,9 +337,7 @@ class SecretServiceBuilder(basic.BasicService):
 
     def _actualize_changed_certificates(self) -> None:
         """Actualize certificates changed by user."""
-        changed_certs = {
-            crt.uuid: crt for crt in self._get_changed_certificates()
-        }
+        changed_certs = {crt.uuid: crt for crt in self._get_changed_certificates()}
         self._actualize_changed_secrets(sc.CERTIFICATE_KIND, changed_certs)
 
     def _actualize_outdated_certificate(
@@ -427,7 +411,7 @@ class SecretServiceBuilder(basic.BasicService):
     def _actualize_new_ssh_key(
         self,
         key: models.SSHKey,
-        target_nodes: list[nm.Node],
+        target_nodes: tp.List[nm.Node],
     ) -> None:
         # Validate the owners exist
         # FIXME(akremenetsky): Only nodes as owners are supported for now.
@@ -490,9 +474,7 @@ class SecretServiceBuilder(basic.BasicService):
 
         for key in keys:
             # Collect all available nodes for the key
-            target_nodes = tuple(
-                nodes[n] for n in key.target_nodes() if n in nodes
-            )
+            target_nodes = tuple(nodes[n] for n in key.target_nodes() if n in nodes)
             try:
                 self._actualize_new_ssh_key(key, target_nodes)
             except Exception:
@@ -531,7 +513,7 @@ class SecretServiceBuilder(basic.BasicService):
         key: models.SSHKey,
         key_resource: ua_models.TargetResource,
         host_keys: tp.Collection[
-            tuple[ua_models.TargetResource, ua_models.Resource]
+            tp.Tuple[ua_models.TargetResource, ua_models.Resource]
         ],
     ) -> None:
         """Actualize outdated SSH keys."""
@@ -540,10 +522,7 @@ class SecretServiceBuilder(basic.BasicService):
             target.full_hash = actual.full_hash
 
             # `ACTIVE` only if the hash is the same
-            if (
-                actual.status == sc.SecretStatus.ACTIVE
-                and target.hash == actual.hash
-            ):
+            if actual.status == sc.SecretStatus.ACTIVE and target.hash == actual.hash:
                 target.status = actual.status
             elif (
                 actual.status != sc.SecretStatus.ACTIVE
@@ -559,9 +538,7 @@ class SecretServiceBuilder(basic.BasicService):
             status = sc.SecretStatus.ACTIVE
         elif any(r.status == sc.SecretStatus.NEW for r, _ in host_keys):
             status = sc.SecretStatus.NEW
-        elif any(
-            r.status == sc.SecretStatus.IN_PROGRESS for r, _ in host_keys
-        ):
+        elif any(r.status == sc.SecretStatus.IN_PROGRESS for r, _ in host_keys):
             status = sc.SecretStatus.IN_PROGRESS
 
         if status is not None and key.status != status:
@@ -608,9 +585,7 @@ class SecretServiceBuilder(basic.BasicService):
         for resource in key_host_resources + deleted_key_resources:
             try:
                 resource.delete()
-                LOG.debug(
-                    "Outdated resource SSH key %s deleted", resource.uuid
-                )
+                LOG.debug("Outdated resource SSH key %s deleted", resource.uuid)
             except Exception:
                 LOG.exception("Error deleting resource %s", resource.uuid)
 

@@ -22,7 +22,6 @@ from genesis_core.user_api.security.dm import models
 
 
 class SecurityController(ra_controllers.RoutesListController):
-
     __TARGET_PATH__ = "/v1/security/"
 
 

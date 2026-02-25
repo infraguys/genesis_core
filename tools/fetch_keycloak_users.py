@@ -48,9 +48,7 @@ def _get_admin_token(
     payload = response.json()
     token = payload.get("access_token")
     if not token:
-        raise RuntimeError(
-            "Keycloak token response does not contain access_token"
-        )
+        raise RuntimeError("Keycloak token response does not contain access_token")
     return token
 
 
@@ -94,9 +92,7 @@ def _fetch_all_users(
 
         batch = response.json()
         if not isinstance(batch, list):
-            raise RuntimeError(
-                "Keycloak users endpoint returned non-list JSON"
-            )
+            raise RuntimeError("Keycloak users endpoint returned non-list JSON")
 
         if not batch:
             break
@@ -138,9 +134,7 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
         required=True,
         help="Keycloak base URL (without trailing slash), e.g. https://kc.example.com",
     )
-    parser.add_argument(
-        "--realm", required=True, help="Realm name to fetch users from"
-    )
+    parser.add_argument("--realm", required=True, help="Realm name to fetch users from")
     parser.add_argument(
         "--client-id",
         required=True,
@@ -151,9 +145,7 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
         required=True,
         help="OIDC client secret used to obtain token",
     )
-    parser.add_argument(
-        "--output", required=True, help="Output path for JSON file"
-    )
+    parser.add_argument("--output", required=True, help="Output path for JSON file")
     parser.add_argument(
         "--page-size",
         type=int,

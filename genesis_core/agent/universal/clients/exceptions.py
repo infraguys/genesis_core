@@ -13,7 +13,7 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from gcl_sdk.common import exceptions
+
 from gcl_sdk.agents.universal.dm import models
 from gcl_sdk.agents.universal.clients.backend import exceptions
 

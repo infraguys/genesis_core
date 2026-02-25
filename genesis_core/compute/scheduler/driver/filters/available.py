@@ -15,12 +15,10 @@
 #    under the License.
 import typing as tp
 
-from genesis_core.compute.dm import models
 from genesis_core.compute.scheduler.driver import base
 
 
 class CoresRamAvailableFilter(base.MachinePoolAbstractFilter):
-
     def filter(
         self,
         node: base.NodeBundle,
@@ -33,13 +31,11 @@ class CoresRamAvailableFilter(base.MachinePoolAbstractFilter):
         return tuple(
             p
             for p in pools
-            if p.pool.avail_cores >= node.cores
-            and p.pool.avail_ram >= node.ram
+            if p.pool.avail_cores >= node.cores and p.pool.avail_ram >= node.ram
         )
 
 
 class HWCoresRamAvailableFilter(base.MachineAbstractFilter):
-
     def filter(
         self,
         node: base.NodeBundle,

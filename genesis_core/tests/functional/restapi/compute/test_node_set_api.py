@@ -25,7 +25,6 @@ from genesis_core.compute import constants as nc
 
 
 class TestNodeSetUserApi:
-
     # Utils
 
     @staticmethod
@@ -129,9 +128,7 @@ class TestNodeSetUserApi:
         output = response.json()
         assert len(output) == len(node_sets)
         for node_set in node_sets:
-            assert any(
-                self._node_set_cmp_shallow(node_set, item) for item in output
-            )
+            assert any(self._node_set_cmp_shallow(node_set, item) for item in output)
 
     def test_node_sets_update(
         self,

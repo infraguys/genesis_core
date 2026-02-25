@@ -132,3 +132,6 @@ docs/source/*.png
 
 # Vagrant
 .vagrant/
+
+# postgres
+pgdata/

@@ -21,7 +21,6 @@ from genesis_core.compute.dm import models
 
 
 class AbstractNetworkDriver(abc.ABC):
-
     @abc.abstractmethod
     def list_subnets(self) -> tp.Iterable[models.Subnet]:
         """Return subnet list from data plane."""
@@ -54,9 +53,7 @@ class AbstractNetworkDriver(abc.ABC):
     def update_subnet(self, subnet: models.Subnet) -> models.Subnet:
         """Update the subnet in data plane."""
 
-    def create_ports(
-        self, ports: tp.List[models.Port]
-    ) -> tp.List[models.Port]:
+    def create_ports(self, ports: tp.List[models.Port]) -> tp.List[models.Port]:
         """Create a list of ports."""
 
         # The default implementation is to create each port separately

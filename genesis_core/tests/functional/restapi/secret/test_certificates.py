@@ -24,7 +24,6 @@ from genesis_core.secret.dm import models as secret_models
 
 
 class TestCertificatesUserApi:
-
     # Utils
 
     @staticmethod
@@ -114,9 +113,7 @@ class TestCertificatesUserApi:
         assert self._secret_cmp_shallow(cert, output)
 
         update = {"name": "foo-cert"}
-        url = client.build_resource_uri(
-            ["secret/certificates", output["uuid"]]
-        )
+        url = client.build_resource_uri(["secret/certificates", output["uuid"]])
         response = client.put(url, json=update)
         output = response.json()
 
@@ -151,18 +148,14 @@ class TestCertificatesUserApi:
         cert_obj.status = "IN_PROGRESS"
         cert_obj.update()
 
-        url = client.build_resource_uri(
-            ["secret/certificates", output["uuid"]]
-        )
+        url = client.build_resource_uri(["secret/certificates", output["uuid"]])
         response = client.get(url)
         output = response.json()
         assert response.status_code == 200
         assert output["status"] == "IN_PROGRESS"
 
         update = {"name": "foo-cert"}
-        url = client.build_resource_uri(
-            ["secret/certificates", output["uuid"]]
-        )
+        url = client.build_resource_uri(["secret/certificates", output["uuid"]])
         response = client.put(url, json=update)
         output = response.json()
 
@@ -186,9 +179,7 @@ class TestCertificatesUserApi:
         assert response.status_code == 201
         assert self._secret_cmp_shallow(cert, output)
 
-        url = client.build_resource_uri(
-            ["secret/certificates", output["uuid"]]
-        )
+        url = client.build_resource_uri(["secret/certificates", output["uuid"]])
         response = client.delete(url)
         assert response.status_code == 204
 
@@ -212,8 +203,6 @@ class TestCertificatesUserApi:
         assert self._secret_cmp_shallow(cert, output)
 
         update = {"status": "ACTIVE"}
-        url = client.build_resource_uri(
-            ["secret/certificates", output["uuid"]]
-        )
+        url = client.build_resource_uri(["secret/certificates", output["uuid"]])
         with pytest.raises(bazooka_exc.ForbiddenError):
             client.put(url, json=update)

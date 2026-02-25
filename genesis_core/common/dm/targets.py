@@ -13,7 +13,6 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from __future__ import annotations
 
 import typing as tp
 import uuid as sys_uuid
@@ -28,7 +27,6 @@ from genesis_core.compute.dm import models as nm
 
 
 class AbstractTarget(types_dynamic.AbstractKindModel, models.SimpleViewMixin):
-
     def target_nodes(self) -> tp.List[sys_uuid.UUID]:
         """Returns list of target nodes where config should be deployed."""
         return []
@@ -84,10 +82,10 @@ class NodeSetTarget(AbstractTarget):
     def from_node_set(cls, node_set: sys_uuid.UUID) -> "NodeSetTarget":
         return cls(node_set=node_set)
 
-    def target_nodes(self) -> list[sys_uuid.UUID]:
+    def target_nodes(self) -> tp.List[sys_uuid.UUID]:
         return [node.uuid for node in self._fetch_nodes()]
 
-    def owners(self) -> list[sys_uuid.UUID]:
+    def owners(self) -> tp.List[sys_uuid.UUID]:
         """It's the simplest case with an ordinary node config.
 
         In that case, the owner and target is the node itself.
@@ -95,7 +93,7 @@ class NodeSetTarget(AbstractTarget):
         """
         return [self.node_set]
 
-    def _fetch_nodes(self) -> list[nm.Node]:
+    def _fetch_nodes(self) -> tp.List[nm.Node]:
         return nm.Node.objects.get_all(
             filters={"node_set": dm_filters.EQ(str(self.node_set))}
         )

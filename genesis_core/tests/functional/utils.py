@@ -13,18 +13,16 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from __future__ import annotations
 
 import os
 import socket
 import contextlib
 from urllib import parse
+import typing as tp
 
 from restalchemy.storage.sql import migrations
 from restalchemy.tests.functional import db_utils as ra_db_utils
 from restalchemy.tests.functional.restapi.ra_based.microservice import service
-from gcl_sdk import migrations as sdk_migrations
-from gcl_sdk.tests.functional import conftest as sdk_conftest
 
 ENDPOINT_TEMPLATE = "http://127.0.0.1:%s/"
 
@@ -48,16 +46,16 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
         cls.destroy_engine()
 
     @staticmethod
-    def get_migration_engine(migrations_path: str | None = None) -> None:
+    def get_migration_engine(
+        migrations_path: tp.Optional[str] = None,
+    ) -> migrations.MigrationEngine:
         if migrations_path is None:
             migrations_path = os.path.join(
                 os.path.dirname(os.path.abspath(__file__)),
                 "../../../migrations",
             )
 
-        migration_engine = migrations.MigrationEngine(
-            migrations_path=migrations_path
-        )
+        migration_engine = migrations.MigrationEngine(migrations_path=migrations_path)
         return migration_engine
 
     @classmethod
@@ -65,15 +63,15 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
         cls,
         migration_path: str,
         first_migration: str,
-        last_migration: str | None = None,
+        last_migration: tp.Optional[str] = None,
     ) -> migrations.MigrationEngine:
 
-        migrations = cls.get_migration_engine(migrations_path=migration_path)
-        migrations.rollback_migration(first_migration)
+        migration_engine = cls.get_migration_engine(migrations_path=migration_path)
+        migration_engine.rollback_migration(first_migration)
 
-        last_migration = last_migration or migrations.get_latest_migration()
-        migrations.apply_migration(last_migration)
-        return migrations
+        last_migration = last_migration or migration_engine.get_latest_migration()
+        migration_engine.apply_migration(last_migration)
+        return migration_engine
 
     def apply_all_migrations(self) -> None:
         self._migration = self.apply_migrations(
@@ -94,8 +92,7 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
         cascade = " CASCADE" if cascade else ""
         with cls.engine.session_manager(session=session) as s:
             s.execute(
-                "drop table if exists"
-                f" {session.engine.escape(table_name)}{cascade}"
+                f"drop table if exists {session.engine.escape(table_name)}{cascade}"
             )
 
     @classmethod
@@ -106,7 +103,7 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
                 cls.drop_table(table, session=s, cascade=cascade)
 
     @classmethod
-    def get_all_views(cls, session=None) -> set[str]:
+    def get_all_views(cls, session=None) -> tp.Set[str]:
         with cls.engine.session_manager(session=session) as s:
             if session.engine.dialect.name == "mysql":
                 res = s.execute("""
@@ -136,17 +133,13 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
     @classmethod
     def drop_view(cls, view_name, session=None):
         with cls.engine.session_manager(session=session) as s:
-            s.execute(
-                f"drop view if exists {session.engine.escape(view_name)}"
-            )
+            s.execute(f"drop view if exists {session.engine.escape(view_name)}")
 
     def get_endpoint(self, template: str = ENDPOINT_TEMPLATE) -> str:
         return template % self.service_port
 
     def find_free_port(self) -> int:
-        with contextlib.closing(
-            socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        ) as s:
+        with contextlib.closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
             s.bind(("127.0.0.1", 0))
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             return s.getsockname()[1]

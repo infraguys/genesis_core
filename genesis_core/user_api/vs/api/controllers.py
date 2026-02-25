@@ -37,7 +37,6 @@ class NoValueSelectedError(ra_e.ValidationErrorException):
 
 
 class ValuesStoreController(controllers.RoutesListController):
-
     __TARGET_PATH__ = "/v1/vs/"
 
 

@@ -39,9 +39,7 @@ class VolumeNotFoundError(exceptions.GCException):
 
 
 class VolumeAlreadyAttachedError(exceptions.GCException):
-    __template__ = (
-        "The volume {volume} is already attached to machine {machine}."
-    )
+    __template__ = "The volume {volume} is already attached to machine {machine}."
     volume: sys_uuid.UUID
     machine: sys_uuid.UUID
 

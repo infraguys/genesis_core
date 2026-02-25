@@ -21,7 +21,6 @@ from genesis_core.compute.scheduler.driver.weighter import relative
 
 
 class TestSchedulerWeighter:
-
     @pytest.fixture
     def weighter(self):
         return relative.RelativeCoreRamWeighter()

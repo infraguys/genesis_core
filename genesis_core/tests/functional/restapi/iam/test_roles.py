@@ -21,7 +21,6 @@ from genesis_core.tests.functional.restapi.iam import base
 
 
 class TestRoles(base.BaseIamResourceTest):
-
     def test_create_role_by_admin(self, user_api_client, auth_user_admin):
         client = user_api_client(auth_user_admin)
         role_name = "test_role[admin-user]"

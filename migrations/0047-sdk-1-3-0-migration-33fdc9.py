@@ -29,7 +29,6 @@ LOG = logging.getLogger(__name__)
 
 
 class MigrationStep(migrations.AbstractMigrationStep):
-
     def __init__(self):
         self._depends = ["0046-init-vs-f5aaa2.py"]
 

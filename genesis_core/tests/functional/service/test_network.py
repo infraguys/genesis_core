@@ -13,7 +13,6 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-from __future__ import annotations
 
 import typing as tp
 import uuid as sys_uuid
@@ -59,9 +58,7 @@ class TestNetworkService:
     def _get_network_driver(self) -> driver_base.AbstractNetworkDriver:
         return self.__class__.network_driver
 
-    def _schedule_pool(
-        self, pool_uuid: str, agent_uuid: str
-    ) -> models.MachinePool:
+    def _schedule_pool(self, pool_uuid: str, agent_uuid: str) -> models.MachinePool:
         pool = models.MachinePool.objects.get_one(
             filters={
                 "uuid": dm_filters.EQ(pool_uuid),
@@ -87,9 +84,7 @@ class TestNetworkService:
         node.insert()
         return node
 
-    def _add_network(
-        self, **kwargs
-    ) -> tp.Tuple[models.Network, models.Subnet]:
+    def _add_network(self, **kwargs) -> tp.Tuple[models.Network, models.Subnet]:
         network = models.Network(
             name="foo-network",
             driver_spec={"driver": "dummy"},
@@ -109,10 +104,10 @@ class TestNetworkService:
     def _add_port(
         self,
         subnet: models.Subnet,
-        node: models.Node | None = None,
+        node: tp.Optional[models.Node] = None,
         ipv4: str = netaddr.IPAddress("10.0.0.0"),
         mask: str = netaddr.IPAddress("255.255.255.0"),
-        mac: str | None = None,
+        mac: tp.Optional[str] = None,
         save: bool = True,
     ) -> tp.Tuple[models.Port]:
         port = subnet.port(
@@ -128,7 +123,7 @@ class TestNetworkService:
         return port
 
     def _schedule_node(
-        self, node_uuid: str, machine: str | models.Machine
+        self, node_uuid: str, machine: tp.Union[models.Machine, str]
     ) -> models.Node:
         node = models.Node.objects.get_one(
             filters={
@@ -244,9 +239,7 @@ class TestNetworkService:
             def create_subnet(self, subnet: models.Subnet) -> models.Subnet:
                 self.__class__.create_subnet_called = True
 
-            def list_ports(
-                self, subnet: models.Subnet
-            ) -> tp.Iterable[models.Port]:
+            def list_ports(self, subnet: models.Subnet) -> tp.Iterable[models.Port]:
                 port.status = nc.PortStatus.ACTIVE.value
                 return [port]
 
@@ -283,9 +276,7 @@ class TestNetworkService:
             def create_subnet(self, subnet: models.Subnet) -> models.Subnet:
                 self.__class__.create_subnet_called = True
 
-            def list_ports(
-                self, subnet: models.Subnet
-            ) -> tp.Iterable[models.Port]:
+            def list_ports(self, subnet: models.Subnet) -> tp.Iterable[models.Port]:
                 port.status = nc.PortStatus.ACTIVE.value
                 return [port]
 
@@ -403,8 +394,6 @@ class TestNetworkService:
 
     @pytest.mark.usefixtures("user_api_client", "auth_user_admin")
     def test_new_hw_node_without_machine(self):
-        node = self._add_node(node_type="HW")
-
         extra = {"ip_range": netaddr.IPRange("10.0.0.100", "10.0.0.200")}
         _, subnet = self._add_network(**extra)
         port_uuid = None
@@ -464,9 +453,7 @@ class TestNetworkService:
             ipv4=netaddr.IPAddress("10.0.0.253"),
             mask=netaddr.IPAddress("255.255.255.0"),
         )
-        hw_interface = models.Interface.restore_from_simple_view(
-            **hw_interface
-        )
+        hw_interface = models.Interface.restore_from_simple_view(**hw_interface)
         hw_interface.insert()
 
         # HW node
