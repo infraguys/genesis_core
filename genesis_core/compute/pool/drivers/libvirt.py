@@ -19,6 +19,7 @@ import logging
 import time
 import typing as tp
 import uuid as sys_uuid
+import operator
 from xml.dom import minidom
 
 # It's more efficient to use ElementTree than minidom
@@ -839,7 +840,11 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         if machine is None:
             return volumes
 
-        return [v for v in volumes if v.machine == machine.uuid]
+        # Return volumes sorted by index for specific machine.
+        # Otherwise volumes can be shuffled during machine recreation.
+        machine_volumes = [v for v in volumes if v.machine == machine.uuid]
+        machine_volumes.sort(key=operator.attrgetter("index"))
+        return machine_volumes
 
     def get_volume(self, volume: sys_uuid.UUID) -> models.MachineVolume:
         storage_pool = self._client.storagePoolLookupByName(self._spec.storage_pool)
