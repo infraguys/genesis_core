@@ -1,9 +1,6 @@
-![Tests workflow](https://github.com/infraguys/genesis_core/actions/workflows/tests.yml/badge.svg)
-![Build workflow](https://github.com/infraguys/genesis_core/actions/workflows/build.yml/badge.svg)
-
-<p align="center">
-<img height="256" src="logo.svg" alt="genesis core svg logo">
-</p>
+---
+title: Genesis Core
+---
 
 Welcome to Genesis Core!
 
@@ -11,7 +8,7 @@ The Genesis Core is an open source software that offers a one turnkey solution t
 
 Refer to the [wiki](https://github.com/infraguys/genesis_core/wiki) for more detailed information.
 
-# 📦 Installation
+## 📦 Installation
 
 There are several ways to install Genesis Core and depend on your purpose you can choose one of them.
 
@@ -24,25 +21,19 @@ This stand may be used for development purposes as well if you are focusing on a
 
 In a case you would like to run Genesis Core on your own infrastructure, you can use the [basic guide](https://github.com/infraguys/genesis_core/wiki/BasicUsage) for more details.
 
-# 🚀 Development
+## 🚀 Development
 
 **Ubuntu:**
 
 ```bash
 sudo apt-get install build-essential python3.12-dev python3.12-venv \
-    libev-dev libvirt-dev curl
-curl -LsSf https://astral.sh/uv/install.sh | sh
-source "$HOME"/.local/bin/env
-uv tool install tox --with tox-uv
+    tox libev-dev libvirt-dev
 ```
 
 **Fedora:**
 
 ```bash
-sudo dnf install gcc libev-devel libvirt-devel curl
-curl -LsSf https://astral.sh/uv/install.sh | sh
-source "$HOME"/.local/bin/env
-uv tool install tox --with tox-uv 
+sudo dnf install tox gcc libev-devel libvirt-devel
 ```
 
 Initialize virtual environment:
@@ -54,7 +45,7 @@ source .tox/develop/bin/activate
 
 Follow the development guide [here](https://github.com/infraguys/genesis_core/wiki/DevelopmentGuide) for more details.
 
-# ⚙️ Tests
+## ⚙️ Tests
 
 **NOTE:** Python version 3.12 is supposed to be used, but you can use other versions
 
@@ -78,12 +69,12 @@ export GLOBAL_SALT="FOy/2kwwdn0ig1QOq7cestqe"
 export HS256_KEY="secret"
 ```
 
-# 🔗 Related projects
+## 🔗 Related projects
 
 - Genesis SDK is a set of tools for developing Genesis elements. You can find it [here](https://github.com/infraguys/gcl_sdk).
 - Genesis DevTools it's a set oftools to manager life cycle of genesis projects. You can find it [here](https://github.com/infraguys/genesis_devtools).
 
-# 💡 Contributing
+## 💡 Contributing
 
 Contributing to the project is highly appreciated! However, some rules should be followed for successful inclusion of new changes in the project:
 
