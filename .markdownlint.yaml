@@ -78,8 +78,8 @@ MD029:
 MD030:
   ul_single: 1
   ol_single: 1
-  ul_multi: 3
-  ol_multi: 2
+  ul_multi: 1
+  ol_multi: 1
 
 # MD031/blanks-around-fences : Fenced code blocks should be surrounded by blank lines : https://github.com/DavidAnson/markdownlint/blob/v0.33.0/doc/md031.md
 MD031: true

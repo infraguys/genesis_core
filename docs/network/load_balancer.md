@@ -50,9 +50,9 @@ The Load Balancer service provides a REST-based API for creating and managing lo
 
 The main load balancer entity that manages:
 
--   Status (NEW, IN_PROGRESS, ACTIVE, ERROR)
--   IP addresses
--   Type configuration:
+- Status (NEW, IN_PROGRESS, ACTIVE, ERROR)
+- IP addresses
+- Type configuration:
     - `core` - VM-based LB
     - `core_agent` - LB will be run on genesis_core instance itself
 
@@ -77,24 +77,24 @@ Backend pool that manages:
 
 Routing rules that define how traffic is handled:
 
--   Condition types
+- Condition types
     - `prefix` - nginx-like regex prefixes
     - `exact` - plain equal rule
     - `regex` - nginx-like regex
     - `raw` - used to set backend pools for L4
--   Actions
+- Actions
     - `backend` - send to backend
     - `redirect` - return http redirect
     - `local_dir` - serve static from local dir on LB
     - `local_dir_download` - download tar.gz/zstd on LB itself, unpack it and serve data from local dir
--   Modifiers (headers, rewrite rules)
-    -   `headers` - modify headers
-        -   `auto_header`:
+- Modifiers (headers, rewrite rules)
+    - `headers` - modify headers
+        - `auto_header`:
             - X-Forwarded-For
             - X-Forwarded-Port
             - X-Forwarded-Proto
             - X-Forwarded-Prefix
-        -   `set_header`: set static header
+        - `set_header`: set static header
 
 ## API Structure
 
@@ -136,10 +136,12 @@ Routing rules that define how traffic is handled:
 ```
 
 #### External sources requirements
+
 ##### SSH
 
 Tested on Ubuntu 24, prepare remote system:
-```
+
+```console
 # We may use nginx with proxy_protocol and socat for udp
 apt install nginx-full socat
 
@@ -147,7 +149,6 @@ apt install nginx-full socat
 echo 'net.ipv4.ip_unprivileged_port_start=0' > /etc/sysctl.d/50-unprivileged-ports.conf
 sysctl --system
 ```
-
 
 ### Creating a Backend Pool
 

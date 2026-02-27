@@ -69,11 +69,8 @@ markdown_extensions:
       alternate_style: true
 
 nav:
-  - Software:
-    - Общее: index.md
-    - Лендинг: onepager.md
+  - Software: index.md
   - Network:
     - Load Balancer as a Service API: network/load_balancer.md
   - Service:
     - Service as a Service API: element_manager/service.md
-  - FAQ: faq.md

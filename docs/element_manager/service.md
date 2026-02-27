@@ -80,9 +80,9 @@ The main service entity that manages:
 
 Services can define dependencies that run before or after the main service:
 
--   **CmdShell**: Execute a shell command
+- **CmdShell**: Execute a shell command
     - `command`: The shell command to execute
--   **ServiceTarget** (TBD): Reference another service for ordering (currently disabled, service relationships are being reworked)
+- **ServiceTarget** (TBD): Reference another service for ordering (currently disabled, service relationships are being reworked)
 
 ## API Structure
 

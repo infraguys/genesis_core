@@ -72,7 +72,7 @@ export HS256_KEY="secret"
 ## 🔗 Related projects
 
 - Genesis SDK is a set of tools for developing Genesis elements. You can find it [here](https://github.com/infraguys/gcl_sdk).
-- Genesis DevTools it's a set oftools to manager life cycle of genesis projects. You can find it [here](https://github.com/infraguys/genesis_devtools).
+- Genesis DevTools it's a set of tools to manager life cycle of genesis projects. You can find it [here](https://github.com/infraguys/genesis_devtools).
 
 ## 💡 Contributing
 
@@ -80,5 +80,5 @@ Contributing to the project is highly appreciated! However, some rules should be
 
 - All changes should be done in a separate branch.
 - Changes should include not only new functionality or bug fixes, but also tests for the new code.
-- After the changes are completed and **tested**, a Pull Request should be created with a clear description of the new functionality. And add one of the project maintainers as a reviewer.
+- After the changes are completed and **tested**, a Pull Request should be created with a clear description of the new functionality. Add one of the project maintainers as a reviewer.
 - Changes can be merged only after receiving an approve from one of the project maintainers.

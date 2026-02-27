@@ -1,7 +1,13 @@
 name: Markdown Lint
 description: Lint Markdown files
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'docs/**'
+      - mkdocs.yml
 
 jobs:
   lint:
