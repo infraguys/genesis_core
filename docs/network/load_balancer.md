@@ -47,15 +47,19 @@ The Load Balancer service provides a REST-based API for creating and managing lo
 - `Backend pools`: addresses where we may send requests to
 
 ### Load Balancer (LB)
+
 The main load balancer entity that manages:
-- Status (NEW, IN_PROGRESS, ACTIVE, ERROR)
-- IP addresses
-- Type configuration:
-  - `core` - VM-based LB
-  - `core_agent` - LB will be run on genesis_core instance itself
+
+-   Status (NEW, IN_PROGRESS, ACTIVE, ERROR)
+-   IP addresses
+-   Type configuration:
+    - `core` - VM-based LB
+    - `core_agent` - LB will be run on genesis_core instance itself
 
 ### Vhost
+
 Virtual host configuration that defines:
+
 - Protocol (http, https, tcp, udp)
 - Port
 - Domains (for L7 protocols)
@@ -63,30 +67,34 @@ Virtual host configuration that defines:
 - External sources (SSH forwarding)
 
 ### Backend Pool
+
 Backend pool that manages:
+
 - List of backend endpoints
 - Load balancing algorithm (roundrobin)
 
 ### Route
+
 Routing rules that define how traffic is handled:
-- Condition types
-  - `prefix` - nginx-like regex prefixes
-  - `exact` - plain equal rule
-  - `regex` - nginx-like regex
-  - `raw` - used to set backend pools for L4
-- Actions
-  - `backend` - send to backend
-  - `redirect` - return http redirect
-  - `local_dir` - serve static from local dir on LB
-  - `local_dir_download` - download tar.gz/zstd on LB itself, unpack it and serve data from local dir
-- Modifiers (headers, rewrite rules)
-  - `headers` - modify headers
-    - `auto_header`:
-      - X-Forwarded-For
-      - X-Forwarded-Port
-      - X-Forwarded-Proto
-      - X-Forwarded-Prefix
-    - `set_header`: set static header
+
+-   Condition types
+    - `prefix` - nginx-like regex prefixes
+    - `exact` - plain equal rule
+    - `regex` - nginx-like regex
+    - `raw` - used to set backend pools for L4
+-   Actions
+    - `backend` - send to backend
+    - `redirect` - return http redirect
+    - `local_dir` - serve static from local dir on LB
+    - `local_dir_download` - download tar.gz/zstd on LB itself, unpack it and serve data from local dir
+-   Modifiers (headers, rewrite rules)
+    -   `headers` - modify headers
+        -   `auto_header`:
+            - X-Forwarded-For
+            - X-Forwarded-Port
+            - X-Forwarded-Proto
+            - X-Forwarded-Prefix
+        -   `set_header`: set static header
 
 ## API Structure
 
@@ -192,12 +200,14 @@ Routing rules that define how traffic is handled:
 ## Validation Rules
 
 ### Vhost Validation
+
 - L7 protocols (http, https) must have at least one domain
 - HTTPS protocol requires a certificate
 - L4 protocols don't support domains or certificates
 - Protocol+port combinations must be unique
 
 ### Route Validation
+
 - L7 protocols can't have raw routes
 - L4 protocols can only have raw routes
 - Routes must be validated against parent vhost constraints
@@ -205,9 +215,11 @@ Routing rules that define how traffic is handled:
 ## Element manifest example
 
 Examples:
- - [Jitsi element](https://github.com/infraguys/genesis_basic/blob/master/genesis/manifests/basic.yaml.j2)
+
+- [Jitsi element](https://github.com/infraguys/genesis_basic/blob/master/genesis/manifests/basic.yaml.j2)
 
  Basic manifest for https site (let's imagine that some nodes are already exist):
+
  ```yaml
 ...
 requirements:

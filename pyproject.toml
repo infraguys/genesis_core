@@ -76,6 +76,10 @@ ruff = [
 shellcheck = [
     "shellcheck-py",
 ]
+docs = [
+    "mkdocs-material==9.1.0",
+    "mkdocs-glightbox",
+]
 
 [tool.ruff]
 exclude = [

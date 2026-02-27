@@ -55,6 +55,7 @@ The Service resource provides a REST-based API for creating and managing systemd
 ### Service
 
 The main service entity that manages:
+
 - **Status**: NEW, IN_PROGRESS, ACTIVE, ERROR
 - **Target Status**: enabled, disabled
 - **Name**: Service identifier (alphanumeric, underscores, hyphens)
@@ -63,12 +64,12 @@ The main service entity that manages:
 
 ### Service Types
 
-| Type | Description | Use Case |
-|------|-------------|----------|
-| `simple` | Regular service with configurable instance count | Long-running services like web servers |
-| `oneshot` | One-time execution service | Initialization scripts, migrations |
-| `monopoly` | Only one instance across all nodes | Singleton services like schedulers |
-| `monopoly_oneshot` | One-time execution, only one instance | One-time initialization tasks |
+| Type               | Description                                      | Use Case                               |
+|--------------------|--------------------------------------------------|----------------------------------------|
+| `simple`           | Regular service with configurable instance count | Long-running services like web servers |
+| `oneshot`          | One-time execution service                       | Initialization scripts, migrations     |
+| `monopoly`         | Only one instance across all nodes               | Singleton services like schedulers     |
+| `monopoly_oneshot` | One-time execution, only one instance            | One-time initialization tasks          |
 
 ### Target Types
 
@@ -79,9 +80,9 @@ The main service entity that manages:
 
 Services can define dependencies that run before or after the main service:
 
-- **CmdShell**: Execute a shell command
-  - `command`: The shell command to execute
-- **ServiceTarget** (TBD): Reference another service for ordering (currently disabled, service relationships are being reworked)
+-   **CmdShell**: Execute a shell command
+    - `command`: The shell command to execute
+-   **ServiceTarget** (TBD): Reference another service for ordering (currently disabled, service relationships are being reworked)
 
 ## API Structure
 
@@ -227,25 +228,30 @@ Services can define dependencies that run before or after the main service:
 ## Validation Rules
 
 ### Service Name Validation
+
 - Must match regex `^[A-Za-z0-9_-]{0,100}$`
 - Alphanumeric characters, underscores, and hyphens only
 - Maximum 100 characters
 
 ### Path Validation
+
 - Required field
 - Minimum 1 character, maximum 255 characters
 - Should be an absolute path to executable
 
 ### Target Validation
+
 - Must specify either `node` or `node_set` target
 - Target node/node_set must exist
 
 ### Service Type Validation
+
 - Must be one of: `simple`, `oneshot`, `monopoly`, `monopoly_oneshot`
 - `simple` and `monopoly` types support `count` parameter
 - `monopoly` types enforce count=1 across all nodes
 
 ### Dependency Validation
+
 - `before` and `after` are required arrays (can be empty)
 - Each dependency must have a valid `kind`: `shell` or `service`
 - Shell dependencies require a `command` field
@@ -286,7 +292,7 @@ WantedBy=multi-user.target
 
 ## Status Lifecycle
 
-```
+```text
 NEW → IN_PROGRESS → ACTIVE
   ↓
 ERROR
@@ -371,20 +377,22 @@ resources:
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/v1/em/services/` | List all services |
-| POST | `/v1/em/services/` | Create a new service |
-| GET | `/v1/em/services/<uuid>` | Get service details |
-| PUT | `/v1/em/services/<uuid>` | Update service |
-| DELETE | `/v1/em/services/<uuid>` | Delete service |
+| Method | Endpoint                 | Description          |
+|--------|--------------------------|----------------------|
+| GET    | `/v1/em/services/`       | List all services    |
+| POST   | `/v1/em/services/`       | Create a new service |
+| GET    | `/v1/em/services/<uuid>` | Get service details  |
+| PUT    | `/v1/em/services/<uuid>` | Update service       |
+| DELETE | `/v1/em/services/<uuid>` | Delete service       |
 
 ## Permissions
 
 The Service resource uses the following IAM policies:
+
 - **Service**: `em.service`
 
 Available actions:
+
 - `create`: Create new services
 - `read`: View service details
 - `update`: Modify existing services
