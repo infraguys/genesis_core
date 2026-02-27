@@ -1,6 +1,9 @@
 name: Markdown Lint
 description: Lint Markdown files
 
+permissions:
+  contents: read
+
 on: [push, pull_request]
 
 jobs:
