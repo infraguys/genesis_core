@@ -18,7 +18,10 @@ import typing as tp
 
 import pytest
 
+from restalchemy.storage import exceptions
+
 from genesis_core.compute.dm.models import MachinePool
+from genesis_core.tests.functional import utils as test_utils
 
 
 DictStrAny = tp.Dict[str, tp.Any]
@@ -87,8 +90,10 @@ class PoolFactory(tp.Protocol):
             [
                 DEFAULT_DRIVER_SPEC_WITH_EXCEPTION,
                 DriverSpecWithException(
-                    driver_spec={"connection_uri": DEFAULT_MACHINE_POOL_CONNECTION_URI},
-                    exception=ImportError,
+                    driver_spec={
+                        "connection_uri": DEFAULT_MACHINE_POOL_CONNECTION_URI,
+                    },
+                    exception=exceptions.ConflictRecords,
                 )
             ],
             id="disallow-duplicate-connection-uri",
@@ -97,6 +102,7 @@ class PoolFactory(tp.Protocol):
 )
 def test_connection_uri_idx(
     driver_specs_with_exceptions: tp.List[DriverSpecWithException],
+    test_session: test_utils.AbstractSession,
     pool_factory: PoolFactory,
 ):
     for param in driver_specs_with_exceptions:
@@ -107,7 +113,7 @@ def test_connection_uri_idx(
         )
 
         if param["exception"] is None:
-            machine_pool.insert()
+            machine_pool.insert(session=test_session)
         else:
             with pytest.raises(param["exception"]):
-                machine_pool.insert()
+                machine_pool.insert(session=test_session)

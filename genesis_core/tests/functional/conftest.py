@@ -915,3 +915,71 @@ def setup_db_for_worker(worker_id):
         engine.close_connection(conn)
         del engine
         engines.engine_factory.destroy_engine()
+
+
+@pytest.fixture(scope="session")
+def main_db_url() -> str:
+    return consts.get_database_uri()
+
+
+@pytest.fixture(scope="session")
+def test_db_name(worker_id: tp.Any) -> str:
+    return "test" if not worker_id else f"test_{worker_id}"
+
+
+@pytest.fixture(scope="session")
+def test_db_url(main_db_url: str, test_db_name: str) -> str:
+    parsed_db_url = urlparse(main_db_url)
+    return parsed_db_url._replace(path=test_db_name).geturl()
+
+
+@pytest.fixture(scope="session")
+def test_db(
+    main_db_url: str,
+    test_db_url: str,
+    test_db_name: str,
+) -> tp.Iterable[
+    test_utils.TestDBManager
+]:
+    class MainDBManager(test_utils.TestDBManager):
+        manager_config = test_utils.TestDBManagerConfig(
+            database_url=main_db_url,
+            create_db=test_db_name,
+            engine_alias="test_main",
+        )
+
+    class TestDBManager(test_utils.TestDBManager):
+        manager_config = test_utils.TestDBManagerConfig(
+            database_url=test_db_url,
+            engine_alias="test",
+        )
+
+    with MainDBManager() as main_db_manager:
+        with main_db_manager.db():
+            with TestDBManager() as test_db_manager:
+                yield test_db_manager
+
+
+@pytest.fixture(scope="session")
+def test_migrations_manager(
+    test_db: test_utils.TestDBManager,
+) -> tp.Iterable[None]:
+    class TestMigrationManager(test_utils.TestMigrationManager):
+        migration_config = test_utils.TestMigrationManagerConfig(
+            first_migration=FIRST_MIGRATION,
+        )
+
+    with TestMigrationManager(db_manager=test_db) as migration_manager:
+        with migration_manager.migrations():
+            yield
+
+
+@pytest.fixture()
+def test_session(
+    test_db: test_utils.TestDBManager,
+    test_migrations_manager: None,
+) -> tp.Iterable[
+    test_utils.AbstractSession
+]:
+    with test_db.session() as session:
+        yield session
