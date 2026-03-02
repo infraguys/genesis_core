@@ -29,11 +29,11 @@ DictStrAny = tp.Dict[str, tp.Any]
 
 class DriverSpecWithException(tp.TypedDict):
     driver_spec: tp.Optional[
-        DictStrAny,
+        DictStrAny
     ]
 
     exception: tp.Optional[
-        tp.Type[Exception],
+        tp.Type[Exception]
     ]
 
 
