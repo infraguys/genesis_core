@@ -17,8 +17,8 @@ bind_host = 0.0.0.0
 bind_port = 11010
 
 [iam]
-global_salt = FOy/2kwwdn0ig1QOq7cestqe
-hs256_jwks_encryption_key = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+global_salt = {{ global_salt }}
+hs256_jwks_encryption_key = {{ hs256_jwks_encryption_key }}
 
 [orch_api]
 bind_host = 0.0.0.0
@@ -29,15 +29,15 @@ bind_host = 0.0.0.0
 bind_port = 11012
 
 [boot_api]
-bind_host = 10.30.0.2
+bind_host = {{ boot_ip }}
 bind_port = 11013
-gc_boot_api = http://10.30.0.2:11013
-initrd = http://10.30.0.2:8080/bios/initrd.img
-kernel = http://10.30.0.2:8080/bios/vmlinuz
+gc_boot_api = http://{{ boot_ip }}:11013
+initrd = http://{{ boot_ip }}:8080/bios/initrd.img
+kernel = http://{{ boot_ip }}:8080/bios/vmlinuz
 
 
 [events]
-# enable = False
+enabled = False
 # client_type = async
 # event_type_mapping_filepath = event_type_mapping.yaml
 # genesis_notification_endpoint = http://127.0.0.1:8080/

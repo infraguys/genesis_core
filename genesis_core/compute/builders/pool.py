@@ -73,6 +73,16 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
 
     # Machine
 
+    def _is_core_machine(self, machine: pool_models.Machine) -> bool:
+        """Determine if the machine belongs to the core set."""
+        # NOTE(akremenetsky): We don't have any metadata information in
+        # nodes/machines expect the name and description. So the first
+        # implementation it pretty straightforward and just check the
+        # machine name. In the future version we need to associate metadata
+        # to the machine and keep this info there.
+        core_machine_name_prefix = "core-set-node"
+        return machine.name.startswith(core_machine_name_prefix)
+
     def _set_machine_ctx(
         self,
         machine: pool_models.Machine,
@@ -246,12 +256,16 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
         # in the private network with boot=`network`.
         boot = nc.BootAlternative.hd0.value
         if machine_guest_pair is None:
-            # It's a new machine, so it should be run in the
-            # `network` boot mode.
-            boot = nc.BootAlternative.network.value
-            # Any port for the boot network is fine. The port will be replaced
-            # after the machine is flashed and switched to the main network.
-            port = models.Port.from_boot_network()
+            # Do nothing for new machines in the core set.
+            # The core machines start in boot=hd0 mode and need to be
+            # attached to the main network.
+            if not self._is_core_machine(machine):
+                # It's a new machine, so it should be run in the
+                # `network` boot mode.
+                boot = nc.BootAlternative.network.value
+                # Any port for the boot network is fine. The port will be replaced
+                # after the machine is flashed and switched to the main network.
+                port = models.Port.from_boot_network()
         else:
             _, guest_actual = machine_guest_pair
             # The image is changed, so the machine should be booted in the
