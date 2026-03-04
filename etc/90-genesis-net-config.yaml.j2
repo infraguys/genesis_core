@@ -1,0 +1,21 @@
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    if-eth0:
+      match:
+        macaddress: "{{ main_mac }}"
+      dhcp4: false
+      addresses:
+        - "{{ main_ip_with_mask }}"
+      routes:
+        - to: default
+          via: "{{ default_gw }}"
+      nameservers:
+        addresses: [1.1.1.1, 8.8.8.8, 8.8.4.4]
+    if-eth1:
+      match:
+        macaddress: "{{ boot_mac }}"
+      dhcp4: false
+      addresses:
+        - "{{ boot_ip_with_mask }}"
