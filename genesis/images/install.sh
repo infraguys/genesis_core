@@ -143,12 +143,9 @@ sudo systemctl enable nginx
 
 # Install genesis core
 sudo mkdir -p $GC_CFG_DIR
-sudo cp "$GC_PATH/etc/genesis_core/genesis_core.conf" $GC_CFG_DIR/
 sudo cp "$GC_PATH/etc/genesis_core/core_agent.conf" $GC_CFG_DIR/
 sudo cp "$GC_PATH/etc/genesis_core/logging.yaml" $GC_CFG_DIR/
 sudo cp "$GC_PATH/etc/genesis_core/event_type_mapping.yaml" $GC_CFG_DIR/
-sudo cp "$GC_PATH/genesis/manifests/core.yaml" $GC_CFG_DIR/
-sudo cp "$GC_PATH/genesis/images/startup_cfg.yaml" $GC_CFG_DIR/
 sudo cp "$GC_PATH/genesis/images/bootstrap.sh" $BOOTSTRAP_PATH/0100-gc-bootstrap.sh
 
 cd "$GC_PATH"
@@ -162,7 +159,7 @@ if [[ "$SDK_DEV_MODE" == "true" ]]; then
 fi
 
 # Configuration for universal agent
-sudo cp -r "$GC_PATH/etc/genesis_universal_agent" /etc/
+sudo cp "$GC_PATH/etc/genesis_universal_agent/logging.yaml" /etc/genesis_universal_agent/
 
 # Apply migrations
 # The migrations are applied in the bootstrap script as well.
@@ -182,6 +179,11 @@ fi
 
 deactivate
 
+# Misc config
+# Disable DHCP for the main interface, it will be configured in the bootstrap script
+sudo cp "$GC_PATH/etc/90-genesis-dummy-config.yaml" /etc/netplan/90-genesis-net-base-config.yaml
+
+
 # Create links to venv
 sudo ln -sf "$VENV_PATH/bin/gc-user-api" "/usr/bin/gc-user-api"
 sudo ln -sf "$VENV_PATH/bin/gc-boot-api" "/usr/bin/gc-boot-api"
@@ -189,6 +191,7 @@ sudo ln -sf "$VENV_PATH/bin/gc-orch-api" "/usr/bin/gc-orch-api"
 sudo ln -sf "$VENV_PATH/bin/gc-status-api" "/usr/bin/gc-status-api"
 sudo ln -sf "$VENV_PATH/bin/gc-gservice" "/usr/bin/gc-gservice"
 sudo ln -sf "$VENV_PATH/bin/gc-bootstrap" "/usr/bin/gc-bootstrap"
+sudo ln -sf "$VENV_PATH/bin/gc-bootstrap-templates" "/usr/bin/gc-bootstrap-templates"
 sudo ln -sf "$VENV_PATH/bin/genesis-universal-agent" "/usr/bin/genesis-universal-agent"
 sudo ln -sf "$VENV_PATH/bin/genesis-universal-agent-db-back" "/usr/bin/genesis-universal-agent-db-back"
 sudo ln -sf "$VENV_PATH/bin/genesis-universal-scheduler" "/usr/bin/genesis-universal-scheduler"
@@ -217,19 +220,18 @@ sudo cp "$GC_PATH/etc/powerdns/genesis.conf" /etc/powerdns/pdns.d/genesis.conf
 sudo systemctl enable pdns
 
 #dnsdist
-sudo cp "$GC_PATH/etc/dnsdist/dnsdist-private.conf" /etc/dnsdist/dnsdist-private.conf
-sudo systemctl enable dnsdist@private
 
 # Optional, only for public resolving, for ex. ACME dns01 certs challenge
 sudo cp "$GC_PATH/etc/dnsdist/dnsdist-public.conf" /etc/dnsdist/dnsdist-public.conf
 sudo systemctl enable dnsdist@public
+sudo systemctl enable dnsdist@private
 
 # Set local IP where needed
 # LOCAL_IP=$(cat "$GC_PATH/genesis/images/startup_cfg.yaml" | yq '.startup_entities.core_ip' -r)
 # Use static IP for now
-LOCAL_IP="10.20.0.2"
-echo "DNS=${LOCAL_IP}" | sudo tee -a /etc/systemd/resolved.conf > /dev/null
-sudo sed -i 's/setLocal("10.20.0.2:53")/setLocal("'"${LOCAL_IP}"':53")/' /etc/dnsdist/dnsdist-private.conf
+# LOCAL_IP="10.20.0.2"
+# echo "DNS=${LOCAL_IP}" | sudo tee -a /etc/systemd/resolved.conf > /dev/null
+# sudo sed -i 's/setLocal("10.20.0.2:53")/setLocal("'"${LOCAL_IP}"':53")/' /etc/dnsdist/dnsdist-private.conf
 
 
 cat <<EOT | sudo tee /etc/motd

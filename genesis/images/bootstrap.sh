@@ -139,10 +139,8 @@ EOF
             # Reload systemd units generated from fstab so the mount can work on first run.
             # Example output:
             #   [genesis-bootstrap] running: systemctl daemon-reload
-            if command -v systemctl >/dev/null 2>&1; then
-              log "running: systemctl daemon-reload"
-              systemctl daemon-reload || true
-            fi
+            log "running: systemctl daemon-reload"
+            systemctl daemon-reload || true
           else
             log "/etc/fstab already has the correct UUID entry for ${MOUNTPOINT}"
           fi
@@ -153,10 +151,8 @@ EOF
           # Reload systemd units generated from fstab so the mount can work on first run.
           # Example output:
           #   [genesis-bootstrap] running: systemctl daemon-reload
-          if command -v systemctl >/dev/null 2>&1; then
-            log "running: systemctl daemon-reload"
-            systemctl daemon-reload || true
-          fi
+          log "running: systemctl daemon-reload"
+          systemctl daemon-reload || true
         fi
       else
         log "could not determine UUID for ${PART_DEV}; skipping fstab update"
@@ -242,20 +238,29 @@ if host_mountpoint "/var/lib/genesis/data"; then
         if ! grep -qs "^[[:space:]]*data_directory[[:space:]]*=[[:space:]]*'${NEW_PGDATA}'" "${PG_CONF_FILE}"; then
           log "configuring PostgreSQL data_directory to ${NEW_PGDATA}"
 
-          if command -v systemctl >/dev/null 2>&1; then
-            systemctl stop postgresql || true
-          fi
-
+          systemctl stop postgresql || true
           mkdir -p "${NEW_PGDATA}"
           chown -R postgres:postgres "/var/lib/genesis/data/postgresql" || true
 
           if [[ -d "${OLD_PGDATA}" && ! -f "${NEW_PGDATA}/PG_VERSION" ]]; then
             log "copying PostgreSQL data directory to ${NEW_PGDATA}"
-            if command -v rsync >/dev/null 2>&1; then
-              rsync -aHAX --numeric-ids "${OLD_PGDATA}/" "${NEW_PGDATA}/"
-            else
-              cp -a "${OLD_PGDATA}/." "${NEW_PGDATA}/"
-            fi
+            MAX_RETRIES=5
+            RETRY_COUNT=0
+            while [[ ${RETRY_COUNT} -lt ${MAX_RETRIES} ]]; do
+              if rsync -aHAX --numeric-ids "${OLD_PGDATA}/" "${NEW_PGDATA}/"; then
+                log "rsync completed successfully"
+                break
+              else
+                RETRY_COUNT=$((RETRY_COUNT + 1))
+                if [[ ${RETRY_COUNT} -lt ${MAX_RETRIES} ]]; then
+                  log "rsync failed, retrying in 0.5s (attempt ${RETRY_COUNT}/${MAX_RETRIES})"
+                  sleep 0.5
+                else
+                  log "ERROR: rsync failed after ${MAX_RETRIES} attempts"
+                  exit 1
+                fi
+              fi
+            done
             chown -R postgres:postgres "${NEW_PGDATA}" || true
           else
             log "PostgreSQL data directory already present under ${NEW_PGDATA}; skipping copy"
@@ -267,17 +272,13 @@ if host_mountpoint "/var/lib/genesis/data"; then
             printf '%s\n' "data_directory = '${NEW_PGDATA}'" >> "${PG_CONF_FILE}"
           fi
 
-          if command -v systemctl >/dev/null 2>&1; then
-            systemctl daemon-reload || true
-            systemctl start postgresql || true
-          fi
+          systemctl daemon-reload || true
+          systemctl start postgresql || true
         else
           log "PostgreSQL is already configured to use ${NEW_PGDATA}"
         fi
 
-        if command -v systemctl >/dev/null 2>&1; then
-          systemctl start postgresql || true
-        fi
+        systemctl start postgresql || true
       else
         log "PostgreSQL config not found at ${PG_CONF_FILE}; skipping PostgreSQL relocation"
       fi
@@ -293,6 +294,32 @@ fi
 
 # Additional PostgreSQL configuration
 sudo -u postgres psql -c "ALTER SYSTEM SET io_method = 'io_uring';"
+
+# Mount CD-ROM if device is present.
+CDROM_DEV="$(lsblk -dn -o NAME,TYPE | awk '$2=="rom" {print "/dev/"$1; exit}')"
+CDROM_MOUNTPOINT="/mnt/cdrom"
+if [[ -n "${CDROM_DEV}" ]]; then
+  log "cd-rom device detected: ${CDROM_DEV}"
+  mkdir -p "${CDROM_MOUNTPOINT}"
+  if mountpoint -q "${CDROM_MOUNTPOINT}"; then
+    log "cd-rom is already mounted at ${CDROM_MOUNTPOINT}"
+  else
+    if mount -o ro "${CDROM_DEV}" "${CDROM_MOUNTPOINT}"; then
+      log "cd-rom mounted at ${CDROM_MOUNTPOINT}"
+    else
+      log "failed to mount cd-rom ${CDROM_DEV} at ${CDROM_MOUNTPOINT}"
+    fi
+  fi
+else
+  log "cd-rom device not detected"
+fi
+
+# Prepare templated configuration files and apply them
+sudo gc-bootstrap-templates
+sudo netplan apply
+sudo systemctl restart \
+  systemd-resolved.service \
+  dnsdist@private.service
 
 # Apply migrations
 source "$VENV_PATH/bin/activate"
@@ -312,7 +339,7 @@ sudo systemctl enable --now \
     genesis-universal-scheduler
 
 # Perform the bootstrap of GC
-gc-bootstrap
+gc-bootstrap --config-file /etc/genesis_core/genesis_core.conf
 
 
 # Configure NAT

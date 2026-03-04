@@ -1,0 +1,166 @@
+name: "core"
+description: "Genesis Core element"
+schema_version: 1
+version: "{{ version }}"
+api_version: "v1"
+
+resources:
+  $core.vs.profiles:
+    develop:
+      name: "develop"
+      profile_type: "GLOBAL"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      description: "The develop profile"
+    small:
+      name: "small"
+      profile_type: "GLOBAL"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      description: "The small profile"
+    medium:
+      name: "medium"
+      profile_type: "GLOBAL"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      description: "The medium profile"
+    large:
+      name: "large"
+      profile_type: "GLOBAL"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      description: "The large profile"
+    legacy:
+      name: "legacy"
+      profile_type: "GLOBAL"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      description: "The legacy profile"
+  
+  $core.vs.variables:
+    default_replicas:
+      name: "default_replicas"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      setter:
+        kind: profile
+        fallback_strategy: ignore
+        profiles:
+          - profile: $core.vs.profiles.$develop:uuid
+            value: 1
+          - profile: $core.vs.profiles.$small:uuid
+            value: 1
+          - profile: $core.vs.profiles.$medium:uuid
+            value: 2
+          - profile: $core.vs.profiles.$large:uuid
+            value: 3
+          - profile: $core.vs.profiles.$legacy:uuid
+            value: 1
+    default_cores:
+      name: "default_cores"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      setter:
+        kind: profile
+        fallback_strategy: ignore
+        profiles:
+          - profile: $core.vs.profiles.$develop:uuid
+            value: 1
+          - profile: $core.vs.profiles.$small:uuid
+            value: 2
+          - profile: $core.vs.profiles.$medium:uuid
+            value: 4
+          - profile: $core.vs.profiles.$large:uuid
+            value: 8
+          - profile: $core.vs.profiles.$legacy:uuid
+            value: 2
+    default_ram:
+      name: "default_ram"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      setter:
+        kind: profile
+        fallback_strategy: ignore
+        profiles:
+          - profile: $core.vs.profiles.$develop:uuid
+            value: 1024
+          - profile: $core.vs.profiles.$small:uuid
+            value: 2048
+          - profile: $core.vs.profiles.$medium:uuid
+            value: 8192
+          - profile: $core.vs.profiles.$large:uuid
+            value: 16384
+          - profile: $core.vs.profiles.$legacy:uuid
+            value: 4096
+
+    # The variable is set at the bootstrap process and keep IP address of
+    # the core node. We cannot use the core set since it has a list of IPs.
+    # TODO(akremenetsky): Switch to the list when the core support HA.
+    core_ip_address:
+      uuid: "55814431-ede5-4c4e-abd6-e61600a3069b"
+      name: "core_ip_address"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      setter:
+        kind: selector
+        selector_strategy: latest
+
+  $core.compute.sets:
+    core_set:
+      name: core-set
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      uuid: "70c88222-b4d9-46c3-9340-aa5bfaaa4b94"
+      cores: $core.vs.variables.$default_cores:value
+      ram: $core.vs.variables.$default_ram:value
+      replicas: $core.vs.variables.$default_replicas:value
+      disk_spec:
+        kind: "disks"
+        disks:
+          - size: 10
+            image: "{{ repository }}/genesis_core/{{ version }}/genesis_core.raw.gz"
+          - size: 10
+            label: data
+
+  $core.dns.domains:
+    local_domain:
+      uuid: "afd4b306-8960-4a77-8e7d-42d46db8a7cf"
+      name: "local.genesis-core.tech"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+
+  $core.dns.domains.$local_domain.records:
+    local_soa_record:
+      uuid: "affb6c9d-7e89-5482-a2cb-f52347d60116"
+      domain: "$core.dns.domains.$local_domain:uuid"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      type: "SOA"
+      record:
+        kind: "SOA"
+        name: "@"
+        ttl: 3600
+        retry: 3600
+        expire: 604800
+        serial: 0
+        refresh: 10800
+        primary_dns: "a.misconfigured.dns.server.invalid"
+    local_core_record:
+      uuid: "6de6aa08-f229-4b81-bf4a-9207ebe2dac4"
+      domain: "$core.dns.domains.$local_domain:uuid"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      type: "A"
+      record:
+        kind: "A"
+        name: "core"
+        address: $core.vs.variables.$core_ip_address:value
+
+exports:
+  local_domain:
+    link: "$core.dns.domains.$local_domain"
+  var_core_ip_address:
+    link: "$core.vs.variables.$core_ip_address"
+  var_default_cores:
+    link: "$core.vs.variables.$default_cores"
+  var_default_ram:
+    link: "$core.vs.variables.$default_ram"
+  var_default_replicas:
+    link: "$core.vs.variables.$default_replicas"
+  profile_develop:
+    link: "$core.vs.profiles.$develop"
+  profile_small:
+    link: "$core.vs.profiles.$small"
+  profile_medium:
+    link: "$core.vs.profiles.$medium"
+  profile_large:
+    link: "$core.vs.profiles.$large"
+  profile_legacy:
+    link: "$core.vs.profiles.$legacy"
