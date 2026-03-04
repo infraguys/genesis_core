@@ -105,11 +105,18 @@ class NodeSetBuilderService(builder.CoreInfraBuilder):
 
         soft_anti_affinity = self._get_or_create_placement_policy(instance)
 
+        node_uuids = []
+        for target, _ in infra.infra_objects:
+            if isinstance(target, models.Node):
+                node_uuids.append(target.uuid)
+
         # Get the target nodes for the node set based on the current
         # configuration. This will be used to filter out nodes that are
         # being deleted during a shrink operation.
         nodes = instance.gen_nodes(
-            self._project_id, placement_policies=[soft_anti_affinity]
+            self._project_id,
+            placement_policies=[soft_anti_affinity],
+            node_uuids=node_uuids,
         )
         volumes = instance.gen_volumes(self._project_id)
 

@@ -45,6 +45,7 @@ class NodeSet(compute_models.NodeSet):
         self,
         project_id: sys_uuid.UUID,
         placement_policies: tp.Collection[compute_models.PlacementPolicy] = tuple(),
+        node_uuids: tp.Collection[sys_uuid.UUID] = tuple(),
     ) -> tp.Collection[Node]:
         """Generate nodes for the node set."""
         # FIXME(akremenetsky): Perhaps this method should be moved to
@@ -54,10 +55,8 @@ class NodeSet(compute_models.NodeSet):
 
         # NOTE(akremenetsky): Use the simplest implementation as
         # we don't have any node set type except the default one.
-        for i in range(self.replicas):
-            # This behavior is expected for the default node set type
-            # but for other node set types it may need to be changed.
-            node_uuid = sys_uuid.uuid5(self.uuid, f"node-{i}")
+        for idx in range(self.replicas):
+            node_uuid = node_uuids[idx] if idx < len(node_uuids) else sys_uuid.uuid4()
             node = Node(
                 uuid=node_uuid,
                 node_set=self.uuid,

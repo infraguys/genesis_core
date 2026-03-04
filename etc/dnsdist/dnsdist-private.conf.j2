@@ -1,7 +1,7 @@
 -- disable security status polling via DNS
 setSecurityPollSuffix("")
 
-setLocal("10.20.0.2:53")
+setLocal("{{ main_ip }}:53")
 
 --Private DNS
 newServer({address="127.0.0.1:5300", pool="privatedns", healthCheckMode="up"})
