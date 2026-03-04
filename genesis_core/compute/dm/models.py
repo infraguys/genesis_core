@@ -278,6 +278,15 @@ class NodeSet(
         default=nc.NodeStatus.NEW.value,
     )
 
+    def delete(self, session=None):
+        for node in Node.objects.get_all(
+            filters={"node_set": dm_filters.EQ(self.uuid)},
+            session=session,
+        ):
+            node.delete(session=session)
+
+        super().delete(session=session)
+
 
 class Node(
     infra_models.Node,
