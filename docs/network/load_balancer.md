@@ -127,6 +127,20 @@ Routing rules that define how traffic is handled:
 }
 ```
 
+#### External sources requirements
+##### SSH
+
+Tested on Ubuntu 24, prepare remote system:
+```
+# We may use nginx with proxy_protocol and socat for udp
+apt install nginx-full socat
+
+# Apply binding to privileged ports
+echo 'net.ipv4.ip_unprivileged_port_start=0' > /etc/sysctl.d/50-unprivileged-ports.conf
+sysctl --system
+```
+
+
 ### Creating a Backend Pool
 
 ```json
