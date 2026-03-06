@@ -40,10 +40,18 @@ class VolumesRoute(routes.Route):
     detach = routes.action(VolumeDetachActionRoute, invoke=True)
 
 
+class NodePrivateKeyActionRoute(routes.Action):
+    """Handler for /v1/compute/nodes/<uuid>/actions/get_private_key/invoke endpoint"""
+
+    __controller__ = controllers.NodesController
+
+
 class NodeRoute(routes.Route):
     """Handler for /v1/compute/nodes/ endpoint"""
 
     __controller__ = controllers.NodesController
+
+    get_private_key = routes.action(NodePrivateKeyActionRoute)
 
 
 class HypervisorRoute(routes.Route):
@@ -52,10 +60,18 @@ class HypervisorRoute(routes.Route):
     __controller__ = controllers.HypervisorsController
 
 
+class NodeSetPrivateKeyActionRoute(routes.Action):
+    """Handler for /v1/compute/sets/<uuid>/actions/get_private_keys/invoke endpoint"""
+
+    __controller__ = controllers.NodeSetsController
+
+
 class NodeSetsRoute(routes.Route):
     """Handler for /v1/compute/sets/ endpoint"""
 
     __controller__ = controllers.NodeSetsController
+
+    get_private_keys = routes.action(NodeSetPrivateKeyActionRoute)
 
 
 class ComputeRoute(routes.Route):

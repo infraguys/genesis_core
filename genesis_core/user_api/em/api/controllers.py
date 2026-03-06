@@ -144,6 +144,10 @@ class ElementResourceController(
         ),
     )
 
+    def __init__(self, *args, **kwargs):
+        models.element_engine.load_from_database()
+        super().__init__(*args, **kwargs)
+
 
 class ServicesController(iam_controllers.PolicyBasedController):
     """Controller for /v1/em/services/ endpoint"""
