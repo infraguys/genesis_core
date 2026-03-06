@@ -128,6 +128,12 @@ class NodesController(
 
         return super().update(uuid, **kwargs)
 
+    @actions.get
+    def get_private_key(self, resource: user_models.Node):
+        self._enforce("get_private_key")
+
+        return resource.get_agent_private_key()
+
 
 class NodeSetsController(
     iam_controllers.PolicyBasedController,
@@ -162,6 +168,12 @@ class NodeSetsController(
         kwargs["status"] = nc.NodeStatus.IN_PROGRESS.value
 
         return super().update(uuid, **kwargs)
+
+    @actions.get
+    def get_private_keys(self, resource: models.NodeSet):
+        self._enforce("get_private_key")
+
+        return resource.get_agents_private_keys()
 
 
 class HypervisorsController(

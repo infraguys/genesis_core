@@ -278,6 +278,13 @@ class NodeSet(
         default=nc.NodeStatus.NEW.value,
     )
 
+    def get_agents_private_keys(self):
+        enc_keys = ua_models.NodeEncryptionKey.objects.get_all(
+            filters={"uuid": dm_filters.In(self.nodes.keys())}
+        )
+
+        return {i.uuid: i.private_key for i in enc_keys}
+
     def delete(self, session=None):
         for node in Node.objects.get_all(
             filters={"node_set": dm_filters.EQ(self.uuid)},
@@ -378,6 +385,13 @@ class Node(
             private_key=key_base64,
         )
         private_key.insert(session=session)
+
+    def get_agent_private_key(self):
+        enc_key = ua_models.NodeEncryptionKey.objects.get_one(
+            filters={"uuid": dm_filters.EQ(self.uuid)}
+        )
+
+        return enc_key.private_key
 
     def delete(self, session=None):
         # NOTE(akremenetsky): Perhaps it's better to add a `foreign key`
