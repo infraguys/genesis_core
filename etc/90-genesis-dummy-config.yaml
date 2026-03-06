@@ -1,0 +1,6 @@
+network:
+  version: 2
+  renderer: networkd
+  allmatch:
+    en*:
+      dhcp4: false

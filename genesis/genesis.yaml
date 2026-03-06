@@ -12,14 +12,10 @@ build:
         - .venv
         - .tox
         - .pytest_cache
+        - .ruff_cache
         - build
         - cover
-
-    # Network configuration
-    - dst: /etc/netplan/90-genesis-net-base-config.yaml
-      # Local path
-      path:
-        src: ../../genesis_core/etc/90-genesis-net-base-config.yaml
+        - output
 
     # Binary artifacts. Kernel, initrd, boot loaders.
     - dst: /opt/genesis_core/artifacts/undionly.kpxe
@@ -54,9 +50,10 @@ build:
   # List of elements in the project
   elements:
     # List of images in the element
-    - images:
+    - manifest: manifests/core.yaml.j2
+      images:
       - name: genesis-core
-        format: raw
+        format: qcow2
 
         # OS profile for the image
         profile: genesis_base
@@ -68,7 +65,6 @@ build:
         override:
           # For development purposes it's handy to have more space.
           disk_size: "10G"
-      # manifest: manifests/genesis-core.yaml
 
         envs:
           - ALLOW_USER_PASSWD
