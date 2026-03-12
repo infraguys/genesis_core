@@ -646,6 +646,12 @@ class MetaMachine(meta.MetaCoordinatorDataPlaneModel):
 
         dp_machine = pool.dp_machine_map[self.uuid]
         dp_ports = pool.dp_port_map[self.uuid]
+
+        # NOTE(akremenetsky): The current implementation support single connection
+        # but machines in core set have two connections. They are for main and boot
+        # network. So just trunk the second port due to current limitation.
+        dp_ports = dp_ports[:1]
+
         self._from_dp_machine(dp_machine, dp_ports)
 
     def delete_from_dp(

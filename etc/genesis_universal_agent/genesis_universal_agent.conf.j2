@@ -9,13 +9,23 @@ connection_pool_size = 2
 
 
 [universal_agent]
-orch_endpoint = http://localhost:11011
-status_endpoint = http://localhost:11012
-caps_drivers = RestCoreCapabilityDriver,PasswordCapabilityDriver,CoreDNSCertificateCapabilityDriver,LBAgentCapabilityDriver
+orch_secure_communication = False
+orch_endpoint = http://{{ boot_ip }}:11013
+status_endpoint = http://{{ boot_ip }}:11013
+caps_drivers =
+    RestCoreCapabilityDriver,
+    PasswordCapabilityDriver,
+    CoreDNSCertificateCapabilityDriver,
+    LBAgentCapabilityDriver,
+    GuestMachineCapabilityDriver
 
 
 [universal_agent_scheduler]
-capabilities = em_*,password,certificate,paas_lb_agent
+capabilities =
+    em_*,
+    password,
+    certificate,
+    paas_lb_agent
 
 
 [CoreDNSCertificateCapabilityDriver]
