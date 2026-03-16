@@ -17,6 +17,7 @@
 import base64
 import datetime
 import enum
+import re
 import hashlib
 import secrets
 import typing as tp
@@ -166,6 +167,48 @@ class IdpResponseType(str, enum.Enum):
     @classmethod
     def list_response_types(cls):
         return [cls.CODE.value]
+
+
+class IdpCallbackBase(ra_types_dynamic.AbstractKindModel, models.SimpleViewMixin):
+    def check(self, redirect_uri: str) -> bool:
+        raise NotImplementedError()
+
+
+class IdpCallbackUriKind(IdpCallbackBase):
+    KIND = "callback_uri"
+
+    callback = properties.property(
+        ra_types.String(max_length=256),
+        required=True,
+    )
+
+    def check(self, redirect_uri: str) -> bool:
+        return self.callback == redirect_uri
+
+
+class IdpCallbackUriListKind(IdpCallbackBase):
+    KIND = "callback_uri_list"
+
+    callbacks = properties.property(
+        ra_types.TypedList(ra_types.String(max_length=256)),
+        required=True,
+        default=list,
+    )
+
+    def check(self, redirect_uri: str) -> bool:
+        return redirect_uri in self.callbacks
+
+
+class IdpCallbackRegexpKind(IdpCallbackBase):
+    KIND = "callback_regexp"
+
+    pattern = properties.property(
+        ra_types.String(max_length=256),
+        required=True,
+    )
+
+    def check(self, redirect_uri: str) -> bool:
+        return re.fullmatch(self.pattern, redirect_uri) is not None
 
 
 class AbstractUserSource(ra_types_dynamic.AbstractKindModel):
@@ -1091,7 +1134,7 @@ class IamClient(
         for auth_info in IdpAuthorizationInfo.objects.get_all(
             filters={"code": ra_filters.EQ(code)}
         ):
-            if auth_info.idp.callback_uri == redirect_uri:
+            if auth_info.redirect_uri == redirect_uri:
                 auth_info.delete()
                 return auth_info.token
 
@@ -1495,8 +1538,12 @@ class Idp(
         ra_types.String(max_length=64),
         default="openid",
     )
-    callback_uri = properties.property(
-        ra_types.String(max_length=256),
+    callback = properties.property(
+        KindModelSelectorType(
+            ra_types_dynamic.KindModelType(IdpCallbackUriKind),
+            ra_types_dynamic.KindModelType(IdpCallbackUriListKind),
+            ra_types_dynamic.KindModelType(IdpCallbackRegexpKind),
+        ),
         required=True,
     )
     nonce_required = properties.property(
@@ -1560,7 +1607,7 @@ class Idp(
     ):
         if self.client_id != client_id:
             raise iam_exceptions.InvalidClientId(client_id=client_id)
-        if self.callback_uri != redirect_uri:
+        if not self.callback.check(redirect_uri):
             raise iam_exceptions.InvalidRedirectUri(redirect_uri=redirect_uri)
         if self.nonce_required and not nonce:
             raise iam_exceptions.InvalidNonce(nonce=nonce)
@@ -1574,6 +1621,7 @@ class Idp(
             response_type=response_type,
             nonce=nonce,
             scope=scope,
+            redirect_uri=redirect_uri,
         )
 
         auth_info.insert()
@@ -1586,7 +1634,11 @@ class Idp(
         )
 
     def construct_callback_uri(self, auth_info):
-        return self.callback_uri + f"?code={auth_info.code}&state={auth_info.state}"
+        if not auth_info.redirect_uri:
+            raise iam_exceptions.InvalidRedirectUri(redirect_uri="")
+        return (
+            auth_info.redirect_uri + f"?code={auth_info.code}&state={auth_info.state}"
+        )
 
 
 class IdpAuthorizationInfo(
@@ -1611,6 +1663,11 @@ class IdpAuthorizationInfo(
     nonce = properties.property(
         ra_types.String(max_length=256),
         required=True,
+    )
+    redirect_uri = properties.property(
+        ra_types.String(max_length=256),
+        required=True,
+        default="",
     )
     scope = properties.property(
         ra_types.String(max_length=256),

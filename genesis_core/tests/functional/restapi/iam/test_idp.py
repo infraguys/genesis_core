@@ -38,9 +38,17 @@ class TestIdp(base.BaseIamResourceTest):
         return {
             "name": "test-idp",
             "description": "test-idp-desc",
-            "callback_uri": "http://example.test/callback",
+            "callback": {
+                "kind": "callback_uri",
+                "callback": "http://example.test/callback",
+            },
             "iam_client": self._iam_client_uri(iam_client_uuid),
         }
+
+    def _build_create_payload_with_callback(self, iam_client_uuid: str, callback: dict):
+        payload = self._build_create_payload(iam_client_uuid)
+        payload["callback"] = callback
+        return payload
 
     def _create_idp(self, client, iam_client_uuid: str):
         url = self._collection_url(client)
@@ -82,6 +90,68 @@ class TestIdp(base.BaseIamResourceTest):
         idp = self._create_idp(client, iam_client_uuid=auth_test1_user.client_uuid)
 
         assert idp["name"] == "test-idp"
+
+    def test_create_idp_with_callback_uri_list_success(
+        self, user_api_client, auth_test1_user
+    ):
+        client = user_api_client(
+            auth_test1_user,
+            permissions=[
+                iam_c.PERMISSION_IDP_CREATE,
+            ],
+        )
+        url = self._collection_url(client)
+
+        response = client.post(
+            url,
+            json=self._build_create_payload_with_callback(
+                iam_client_uuid=auth_test1_user.client_uuid,
+                callback={
+                    "kind": "callback_uri_list",
+                    "callbacks": [
+                        "http://example.test/callback",
+                        "http://example.test/callback-2",
+                    ],
+                },
+            ),
+        )
+
+        assert response.status_code == 201
+        idp = response.json()
+        assert idp["callback"]["kind"] == "callback_uri_list"
+        assert idp["callback"]["callbacks"] == [
+            "http://example.test/callback",
+            "http://example.test/callback-2",
+        ]
+
+    def test_create_idp_with_callback_regexp_success(
+        self, user_api_client, auth_test1_user
+    ):
+        client = user_api_client(
+            auth_test1_user,
+            permissions=[
+                iam_c.PERMISSION_IDP_CREATE,
+            ],
+        )
+        url = self._collection_url(client)
+
+        response = client.post(
+            url,
+            json=self._build_create_payload_with_callback(
+                iam_client_uuid=auth_test1_user.client_uuid,
+                callback={
+                    "kind": "callback_regexp",
+                    "pattern": r"https://example\.test/callback(/.*)?",
+                },
+            ),
+        )
+
+        assert response.status_code == 201
+        idp = response.json()
+        assert idp["callback"]["kind"] == "callback_regexp"
+        assert idp["callback"]["pattern"] == (
+            r"https://example\.test/callback(/.*)?"
+        )
 
     def test_list_idp_no_permission_fails(self, user_api_client, auth_test1_user):
         client = user_api_client(auth_test1_user)
