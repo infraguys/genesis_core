@@ -846,105 +846,91 @@
 <li><a href="https://github.com/infraguys/genesis_basic/blob/master/genesis/manifests/basic.yaml.j2">Jitsi element</a></li>
 </ul>
 <p>Basic manifest for https site (let's imagine that some nodes are already exist):</p>
-<p>```yaml
-...
-requirements:
-  core:
-    from_version: "0.0.0"</p>
-<p>imports:
-  core_public_domain:
-    element: "<span class="arithmatex"><span class="MathJax_Preview">core"
-    kind: "resource"
-    link: "</span><script type="math/tex">core"
-    kind: "resource"
-    link: "</script></span>core.dns.domains.$public_domain"</p>
-<p>$core.network.lb:
-    basic_lb:
-      project_id: "12345678-c625-4fee-81d5-f691897b8142"
-      type:
-        kind: core
-        ram: 1024
-        cpu: 2
-  <span class="arithmatex"><span class="MathJax_Preview">core.network.lb.</span><script type="math/tex">core.network.lb.</script></span>basic_lb.backend_pools:
-    basic_backend_http:
-      project_id: "12345678-c625-4fee-81d5-f691897b8142"
-      parent: <span class="arithmatex"><span class="MathJax_Preview">core.network.lb.</span><script type="math/tex">core.network.lb.</script></span>basic_lb:uuid
-      endpoints:
-        - kind: host
-          host: <span class="arithmatex"><span class="MathJax_Preview">core.compute.nodes.</span><script type="math/tex">core.compute.nodes.</script></span>genesis_basic:default_network:ipv4
-          port: 80
-  <span class="arithmatex"><span class="MathJax_Preview">core.network.lb.</span><script type="math/tex">core.network.lb.</script></span>basic_lb.vhosts:
-    basic_http:
-      project_id: "12345678-c625-4fee-81d5-f691897b8142"
-      parent: <span class="arithmatex"><span class="MathJax_Preview">core.network.lb.</span><script type="math/tex">core.network.lb.</script></span>basic_lb:uuid
-      domains:
-        - f"example.{<span class="arithmatex"><span class="MathJax_Preview">basic.imports.</span><script type="math/tex">basic.imports.</script></span>core_public_domain:name}"
-        - f"<a href="http://www.example">www.example</a>.{<span class="arithmatex"><span class="MathJax_Preview">basic.imports.</span><script type="math/tex">basic.imports.</script></span>core_public_domain:name}"
-      protocol: http
-      port: 80
-    basic_https:
-      project_id: "12345678-c625-4fee-81d5-f691897b8142"
-      parent: <span class="arithmatex"><span class="MathJax_Preview">core.network.lb.</span><script type="math/tex">core.network.lb.</script></span>basic_lb:uuid
-      domains:
-        - f"example.{<span class="arithmatex"><span class="MathJax_Preview">basic.imports.</span><script type="math/tex">basic.imports.</script></span>core_public_domain:name}"
-        - f"<a href="http://www.example">www.example</a>.{<span class="arithmatex"><span class="MathJax_Preview">basic.imports.</span><script type="math/tex">basic.imports.</script></span>core_public_domain:name}"
-      protocol: https
-      port: 443
-      cert:
-        kind: raw
-        crt: $core.secret.certificates.basic_cert:cert
-        key: $core.secret.certificates.basic_cert:key
-  <span class="arithmatex"><span class="MathJax_Preview">core.network.lb.</span><script type="math/tex">core.network.lb.</script></span>basic_lb.vhosts.$basic_http.routes:
-    basic_http_route:
-      project_id: "12345678-c625-4fee-81d5-f691897b8142"
-      parent: <span class="arithmatex"><span class="MathJax_Preview">core.network.lb.</span><script type="math/tex">core.network.lb.</script></span>basic_lb.vhosts.<span class="arithmatex"><span class="MathJax_Preview">basic_http:uuid
-      condition:
-        kind: prefix
-        value: /
-        actions:
-          - kind: redirect
-            url: f"https://example.{</span><script type="math/tex">basic_http:uuid
-      condition:
-        kind: prefix
-        value: /
-        actions:
-          - kind: redirect
-            url: f"https://example.{</script></span>basic.imports.$core_public_domain:name}"
-  <span class="arithmatex"><span class="MathJax_Preview">core.network.lb.</span><script type="math/tex">core.network.lb.</script></span>basic_lb.vhosts.$basic_https.routes:
-    basic_https_route:
-      project_id: "12345678-c625-4fee-81d5-f691897b8142"
-      parent: <span class="arithmatex"><span class="MathJax_Preview">core.network.lb.</span><script type="math/tex">core.network.lb.</script></span>basic_lb.vhosts.$basic_https:uuid
-      condition:
-        kind: prefix
-        value: /
-        actions:
-          - kind: backend
-            pool: <span class="arithmatex"><span class="MathJax_Preview">core.network.lb.</span><script type="math/tex">core.network.lb.</script></span>basic_lb.backend_pools.$basic_backend_https:uuid
-  <span class="arithmatex"><span class="MathJax_Preview">basic.imports.</span><script type="math/tex">basic.imports.</script></span>core_public_domain.records:
-    basic_a_record:
-      domain: "<span class="arithmatex"><span class="MathJax_Preview">basic.imports.</span><script type="math/tex">basic.imports.</script></span>core_public_domain:uuid"
-      project_id: "12345678-c625-4fee-81d5-f691897b8142"
-      type: "A"
-      record:
-        kind: "A"
-        name: "example"
-        address: "<span class="arithmatex"><span class="MathJax_Preview">core.network.lb.</span><script type="math/tex">core.network.lb.</script></span>basic_lb:index(ipsv4, 0)"
-  <span class="arithmatex"><span class="MathJax_Preview">core.secret.certificates:
-    basic_cert:
-      name: basic_cert
-      project_id: "12345678-c625-4fee-81d5-f691897b8142"
-      email: user@geneis-core.tech
-      domains:
-        f"example.{</span><script type="math/tex">core.secret.certificates:
-    basic_cert:
-      name: basic_cert
-      project_id: "12345678-c625-4fee-81d5-f691897b8142"
-      email: user@geneis-core.tech
-      domains:
-        f"example.{</script></span>basic.imports.<span class="arithmatex"><span class="MathJax_Preview">core_public_domain:name}"
-        f"*.example.{</span><script type="math/tex">core_public_domain:name}"
-        f"*.example.{</script></span>basic.imports.$core_public_domain:name}"
-```</p>
+<div class="highlight"><pre><span></span><code><span class="nn">...</span>
+<span class="nt">requirements</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">core</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">from_version</span><span class="p">:</span><span class="w"> </span><span class="s">"0.0.0"</span>
+
+<span class="nt">imports</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">core_public_domain</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">element</span><span class="p">:</span><span class="w"> </span><span class="s">"$core"</span>
+<span class="w">    </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="s">"resource"</span>
+<span class="w">    </span><span class="nt">link</span><span class="p">:</span><span class="w"> </span><span class="s">"$core.dns.domains.$public_domain"</span>
+
+<span class="w">  </span><span class="nt">$core.network.lb</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">basic_lb</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">project_id</span><span class="p">:</span><span class="w"> </span><span class="s">"12345678-c625-4fee-81d5-f691897b8142"</span>
+<span class="w">      </span><span class="nt">type</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">core</span>
+<span class="w">        </span><span class="nt">ram</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1024</span>
+<span class="w">        </span><span class="nt">cpu</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">  </span><span class="nt">$core.network.lb.$basic_lb.backend_pools</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">basic_backend_http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">project_id</span><span class="p">:</span><span class="w"> </span><span class="s">"12345678-c625-4fee-81d5-f691897b8142"</span>
+<span class="w">      </span><span class="nt">parent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$core.network.lb.$basic_lb:uuid</span>
+<span class="w">      </span><span class="nt">endpoints</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">host</span>
+<span class="w">          </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$core.compute.nodes.$genesis_basic:default_network:ipv4</span>
+<span class="w">          </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="w">  </span><span class="nt">$core.network.lb.$basic_lb.vhosts</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">basic_http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">project_id</span><span class="p">:</span><span class="w"> </span><span class="s">"12345678-c625-4fee-81d5-f691897b8142"</span>
+<span class="w">      </span><span class="nt">parent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$core.network.lb.$basic_lb:uuid</span>
+<span class="w">      </span><span class="nt">domains</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">f"example.{$basic.imports.$core_public_domain:name}"</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">f"www.example.{$basic.imports.$core_public_domain:name}"</span>
+<span class="w">      </span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http</span>
+<span class="w">      </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+<span class="w">    </span><span class="nt">basic_https</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">project_id</span><span class="p">:</span><span class="w"> </span><span class="s">"12345678-c625-4fee-81d5-f691897b8142"</span>
+<span class="w">      </span><span class="nt">parent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$core.network.lb.$basic_lb:uuid</span>
+<span class="w">      </span><span class="nt">domains</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">f"example.{$basic.imports.$core_public_domain:name}"</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">f"www.example.{$basic.imports.$core_public_domain:name}"</span>
+<span class="w">      </span><span class="nt">protocol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https</span>
+<span class="w">      </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">443</span>
+<span class="w">      </span><span class="nt">cert</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">raw</span>
+<span class="w">        </span><span class="nt">crt</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$core.secret.certificates.basic_cert:cert</span>
+<span class="w">        </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$core.secret.certificates.basic_cert:key</span>
+<span class="w">  </span><span class="nt">$core.network.lb.$basic_lb.vhosts.$basic_http.routes</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">basic_http_route</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">project_id</span><span class="p">:</span><span class="w"> </span><span class="s">"12345678-c625-4fee-81d5-f691897b8142"</span>
+<span class="w">      </span><span class="nt">parent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$core.network.lb.$basic_lb.vhosts.$basic_http:uuid</span>
+<span class="w">      </span><span class="nt">condition</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prefix</span>
+<span class="w">        </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/</span>
+<span class="w">        </span><span class="nt">actions</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">redirect</span>
+<span class="w">            </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">f"https://example.{$basic.imports.$core_public_domain:name}"</span>
+<span class="w">  </span><span class="nt">$core.network.lb.$basic_lb.vhosts.$basic_https.routes</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">basic_https_route</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">project_id</span><span class="p">:</span><span class="w"> </span><span class="s">"12345678-c625-4fee-81d5-f691897b8142"</span>
+<span class="w">      </span><span class="nt">parent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$core.network.lb.$basic_lb.vhosts.$basic_https:uuid</span>
+<span class="w">      </span><span class="nt">condition</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prefix</span>
+<span class="w">        </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/</span>
+<span class="w">        </span><span class="nt">actions</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">backend</span>
+<span class="w">            </span><span class="nt">pool</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$core.network.lb.$basic_lb.backend_pools.$basic_backend_https:uuid</span>
+<span class="w">  </span><span class="nt">$basic.imports.$core_public_domain.records</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">basic_a_record</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">domain</span><span class="p">:</span><span class="w"> </span><span class="s">"$basic.imports.$core_public_domain:uuid"</span>
+<span class="w">      </span><span class="nt">project_id</span><span class="p">:</span><span class="w"> </span><span class="s">"12345678-c625-4fee-81d5-f691897b8142"</span>
+<span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="s">"A"</span>
+<span class="w">      </span><span class="nt">record</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="s">"A"</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"example"</span>
+<span class="w">        </span><span class="nt">address</span><span class="p">:</span><span class="w"> </span><span class="s">"$core.network.lb.$basic_lb:index(ipsv4,</span><span class="nv"> </span><span class="s">0)"</span>
+<span class="w">  </span><span class="nt">$core.secret.certificates</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">basic_cert</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">basic_cert</span>
+<span class="w">      </span><span class="nt">project_id</span><span class="p">:</span><span class="w"> </span><span class="s">"12345678-c625-4fee-81d5-f691897b8142"</span>
+<span class="w">      </span><span class="nt">email</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user@geneis-core.tech</span>
+<span class="w">      </span><span class="nt">domains</span><span class="p">:</span>
+<span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">f"example.{$basic.imports.$core_public_domain:name}"</span>
+<span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">f"*.example.{$basic.imports.$core_public_domain:name}"</span>
+</code></pre></div>
 
 
 
