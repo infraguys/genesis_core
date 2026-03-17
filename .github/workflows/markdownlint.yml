@@ -3,8 +3,6 @@ description: Lint Markdown files
 
 on:
   push:
-    branches:
-      - master
     paths:
       - 'docs/**'
       - mkdocs.yml
