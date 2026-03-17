@@ -27,19 +27,23 @@ In a case you would like to run Genesis Core on your own infrastructure, you can
 
 ```bash
 sudo apt-get install build-essential python3.12-dev python3.12-venv \
-    tox libev-dev libvirt-dev
+    libev-dev libvirt-dev
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source "$HOME"/.local/bin/env    
 ```
 
 **Fedora:**
 
 ```bash
-sudo dnf install tox gcc libev-devel libvirt-devel
+sudo dnf install gcc libev-devel libvirt-devel
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source "$HOME"/.local/bin/env    
 ```
 
 Initialize virtual environment:
 
 ```bash
-tox -e develop
+uv sync
 source .tox/develop/bin/activate
 ```
 
