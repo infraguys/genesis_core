@@ -10,8 +10,11 @@ theme:
   features:
     - search.suggest
     - search.highlight
-    - navigation.tabs
+    # to move menu to top uncomment the following lines
+    # - navigation.tabs
+    # - navigation.tabs.sticky
     - toc.integrate
+    - content.code.copy
   palette:
     - scheme: default
       toggle:
