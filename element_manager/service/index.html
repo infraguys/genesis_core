@@ -1,0 +1,1140 @@
+<!DOCTYPE html><html lang="ru" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://github.com/infraguys/element_manager/service/">
+      
+      
+        <link rel="prev" href="../../network/load_balancer/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.1.0">
+    
+    
+      
+        <title>Service as a Service API - genesis_core</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.402914a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.a0c5b2b5.min.css">
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="" data-md-color-accent="">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#service-as-a-service-api" class="md-skip">
+          Перейти к содержанию
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Верхний колонтитул">
+    <a href="../.." title="genesis_core" class="md-header__button md-logo" aria-label="genesis_core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            genesis_core
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Service as a Service API
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      <form class="md-header__option" data-md-component="palette">
+        
+          
+          <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="" data-md-color-accent="" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_1">
+          
+            <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7M9 21v-1h6v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1m3-17a5 5 0 0 0-5 5c0 2.05 1.23 3.81 3 4.58V16h4v-2.42c1.77-.77 3-2.53 3-4.58a5 5 0 0 0-5-5Z"></path></svg>
+            </label>
+          
+        
+          
+          <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="" data-md-color-accent="" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_2">
+          
+            <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7M9 21a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1H9v1Z"></path></svg>
+            </label>
+          
+        
+      </form>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Поиск" placeholder="Поиск" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Поиск">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Очистить" aria-label="Очистить" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Инициализация поиска
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/infraguys/genesis_core" title="Перейти к репозиторию" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    genesis_core
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Вкладки" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../.." class="md-tabs__link">
+      Software
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../network/load_balancer/" class="md-tabs__link">
+        Network
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+    
+  
+
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="./" class="md-tabs__link md-tabs__link--active">
+        Service
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Навигация" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="genesis_core" class="md-nav__button md-logo" aria-label="genesis_core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+
+    </a>
+    genesis_core
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/infraguys/genesis_core" title="Перейти к репозиторию" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    genesis_core
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Software
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2">
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          Network
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Network
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../network/load_balancer/" class="md-nav__link">
+        Load Balancer as a Service API
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          Service
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Service
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Service as a Service API
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Service as a Service API
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Содержание раздела">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Содержание раздела
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    Overview
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-components" class="md-nav__link">
+    Core Components
+  </a>
+  
+    <nav class="md-nav" aria-label="Core Components">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#service" class="md-nav__link">
+    Service
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#service-types" class="md-nav__link">
+    Service Types
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#target-types" class="md-nav__link">
+    Target Types
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dependencies" class="md-nav__link">
+    Dependencies
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api-structure" class="md-nav__link">
+    API Structure
+  </a>
+  
+    <nav class="md-nav" aria-label="API Structure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-service" class="md-nav__link">
+    Creating a Service
+  </a>
+  
+    <nav class="md-nav" aria-label="Creating a Service">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#simple-service" class="md-nav__link">
+    Simple Service
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oneshot-service" class="md-nav__link">
+    Oneshot Service
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monopoly-service" class="md-nav__link">
+    Monopoly Service
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#service-with-shell-dependencies" class="md-nav__link">
+    Service with Shell Dependencies
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#service-with-service-dependencies-tbd" class="md-nav__link">
+    Service with Service Dependencies (TBD)
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation-rules" class="md-nav__link">
+    Validation Rules
+  </a>
+  
+    <nav class="md-nav" aria-label="Validation Rules">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#service-name-validation" class="md-nav__link">
+    Service Name Validation
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#path-validation" class="md-nav__link">
+    Path Validation
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#target-validation" class="md-nav__link">
+    Target Validation
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#service-type-validation" class="md-nav__link">
+    Service Type Validation
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dependency-validation" class="md-nav__link">
+    Dependency Validation
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataplane-behavior" class="md-nav__link">
+    Dataplane Behavior
+  </a>
+  
+    <nav class="md-nav" aria-label="Dataplane Behavior">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#systemd-service-template" class="md-nav__link">
+    Systemd Service Template
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#status-lifecycle" class="md-nav__link">
+    Status Lifecycle
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#element-manifest-example" class="md-nav__link">
+    Element Manifest Example
+  </a>
+  
+    <nav class="md-nav" aria-label="Element Manifest Example">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#complex-example-with-node-set" class="md-nav__link">
+    Complex Example with Node Set
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api-endpoints" class="md-nav__link">
+    API Endpoints
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#permissions" class="md-nav__link">
+    Permissions
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="service-as-a-service-api">Service as a Service API<a class="headerlink" href="#service-as-a-service-api" title="Permanent link">#</a></h1>
+<pre class="mermaid"><code>graph TD
+    %% Main Service entity
+    S[Service]
+
+    %% Target components
+    NT[NodeTarget]
+    NST[NodeSetTarget]
+
+    %% Service types
+    ST[ServiceType]
+    SS[Simple]
+    SO[Oneshot]
+    SM[Monopoly]
+    SMO[MonopolyOneshot]
+
+    %% Dependencies
+    D1[Before/After Dependencies]
+    CS[CmdShell]
+    ST2["ServiceTarget (TBD)"]
+
+    %% Relationships
+    S --&gt;|deploys to| NT
+    S --&gt;|deploys to| NST
+    S --&gt;|has type| ST
+    ST --&gt;|can be| SS
+    ST --&gt;|can be| SO
+    ST --&gt;|can be| SM
+    ST --&gt;|can be| SMO
+    S --&gt;|has| D1
+    D1 --&gt;|can be| CS
+    D1 --&gt;|can be| ST2
+
+    %% Legend
+    class S main
+    class NT,NST target
+    class SS,SO,SM,SMO type
+    class CS,ST2 dependency</code></pre>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
+<p>The Service resource provides a REST-based API for creating and managing systemd services across compute nodes. It enables declarative service management with support for different service types, dependencies, and lifecycle management.</p>
+<h2 id="core-components">Core Components<a class="headerlink" href="#core-components" title="Permanent link">#</a></h2>
+<ul>
+<li><code>Service</code>: The main service entity that defines a systemd service configuration</li>
+<li><code>ServiceType</code>: Defines the service behavior (simple, oneshot, monopoly, monopoly_oneshot)</li>
+<li><code>Target</code>: Specifies where to deploy the service (node or node_set)</li>
+<li><code>Before/After</code>: Dependencies that run before or after the service (shell commands or other services)</li>
+<li><code>ServiceNode</code>: The actual deployed service instance on a specific node</li>
+</ul>
+<h3 id="service">Service<a class="headerlink" href="#service" title="Permanent link">#</a></h3>
+<p>The main service entity that manages:</p>
+<ul>
+<li><strong>Status</strong>: NEW, IN_PROGRESS, ACTIVE, ERROR</li>
+<li><strong>Target Status</strong>: enabled, disabled</li>
+<li><strong>Name</strong>: Service identifier (alphanumeric, underscores, hyphens)</li>
+<li><strong>Path</strong>: The command or script to execute</li>
+<li><strong>User/Group</strong>: Execution context (defaults to root)</li>
+</ul>
+<h3 id="service-types">Service Types<a class="headerlink" href="#service-types" title="Permanent link">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>simple</code></td>
+<td>Regular service with configurable instance count</td>
+<td>Long-running services like web servers</td>
+</tr>
+<tr>
+<td><code>oneshot</code></td>
+<td>One-time execution service</td>
+<td>Initialization scripts, migrations</td>
+</tr>
+<tr>
+<td><code>monopoly</code></td>
+<td>Only one instance across all nodes</td>
+<td>Singleton services like schedulers</td>
+</tr>
+<tr>
+<td><code>monopoly_oneshot</code></td>
+<td>One-time execution, only one instance</td>
+<td>One-time initialization tasks</td>
+</tr>
+</tbody>
+</table>
+<h3 id="target-types">Target Types<a class="headerlink" href="#target-types" title="Permanent link">#</a></h3>
+<ul>
+<li><code>node</code>: Deploy service to a specific compute node</li>
+<li><code>node_set</code>: Deploy service to all nodes in a node set</li>
+</ul>
+<h3 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">#</a></h3>
+<p>Services can define dependencies that run before or after the main service:</p>
+<ul>
+<li><strong>CmdShell</strong>: Execute a shell command<ul>
+<li><code>command</code>: The shell command to execute</li>
+</ul>
+</li>
+<li><strong>ServiceTarget</strong> (TBD): Reference another service for ordering (currently disabled, service relationships are being reworked)</li>
+</ul>
+<h2 id="api-structure">API Structure<a class="headerlink" href="#api-structure" title="Permanent link">#</a></h2>
+<h3 id="creating-a-service">Creating a Service<a class="headerlink" href="#creating-a-service" title="Permanent link">#</a></h3>
+<h4 id="simple-service">Simple Service<a class="headerlink" href="#simple-service" title="Permanent link">#</a></h4>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"my-web-server"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Production web server"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/usr/local/bin/start-web-server.sh"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"user"</span><span class="p">:</span><span class="w"> </span><span class="s2">"www-data"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"group"</span><span class="p">:</span><span class="w"> </span><span class="s2">"www-data"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"target"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"node"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"node"</span><span class="p">:</span><span class="w"> </span><span class="s2">"12345678-c625-4fee-81d5-f691897b8142"</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"service_type"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"simple"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"target_status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"enabled"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"before"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+<span class="w">  </span><span class="nt">"after"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+<span class="p">}</span>
+</code></pre></div>
+<h4 id="oneshot-service">Oneshot Service<a class="headerlink" href="#oneshot-service" title="Permanent link">#</a></h4>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"db-migration"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Database migration script"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/usr/local/bin/migrate-db.sh"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"user"</span><span class="p">:</span><span class="w"> </span><span class="s2">"root"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"target"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"node_set"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"node_set"</span><span class="p">:</span><span class="w"> </span><span class="s2">"abcdef12-3456-7890-abcd-ef1234567890"</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"service_type"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"oneshot"</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"target_status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"enabled"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"before"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"shell"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"echo 'Starting migration...'"</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"after"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"shell"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"echo 'Migration complete'"</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<h4 id="monopoly-service">Monopoly Service<a class="headerlink" href="#monopoly-service" title="Permanent link">#</a></h4>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"scheduler"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Global scheduler service"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/usr/local/bin/scheduler"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"user"</span><span class="p">:</span><span class="w"> </span><span class="s2">"scheduler"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"group"</span><span class="p">:</span><span class="w"> </span><span class="s2">"scheduler"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"target"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"node_set"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"node_set"</span><span class="p">:</span><span class="w"> </span><span class="s2">"abcdef12-3456-7890-abcd-ef1234567890"</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"service_type"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"monopoly"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"target_status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"enabled"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"before"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
+<span class="w">  </span><span class="nt">"after"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+<span class="p">}</span>
+</code></pre></div>
+<h4 id="service-with-shell-dependencies">Service with Shell Dependencies<a class="headerlink" href="#service-with-shell-dependencies" title="Permanent link">#</a></h4>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"app-with-deps"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Application with pre/post commands"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/opt/app/start.sh"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"user"</span><span class="p">:</span><span class="w"> </span><span class="s2">"appuser"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"target"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"node"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"node"</span><span class="p">:</span><span class="w"> </span><span class="s2">"12345678-c625-4fee-81d5-f691897b8142"</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"service_type"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"simple"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"target_status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"enabled"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"before"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"shell"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"mkdir -p /var/log/app &amp;&amp; chown appuser:appuser /var/log/app"</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"after"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"shell"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"curl -X POST http://monitoring/notify/service-up"</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="service-with-service-dependencies-tbd">Service with Service Dependencies (TBD)<a class="headerlink" href="#service-with-service-dependencies-tbd" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"dependent-service"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Service that depends on another service"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/opt/app/dependent-start.sh"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"user"</span><span class="p">:</span><span class="w"> </span><span class="s2">"appuser"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"target"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"node"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"node"</span><span class="p">:</span><span class="w"> </span><span class="s2">"12345678-c625-4fee-81d5-f691897b8142"</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"service_type"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"simple"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"target_status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"enabled"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"before"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"service"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"service"</span><span class="p">:</span><span class="w"> </span><span class="s2">"abcdef12-3456-7890-abcd-ef1234567890"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"service_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"base-service"</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"after"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="validation-rules">Validation Rules<a class="headerlink" href="#validation-rules" title="Permanent link">#</a></h2>
+<h3 id="service-name-validation">Service Name Validation<a class="headerlink" href="#service-name-validation" title="Permanent link">#</a></h3>
+<ul>
+<li>Must match regex <code>^[A-Za-z0-9_-]{0,100}$</code></li>
+<li>Alphanumeric characters, underscores, and hyphens only</li>
+<li>Maximum 100 characters</li>
+</ul>
+<h3 id="path-validation">Path Validation<a class="headerlink" href="#path-validation" title="Permanent link">#</a></h3>
+<ul>
+<li>Required field</li>
+<li>Minimum 1 character, maximum 255 characters</li>
+<li>Should be an absolute path to executable</li>
+</ul>
+<h3 id="target-validation">Target Validation<a class="headerlink" href="#target-validation" title="Permanent link">#</a></h3>
+<ul>
+<li>Must specify either <code>node</code> or <code>node_set</code> target</li>
+<li>Target node/node_set must exist</li>
+</ul>
+<h3 id="service-type-validation">Service Type Validation<a class="headerlink" href="#service-type-validation" title="Permanent link">#</a></h3>
+<ul>
+<li>Must be one of: <code>simple</code>, <code>oneshot</code>, <code>monopoly</code>, <code>monopoly_oneshot</code></li>
+<li><code>simple</code> and <code>monopoly</code> types support <code>count</code> parameter</li>
+<li><code>monopoly</code> types enforce count=1 across all nodes</li>
+</ul>
+<h3 id="dependency-validation">Dependency Validation<a class="headerlink" href="#dependency-validation" title="Permanent link">#</a></h3>
+<ul>
+<li><code>before</code> and <code>after</code> are required arrays (can be empty)</li>
+<li>Each dependency must have a valid <code>kind</code>: <code>shell</code> or <code>service</code></li>
+<li>Shell dependencies require a <code>command</code> field</li>
+<li>Service dependencies require <code>service</code> (UUID) and <code>service_name</code> fields</li>
+</ul>
+<h2 id="dataplane-behavior">Dataplane Behavior<a class="headerlink" href="#dataplane-behavior" title="Permanent link">#</a></h2>
+<p>When a Service is created, the system:</p>
+<ol>
+<li>Creates a systemd service file at <code>/etc/systemd/system/genesis_srv_&lt;name&gt;_&lt;uuid&gt;.service</code></li>
+<li>Runs <code>systemctl daemon-reload</code></li>
+<li>Enables and starts the service if <code>target_status</code> is <code>enabled</code></li>
+<li>Disables the service if <code>target_status</code> is <code>disabled</code></li>
+</ol>
+<h3 id="systemd-service-template">Systemd Service Template<a class="headerlink" href="#systemd-service-template" title="Permanent link">#</a></h3>
+<p>The generated systemd service file follows this template:</p>
+<div class="highlight"><pre><span></span><code><span class="k">[Unit]</span>
+<span class="na">Description</span><span class="o">=</span><span class="s">Genesis Core: dynamic service {name}</span>
+<span class="na">After</span><span class="o">=</span><span class="s">network.target</span>
+
+<span class="k">[Service]</span>
+<span class="na">Type</span><span class="o">=</span><span class="s">{simple|oneshot}</span>
+<span class="na">Restart</span><span class="o">=</span><span class="s">{always|on-failure}</span>
+<span class="na">ExecStart</span><span class="o">=</span><span class="s">/usr/bin/bash -c '{command}'</span>
+<span class="na">User</span><span class="o">=</span><span class="s">{user}</span>
+<span class="na">Group</span><span class="o">=</span><span class="s">{group}</span>
+<span class="na">ExecStartPre</span><span class="o">=</span><span class="s">+/usr/bin/bash -c '{before_command}'</span>
+<span class="na">ExecStartPost</span><span class="o">=</span><span class="s">+/usr/bin/bash -c '{after_command}'</span>
+<span class="na">RestartSec</span><span class="o">=</span><span class="s">5s</span>
+<span class="na">TimeoutStopSec</span><span class="o">=</span><span class="s">30</span>
+
+<span class="k">[Install]</span>
+<span class="na">WantedBy</span><span class="o">=</span><span class="s">multi-user.target</span>
+</code></pre></div>
+<h2 id="status-lifecycle">Status Lifecycle<a class="headerlink" href="#status-lifecycle" title="Permanent link">#</a></h2>
+<div class="highlight"><pre><span></span><code>NEW → IN_PROGRESS → ACTIVE
+  ↓
+ERROR
+</code></pre></div>
+<ul>
+<li><strong>NEW</strong>: Service record created, not yet processed</li>
+<li><strong>IN_PROGRESS</strong>: Service is being deployed to target nodes</li>
+<li><strong>ACTIVE</strong>: All ServiceNode instances are active</li>
+<li><strong>ERROR</strong>: Deployment failed (check logs for details)</li>
+</ul>
+<h2 id="element-manifest-example">Element Manifest Example<a class="headerlink" href="#element-manifest-example" title="Permanent link">#</a></h2>
+<p>Basic manifest for creating a service:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">requirements</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">core</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">from_version</span><span class="p">:</span><span class="w"> </span><span class="s">"0.0.0"</span>
+
+<span class="nt">imports</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">core_compute_node</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">element</span><span class="p">:</span><span class="w"> </span><span class="s">"$core"</span>
+<span class="w">    </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="s">"resource"</span>
+<span class="w">    </span><span class="nt">link</span><span class="p">:</span><span class="w"> </span><span class="s">"$core.compute.nodes.$my_node"</span>
+
+<span class="nt">resources</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">$core.em.services</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">my_service</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">project_id</span><span class="p">:</span><span class="w"> </span><span class="s">"12345678-c625-4fee-81d5-f691897b8142"</span>
+<span class="w">      </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"my-app-service"</span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="s">"/opt/myapp/start.sh"</span>
+<span class="w">      </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="s">"appuser"</span>
+<span class="w">      </span><span class="nt">group</span><span class="p">:</span><span class="w"> </span><span class="s">"appuser"</span>
+<span class="w">      </span><span class="nt">target</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="s">"node"</span>
+<span class="w">        </span><span class="nt">node</span><span class="p">:</span><span class="w"> </span><span class="s">"$core.compute.nodes.$my_node:uuid"</span>
+<span class="w">      </span><span class="nt">service_type</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="s">"simple"</span>
+<span class="w">        </span><span class="nt">count</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">      </span><span class="nt">target_status</span><span class="p">:</span><span class="w"> </span><span class="s">"enabled"</span>
+<span class="w">      </span><span class="nt">before</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="s">"shell"</span>
+<span class="w">          </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">"mkdir</span><span class="nv"> </span><span class="s">-p</span><span class="nv"> </span><span class="s">/var/log/myapp"</span>
+<span class="w">      </span><span class="nt">after</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[]</span>
+</code></pre></div>
+<h3 id="complex-example-with-node-set">Complex Example with Node Set<a class="headerlink" href="#complex-example-with-node-set" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nt">requirements</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">core</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">from_version</span><span class="p">:</span><span class="w"> </span><span class="s">"0.0.0"</span>
+
+<span class="nt">imports</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">core_compute_nodeset</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">element</span><span class="p">:</span><span class="w"> </span><span class="s">"$core"</span>
+<span class="w">    </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="s">"resource"</span>
+<span class="w">    </span><span class="nt">link</span><span class="p">:</span><span class="w"> </span><span class="s">"$core.compute.sets.$my_nodeset"</span>
+
+<span class="nt">resources</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">$core.em.services</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">monopoly_scheduler</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">project_id</span><span class="p">:</span><span class="w"> </span><span class="s">"12345678-c625-4fee-81d5-f691897b8142"</span>
+<span class="w">      </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"scheduler"</span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="s">"/usr/local/bin/scheduler</span><span class="nv"> </span><span class="s">--config</span><span class="nv"> </span><span class="s">/etc/scheduler.conf"</span>
+<span class="w">      </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="s">"scheduler"</span>
+<span class="w">      </span><span class="nt">group</span><span class="p">:</span><span class="w"> </span><span class="s">"scheduler"</span>
+<span class="w">      </span><span class="nt">target</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="s">"node_set"</span>
+<span class="w">        </span><span class="nt">node_set</span><span class="p">:</span><span class="w"> </span><span class="s">"$core.compute.sets.$my_nodeset:uuid"</span>
+<span class="w">      </span><span class="nt">service_type</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="s">"monopoly"</span>
+<span class="w">        </span><span class="nt">count</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">      </span><span class="nt">target_status</span><span class="p">:</span><span class="w"> </span><span class="s">"enabled"</span>
+<span class="w">      </span><span class="nt">before</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="s">"shell"</span>
+<span class="w">          </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">"/usr/local/bin/wait-for-db.sh"</span>
+<span class="w">      </span><span class="nt">after</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="s">"shell"</span>
+<span class="w">          </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="s">"echo</span><span class="nv"> </span><span class="s">'Scheduler</span><span class="nv"> </span><span class="s">started</span><span class="nv"> </span><span class="s">on</span><span class="nv"> </span><span class="s">$(hostname)'"</span>
+</code></pre></div>
+<h2 id="api-endpoints">API Endpoints<a class="headerlink" href="#api-endpoints" title="Permanent link">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/v1/em/services/</code></td>
+<td>List all services</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/v1/em/services/</code></td>
+<td>Create a new service</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/v1/em/services/&lt;uuid&gt;</code></td>
+<td>Get service details</td>
+</tr>
+<tr>
+<td>PUT</td>
+<td><code>/v1/em/services/&lt;uuid&gt;</code></td>
+<td>Update service</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/v1/em/services/&lt;uuid&gt;</code></td>
+<td>Delete service</td>
+</tr>
+</tbody>
+</table>
+<h2 id="permissions">Permissions<a class="headerlink" href="#permissions" title="Permanent link">#</a></h2>
+<p>The Service resource uses the following IAM policies:</p>
+<ul>
+<li><strong>Service</strong>: <code>em.service</code></li>
+</ul>
+<p>Available actions:</p>
+<ul>
+<li><code>create</code>: Create new services</li>
+<li><code>read</code>: View service details</li>
+<li><code>update</code>: Modify existing services</li>
+<li><code>delete</code>: Remove services</li>
+<li><code>list</code>: List all services</li>
+</ul>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["search.suggest", "search.highlight", "navigation.tabs", "toc.integrate"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.ce72ebac.min.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>
