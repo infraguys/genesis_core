@@ -235,7 +235,7 @@ Examples:
 
  Basic manifest for https site (let's imagine that some nodes are already exist):
 
- ```yaml
+```yaml
 ...
 requirements:
   core:
