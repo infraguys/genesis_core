@@ -31,6 +31,7 @@ plugins:
         - en
         - ru
   - glightbox
+  - render_swagger
 
 extra:
   repo_icon: github
@@ -73,6 +74,7 @@ markdown_extensions:
 
 nav:
   - Software: index.md
+  - OpenAPI: openapi/openapi.md
   - Network:
     - Load Balancer as a Service API: network/load_balancer.md
   - Service:
