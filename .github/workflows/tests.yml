@@ -2,15 +2,15 @@ name: tests
 
 on:
   push:
-    paths:
-      - '!docs/**'
-      - '!mkdocs.yml'
-      - '!.markdownlint.yaml'
+    paths-ignore:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - '.markdownlint.yaml'
   pull_request:
-    paths:
-      - '!docs/**'
-      - '!mkdocs.yml'
-      - '!.markdownlint.yaml'
+    paths-ignore:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - '.markdownlint.yaml'
 
 jobs:
   Lint:
