@@ -15,11 +15,13 @@
 #    under the License.
 
 import os
+import pathlib
 import socket
 import contextlib
 from urllib import parse
 import typing as tp
 
+from gcl_sdk import migrations as sdk_migrations
 from restalchemy.storage.sql import migrations
 from restalchemy.tests.functional import db_utils as ra_db_utils
 from restalchemy.tests.functional.restapi.ra_based.microservice import service
@@ -34,11 +36,31 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
     __APP__ = None
 
     @classmethod
+    def get_endpoint(cls, template: str = ENDPOINT_TEMPLATE) -> str:
+        return template % cls.service_port
+
+    @classmethod
+    def find_free_port(cls) -> int:
+        with contextlib.closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
+            s.bind(("127.0.0.1", 0))
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            return s.getsockname()[1]
+
+
+    @classmethod
     def setup_class(cls):
         cls.init_engine()
+        # Run service
+        cls.service_port = cls.find_free_port()
+        url = parse.urlparse(cls.get_endpoint())
+        cls._service = service.RESTService(
+            bind_host=url.hostname, bind_port=url.port, app_root=cls.__APP__
+        )
+        cls._service.start()
 
     @classmethod
     def teardown_class(cls):
+        cls._service.stop()
         cls.drop_all_views()
         cls.drop_all_tables(cascade=True)
         # Hack for psycopg to finish fast, otherwise we'll need to wait for GC
@@ -74,6 +96,11 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
         return migration_engine
 
     def apply_all_migrations(self) -> None:
+        self._sdk_migration = self.apply_migrations(
+            migration_path=str(pathlib.Path(sdk_migrations.__file__).parent),
+            first_migration=sdk_migrations.INIT_MIGRATION_FILENAME,
+            last_migration=None,
+            )
         self._migration = self.apply_migrations(
             migration_path=os.path.join(
                 os.path.dirname(os.path.abspath(__file__)),
@@ -135,29 +162,11 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
         with cls.engine.session_manager(session=session) as s:
             s.execute(f"drop view if exists {session.engine.escape(view_name)}")
 
-    def get_endpoint(self, template: str = ENDPOINT_TEMPLATE) -> str:
-        return template % self.service_port
-
-    def find_free_port(self) -> int:
-        with contextlib.closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-            s.bind(("127.0.0.1", 0))
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            return s.getsockname()[1]
-
     def setup_method(self) -> None:
         # Apply migrations
         self.apply_all_migrations()
 
-        # Run service
-        self.service_port = self.find_free_port()
-        url = parse.urlparse(self.get_endpoint())
-        self._service = service.RESTService(
-            bind_host=url.hostname, bind_port=url.port, app_root=self.__APP__
-        )
-        self._service.start()
-
     def teardown_method(self) -> None:
-        self._service.stop()
-
         # Rollback migrations
         self._migration.rollback_migration(self.__FIRST_MIGRATION__)
+        self._sdk_migration.rollback_migration(sdk_migrations.INIT_MIGRATION_FILENAME)
