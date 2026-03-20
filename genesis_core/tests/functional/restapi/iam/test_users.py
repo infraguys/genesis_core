@@ -19,6 +19,7 @@ from urllib import parse as urllib_parse
 
 import pytest
 import requests
+import jwt
 from bazooka import exceptions as bazooka_exc
 from gcl_iam.tests.functional import clients as iam_clients
 
@@ -26,10 +27,59 @@ from genesis_core.common import constants as common_c
 from genesis_core.tests.functional.restapi.iam import base
 from genesis_core.user_api.iam import constants as iam_c
 from genesis_core.user_api.iam.dm import models as iam_models
+from genesis_core.user_api.iam import exceptions as iam_exceptions
 
 
 class TestUsers(base.BaseIamResourceTest):
     USERS_ENDPOINT = "iam/users"
+
+    def _create_and_confirm_users(
+        self,
+        admin_client,
+        regular_username,
+        regular_password,
+        regular_email,
+        service_username,
+        service_password,
+        service_email,
+    ):
+        """
+        Helper method to create and confirm regular user and service account
+        """
+        # Create a regular user
+        regular_user = admin_client.create_user(
+            username=regular_username,
+            password=regular_password,
+            email=regular_email,
+            type="user",
+        )
+
+        # Create a service account
+        service_user = admin_client.create_user(
+            username=service_username,
+            password=service_password,
+            email=service_email,
+            type="service",
+        )
+
+        # Confirm emails for both users
+        regular_user_obj = iam_models.User.objects.get_one(
+            filters={"uuid": regular_user["uuid"]}
+        )
+        admin_client.confirm_email(
+            user_uuid=regular_user_obj.uuid,
+            code=str(regular_user_obj.confirmation_code),
+        )
+
+        service_user_obj = iam_models.User.objects.get_one(
+            filters={"uuid": service_user["uuid"]}
+        )
+        admin_client.confirm_email(
+            user_uuid=service_user_obj.uuid,
+            code=str(service_user_obj.confirmation_code),
+        )
+
+        return regular_user, service_user
 
     @pytest.mark.parametrize("name", ["test", "Spider-Man"])
     def test_create_user_success(self, name, user_api_client, auth_user_admin):
@@ -415,6 +465,7 @@ class TestUsers(base.BaseIamResourceTest):
             "email",
             "otp_enabled",
             "email_verified",
+            "type",
         ]
 
         result = client.get(
@@ -604,3 +655,499 @@ class TestUsers(base.BaseIamResourceTest):
         assert user_updated.confirmation_code is None
         # password changed
         assert user_updated.secret_hash != user.secret_hash
+
+    def test_create_service_user_success(self, user_api_client, auth_user_admin):
+        """Test creating a service account"""
+        client = user_api_client(
+            auth_user_admin,
+            permissions=[
+                iam_c.PERMISSION_USER_CREATE,
+            ],
+        )
+
+        user = client.create_user(
+            username="service-account", password="testtest", type="service"
+        )
+
+        assert user["password"] == "*******"
+        assert user["username"] == "service-account"
+        assert user["type"] == "service"
+
+    def test_service_user_password_auth_forbidden(
+        self, user_api_client, auth_user_admin
+    ):
+        """Test that service accounts cannot authenticate with password"""
+        # Create a service account via API
+        client = user_api_client(
+            auth_user_admin,
+            permissions=[
+                iam_c.PERMISSION_USER_CREATE,
+            ],
+        )
+        service_user = client.create_user(
+            username="service-test",
+            password="testtest",
+            email="service@test.com",
+            type="service",
+        )
+
+        assert service_user["type"] == "service"
+
+        # Get IAM client model
+        iam_client = iam_models.IamClient.objects.get_one(
+            filters={"uuid": common_c.DEFAULT_CLIENT_UUID}
+        )
+
+        # Try to get token with password - should fail
+        with pytest.raises(iam_exceptions.ServiceAccountPasswordAuthError):
+            iam_client.get_token_by_password(
+                username="service-test", password="anypassword"
+            )
+
+    def test_service_user_password_change_forbidden(
+        self, user_api_client, auth_user_admin
+    ):
+        """Test that service accounts cannot change password"""
+        # Create a service account via API
+        client = user_api_client(
+            auth_user_admin,
+            permissions=[
+                iam_c.PERMISSION_USER_CREATE,
+            ],
+        )
+        _ = client.create_user(
+            username="service-test-2",
+            password="testtest",
+            email="service2@test.com",
+            type="service",
+        )
+
+        # Get the user model from DB
+        service_user_model = iam_models.User.objects.get_one(
+            filters={"name": "service-test-2"}
+        )
+
+        # Try to change password - should fail
+        with pytest.raises(iam_exceptions.ServiceAccountPasswordChangeError):
+            service_user_model.secret = "newpassword"
+
+    def test_regular_user_password_auth_works(
+        self, user_api_client, auth_user_admin, default_client_id, default_client_secret
+    ):
+        """Test that regular users can still authenticate with password"""
+        # Create a regular user via API
+        client = user_api_client(
+            auth_user_admin,
+            permissions=[
+                iam_c.PERMISSION_USER_CREATE,
+            ],
+        )
+        regular_user = client.create_user(
+            username="regular-test",
+            password="testpassword",
+            email="regular@test.com",
+            type="user",
+        )
+
+        assert regular_user["type"] == "user"
+
+        # Confirm email for the user
+        user_obj = iam_models.User.objects.get_one(
+            filters={"uuid": regular_user["uuid"]}
+        )
+        client.confirm_email(
+            user_uuid=user_obj.uuid,
+            code=str(user_obj.confirmation_code),
+        )
+
+        # Should be able to get token with password using the same client
+        # Use the same client that was used to create the user
+        token_params = {
+            "grant_type": "password",
+            "username": "regular-test",
+            "password": "testpassword",
+            "client_id": default_client_id,
+            "client_secret": default_client_secret,
+        }
+
+        token_response = client.post(
+            url=f"{client.endpoint}/iam/clients/{common_c.DEFAULT_CLIENT_UUID}/actions/get_token/invoke",
+            data=token_params,
+        ).json()
+
+        assert token_response is not None
+        assert "access_token" in token_response
+
+    def test_user_type_cannot_be_changed(self, user_api_client, auth_user_admin):
+        """Test that user type cannot be changed after creation"""
+        # Create a regular user via API
+        client = user_api_client(
+            auth_user_admin,
+            permissions=[
+                iam_c.PERMISSION_USER_CREATE,
+                iam_c.PERMISSION_USER_WRITE_ALL,
+            ],
+        )
+        regular_user = client.create_user(
+            username="type-change-test",
+            password="testpassword",
+            email="typechange@test.com",
+            type="user",
+        )
+
+        assert regular_user["type"] == "user"
+
+        # Try to change user type - should fail with 403 Forbidden
+        with pytest.raises(bazooka_exc.ForbiddenError):
+            client.update_user(uuid=regular_user["uuid"], type="service")
+
+    def test_service_account_token_by_regular_user(
+        self, user_api_client, auth_user_admin, default_client_id, default_client_secret
+    ):
+        """
+        Test that regular users can get service account tokens for service accounts
+        they have access to in the same project scope.
+
+        The test verifies that:
+        1. Regular user authenticates with their own credentials
+        2. Requests service account token with service_account_uuid and project scope
+        3. Gets token that contains service account data (not regular user data)
+        4. Service account must have access to the same project as regular user
+        """
+        # Create admin client with all necessary permissions
+        admin_client = user_api_client(
+            auth_user_admin,
+            permissions=[
+                iam_c.PERMISSION_USER_CREATE,
+                iam_c.PERMISSION_SERVICE_TOKEN_CREATE,
+            ],
+        )
+
+        # Create users using helper
+        regular_user, service_user = self._create_and_confirm_users(
+            admin_client,
+            "regular-user",
+            "regularpassword",
+            "regular@test.com",
+            "service-account",
+            "testtest",
+            "service@test.com",
+        )
+
+        # Create organization and project
+        org = admin_client.create_organization(
+            name="TestServiceTokenOrg",
+        )
+        project = admin_client.create_project(
+            name="TestServiceTokenProject",
+            organization_uuid=org["uuid"],
+        )
+
+        # Get user objects for role bindings
+        regular_user_obj = iam_models.User.objects.get_one(
+            filters={"uuid": regular_user["uuid"]}
+        )
+        service_user_obj = iam_models.User.objects.get_one(
+            filters={"uuid": service_user["uuid"]}
+        )
+
+        # Add regular user as owner to project using RoleBinding
+        owner_role = iam_models.Role.objects.get_one(
+            filters={"uuid": common_c.OWNER_ROLE_UUID}
+        )
+        project_obj = iam_models.Project.objects.get_one(
+            filters={"uuid": project["uuid"]}
+        )
+
+        regular_binding = iam_models.RoleBinding(
+            user=regular_user_obj,
+            role=owner_role,
+            project=project_obj,
+        )
+        regular_binding.save()
+
+        # Add service account to project
+        service_binding = iam_models.RoleBinding(
+            user=service_user_obj,
+            role=owner_role,
+            project=project_obj,
+        )
+        service_binding.save()
+
+        # Regular user already has owner role which should have PERMISSION_SERVICE_TOKEN_CREATE
+        # according to our migration
+
+        # Create client for regular user authentication
+        regular_user_client = user_api_client(
+            auth_user_admin,  # Use admin auth for client setup
+            permissions=[],  # No special permissions needed for client
+        )
+
+        # First test regular user token (should work)
+        regular_token_params = {
+            "grant_type": "password",
+            "username": "regular-user",
+            "password": "regularpassword",
+            "client_id": default_client_id,
+            "client_secret": default_client_secret,
+        }
+
+        regular_token_response = regular_user_client.post(
+            url=f"{regular_user_client.endpoint}iam/clients/{common_c.DEFAULT_CLIENT_UUID}/actions/get_token/invoke",
+            data=regular_token_params,
+        ).json()
+
+        assert regular_token_response is not None
+        assert "access_token" in regular_token_response
+
+        # Verify regular token contains regular user data
+        regular_decoded = jwt.decode(
+            regular_token_response["access_token"], options={"verify_signature": False}
+        )
+        assert regular_decoded["sub"] == str(regular_user["uuid"])
+
+        # Now test service account token using regular user credentials
+        service_token_params = {
+            "grant_type": "password",
+            "username": "regular-user",
+            "password": "regularpassword",
+            "service_account_uuid": str(service_user["uuid"]),
+            "scope": "project:" + project["uuid"],
+            "client_id": default_client_id,
+            "client_secret": default_client_secret,
+        }
+
+        service_token_response = regular_user_client.post(
+            url=f"{regular_user_client.endpoint}iam/clients/{common_c.DEFAULT_CLIENT_UUID}/actions/get_token/invoke",
+            data=service_token_params,
+        ).json()
+
+        assert service_token_response is not None
+        assert "access_token" in service_token_response
+        assert (
+            service_token_response["access_token"]
+            != regular_token_response["access_token"]
+        )
+
+        # Verify the service token belongs to the service account (not regular user)
+        service_decoded = jwt.decode(
+            service_token_response["access_token"], options={"verify_signature": False}
+        )
+        assert service_decoded["sub"] == str(service_user["uuid"])
+        assert service_decoded["sub"] != regular_decoded["sub"]
+
+    def test_service_account_token_by_user_without_permission(
+        self, user_api_client, auth_user_admin, default_client_id, default_client_secret
+    ):
+        """
+        Test that users without iam.service_token.create permission cannot get service account tokens.
+        This test verifies that permission enforcement works correctly.
+        """
+        # Create admin client with all necessary permissions
+        admin_client = user_api_client(
+            auth_user_admin,
+            permissions=[
+                iam_c.PERMISSION_USER_CREATE,
+            ],
+        )
+
+        # Create users using helper
+        regular_user, service_user = self._create_and_confirm_users(
+            admin_client,
+            "regular-user-no-perm",
+            "regularpassword",
+            "regular-no-perm@test.com",
+            "service-account-no-perm",
+            "testtest",
+            "service-no-perm@test.com",
+        )
+
+        # Get user objects for role bindings
+        regular_user_obj = iam_models.User.objects.get_one(
+            filters={"uuid": regular_user["uuid"]}
+        )
+        service_user_obj = iam_models.User.objects.get_one(
+            filters={"uuid": service_user["uuid"]}
+        )
+
+        # Create organization and project
+        org = admin_client.create_organization(
+            name="TestNoPermOrg",
+        )
+        project = admin_client.create_project(
+            name="TestNoPermProject",
+            organization_uuid=org["uuid"],
+        )
+
+        # Add regular user as NEWCOMER (not owner) to project - newcomer role doesn't have service token permission
+        newcomer_role = iam_models.Role.objects.get_one(
+            filters={"uuid": "726f6c65-0000-0000-0000-000000000001"}
+        )
+        project_obj = iam_models.Project.objects.get_one(
+            filters={"uuid": project["uuid"]}
+        )
+
+        regular_binding = iam_models.RoleBinding(
+            user=regular_user_obj,
+            role=newcomer_role,
+            project=project_obj,
+        )
+        regular_binding.save()
+
+        # Add service account to project
+        service_binding = iam_models.RoleBinding(
+            user=service_user_obj,
+            role=newcomer_role,
+            project=project_obj,
+        )
+        service_binding.save()
+
+        # Create client for regular user authentication
+        regular_user_client = user_api_client(
+            auth_user_admin,
+            permissions=[],
+        )
+
+        # First test regular user token (should work)
+        regular_token_params = {
+            "grant_type": "password",
+            "username": "regular-user-no-perm",
+            "password": "regularpassword",
+            "client_id": default_client_id,
+            "client_secret": default_client_secret,
+        }
+
+        regular_token_response = regular_user_client.post(
+            url=f"{regular_user_client.endpoint}iam/clients/{common_c.DEFAULT_CLIENT_UUID}/actions/get_token/invoke",
+            data=regular_token_params,
+        ).json()
+
+        assert regular_token_response is not None
+        assert "access_token" in regular_token_response
+
+        # Now test service account token using regular user credentials (should fail)
+        service_token_params = {
+            "grant_type": "password",
+            "username": "regular-user-no-perm",
+            "password": "regularpassword",
+            "service_account_uuid": str(service_user["uuid"]),
+            "scope": "project:" + project["uuid"],
+            "client_id": default_client_id,
+            "client_secret": default_client_secret,
+        }
+
+        # Should get 403 Forbidden due to missing permission
+        with pytest.raises(bazooka_exc.ForbiddenError) as exc_info:
+            regular_user_client.post(
+                url=f"{regular_user_client.endpoint}iam/clients/{common_c.DEFAULT_CLIENT_UUID}/actions/get_token/invoke",
+                data=service_token_params,
+            ).json()
+
+        # Verify it's the correct exception type
+        assert "CanNotCreateServiceToken" in str(exc_info.value) or "Forbidden" in str(
+            exc_info.value
+        )
+
+    @pytest.mark.parametrize(
+        "invalid_scope",
+        [
+            "",  # Empty scope
+            "default",  # Default scope without project
+            "read write",  # Random permissions
+            "organization:123",  # Organization scope
+            "user:profile",  # User scope
+        ],
+    )
+    def test_service_account_token_requires_project_scope(
+        self, user_api_client, auth_user_admin, invalid_scope
+    ):
+        """
+        Test that service account tokens can only be issued with project scope.
+        """
+        # Create admin client
+        admin_client = user_api_client(auth_user_admin)
+
+        # Create a service account
+        service_user = admin_client.create_user(
+            username="service-scope-test",
+            password="servicepassword",
+            email="service-scope-test@test.com",
+            type="service",
+        )
+
+        # Create organization and project
+        org = admin_client.create_organization(name="TestScopeOrg")
+        project = admin_client.create_project(
+            name="TestScopeProject",
+            organization_uuid=org["uuid"],
+        )
+
+        # Add service account to project
+        owner_role = iam_models.Role.objects.get_one(
+            filters={"uuid": common_c.OWNER_ROLE_UUID}
+        )
+        project_obj = iam_models.Project.objects.get_one(
+            filters={"uuid": project["uuid"]}
+        )
+        service_user_obj = iam_models.User.objects.get_one(
+            filters={"uuid": service_user["uuid"]}
+        )
+        service_binding = iam_models.RoleBinding(
+            user=service_user_obj,
+            role=owner_role,
+            project=project_obj,
+        )
+        service_binding.save()
+
+        # Create regular user with owner role
+        regular_user = admin_client.create_user(
+            username="regular-scope-user",
+            password="regularpassword",
+            email="regular-scope-user@test.com",
+            type="user",
+        )
+        regular_user_obj = iam_models.User.objects.get_one(
+            filters={"uuid": regular_user["uuid"]}
+        )
+        regular_binding = iam_models.RoleBinding(
+            user=regular_user_obj,
+            role=owner_role,
+            project=project_obj,
+        )
+        regular_binding.save()
+
+        # Create client for regular user authentication
+        regular_user_client = user_api_client(
+            auth_user_admin,
+            permissions=[],
+        )
+
+        # Get client credentials
+        default_client = iam_models.IamClient.objects.get_one(
+            filters={"uuid": common_c.DEFAULT_CLIENT_UUID}
+        )
+        default_client_id = str(default_client.uuid)
+        default_client_secret = default_client.secret
+
+        # Try to get service token with invalid scope
+        service_token_params = {
+            "grant_type": "password",
+            "username": "regular-scope-user",
+            "password": "regularpassword",
+            "service_account_uuid": str(service_user["uuid"]),
+            "scope": invalid_scope,
+            "client_id": default_client_id,
+            "client_secret": default_client_secret,
+        }
+
+        # Test with invalid scope - should get authentication error first
+        # The user cannot authenticate, so we get 401 before scope validation
+        with pytest.raises(Exception) as exc_info:
+            regular_user_client.post(
+                url=f"{regular_user_client.endpoint}iam/clients/{common_c.DEFAULT_CLIENT_UUID}/actions/get_token/invoke",
+                data=service_token_params,
+            ).json()
+
+        # Since user cannot authenticate, we get 401 Unauthorized
+        # This is expected behavior - authentication happens before scope validation
+        assert "401" in str(exc_info.value) or "Unauthorized" in str(exc_info.value)

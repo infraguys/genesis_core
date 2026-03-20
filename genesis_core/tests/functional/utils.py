@@ -46,7 +46,6 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             return s.getsockname()[1]
 
-
     @classmethod
     def setup_class(cls):
         cls.init_engine()
@@ -100,7 +99,7 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
             migration_path=str(pathlib.Path(sdk_migrations.__file__).parent),
             first_migration=sdk_migrations.INIT_MIGRATION_FILENAME,
             last_migration=None,
-            )
+        )
         self._migration = self.apply_migrations(
             migration_path=os.path.join(
                 os.path.dirname(os.path.abspath(__file__)),

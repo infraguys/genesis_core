@@ -46,6 +46,7 @@ PARAM_PHONE = "phone"
 PARAM_LOGIN = "login"
 PARAM_CODE = "code"
 PARAM_PASSWORD = "password"
+PARAM_SERVICE_ACCOUNT_UUID = "service_account_uuid"
 PARAM_SCOPE = "scope"
 PARAM_TTL = "ttl"
 PARAM_REFRESH_TTL = "refresh_ttl"
@@ -98,6 +99,11 @@ class AlwaysActiveStatus(str, enum.Enum):
 class OrganizationRole(str, enum.Enum):
     MEMBER = "MEMBER"
     OWNER = "OWNER"
+
+
+class UserType(str, enum.Enum):
+    USER = "user"
+    SERVICE = "service"
 
 
 # permissions
@@ -212,6 +218,12 @@ PERMISSION_ROLE_BINDING_UPDATE = rules.Rule.from_raw(
 )
 PERMISSION_ROLE_BINDING_DELETE = rules.Rule.from_raw(
     "iam.role_binding.delete",
+)
+
+
+# Service Token
+PERMISSION_SERVICE_TOKEN_CREATE = rules.Rule.from_raw(
+    "iam.service_token.create",
 )
 
 

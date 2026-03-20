@@ -142,6 +142,10 @@ class UserController(
                 "otp_secret": {ra_c.ALL: iam_fp.Permissions.HIDDEN},
                 "confirmation_code": {ra_c.ALL: iam_fp.Permissions.HIDDEN},
                 "confirmation_code_made_at": {ra_c.ALL: iam_fp.Permissions.HIDDEN},
+                "type": {
+                    ra_c.ALL: iam_fp.Permissions.RO,
+                    ra_c.CREATE: iam_fp.Permissions.RW,
+                },
                 "custom_props": {
                     ra_c.GET: rules.Rule("iam", "user_custom_props", "read"),
                     ra_c.FILTER: rules.Rule("iam", "user_custom_props", "list"),
@@ -769,7 +773,6 @@ class ClientsController(controllers.BaseResourceControllerPaginated, EnforceMixi
                 client_id=client_id,
                 client_secret=client_secret,
             )
-            ctx = contexts.get_context()
             payload = dict(
                 password=kwargs.get(c.PARAM_PASSWORD),
                 scope=kwargs.get(c.PARAM_SCOPE, ""),
@@ -779,6 +782,7 @@ class ClientsController(controllers.BaseResourceControllerPaginated, EnforceMixi
                 root_endpoint=ra_utils.lastslash(
                     ctx.get_real_url_with_prefix(),
                 ),
+                service_account_uuid=kwargs.get(c.PARAM_SERVICE_ACCOUNT_UUID),
             )
             login_attr, token_getter = grant_type_map[grant_type]
             payload[login_attr] = kwargs.get(login_attr)
