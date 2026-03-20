@@ -142,6 +142,11 @@ OA_SPEC_GET_TOKEN_KWARGS = dict(
                         "scope": {"type": "string"},
                         "ttl": {"type": "number", "format": "float"},
                         "refresh_ttl": {"type": "string", "format": "float"},
+                        "service_account_uuid": {
+                            "type": "string",
+                            "format": "uuid",
+                            "description": "UUID of the service account"
+                        },
                     },
                 },
                 {
@@ -165,6 +170,11 @@ OA_SPEC_GET_TOKEN_KWARGS = dict(
                         "scope": {"type": "string"},
                         "ttl": {"type": "number", "format": "float"},
                         "refresh_ttl": {"type": "string", "format": "float"},
+                        "service_account_uuid": {
+                            "type": "string",
+                            "format": "uuid",
+                            "description": "UUID of the service account"
+                        },
                     },
                 },
                 {
@@ -188,6 +198,11 @@ OA_SPEC_GET_TOKEN_KWARGS = dict(
                         "scope": {"type": "string"},
                         "ttl": {"type": "number", "format": "float"},
                         "refresh_ttl": {"type": "string", "format": "float"},
+                        "service_account_uuid": {
+                            "type": "string",
+                            "format": "uuid",
+                            "description": "UUID of the service account"
+                        },
                     },
                 },
                 {

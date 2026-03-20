@@ -225,3 +225,34 @@ class InvalidNonce(
     iam_exc.InvalidGrantTypeError,
 ):
     __template__ = "Invalid or missing nonce: '{nonce}'"
+
+
+class ServiceAccountPasswordChangeError(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = "Password cannot be set for service accounts"
+
+
+class ServiceAccountPasswordAuthError(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = "Password authentication is not allowed for service accounts"
+
+
+class ServiceAccountTokenError(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = "Cannot get token for service account: {reason}"
+
+
+class CanNotCreateServiceToken(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = (
+        "The current user is not permitted to create service account tokens or "
+        "service user was not found."
+    )

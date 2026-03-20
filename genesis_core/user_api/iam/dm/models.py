@@ -30,6 +30,7 @@ from gcl_iam import tokens
 from gcl_sdk.agents.universal.dm import models as ua_models
 import pyotp
 from restalchemy.common import contexts
+from restalchemy.common import exceptions as ra_e
 from restalchemy.dm import filters as ra_filters
 from restalchemy.dm import models
 from restalchemy.dm import properties
@@ -70,6 +71,12 @@ class ModelWithSecret(models.Model, models.CustomPropertiesMixin):
 
     def __init__(self, secret, salt=None, **kwargs):
         salt = salt or self._generate_salt()
+
+        # Check if this is a service account and set password to empty
+        user_type = kwargs.get("type", iam_c.UserType.USER.value)
+        if user_type == iam_c.UserType.SERVICE.value:
+            secret = ""
+
         super().__init__(
             secret_hash=self._generate_hash(
                 secret=secret,
@@ -121,6 +128,10 @@ class ModelWithSecret(models.Model, models.CustomPropertiesMixin):
 
     @secret.setter
     def secret(self, value):
+        # Prohibit password setting for service accounts
+        if self.type == iam_c.UserType.SERVICE.value:
+            raise iam_exceptions.ServiceAccountPasswordChangeError()
+
         self.salt = self._generate_salt()
         self.secret_hash = self._generate_hash(
             secret=value,
@@ -325,6 +336,11 @@ class User(
             ra_types_dynamic.KindModelType(KeycloakUserSource),
         ),
         default=IamUserSource,
+    )
+
+    type = properties.property(
+        ra_types.Enum([t.value for t in iam_c.UserType]),
+        default=iam_c.UserType.USER.value,
     )
 
     first_name = properties.property(
@@ -1025,39 +1041,71 @@ class IamClient(
         root_endpoint=c.DEFAULT_ROOT_ENDPOINT,
         **kwargs,
     ):
+        # Check if service account token is requested
+        service_account_uuid = kwargs.get("service_account_uuid")
+        if service_account_uuid:
+            return self._handle_service_account_token_request(
+                users_query=users_query,
+                service_account_uuid=service_account_uuid,
+                password=password,
+                scope=scope,
+                otp_code=otp_code,
+                ttl=ttl,
+                refresh_ttl=refresh_ttl,
+                root_endpoint=root_endpoint,
+            )
+
+        # Regular token flow
+        authenticated_user = self._authenticate_user(users_query, password, otp_code)
+        if authenticated_user:
+            return self._create_token_for_user(
+                user=authenticated_user,
+                scope=scope,
+                ttl=ttl,
+                refresh_ttl=refresh_ttl,
+                root_endpoint=root_endpoint,
+                **kwargs,
+            )
+
+        # Security hardening for failed authentication
+        self._perform_security_hardening(password)
+        raise iam_e.CredentialsAreInvalidError()
+
+    def get_token_by_password(self, username, **kwargs):
+        """
+        Get auth token by username + password (default approach).
+        If service_account_uuid is provided, returns token for service account instead.
+        """
+        users_query = User.objects.query(
+            where_conditions="LOWER(name) = %s",
+            where_values=(username.lower(),),
+            limit=1,
+        )
+
+        return self._get_token_by_password_and_smth(users_query=users_query, **kwargs)
+
+    def _authenticate_user(self, users_query, password, otp_code=None):
+        """
+        Authenticate a user from users_query with password and optional OTP
+        Returns the authenticated user or None if authentication fails
+        """
         for user in users_query:
+            # Service accounts cannot authenticate with password
+            if user.type == iam_c.UserType.SERVICE.value:
+                raise iam_exceptions.ServiceAccountPasswordAuthError()
+
             user.process_secret(secret=password)
             if user.otp_enabled and not user.validate_otp(otp_code):
                 raise iam_e.OTPInvalidCodeError()
+            return user
 
-            expiration_delta = (
-                datetime.timedelta(seconds=float(ttl))
-                if ttl is not None
-                else Token.get_default_expiration_delta()
-            )
-            refresh_expiration_delta = (
-                datetime.timedelta(seconds=float(refresh_ttl))
-                if refresh_ttl is not None
-                else Token.get_default_refresh_expiration_delta()
-            )
-            token = Token(
-                user=user,
-                iam_client=self,
-                scope=scope,
-                issuer=f"{root_endpoint}iam/clients/{self.uuid}",
-                audience=self.client_id,
-                expiration_delta=expiration_delta,
-                refresh_expiration_delta=refresh_expiration_delta,
-                **kwargs,
-            )
-            token.insert()
-            return token
+        return None
 
-        # Security hardening:
-        # - Do not reveal whether a user exists (prevent username enumeration).
-        # - Reduce timing differences between "user not found" and "wrong password".
-        # For missing users we run the same PBKDF2 routine with a fixed salt and then
-        # raise the same "invalid credentials" exception.
+    def _perform_security_hardening(self, password):
+        """
+        Perform security hardening for failed authentication attempts
+        This prevents timing attacks and username enumeration
+        """
         self._generate_hash(
             secret=password or "",
             secret_salt=iam_c.DUMMY_PBKDF2_SALT,
@@ -1065,32 +1113,169 @@ class IamClient(
                 iam_c.STORAGE_KEY_IAM_GLOBAL_SALT
             ),
         )
-        raise iam_e.CredentialsAreInvalidError()
 
-    def get_token_by_password(self, username, **kwargs):
+    def _check_service_token_permission(self, user_role_bindings):
         """
-        Get auth token by username + password (default approach).
+        Check if user has service token creation permission
         """
+        # Get the service token creation permission
+        perm_uuid = Permission.objects.get_one(
+            filters={"name": ra_filters.EQ("iam.service_token.create")}
+        ).uuid
+
+        # Check if any of user's roles has the service token creation permission
+        return bool(
+            PermissionBinding.objects.get_all(
+                filters={
+                    "role": ra_filters.In([rb.role for rb in user_role_bindings]),
+                    "permission": ra_filters.EQ(perm_uuid),
+                }
+            )
+        )
+
+    def _handle_service_account_token_request(
+        self,
+        users_query,
+        service_account_uuid,
+        password,
+        scope,
+        otp_code=None,
+        **kwargs,
+    ):
+        """
+        Handle service account token request - unified logic for all auth methods
+        """
+        # Extract project UUID from scope for permission check
+        project_uuid = self._extract_project_from_scope(scope)
+        if not project_uuid:
+            raise ra_e.ValidationErrorException(
+                "Service account tokens can only be issued with project scope"
+            )
+
+        # Authenticate the regular user
+        authenticated_user = self._authenticate_user(users_query, password, otp_code)
+        if not authenticated_user:
+            # Security: run dummy PBKDF2 to prevent timing attacks
+            self._perform_security_hardening(password)
+            raise iam_e.CredentialsAreInvalidError()
+
+        # Validate project UUID
+        try:
+            project_uuid = sys_uuid.UUID(project_uuid)
+        except ValueError:
+            raise iam_exceptions.CanNotCreateServiceToken()
+
+        # Check if user has any role binding to the project
+        user_role_bindings = RoleBinding.objects.get_all(
+            filters={
+                "user": ra_filters.EQ(authenticated_user.uuid),
+                "project": ra_filters.EQ(project_uuid),
+            }
+        )
+
+        if not user_role_bindings:
+            raise iam_exceptions.CanNotCreateServiceToken()
+
+        # Check service token permission
+        if not self._check_service_token_permission(user_role_bindings):
+            raise iam_exceptions.CanNotCreateServiceToken()
+
+        # Get service account (filter by type to prevent data leakage)
+        try:
+            service_account = User.objects.get_one(
+                filters={
+                    "uuid": service_account_uuid,
+                    "type": iam_c.UserType.SERVICE.value,
+                }
+            )
+        except iam_e.ObjectNotFound:
+            # User either doesn't exist or is not a service account
+            raise iam_e.UserNotFound(uuid=service_account_uuid)
+
+        # Check if service account also has access to the same project
+        service_role_bindings = RoleBinding.objects.get_all(
+            filters={
+                "user": ra_filters.EQ(service_account.uuid),
+                "project": ra_filters.EQ(project_uuid),
+            }
+        )
+
+        if not service_role_bindings:
+            raise iam_exceptions.CanNotCreateServiceToken()
+
+        # Explicit override of project scope for service token
+        filtered_scope = f"project:{project_uuid}"
+
+        # Create token for service account
+        token_kwargs = kwargs.copy()
+        token_kwargs.pop("scope", None)
+
+        return self._create_token_for_user(
+            user=service_account,
+            scope=filtered_scope,
+            **token_kwargs,
+        )
+
+    def _create_token_for_user(
+        self,
+        user,
+        scope=iam_c.PARAM_SCOPE_DEFAULT,
+        ttl=None,
+        refresh_ttl=None,
+        root_endpoint=c.DEFAULT_ROOT_ENDPOINT,
+        **kwargs,
+    ):
+        """
+        Create token for specified user with given parameters
+        """
+
+        def _calculate_delta(value, default_func):
+            return (
+                datetime.timedelta(seconds=float(value))
+                if value is not None
+                else default_func()
+            )
+
+        expiration_delta = _calculate_delta(ttl, Token.get_default_expiration_delta)
+        refresh_expiration_delta = _calculate_delta(
+            refresh_ttl, Token.get_default_refresh_expiration_delta
+        )
+
+        token = Token(
+            user=user,
+            iam_client=self,
+            scope=scope,
+            issuer=f"{root_endpoint}iam/clients/{self.uuid}",
+            audience=self.client_id,
+            expiration_delta=expiration_delta,
+            refresh_expiration_delta=refresh_expiration_delta,
+            **kwargs,
+        )
+        token.insert()
+        return token
+
+    def get_token_by_password_username(self, username, **kwargs):
+        """
+        Get auth token by username + password.
+        This method supports service account tokens via service_account_uuid parameter.
+        """
+        # Create users query
         users_query = User.objects.query(
             where_conditions="LOWER(name) = %s",
             where_values=(username.lower(),),
             limit=1,
         )
-        return self._get_token_by_password_and_smth(users_query=users_query, **kwargs)
 
-    def get_token_by_password_username(self, username, **kwargs):
-        """
-        Get auth token by username + password.
-        This is just an alias for get_token_by_password_username,
-        to ensure consistency.
-        """
-        return self.get_token_by_password(username, **kwargs)
+        return self._get_token_by_password_and_smth(users_query=users_query, **kwargs)
 
     def get_token_by_password_email(self, email, **kwargs):
         """
         Get auth token by email + password.
+        This method supports service account tokens via service_account_uuid parameter.
         """
+        # Create users query
         users_query = User.objects.get_all(filters={"email": ra_filters.EQ(email)})
+
         return self._get_token_by_password_and_smth(users_query=users_query, **kwargs)
 
     def get_token_by_password_phone(self, phone, **kwargs):
@@ -1107,11 +1292,48 @@ class IamClient(
          - by email (if it has "@")
          - by username (if no "@")
          - by phone [to be done later]
+        This method supports service account tokens via service_account_uuid parameter.
         """
         if "@" in login:
             return self.get_token_by_password_email(login, **kwargs)
         else:
             return self.get_token_by_password_username(login, **kwargs)
+
+    def _extract_project_from_scope(self, scope):
+        """
+        Extract the single project UUID from scope string.
+        Returns None if no project found.
+        Raises ValueError if multiple projects found in scope.
+        """
+        if not scope:
+            return None
+
+        project_parts = []
+        for part in scope.split(" "):
+            if part.startswith("project:"):
+                project_info = part.split(":", 1)
+                if len(project_info) > 1:
+                    project_parts.append(project_info[1])
+
+        if len(project_parts) == 0:
+            return None
+        elif len(project_parts) == 1:
+            return project_parts[0]
+        else:
+            raise ValueError(f"Multiple projects found in scope: {project_parts}")
+
+    def _get_user_projects(self, user):
+        """
+        Get all projects for a user as a set of UUID strings
+        """
+        if user is None:
+            return set()
+
+        user_projects = set()
+        for role_binding in RoleBinding.objects.get_all(filters={"user": user}):
+            if role_binding.project:
+                user_projects.add(str(role_binding.project.uuid))
+        return user_projects
 
     def get_token_by_refresh_token(self, refresh_token, scope=None):
         algorithm = self.get_token_algorithm()
