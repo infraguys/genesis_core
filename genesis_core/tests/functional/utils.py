@@ -15,16 +15,20 @@
 #    under the License.
 
 import os
-import pathlib
+import dataclasses
 import socket
 import contextlib
+import pathlib
 from urllib import parse
 import typing as tp
+from types import TracebackType
 
 from gcl_sdk import migrations as sdk_migrations
-from restalchemy.storage.sql import migrations
-from restalchemy.tests.functional import db_utils as ra_db_utils
+from restalchemy.storage.sql import migrations, engines
+from restalchemy.tests.functional import db_utils as ra_db_utils, consts as ra_consts
 from restalchemy.tests.functional.restapi.ra_based.microservice import service
+
+from unittest.mock import patch
 
 ENDPOINT_TEMPLATE = "http://127.0.0.1:%s/"
 
@@ -170,3 +174,259 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
         # Rollback migrations
         self._migration.rollback_migration(self.__FIRST_MIGRATION__)
         self._sdk_migration.rollback_migration(sdk_migrations.INIT_MIGRATION_FILENAME)
+
+
+@contextlib.contextmanager
+def patch_engines_default(
+    db_manager: "TestDBManager",
+) -> tp.Iterable[None]:
+    default_name = engines.DEFAULT_NAME
+    default_get_engine = engines.EngineFactory.get_engine
+
+    def _patched_get_engine(
+        factory: engines.EngineFactory,
+        name: str = default_name,
+    ) -> engines.AbstractEngine:
+        if name == default_name:
+            return db_manager.engine
+        else:
+            return default_get_engine(factory, name=name)
+
+    with \
+        patch(
+            "restalchemy.storage.sql.engines.DEFAULT_NAME",
+            db_manager.manager_config.engine_alias,
+        ), \
+        patch.object(
+            engines.EngineFactory,
+            "get_engine",
+            _patched_get_engine,
+        ):
+            yield
+
+
+OptionalStr = tp.Optional[str]
+
+
+class AbstractCursor(tp.Protocol):
+    def execute(self, statement: str) -> tp.Any:
+        ...
+
+
+class AbstractConnection(tp.Protocol):
+    autocommit: bool
+
+    @contextlib.contextmanager
+    def cursor(self) -> tp.Iterable[AbstractCursor]:
+        ...
+
+    def rollback(self) -> None:
+        ...
+
+
+class AbstractSession(tp.Protocol):
+    def execute(self, statement, values=None) -> None:
+        ...
+
+    def commit(self) -> None:
+        ...
+
+    def rollback(self) -> None:
+        ...
+
+    def close(self) -> None:
+        ...
+
+
+@dataclasses.dataclass()
+class TestDBManagerConfig:
+    database_url: OptionalStr = None
+    engine_alias: OptionalStr = None
+    create_db: OptionalStr = None
+
+    def __post_init__(self) -> None:
+        self.database_url = self.database_url or ra_consts.get_database_uri()
+        self.engine_alias = self.engine_alias or engines.DEFAULT_NAME
+
+
+class TestDBManager:
+    _Self = tp.TypeVar("_Self", bound="TestDBManager")
+
+    manager_config: tp.ClassVar[TestDBManagerConfig] = TestDBManagerConfig()
+
+    _engine: engines.AbstractEngine
+
+    @property
+    def engine(self) -> engines.AbstractEngine:
+        return self._engine
+
+    def setup(self) -> _Self:
+        engine_alias = self.manager_config.engine_alias
+
+        engines.engine_factory.configure_factory(
+            db_url=self.manager_config.database_url,
+            name=engine_alias,
+        )
+        self._engine = engines.engine_factory.get_engine(engine_alias)
+
+        return self
+
+    def teardown(self) -> None:
+        if isinstance(self._engine, engines.PgSQLEngine):
+            self._engine._pool.close()
+
+        engines.engine_factory.destroy_engine(
+            name=self.manager_config.engine_alias,
+        )
+
+    def __enter__(self) -> _Self:
+        return self.setup()
+
+    def __exit__(
+        self,
+        exc_type: tp.Type[Exception],
+        exc_val: Exception,
+        exc_tb: TracebackType
+    ) -> None:
+        self.teardown()
+
+    @contextlib.contextmanager
+    def session(self) -> tp.Iterable[AbstractSession]:
+        session: AbstractSession = self._engine.get_session()
+
+        try:
+            with patch_engines_default(db_manager=self):
+                yield session
+        finally:
+            session.rollback()
+            session.close()
+
+    @contextlib.contextmanager
+    def connection(
+        self,
+        autocommit: bool = False,
+    ) -> tp.Iterable[AbstractConnection]:
+        connection: AbstractConnection = self._engine.get_connection()
+
+        try:
+            connection.autocommit = autocommit
+            yield connection
+        finally:
+            if not autocommit:
+                connection.rollback()
+
+            self._engine.close_connection(connection)
+
+    def create_db(self) -> None:
+        create_db = self.manager_config.create_db
+        if create_db is None:
+            return
+
+        with self.connection(autocommit=True) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(f"CREATE DATABASE \"{create_db}\"")
+
+    def drop_db(self) -> None:
+        create_db = self.manager_config.create_db
+        if create_db is None:
+            return
+
+        with self.connection(autocommit=True) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(f"DROP DATABASE \"{create_db}\"")
+    @contextlib.contextmanager
+    def db(self) -> tp.Iterable[_Self]:
+        try:
+            self.create_db()
+            yield self
+
+        finally:
+            self.drop_db()
+
+
+@dataclasses.dataclass()
+class TestMigrationManagerConfig:
+    migrations_path: OptionalStr = None
+    first_migration: OptionalStr = None
+    last_migration: OptionalStr = None
+
+    def __post_init__(self) -> None:
+        self.migrations_path = (
+            self.migrations_path
+            or (
+                str(
+                    pathlib.Path(__file__)
+                    .parent
+                    .joinpath("../../../migrations/")
+                    .resolve()
+                )
+            )
+        )
+
+
+class TestMigrationManager:
+    _Self = tp.TypeVar("_Self", bound="TestMigrationManager")
+
+    migration_config: tp.ClassVar[
+        TestMigrationManagerConfig
+    ] = TestMigrationManagerConfig()
+
+    _migration_engine: migrations.MigrationEngine
+
+    def __init__(
+        self,
+        db_manager: TestDBManager,
+    ) -> None:
+        self._db_manager = db_manager
+
+    @property
+    def db_manager(self) -> TestDBManager:
+        return self._db_manager
+
+    def setup(self) -> _Self:
+        self._migration_engine = migrations.MigrationEngine(
+            migrations_path=self.migration_config.migrations_path,
+        )
+
+        return self
+
+    def __enter__(self) -> _Self:
+        return self.setup()
+
+    def __exit__(
+        self,
+        exc_type: tp.Type[Exception],
+        exc_val: Exception,
+        exc_tb: TracebackType,
+    ) -> None:
+        return
+
+    def apply_migrations(self) -> _Self:
+        last_migration = (
+            self.migration_config.last_migration
+            or self._migration_engine.get_latest_migration()
+        )
+
+        with patch_engines_default(
+            db_manager=self.db_manager,
+        ):
+            self._migration_engine.apply_migration(
+                migration_name=last_migration,
+            )
+
+        return self
+
+    def rollback_migrations(self) -> None:
+        with patch_engines_default(
+            db_manager=self.db_manager,
+        ):
+            self._migration_engine.rollback_migration(
+                migration_name=self.migration_config.first_migration,
+            )
+
+    @contextlib.contextmanager
+    def migrations(self) -> tp.Iterable[_Self]:
+        try:
+            yield self.apply_migrations()
+        finally:
+            self.rollback_migrations()
