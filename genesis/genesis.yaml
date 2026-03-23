@@ -69,3 +69,4 @@ build:
         envs:
           - ALLOW_USER_PASSWD
           - FREQUENT_LOG_VACUUM
+    - manifest: manifests/core-node-set-example.yaml.j2
