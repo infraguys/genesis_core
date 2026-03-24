@@ -1426,6 +1426,22 @@ class Token(
         self.scope = scope
         self.update()
 
+    def has_permission(self, name: str) -> bool:
+        for permission in Permission.objects.get_all(
+            filters={"name": ra_filters.EQ(name)},
+            limit=1,
+        ):
+            for _ in PermissionFastView.objects.get_all(
+                filters={
+                    "user": ra_filters.EQ(self.user),
+                    "project": ra_filters.Is(self.project),
+                    "permission": ra_filters.EQ(permission),
+                },
+                limit=1,
+            ):
+                return True
+        return False
+
     def get_response_body(self):
         now = datetime.datetime.now(datetime.timezone.utc)
         algorithm = self.iam_client.get_token_algorithm()

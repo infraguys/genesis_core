@@ -15,6 +15,7 @@
 #    under the License.
 
 import errno
+import logging
 from os import path as os_path
 import mimetypes
 import re
@@ -43,6 +44,9 @@ from genesis_core.user_api.iam.clients import idp
 from genesis_core.user_api.iam.dm import models
 from genesis_core.user_api.iam import constants as c
 from genesis_core.user_api.iam import exceptions as iam_e
+
+
+LOG = logging.getLogger(__name__)
 
 
 class EnforceMixin:
@@ -161,6 +165,13 @@ class UserController(
         user = super().create(**kwargs)
         app_endpoint = _get_app_endpoint(req=self._req)
         user.resend_confirmation_event(app_endpoint=app_endpoint)
+        ctx = self.get_context()
+        LOG.info(
+            "IAM AUDIT: user created name=%s uuid=%s ip=%s",
+            user.name,
+            user.uuid,
+            ctx.get_user_ip(),
+        )
         return user
 
     def filter(self, filters, **kwargs):
@@ -457,6 +468,21 @@ class RoleBindingController(
     __policy_service_name__ = "iam"
     __policy_name__ = "role_binding"
 
+    def create(self, **kwargs):
+        role_binding = super().create(**kwargs)
+        user = role_binding.user
+        role = role_binding.role
+        ctx = self.get_context()
+        LOG.info(
+            "IAM AUDIT: role granted user=%s user_uuid=%s role=%s role_uuid=%s ip=%s",
+            user.name,
+            user.uuid,
+            role.name,
+            role.uuid,
+            ctx.get_user_ip(),
+        )
+        return role_binding
+
 
 class PermissionController(
     iam_controllers.PolicyBasedWithoutProjectController,
@@ -482,6 +508,48 @@ class PermissionBindingController(
 
     __policy_service_name__ = "iam"
     __policy_name__ = "permission_binding"
+
+    def create(self, **kwargs):
+        binding = super().create(**kwargs)
+        role = binding.role
+        permission = binding.permission
+        ctx = self.get_context()
+        actor = ctx.me()
+        LOG.info(
+            "IAM AUDIT: permission added actor=%s actor_uuid=%s role=%s role_uuid=%s permission=%s ip=%s",
+            actor.name,
+            actor.uuid,
+            role.name,
+            role.uuid,
+            permission.name,
+            ctx.get_user_ip(),
+        )
+        return binding
+
+    def delete(self, uuid):
+        binding = None
+        for item in models.PermissionBinding.objects.get_all(
+            filters={"uuid": ra_filters.EQ(uuid)},
+            limit=1,
+        ):
+            binding = item
+            break
+        result = super().delete(uuid)
+        if binding:
+            role = binding.role
+            permission = binding.permission
+            ctx = self.get_context()
+            actor = ctx.me()
+            LOG.info(
+                "IAM AUDIT: permission removed actor=%s actor_uuid=%s role=%s role_uuid=%s permission=%s ip=%s",
+                actor.name,
+                actor.uuid,
+                role.name,
+                role.uuid,
+                permission.name,
+                ctx.get_user_ip(),
+            )
+        return result
 
 
 class WellKnownController(
@@ -687,6 +755,7 @@ class ClientsController(controllers.BaseResourceControllerPaginated, EnforceMixi
                 resource.get_token_by_password_login,
             ),
         }
+        ctx = self.get_context()
         if grant_type in grant_type_map:
             client_id = kwargs.get(
                 c.PARAM_CLIENT_ID,
@@ -716,17 +785,63 @@ class ClientsController(controllers.BaseResourceControllerPaginated, EnforceMixi
             if not payload[login_attr]:
                 raise ra_e.ValidationErrorException()
 
-            token = token_getter(**payload)
+            try:
+                token = token_getter(**payload)
+            except Exception:
+                LOG.info(
+                    "IAM AUDIT: login failed grant_type=%s login=%s ip=%s",
+                    grant_type,
+                    kwargs.get(login_attr),
+                    ctx.get_user_ip(),
+                )
+                raise
+            LOG.info(
+                "IAM AUDIT: login success user=%s uuid=%s wildcard=%s ip=%s",
+                token.user.name,
+                token.user.uuid,
+                token.has_permission(c.PERMISSION_WILDCARD_NAME),
+                ctx.get_user_ip(),
+            )
 
         elif grant_type == c.GRANT_TYPE_REFRESH_TOKEN:
-            token = resource.get_token_by_refresh_token(
-                refresh_token=kwargs.get("refresh_token"),
-                scope=kwargs.get(c.PARAM_SCOPE, None),
+            try:
+                token = resource.get_token_by_refresh_token(
+                    refresh_token=kwargs.get("refresh_token"),
+                    scope=kwargs.get(c.PARAM_SCOPE, None),
+                )
+            except Exception:
+                LOG.info(
+                    "IAM AUDIT: login failed grant_type=%s ip=%s",
+                    grant_type,
+                    ctx.get_user_ip(),
+                )
+                raise
+            LOG.info(
+                "IAM AUDIT: login success user=%s uuid=%s wildcard=%s ip=%s",
+                token.user.name,
+                token.user.uuid,
+                token.has_permission(c.PERMISSION_WILDCARD_NAME),
+                ctx.get_user_ip(),
             )
         elif grant_type == c.GRANT_TYPE_AUTHORIZATION_CODE:
-            token = resource.get_token_by_authorization_code(
-                code=kwargs.get(c.PARAM_CODE),
-                redirect_uri=kwargs.get(c.PARAM_REDIRECT_URI),
+            try:
+                token = resource.get_token_by_authorization_code(
+                    code=kwargs.get(c.PARAM_CODE),
+                    redirect_uri=kwargs.get(c.PARAM_REDIRECT_URI),
+                )
+            except Exception:
+                LOG.info(
+                    "IAM AUDIT: login failed grant_type=%s ip=%s",
+                    grant_type,
+                    ctx.get_user_ip(),
+                )
+                raise
+            LOG.info(
+                "IAM AUDIT: login success user=%s uuid=%s wildcard=%s ip=%s",
+                token.user.name,
+                token.user.uuid,
+                token.has_permission(c.PERMISSION_WILDCARD_NAME),
+                ctx.get_user_ip(),
             )
         else:
             raise iam_e.InvalidGrantType(grant_type=grant_type)

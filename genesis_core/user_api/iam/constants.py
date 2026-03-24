@@ -243,3 +243,6 @@ PERMISSION_IDP_UPDATE = rules.Rule.from_raw(
 PERMISSION_IDP_DELETE = rules.Rule.from_raw(
     "iam.idp.delete",
 )
+
+
+PERMISSION_WILDCARD_NAME = "*.*.*"

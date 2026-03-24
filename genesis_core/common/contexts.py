@@ -16,8 +16,11 @@
 
 import typing as tp
 
+import netaddr
 from gcl_iam import contexts as iam_contexts
 from restalchemy.api import packers
+
+from genesis_core.user_api.iam.dm import models
 
 _RAW_PAYLOAD_MISSING = object()
 
@@ -26,6 +29,28 @@ class GenesisCoreAuthContext(iam_contexts.GenesisCoreAuthContext):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._raw_payload_cache = _RAW_PAYLOAD_MISSING
+
+    def get_user_ip(self) -> tp.Optional[netaddr.IPAddress]:
+        request = self.request
+        forwarded_for = request.headers.get("X-Forwarded-For")
+        if forwarded_for:
+            return netaddr.IPAddress(forwarded_for.split(",")[0].strip())
+        real_ip = request.headers.get("X-Real-IP")
+        if real_ip:
+            return netaddr.IPAddress(real_ip.strip())
+        remote_addr = getattr(request, "remote_addr", None) or getattr(
+            request, "client_addr", None
+        )
+        if remote_addr:
+            return netaddr.IPAddress(str(remote_addr))
+        environ = getattr(request, "environ", None)
+        if environ:
+            remote_env = environ.get("REMOTE_ADDR")
+            return netaddr.IPAddress(remote_env) if remote_env else None
+        return None
+
+    def me(self):
+        return models.User.me()
 
     def get_raw_payload(self) -> tp.Any:
         if self._raw_payload_cache is not _RAW_PAYLOAD_MISSING:
