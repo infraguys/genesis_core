@@ -350,4 +350,4 @@ sudo sysctl -p
 sudo iptables -t nat -A POSTROUTING -o enp1s0 -j MASQUERADE
 
 # Save iptables rules
-sudo sh -c "iptables-save > /etc/iptables/rules.v4"
+sudo netfilter-persistent save
