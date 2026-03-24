@@ -70,3 +70,4 @@ build:
           - ALLOW_USER_PASSWD
           - FREQUENT_LOG_VACUUM
     - manifest: manifests/core-node-set-example.yaml.j2
+    - manifest: manifests/core-service-example.yaml.j2
