@@ -155,6 +155,7 @@ def _build_template_context(spec: dict[str, tp.Any]) -> dict[str, str]:
         "boot_ip_with_mask": f"{boot_ip}/{boot_network.prefixlen}",
         "global_salt": secret_utils.generate_salt(),
         "hs256_jwks_encryption_key": secret_utils.generate_a256gcm_key(),
+        "admin_password": spec["admin_password"],
     }
 
 

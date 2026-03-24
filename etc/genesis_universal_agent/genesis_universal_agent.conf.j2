@@ -30,12 +30,12 @@ capabilities =
 
 [CoreDNSCertificateCapabilityDriver]
 username = admin
-password = admin
+password = {{ admin_password }}
 user_api_base_url = http://localhost:11010/v1
 
 
 [RestCoreCapabilityDriver]
 username = admin
-password = admin
+password = {{ admin_password }}
 user_api_base_url = http://localhost:11010
 em_core_iam_users = /v1/iam/users/
