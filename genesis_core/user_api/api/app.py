@@ -29,8 +29,7 @@ from genesis_core.user_api.api import middlewares as user_api_mw
 from genesis_core.user_api.api import routes as app_routes
 from genesis_core.user_api.api import versions
 
-skip_auth_endpoints = [
-]
+skip_auth_endpoints = []
 
 
 class UserApiApp(routes.RootRoute):

@@ -25,6 +25,7 @@ GRANT_TYPE_PASSWORD_USERNAME = "username+password"
 GRANT_TYPE_PASSWORD_EMAIL = "email+password"
 GRANT_TYPE_PASSWORD_PHONE = "phone+password"
 GRANT_TYPE_PASSWORD_LOGIN = "login+password"
+GRANT_TYPE_ACCESS_TOKEN = "access_token"
 GRANT_TYPE_REFRESH_TOKEN = "refresh_token"
 GRANT_TYPE_AUTHORIZATION_CODE = "authorization_code"
 

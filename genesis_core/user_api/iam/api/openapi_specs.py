@@ -209,6 +209,30 @@ OA_SPEC_GET_TOKEN_KWARGS = dict(
                     "type": "object",
                     "required": [
                         "grant_type",
+                        "service_account_uuid",
+                    ],
+                    "properties": {
+                        "grant_type": {
+                            "type": "string",
+                            "enum": [c.GRANT_TYPE_ACCESS_TOKEN],
+                        },
+                        "service_account_uuid": {
+                            "type": "string",
+                            "format": "uuid",
+                            "description": "UUID of the service account to get token for",
+                        },
+                        "scope": {
+                            "type": "string",
+                            "description": "Project scope in format 'project:<uuid>' (required)",
+                        },
+                        "ttl": {"type": "number", "format": "float"},
+                        "refresh_ttl": {"type": "string", "format": "float"},
+                    },
+                },
+                {
+                    "type": "object",
+                    "required": [
+                        "grant_type",
                         "refresh_token",
                     ],
                     "properties": {

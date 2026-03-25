@@ -256,3 +256,15 @@ class CanNotCreateServiceToken(
         "The current user is not permitted to create service account tokens or "
         "service user was not found."
     )
+
+
+class ServiceAccountUuidRequiredError(exceptions.CommonValueErrorException):
+    """Exception raised when service_account_uuid is required but not provided."""
+
+    __template__ = "service_account_uuid is required"
+
+
+class ProjectScopeRequiredError(exceptions.CommonValueErrorException):
+    """Exception raised when project scope is required but not provided."""
+
+    __template__ = "Service account tokens can only be issued with project scope"
