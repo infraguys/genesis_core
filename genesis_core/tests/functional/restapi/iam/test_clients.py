@@ -19,7 +19,11 @@ import uuid as sys_uuid
 from bazooka import exceptions as bazooka_exc
 import pytest
 
+from genesis_core.common import constants as common_c
 from genesis_core.tests.functional.restapi.iam import base
+from genesis_core.user_api.iam import constants as iam_c
+from genesis_core.user_api.iam.dm import models as iam_models
+from gcl_iam.tests.functional import clients as iam_clients
 
 TEST_PROJECT_ID = str(sys_uuid.uuid4())
 
@@ -447,4 +451,371 @@ class TestClients(base.BaseIamResourceTest):
             client.post(
                 url=auth_test1_user.get_token_url(endpoint=client.endpoint),
                 data={"grant_type": "obviously invalid"},
+            )
+
+    @pytest.fixture(scope="function")
+    def service_token_environment(
+        self,
+        user_api_client,
+        auth_user_admin,
+        auth_test1_user,
+        default_client_uuid,
+        default_client_id,
+        default_client_secret,
+    ):
+        """
+        Fixture to set up common environment for service token tests.
+        Returns a dict with all necessary objects for testing.
+        """
+        # Create admin client with all necessary permissions
+        admin_client = user_api_client(
+            auth_user_admin,
+            permissions=[
+                iam_c.PERMISSION_USER_CREATE,
+                iam_c.PERMISSION_SERVICE_TOKEN_CREATE,
+            ],
+        )
+
+        # Create users
+        regular_user = admin_client.create_user(
+            username="regular-user-service-token",
+            password="regularpassword",
+            email="regular-service-token@test.com",
+        )
+
+        service_user = admin_client.create_user(
+            username="service-user-token",
+            password="servicepassword",
+            email="service-token@test.com",
+            type="service",
+        )
+
+        # Create organization and project
+        org = admin_client.create_organization(name="TestServiceTokenOrg")
+        project = admin_client.create_project(
+            name="TestServiceTokenProject",
+            organization_uuid=org["uuid"],
+        )
+
+        # Get user objects for role bindings
+        regular_user_obj = iam_models.User.objects.get_one(
+            filters={"uuid": regular_user["uuid"]}
+        )
+        auth_test1_user_obj = iam_models.User.objects.get_one(
+            filters={"uuid": auth_test1_user.uuid}
+        )
+        service_user_obj = iam_models.User.objects.get_one(
+            filters={"uuid": service_user["uuid"]}
+        )
+
+        # Get roles
+        owner_role = iam_models.Role.objects.get_one(
+            filters={"uuid": common_c.OWNER_ROLE_UUID}
+        )
+        newcomer_role = iam_models.Role.objects.get_one(
+            filters={"uuid": common_c.NEWCOMER_ROLE_UUID}
+        )
+        project_obj = iam_models.Project.objects.get_one(
+            filters={"uuid": project["uuid"]}
+        )
+
+        # Confirm email for regular user
+        admin_client.confirm_email(
+            user_uuid=regular_user_obj.uuid,
+            code=str(regular_user_obj.confirmation_code),
+        )
+
+        # Create auth object for regular user
+        regular_user_auth = iam_clients.GenesisCoreAuth(
+            username=regular_user["username"],
+            password="regularpassword",
+            client_uuid=default_client_uuid,
+            client_id=default_client_id,
+            client_secret=default_client_secret,
+        )
+
+        return {
+            "admin_client": admin_client,
+            "regular_user": regular_user,
+            "regular_user_obj": regular_user_obj,
+            "regular_user_auth": regular_user_auth,
+            "service_user": service_user,
+            "service_user_obj": service_user_obj,
+            "org": org,
+            "project": project,
+            "project_obj": project_obj,
+            "owner_role": owner_role,
+            "newcomer_role": newcomer_role,
+            "auth_test1_user_obj": auth_test1_user_obj,
+        }
+
+    def _setup_role_bindings(
+        self, environment, regular_role="owner", service_role="owner"
+    ):
+        """Helper to setup role bindings for users."""
+        regular_role_obj = (
+            environment["owner_role"]
+            if regular_role == "owner"
+            else environment["newcomer_role"]
+        )
+        service_role_obj = (
+            environment["owner_role"]
+            if service_role == "owner"
+            else environment["newcomer_role"]
+        )
+
+        regular_binding = iam_models.RoleBinding(
+            user=environment["regular_user_obj"],
+            role=regular_role_obj,
+            project=environment["project_obj"],
+        )
+        regular_binding.save()
+
+        service_binding = iam_models.RoleBinding(
+            user=environment["service_user_obj"],
+            role=service_role_obj,
+            project=environment["project_obj"],
+        )
+        service_binding.save()
+
+        return regular_binding, service_binding
+
+    def test_get_service_token_with_access_token_success(
+        self, user_api_client, service_token_environment, decode_id_token
+    ):
+        """
+        Test successful service token exchange using user token.
+
+        The test verifies that:
+        1. User authenticates with their regular token
+        2. Requests service account token with grant_type=access_token
+        3. Gets service account token (not user token)
+        4. Service account must have access to same project
+        """
+        env = service_token_environment
+
+        # Setup role bindings with owner permissions
+        self._setup_role_bindings(env, regular_role="owner", service_role="owner")
+
+        # Create client for regular user
+        regular_user_client = user_api_client(
+            env["regular_user_auth"],
+            permissions=[],
+        )
+
+        # Get service token using user token
+        service_token_info = regular_user_client.post(
+            url=env["regular_user_auth"].get_token_url(
+                endpoint=regular_user_client.endpoint
+            ),
+            data={
+                "grant_type": "access_token",
+                "service_account_uuid": str(env["service_user"]["uuid"]),
+                "scope": f"project:{env['project']['uuid']}",
+            },
+        ).json()
+
+        # Verify service token response
+        assert "access_token" in service_token_info
+        assert "id_token" in service_token_info
+        assert "token_type" in service_token_info
+        assert service_token_info["token_type"] == "Bearer"
+        assert "refresh_token" in service_token_info
+        assert service_token_info["scope"] == f"project:{env['project']['uuid']}"
+
+        # Decode and verify token is for service account, not regular user
+        access_token = service_token_info["access_token"]
+        decoded_token = decode_id_token(access_token)
+        assert decoded_token["sub"] == str(env["service_user"]["uuid"])
+        assert decoded_token["sub"] != str(env["regular_user"]["uuid"])
+
+    @pytest.mark.parametrize(
+        "test_scenario",
+        [
+            {
+                "name": "no_permission",
+                "regular_role": "newcomer",
+                "service_role": "newcomer",
+                "request_data": {
+                    "grant_type": "access_token",
+                    "service_account_uuid": None,
+                    "scope": None,
+                },
+                "expected_error": bazooka_exc.ForbiddenError,
+            },
+            {
+                "name": "no_service_account_uuid",
+                "regular_role": "owner",
+                "service_role": "owner",
+                "request_data": {
+                    "grant_type": "access_token",
+                    "service_account_uuid": None,
+                    "scope": None,
+                },
+                "expected_error": bazooka_exc.BadRequestError,
+                "override_data": {"service_account_uuid": None},
+            },
+            {
+                "name": "no_project_scope",
+                "regular_role": "owner",
+                "service_role": "owner",
+                "request_data": {
+                    "grant_type": "access_token",
+                    "service_account_uuid": None,
+                    "scope": "user:profile",
+                },
+                "expected_error": bazooka_exc.BadRequestError,
+            },
+        ],
+    )
+    def test_get_service_token_with_access_token_negative_scenarios(
+        self, user_api_client, service_token_environment, test_scenario
+    ):
+        """
+        Test negative scenarios for service token requests.
+        """
+        env = service_token_environment
+
+        # Setup role bindings according to scenario
+        self._setup_role_bindings(
+            env,
+            regular_role=test_scenario["regular_role"],
+            service_role=test_scenario["service_role"],
+        )
+
+        # Create client for regular user
+        regular_user_client = user_api_client(
+            env["regular_user_auth"],
+            permissions=[],
+        )
+
+        # Prepare request data
+        request_data = {
+            "grant_type": "access_token",
+            "service_account_uuid": str(env["service_user"]["uuid"]),
+            "scope": f"project:{env['project']['uuid']}",
+        }
+
+        # Override data for specific scenarios
+        if "override_data" in test_scenario:
+            request_data.update(test_scenario["override_data"])
+        elif test_scenario["name"] == "no_service_account_uuid":
+            del request_data["service_account_uuid"]
+        elif test_scenario["name"] == "no_project_scope":
+            request_data["scope"] = "user:profile"
+
+        # Test the request should fail
+        with pytest.raises(test_scenario["expected_error"]):
+            regular_user_client.post(
+                url=env["regular_user_auth"].get_token_url(
+                    endpoint=regular_user_client.endpoint
+                ),
+                data=request_data,
+            )
+
+    def test_get_regular_token_with_access_token_grant_type_error(
+        self,
+        user_api_client,
+        auth_user_admin,
+        auth_test1_user,
+        default_client_uuid,
+        default_client_id,
+        default_client_secret,
+    ):
+        """
+        Test that access_token grant type cannot be used to get regular user tokens.
+
+        This ensures that grant_type=access_token can ONLY be used
+        for service account token exchange, not for regular authentication.
+        """
+        # Create admin client with all necessary permissions
+        admin_client = user_api_client(
+            auth_user_admin,
+            permissions=[
+                iam_c.PERMISSION_USER_CREATE,
+                iam_c.PERMISSION_SERVICE_TOKEN_CREATE,
+            ],
+        )
+
+        # Create regular user with service token permissions
+        regular_user_with_perm = admin_client.create_user(
+            username="regular-user-with-perm-error",
+            password="regularpassword",
+            email="regular-with-perm-error@test.com",
+        )
+
+        # Create organization and project
+        org = admin_client.create_organization(
+            name="TestErrorOrg",
+        )
+        project = admin_client.create_project(
+            name="TestErrorProject",
+            organization_uuid=org["uuid"],
+        )
+
+        # Get user objects for role bindings
+        regular_user_with_perm_obj = iam_models.User.objects.get_one(
+            filters={"uuid": regular_user_with_perm["uuid"]}
+        )
+        auth_test1_user_obj = iam_models.User.objects.get_one(
+            filters={"uuid": auth_test1_user.uuid}
+        )
+
+        # Add regular user as owner to project
+        owner_role = iam_models.Role.objects.get_one(
+            filters={"uuid": common_c.OWNER_ROLE_UUID}
+        )
+        project_obj = iam_models.Project.objects.get_one(
+            filters={"uuid": project["uuid"]}
+        )
+
+        regular_binding = iam_models.RoleBinding(
+            user=auth_test1_user_obj,
+            role=owner_role,
+            project=project_obj,
+        )
+        regular_binding.save()
+
+        # Add regular user with permissions to project
+        regular_with_perm_binding = iam_models.RoleBinding(
+            user=regular_user_with_perm_obj,
+            role=owner_role,
+            project=project_obj,
+        )
+        regular_with_perm_binding.save()
+
+        # Confirm email for regular user with permissions
+        regular_user_with_perm_obj = iam_models.User.objects.get_one(
+            filters={"uuid": regular_user_with_perm["uuid"]}
+        )
+        admin_client.confirm_email(
+            user_uuid=regular_user_with_perm_obj.uuid,
+            code=str(regular_user_with_perm_obj.confirmation_code),
+        )
+
+        # Create auth object for regular user with permissions
+        regular_user_with_perm_auth = iam_clients.GenesisCoreAuth(
+            username=regular_user_with_perm["username"],
+            password="regularpassword",
+            client_uuid=default_client_uuid,
+            client_id=default_client_id,
+            client_secret=default_client_secret,
+        )
+        # Create client for regular user with permissions
+        regular_user_client = user_api_client(
+            regular_user_with_perm_auth,
+            permissions=[],
+        )
+
+        # Try to get regular user token with access_token grant type (should fail)
+        with pytest.raises(bazooka_exc.BadRequestError):
+            regular_user_client.post(
+                url=regular_user_with_perm_auth.get_token_url(
+                    endpoint=regular_user_client.endpoint
+                ),
+                data={
+                    "grant_type": "access_token",
+                    "username": regular_user_with_perm["username"],
+                    "password": "regularpassword",
+                },
             )

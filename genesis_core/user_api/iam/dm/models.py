@@ -30,7 +30,6 @@ from gcl_iam import tokens
 from gcl_sdk.agents.universal.dm import models as ua_models
 import pyotp
 from restalchemy.common import contexts
-from restalchemy.common import exceptions as ra_e
 from restalchemy.dm import filters as ra_filters
 from restalchemy.dm import models
 from restalchemy.dm import properties
@@ -1058,32 +1057,32 @@ class IamClient(
         # Check if service account token is requested
         service_account_uuid = kwargs.get("service_account_uuid")
         if service_account_uuid:
+            # Authenticate user first
+            authenticated_user = self._authenticate_user_with_password(
+                users_query, password, otp_code
+            )
+
             return self._handle_service_account_token_request(
-                users_query=users_query,
+                authenticated_user=authenticated_user,
                 service_account_uuid=service_account_uuid,
-                password=password,
                 scope=scope,
-                otp_code=otp_code,
                 ttl=ttl,
                 refresh_ttl=refresh_ttl,
                 root_endpoint=root_endpoint,
             )
 
         # Regular token flow
-        authenticated_user = self._authenticate_user(users_query, password, otp_code)
-        if authenticated_user:
-            return self._create_token_for_user(
-                user=authenticated_user,
-                scope=scope,
-                ttl=ttl,
-                refresh_ttl=refresh_ttl,
-                root_endpoint=root_endpoint,
-                **kwargs,
-            )
-
-        # Security hardening for failed authentication
-        self._perform_security_hardening(password)
-        raise iam_e.CredentialsAreInvalidError()
+        authenticated_user = self._authenticate_user_with_password(
+            users_query, password, otp_code
+        )
+        return self._create_token_for_user(
+            user=authenticated_user,
+            scope=scope,
+            ttl=ttl,
+            refresh_ttl=refresh_ttl,
+            root_endpoint=root_endpoint,
+            **kwargs,
+        )
 
     def get_token_by_password(self, username, **kwargs):
         """
@@ -1128,6 +1127,20 @@ class IamClient(
             ),
         )
 
+    def _authenticate_user_with_password(self, users_query, password, otp_code=None):
+        """
+        Authenticate a user from users_query with password and optional OTP
+        Returns the authenticated user
+        Raises appropriate exceptions if authentication fails
+        """
+        authenticated_user = self._authenticate_user(users_query, password, otp_code)
+        if not authenticated_user:
+            # Security: run dummy PBKDF2 to prevent timing attacks
+            self._perform_security_hardening(password)
+            raise iam_e.CredentialsAreInvalidError()
+
+        return authenticated_user
+
     def _check_service_token_permission(self, user_role_bindings):
         """
         Check if user has service token creation permission
@@ -1149,29 +1162,19 @@ class IamClient(
 
     def _handle_service_account_token_request(
         self,
-        users_query,
+        authenticated_user,
         service_account_uuid,
-        password,
         scope,
-        otp_code=None,
         **kwargs,
     ):
         """
-        Handle service account token request - unified logic for all auth methods
+        Handle service account token request - validation and token creation only.
+        Authentication should be done by caller.
         """
         # Extract project UUID from scope for permission check
         project_uuid = self._extract_project_from_scope(scope)
         if not project_uuid:
-            raise ra_e.ValidationErrorException(
-                "Service account tokens can only be issued with project scope"
-            )
-
-        # Authenticate the regular user
-        authenticated_user = self._authenticate_user(users_query, password, otp_code)
-        if not authenticated_user:
-            # Security: run dummy PBKDF2 to prevent timing attacks
-            self._perform_security_hardening(password)
-            raise iam_e.CredentialsAreInvalidError()
+            raise iam_exceptions.ProjectScopeRequiredError()
 
         # Validate project UUID
         try:
@@ -1335,19 +1338,6 @@ class IamClient(
             return project_parts[0]
         else:
             raise ValueError(f"Multiple projects found in scope: {project_parts}")
-
-    def _get_user_projects(self, user):
-        """
-        Get all projects for a user as a set of UUID strings
-        """
-        if user is None:
-            return set()
-
-        user_projects = set()
-        for role_binding in RoleBinding.objects.get_all(filters={"user": user}):
-            if role_binding.project:
-                user_projects.add(str(role_binding.project.uuid))
-        return user_projects
 
     def get_token_by_refresh_token(self, refresh_token, scope=None):
         algorithm = self.get_token_algorithm()

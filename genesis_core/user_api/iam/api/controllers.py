@@ -787,7 +787,7 @@ class ClientsController(controllers.BaseResourceControllerPaginated, EnforceMixi
             login_attr, token_getter = grant_type_map[grant_type]
             payload[login_attr] = kwargs.get(login_attr)
             if not payload[login_attr]:
-                raise ra_e.ValidationErrorException()
+                raise iam_e.ServiceAccountUuidRequiredError()
 
             try:
                 token = token_getter(**payload)
@@ -842,6 +842,40 @@ class ClientsController(controllers.BaseResourceControllerPaginated, EnforceMixi
                 raise
             LOG.info(
                 "IAM AUDIT: login success user=%s uuid=%s wildcard=%s ip=%s",
+                token.user.name,
+                token.user.uuid,
+                token.has_permission(c.PERMISSION_WILDCARD_NAME),
+                ctx.get_user_ip(),
+            )
+        elif grant_type == c.GRANT_TYPE_ACCESS_TOKEN:
+            service_account_uuid = kwargs.get(c.PARAM_SERVICE_ACCOUNT_UUID)
+            if not service_account_uuid:
+                raise iam_e.ServiceAccountUuidRequiredError()
+
+            try:
+                # Get current user from token context
+                current_user = models.User.me()
+
+                token = resource._handle_service_account_token_request(
+                    authenticated_user=current_user,
+                    service_account_uuid=service_account_uuid,
+                    scope=kwargs.get(c.PARAM_SCOPE, ""),
+                    ttl=kwargs.get(c.PARAM_TTL, None),
+                    refresh_ttl=kwargs.get(c.PARAM_REFRESH_TTL, None),
+                    root_endpoint=ra_utils.lastslash(
+                        ctx.get_real_url_with_prefix(),
+                    ),
+                )
+            except Exception:
+                LOG.info(
+                    "IAM AUDIT: service token exchange failed grant_type=%s service_account_uuid=%s ip=%s",
+                    grant_type,
+                    service_account_uuid,
+                    ctx.get_user_ip(),
+                )
+                raise
+            LOG.info(
+                "IAM AUDIT: service token exchange success user=%s uuid=%s wildcard=%s ip=%s",
                 token.user.name,
                 token.user.uuid,
                 token.has_permission(c.PERMISSION_WILDCARD_NAME),
