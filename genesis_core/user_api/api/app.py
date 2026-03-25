@@ -16,11 +16,9 @@
 
 from gcl_iam import middlewares as iam_mw
 from restalchemy.api import applications
-from restalchemy.api import constants as ra_c
 from restalchemy.api import middlewares
 from restalchemy.api import routes
 from restalchemy.api.middlewares import logging as logging_mw
-from restalchemy.dm import types as ra_types
 from restalchemy.openapi import structures as openapi_structures
 from restalchemy.openapi import engines as openapi_engines
 
@@ -32,50 +30,6 @@ from genesis_core.user_api.api import routes as app_routes
 from genesis_core.user_api.api import versions
 
 skip_auth_endpoints = [
-    iam_mw.EndpointComparator("/"),
-    iam_mw.EndpointComparator("/v1/"),
-    iam_mw.EndpointComparator("/v1/health/"),
-    iam_mw.EndpointComparator("/v1/iam/"),
-    iam_mw.EndpointComparator(
-        f"/v1/iam/users/({ra_types.UUID_RE_TEMPLATE})/actions/reset_password/invoke",
-        methods=[ra_c.POST],
-    ),
-    iam_mw.EndpointComparator(
-        f"/v1/iam/clients/({ra_types.UUID_RE_TEMPLATE})",
-    ),
-    iam_mw.EndpointComparator(
-        f"/v1/iam/clients/({ra_types.UUID_RE_TEMPLATE})/actions/get_token/invoke",
-        methods=[ra_c.POST],
-    ),
-    iam_mw.EndpointComparator(
-        f"/v1/iam/clients/({ra_types.UUID_RE_TEMPLATE})/actions/reset_password/invoke",
-        methods=[ra_c.POST],
-    ),
-    iam_mw.EndpointComparator(
-        f"/v1/iam/clients/({ra_types.UUID_RE_TEMPLATE})/actions/jwks",
-    ),
-    iam_mw.EndpointComparator(
-        f"/v1/iam/users/({ra_types.UUID_RE_TEMPLATE})/actions/confirm_email/invoke",
-        methods=[ra_c.POST],
-    ),
-    iam_mw.EndpointComparator(
-        f"/v1/iam/idp/({ra_types.UUID_RE_TEMPLATE})",
-    ),
-    iam_mw.EndpointComparator(
-        f"/v1/iam/idp/({ra_types.UUID_RE_TEMPLATE})/.well-known/",
-    ),
-    iam_mw.EndpointComparator(
-        f"/v1/iam/idp/({ra_types.UUID_RE_TEMPLATE})/.well-known/openid-configuration",
-    ),
-    iam_mw.EndpointComparator(
-        f"/v1/iam/idp/({ra_types.UUID_RE_TEMPLATE})/actions/authorize/invoke",
-    ),
-    iam_mw.EndpointComparator(
-        f"/v1/iam/idp/({ra_types.UUID_RE_TEMPLATE})/actions/login/invoke",
-    ),
-    iam_mw.EndpointComparator(
-        f"/v1/iam/authorization_requests/({ra_types.UUID_RE_TEMPLATE})",
-    ),
 ]
 
 

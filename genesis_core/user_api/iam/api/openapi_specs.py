@@ -145,7 +145,7 @@ OA_SPEC_GET_TOKEN_KWARGS = dict(
                         "service_account_uuid": {
                             "type": "string",
                             "format": "uuid",
-                            "description": "UUID of the service account"
+                            "description": "UUID of the service account",
                         },
                     },
                 },
@@ -173,7 +173,7 @@ OA_SPEC_GET_TOKEN_KWARGS = dict(
                         "service_account_uuid": {
                             "type": "string",
                             "format": "uuid",
-                            "description": "UUID of the service account"
+                            "description": "UUID of the service account",
                         },
                     },
                 },
@@ -201,7 +201,7 @@ OA_SPEC_GET_TOKEN_KWARGS = dict(
                         "service_account_uuid": {
                             "type": "string",
                             "format": "uuid",
-                            "description": "UUID of the service account"
+                            "description": "UUID of the service account",
                         },
                     },
                 },

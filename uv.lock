@@ -659,7 +659,7 @@ wheels = [
 
 [[package]]
 name = "gcl-iam"
-version = "1.1.0"
+version = "1.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bazooka" },
@@ -668,9 +668,9 @@ dependencies = [
     { name = "pyjwt" },
     { name = "restalchemy" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3b/68/a5496ae54ae2bf529c4c0319272d4965cf54f06f8480666ad4ad2925b6fb/gcl_iam-1.1.0.tar.gz", hash = "sha256:880aa6fb4b550a4a86fce9789e85b9b628917eddae1102c4aedfd82bfb6b7600", size = 201881, upload-time = "2026-02-25T10:30:55.3Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/bf/2a/5691cc4e515ba3fd212283cc8759ed0aea4bcce4de5352937e9619391bc4/gcl_iam-1.2.0.tar.gz", hash = "sha256:382f586e9b4b9e43cbd7eef5d32936b4b0df94010dcc405b6015f9979294d37d", size = 202448, upload-time = "2026-04-08T12:49:51.639Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d6/37/4a2099f751980fb1d596a2ecd8146e8fd083be48837fda610c0c3229046c/gcl_iam-1.1.0-py3-none-any.whl", hash = "sha256:aadd7185b8c265378da3518bb23209e6d7b205499366b09cc194d6ef94dde016", size = 38680, upload-time = "2026-02-25T10:30:53.65Z" },
+    { url = "https://files.pythonhosted.org/packages/0c/fe/204bd374caf8554e7dc65a52ea08eaf23889692be655d83a797f8e775e43/gcl_iam-1.2.0-py3-none-any.whl", hash = "sha256:584eb1c0bee042120b203a59646e511f50fca49fbb86b00b7cbc6a0118322bb2", size = 39182, upload-time = "2026-04-08T12:49:49.872Z" },
 ]
 
 [[package]]
@@ -775,7 +775,7 @@ requires-dist = [
     { name = "dnspython", marker = "extra == 'test'", specifier = ">=2.6.0,<3.0.0" },
     { name = "firebase-admin", specifier = ">=6.0.0,<7.0.0" },
     { name = "gcl-certbot-plugin", specifier = ">=0.0.5,<1.0.0" },
-    { name = "gcl-iam", specifier = ">=1.1.0,<2.0.0" },
+    { name = "gcl-iam", specifier = ">=1.2.0,<2.0.0" },
     { name = "gcl-looper", specifier = ">=1.0.1,<2.0.0" },
     { name = "gcl-sdk", specifier = ">=2.0.0,<3.0.0" },
     { name = "izulu", specifier = ">=0.50.0,<1.0.0" },

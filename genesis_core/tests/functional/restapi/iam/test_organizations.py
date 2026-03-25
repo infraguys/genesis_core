@@ -28,7 +28,7 @@ class TestOrganizations(base.BaseIamResourceTest):
     def test_create_organization_wo_auth_unauthorized(self, user_api_noauth_client):
         client = user_api_noauth_client()
 
-        with pytest.raises(bazooka_exc.UnauthorizedError):
+        with pytest.raises(bazooka_exc.ForbiddenError):
             client.create_organization(name="TestOrganization")
 
     def _create_organization(self, client, user, info=None):
