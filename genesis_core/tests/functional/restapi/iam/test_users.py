@@ -98,7 +98,7 @@ class TestUsers(base.BaseIamResourceTest):
     def test_create_user_unauthenticated_fails(self, user_api_noauth_client):
         client = user_api_noauth_client()
 
-        with pytest.raises(bazooka_exc.UnauthorizedError):
+        with pytest.raises(bazooka_exc.ForbiddenError):
             client.create_user(username="test_unauth", password="testtest")
 
     def test_create_user_no_permission_fails(self, user_api_client, auth_test1_user):
@@ -219,7 +219,7 @@ class TestUsers(base.BaseIamResourceTest):
     def test_list_users_wo_auth_unauthorized(self, user_api_noauth_client):
         client = user_api_noauth_client()
 
-        with pytest.raises(bazooka_exc.UnauthorizedError):
+        with pytest.raises(bazooka_exc.ForbiddenError):
             client.list_users()
 
     def test_list_users_admin_auth_success(self, user_api_client, auth_user_admin):

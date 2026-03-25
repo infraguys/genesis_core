@@ -403,11 +403,25 @@ class User(
             "first_name": self.first_name,
             "last_name": self.last_name,
             "email": self.email,
+            "type": self.type,
         }
 
     @classmethod
     def me(cls, token_info=None):
         token_info = token_info or contexts.get_context().iam_context.token_info
+        if token_info.token_type == "anon":
+            user_info = contexts.get_context().iam_context.introspection_info()[
+                "user_info"
+            ]
+            return User(
+                uuid=sys_uuid.UUID(user_info["uuid"]),
+                type="anon",
+                name=user_info["name"],
+                first_name=user_info["first_name"],
+                last_name=user_info["last_name"],
+                email=user_info["email"],
+                secret="",
+            )
         return User.objects.get_one(
             filters={"uuid": ra_filters.EQ(token_info.user_uuid)}
         )

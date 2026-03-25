@@ -166,7 +166,7 @@ class TestClients(base.BaseIamResourceTest):
         client = user_api_noauth_client()
         url = client.build_collection_uri(["iam/roles"])
 
-        with pytest.raises(bazooka_exc.UnauthorizedError):
+        with pytest.raises(bazooka_exc.ForbiddenError):
             client.get(url)
 
     def test_token_ttl_success(self, user_api_client, auth_test1_user):

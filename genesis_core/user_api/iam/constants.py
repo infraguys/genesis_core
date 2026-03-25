@@ -104,6 +104,7 @@ class OrganizationRole(str, enum.Enum):
 class UserType(str, enum.Enum):
     USER = "user"
     SERVICE = "service"
+    ANON = "anon"  # used __only__ for anon token!
 
 
 # permissions

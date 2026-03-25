@@ -60,7 +60,7 @@ class TestIdp(base.BaseIamResourceTest):
         client = user_api_noauth_client()
         url = self._collection_url(client)
 
-        with pytest.raises(bazooka_exc.UnauthorizedError):
+        with pytest.raises(bazooka_exc.ForbiddenError):
             client.post(
                 url,
                 json=self._build_create_payload(
