@@ -24,7 +24,7 @@ class ExpiredEmailConfirmationCodeJanitorService(basic.BasicService):
     def _clean_bad_confirmation_codes(self):
         now = datetime.now(tz=timezone.utc)
         expiration_time = now - iam_c.USER_CONFIRMATION_CODE_TTL
-        LOG.info("Starting to clean codes older than %s", expiration_time)
+        LOG.debug("Starting to clean codes older than %s", expiration_time)
         filters = dm_filters.AND(
             dm_filters.OR(
                 # actually expired codes:
@@ -48,7 +48,7 @@ class ExpiredEmailConfirmationCodeJanitorService(basic.BasicService):
         for user in users:
             user.clear_confirmation_code()
 
-        LOG.info("Users cleaned: %s" % len(users))
+        LOG.debug("Users cleaned: %s" % len(users))
 
     def _iteration(self):
         with contexts.Context().session_manager():
