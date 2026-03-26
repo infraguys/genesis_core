@@ -16,6 +16,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build Genesis Core
+        env:
+          PUSH_CFG: ${{ secrets.PUSH_CFG }}
         run: |
           set -eux
           mkdir -p ${ARTIFACTS_PATH}
@@ -28,7 +30,11 @@ jobs:
           VERSION="$(genesis get-version .)"
 
           # Build Genesis Core
-          genesis build $(pwd)
+          genesis build $(pwd) --inventory
+
+          # Decode and write the push configuration
+          echo "$PUSH_CFG" | base64 -d > genesis/genesis.push.yaml
+          genesis push -c genesis/genesis.push.yaml -t local -f
 
           # Upload the VM image
           gzip -k output/genesis-core.raw -c | \
