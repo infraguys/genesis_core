@@ -20,11 +20,14 @@ loggers:
 
   genesis_core: {}
   bjoern: {}
-  gcl_looper: {}
+  gcl_looper:
+    level: WARNING
   gcl_sdk: {}
-  restalchemy: {}
+  restalchemy:
+    level: INFO
   psycopg: {}
-
+  bazooka:
+    level: WARNING
 root:
   handlers: [console]
   level: INFO

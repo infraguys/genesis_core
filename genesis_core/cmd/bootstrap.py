@@ -30,9 +30,7 @@ from restalchemy.storage.sql import engines
 from restalchemy.dm import filters as dm_filters
 from restalchemy.storage import exceptions as ra_exceptions
 from restalchemy.common import config_opts as ra_config_opts
-from gcl_sdk.clients.http import base as http_client
 from gcl_sdk.infra.dm import models as infra_models
-from genesis_ci_tools import elements
 
 from genesis_core.common import config
 from genesis_core.compute.dm import models
@@ -242,22 +240,6 @@ def _install_core_manifest(spec: dict[str, tp.Any], core_element_name: str = "co
 
     admin_pass = spec["admin_password"]
 
-    with open(manifest_path, "r", encoding="utf-8") as f:
-        manifest = yaml.safe_load(f)
-
-    auth = http_client.CoreIamAuthenticator(
-        base_url=CONF.core_endpoint,
-        username=CONF.core_user,
-        password=admin_pass,
-    )
-    client = http_client.CollectionBaseClient(
-        base_url=CONF.core_endpoint,
-        auth=auth,
-    )
-
-    manifest = elements.add_manifest(client, manifest)
-    elements.install_manifest(client, manifest["uuid"])
-
     # Create a configuration file for gctl
     os.makedirs(GCTL_CFG_DIR, exist_ok=True)
     with open(os.path.join(GCTL_CFG_DIR, "genesisctl.yaml"), "w") as f:
@@ -269,6 +251,8 @@ def _install_core_manifest(spec: dict[str, tp.Any], core_element_name: str = "co
             },
             f,
         )
+
+    os.system(f"genesis elements install {manifest_path}")
 
 
 def _init_secrets(spec: dict[str, tp.Any]):

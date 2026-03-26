@@ -36,9 +36,6 @@ SYSTEMD_SERVICE_DIR=/etc/systemd/system/
 DEV_SDK_PATH="/opt/gcl_sdk"
 SDK_DEV_MODE=$([ -d "$DEV_SDK_PATH" ] && echo "true" || echo "false")
 
-DEV_CLI_PATH="/opt/genesis_ci_tools"
-CLI_DEV_MODE=$([ -d "$DEV_CLI_PATH" ] && echo "true" || echo "false")
-
 # Install packages
 sudo apt update
 sudo apt install yq postgresql-common libev-dev libvirt-dev \
@@ -170,14 +167,10 @@ sudo cp "$GC_PATH/etc/genesis_universal_agent/logging.yaml" /etc/genesis_univers
 # 3) It's allows to debug the migrations at build time.
 ra-apply-migration --config-dir "$GC_PATH/etc/genesis_core/" --path "$GC_PATH/migrations"
 
-# Install CLI
-if [[ "$CLI_DEV_MODE" == "true" ]]; then
-    uv pip install -e "$DEV_CLI_PATH"
-else
-    uv pip install genesis-ci-tools
-fi
-
 deactivate
+
+# Install CLI
+curl -fsSL https://repository.genesis-core.tech/install.sh | sudo sh
 
 # Misc config
 # Disable DHCP for the main interface, it will be configured in the bootstrap script
