@@ -245,9 +245,21 @@ def _install_core_manifest(spec: dict[str, tp.Any], core_element_name: str = "co
     with open(os.path.join(GCTL_CFG_DIR, "genesisctl.yaml"), "w") as f:
         yaml.safe_dump(
             {
-                "endpoint": CONF.core_endpoint,
-                "user": CONF.core_user,
-                "password": admin_pass,
+                "schema_version": 1,
+                "realms": {
+                    "default-realm": {
+                        "endpoint": CONF.core_endpoint,
+                        "check_updates": True,
+                        "contexts": {
+                            "default-context": {
+                                "user": CONF.core_user,
+                                "password": admin_pass,
+                            },
+                        "current-context": "default-context",
+                        },
+                    }
+                },
+                "current-realm": "default-realm",
             },
             f,
         )
