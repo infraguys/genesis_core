@@ -22,11 +22,7 @@ jobs:
           set -eux
           mkdir -p ${ARTIFACTS_PATH}
 
-          # Install DevTools
-          python3 -m venv .venv
-          source .venv/bin/activate
-          pip install genesis-devtools
-
+          source ~/.profile
           VERSION="$(genesis get-version .)"
 
           # Build Genesis Core
@@ -34,7 +30,7 @@ jobs:
 
           # Decode and write the push configuration
           echo "$PUSH_CFG" | base64 -d > genesis/genesis.push.yaml
-          genesis push -c genesis/genesis.push.yaml -t local -f
+          genesis push -c genesis/genesis.push.yaml -t local -f --latest
 
           # Upload the VM image
           gzip -k output/genesis-core.raw -c | \
