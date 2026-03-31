@@ -2,18 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://github.com/infraguys/</loc>
-         <lastmod>2026-03-18</lastmod>
+         <lastmod>2026-03-31</lastmod>
     </url>
     <url>
          <loc>https://github.com/infraguys/element_manager/service/</loc>
-         <lastmod>2026-03-18</lastmod>
+         <lastmod>2026-03-31</lastmod>
+    </url>
+    <url>
+         <loc>https://github.com/infraguys/iam/permissions_overview/</loc>
+         <lastmod>2026-03-31</lastmod>
     </url>
     <url>
          <loc>https://github.com/infraguys/network/load_balancer/</loc>
-         <lastmod>2026-03-18</lastmod>
+         <lastmod>2026-03-31</lastmod>
     </url>
     <url>
          <loc>https://github.com/infraguys/openapi/openapi/</loc>
-         <lastmod>2026-03-18</lastmod>
+         <lastmod>2026-03-31</lastmod>
     </url>
 </urlset>
