@@ -41,6 +41,10 @@ from genesis_core.common.dm import models as cm
 from genesis_core.common.dm import targets as ct
 from genesis_core.common import utils as cm_utils
 from genesis_core.elements.dm import utils
+from genesis_core.elements.dm.validate import (
+    load_base_manifest_schema,
+    validate_manifest,
+)
 from genesis_core.elements import constants as cc
 from genesis_core.vs.dm import models as vs_models
 
@@ -119,6 +123,7 @@ class Manifest(
     models.ModelWithRequiredNameDesc,
     models.ModelWithTimestamp,
     orm.SQLStorableMixin,
+    models.DumpToSimpleViewMixin,
 ):
     __tablename__ = "em_manifests"
 
@@ -173,9 +178,7 @@ class Manifest(
     )
 
     def install(self):
-        if element := Element.objects.get_one_or_none(
-            filters={"name": ra_filters.EQ(self.name)}
-        ):
+        if Element.objects.get_one_or_none(filters={"name": ra_filters.EQ(self.name)}):
             raise ValueError(f"Element '{self.name}' already exists.")
 
         element_engine.load_from_database()
@@ -357,6 +360,11 @@ class Manifest(
         for element in elements:
             element.delete()
             element_engine.remove_element(element)
+        return self
+
+    def validate(self):
+        element_engine.load_schema()
+        validate_manifest(self.dump_to_simple_view(), element_engine.schema)
         return self
 
 
@@ -857,6 +865,7 @@ class ImportEnum(str, enum.Enum):
 class Import(
     models.ModelWithUUID,
     models.ModelWithTimestamp,
+    models.CustomPropertiesMixin,
     orm.SQLStorableMixin,
 ):
     __tablename__ = "em_imports"
@@ -1059,6 +1068,11 @@ class ElementEngine:
         super().__init__()
         self._namespaces = {}
         self._resource_exports = {}
+        self.schema = {}
+
+    def load_schema(self):
+        if not self.schema:
+            self.schema = load_base_manifest_schema()
 
     def load_element_from_manifest(self, manifest):
         schema_version = utils.get_required_field(manifest, "SchemaVersion")

@@ -37,6 +37,12 @@ class ManifestUninstallActionRoute(routes.Action):
     __controller__ = controllers.ManifestController
 
 
+class ManifestValidateActionRoute(routes.Action):
+    """Handler for /v1/em/manifests/<uuid>/actions/validate/invoke endpoint"""
+
+    __controller__ = controllers.ManifestController
+
+
 class ManifestRoute(routes.Route):
     """Handler for /v1/em/manifests/ endpoint"""
 
@@ -45,12 +51,25 @@ class ManifestRoute(routes.Route):
     install = routes.action(ManifestInstallActionRoute, invoke=True)
     upgrade = routes.action(ManifestUpgradeActionRoute, invoke=True)
     uninstall = routes.action(ManifestUninstallActionRoute, invoke=True)
+    validate = routes.action(ManifestValidateActionRoute, invoke=False)
 
 
 class ElementResourceRoute(routes.Route):
     """Handler for /v1/em/elements/<uuid>/resources/ endpoint"""
 
     __controller__ = controllers.ElementResourceController
+
+
+class ElementExportRoute(routes.Route):
+    """Handler for /v1/em/elements/<uuid>/exports/ endpoint"""
+
+    __controller__ = controllers.ElementExportController
+
+
+class ElementImportRoute(routes.Route):
+    """Handler for /v1/em/elements/<uuid>/imports/ endpoint"""
+
+    __controller__ = controllers.ElementImportController
 
 
 class ElementSetProfileActionRoute(routes.Action):
@@ -71,6 +90,8 @@ class ElementRoute(routes.Route):
     __controller__ = controllers.ElementController
 
     resources = routes.route(ElementResourceRoute, resource_route=True)
+    exports = routes.route(ElementExportRoute, resource_route=True)
+    imports = routes.route(ElementImportRoute, resource_route=True)
     set_profile = routes.action(ElementSetProfileActionRoute, invoke=True)
     clear_profile = routes.action(ElementClearProfileActionRoute, invoke=True)
 

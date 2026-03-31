@@ -911,7 +911,7 @@ class HS256SignatureAlgorithm(ra_types_dynamic.AbstractKindModel):
     @property
     def secret(self):
         return secret_models.Password.objects.get_one(
-            filters={"uuid": str(self.secret_uuid)}
+            filters={"uuid": ra_filters.EQ(str(self.secret_uuid))}
         )
 
     @property
@@ -920,7 +920,7 @@ class HS256SignatureAlgorithm(ra_types_dynamic.AbstractKindModel):
             return None
 
         return secret_models.Password.objects.get_one(
-            filters={"uuid": str(self.previous_secret_uuid)}
+            filters={"uuid": ra_filters.EQ(str(self.previous_secret_uuid))}
         )
 
     def update_secret_uuid(self, new_secret_uuid):
@@ -947,7 +947,7 @@ class RS256SignatureAlgorithm(ra_types_dynamic.AbstractKindModel):
     @property
     def secret(self):
         return secret_models.RSAKey.objects.get_one(
-            filters={"uuid": str(self.secret_uuid)}
+            filters={"uuid": ra_filters.EQ(str(self.secret_uuid))}
         )
 
     @property
@@ -956,7 +956,7 @@ class RS256SignatureAlgorithm(ra_types_dynamic.AbstractKindModel):
             return None
 
         return secret_models.RSAKey.objects.get_one(
-            filters={"uuid": str(self.previous_secret_uuid)}
+            filters={"uuid": ra_filters.EQ(str(self.previous_secret_uuid))}
         )
 
     def safe_update_secret_uuid(self, new_secret_uuid):

@@ -27,7 +27,7 @@ from gcl_sdk.events import clients as sdk_clients
 from gcl_sdk.infra.dm import models as sdk_infra_models
 from gcl_sdk.agents.universal.dm import models as sdk_ua_models
 from restalchemy.dm import filters as dm_filters
-from restalchemy.tests.functional import consts
+
 from restalchemy.storage.sql import engines
 
 from genesis_core.common import constants as c
@@ -36,8 +36,14 @@ from genesis_core.common import utils
 from genesis_core.compute import constants as nc
 from genesis_core.compute.dm import models as node_models
 from genesis_core.compute.node_set.dm import models as node_set_models
+from genesis_core.elements.dm.validate import (
+    load_base_manifest_schema,
+    load_full_manifest_schema,
+    load_user_api_spec,
+)
 from genesis_core.user_api.api import app as user_app
 from genesis_core.user_api.iam import constants as iam_c
+from genesis_core.tests.functional import consts
 from genesis_core.tests.functional import utils as test_utils
 from genesis_core.config.dm import models as conf_models
 from genesis_core.config import constants as cc
@@ -915,3 +921,18 @@ def setup_db_for_worker(worker_id):
         engine.close_connection(conn)
         del engine
         engines.engine_factory.destroy_engine()
+
+
+@pytest.fixture(scope="session")
+def base_manifest_schema():
+    return load_base_manifest_schema()
+
+
+@pytest.fixture(scope="session")
+def full_manifest_schema():
+    return load_full_manifest_schema()
+
+
+@pytest.fixture(scope="session")
+def user_api_spec():
+    return load_user_api_spec()

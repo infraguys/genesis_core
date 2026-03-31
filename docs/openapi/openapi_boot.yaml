@@ -1,0 +1,1249 @@
+openapi: 3.0.3
+info:
+  title: Genesis Core v1 Boot API
+  version: 0.1.dev205+g5e9177075.d20260327
+  description: OpenAPI - Genesis Core v1
+components:
+  responses:
+    Error:
+      description: Error response.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      title: error
+      description: Error occurred while processing request
+      type: object
+      required:
+        - status
+        - json
+      properties:
+        status:
+          type: integer
+          description: The HTTP status code
+          minimum: 400
+          exclusiveMaximum: true
+          example: 503
+        json:
+          type: object
+          description: Detail error map
+          required:
+            - code
+            - type
+            - message
+          properties:
+            code:
+              type: integer
+              description: The HTTP status code
+              minimum: 400
+              exclusiveMaximum: true
+              example: 503
+            type:
+              type: string
+              description: Error class name
+              example: OSError
+            message:
+              type: string
+              description: Error message
+              example: A human-readable explanation of problem
+      example:
+        code: 400
+        json:
+          code: 400
+          type: ValidationErrorException
+          message: Validation error occurred.
+    UniversalAgent_Get:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 0
+          maxLength: 255
+        description:
+          type: string
+          minLength: 0
+          maxLength: 255
+          default: ''
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        capabilities:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: integer
+              - type: boolean
+              - type: object
+              - type: array
+                items: {}
+          default: {}
+        facts:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: integer
+              - type: boolean
+              - type: object
+              - type: array
+                items: {}
+          default: {}
+        node:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - DISABLED
+            - ERROR
+            - NEW
+          default: NEW
+      required:
+        - uuid
+        - name
+        - created_at
+        - updated_at
+        - node
+    UniversalAgent_Create:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 0
+          maxLength: 255
+        description:
+          type: string
+          minLength: 0
+          maxLength: 255
+          default: ''
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        capabilities:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: integer
+              - type: boolean
+              - type: object
+              - type: array
+                items: {}
+          default: {}
+        facts:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: integer
+              - type: boolean
+              - type: object
+              - type: array
+                items: {}
+          default: {}
+        node:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - DISABLED
+            - ERROR
+            - NEW
+          default: NEW
+      required:
+        - uuid
+        - name
+        - created_at
+        - updated_at
+        - node
+    UniversalAgent_Update:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 0
+          maxLength: 255
+        description:
+          type: string
+          minLength: 0
+          maxLength: 255
+          default: ''
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        capabilities:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: integer
+              - type: boolean
+              - type: object
+              - type: array
+                items: {}
+          default: {}
+        facts:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: integer
+              - type: boolean
+              - type: object
+              - type: array
+                items: {}
+          default: {}
+        node:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - DISABLED
+            - ERROR
+            - NEW
+          default: NEW
+      required:
+        - uuid
+        - name
+        - created_at
+        - updated_at
+        - node
+    MachineNetboot_Get:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        project_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 0
+          maxLength: 255
+          default: ''
+        description:
+          type: string
+          minLength: 0
+          maxLength: 255
+          default: ''
+        cores:
+          type: integer
+          minimum: 0
+          maximum: 4096
+        ram:
+          type: integer
+          minimum: 0
+          maximum: 9223372036854775807
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - ERROR
+            - FLASHED
+            - IDLE
+            - IN_PROGRESS
+            - NEED_RESCHEDULE
+            - NEW
+            - SCHEDULED
+            - STARTED
+          default: NEW
+        machine_type:
+          type: string
+          enum:
+            - HW
+            - VM
+          default: VM
+        node:
+          type: string
+          format: uuid
+          nullable: true
+        pool:
+          type: string
+          format: uuid
+          nullable: true
+        boot:
+          type: string
+          enum:
+            - cdrom
+            - hd0
+            - hd1
+            - hd2
+            - hd3
+            - hd4
+            - hd5
+            - hd6
+            - hd7
+            - network
+          default: network
+        image:
+          type: string
+          minLength: 0
+          maxLength: 255
+          nullable: true
+        firmware_uuid:
+          type: string
+          format: uuid
+          nullable: true
+        block_devices:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: integer
+              - type: boolean
+              - type: object
+              - type: array
+                items: {}
+          default: {}
+      required:
+        - created_at
+        - updated_at
+        - project_id
+        - cores
+        - ram
+    KindModel_Filter:
+      type: object
+      properties:
+        kind:
+          type: string
+          minLength: 0
+          maxLength: 64
+      required:
+        - kind
+    KindModel_Get:
+      type: object
+      properties:
+        kind:
+          type: string
+          minLength: 0
+          maxLength: 64
+      required:
+        - kind
+    Resource_Get:
+      type: object
+      properties:
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        uuid:
+          type: string
+          format: uuid
+        kind:
+          type: string
+        value:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: integer
+              - type: boolean
+              - type: object
+              - type: array
+                items: {}
+        hash:
+          type: string
+          minLength: 0
+          maxLength: 256
+          default: ''
+        full_hash:
+          type: string
+          minLength: 0
+          maxLength: 256
+          default: ''
+        status:
+          type: string
+          minLength: 0
+          maxLength: 32
+          default: ACTIVE
+        node:
+          type: string
+          format: uuid
+          nullable: true
+        res_uuid:
+          type: string
+          format: uuid
+      required:
+        - created_at
+        - updated_at
+        - kind
+        - res_uuid
+    Resource_Create:
+      type: object
+      properties:
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        uuid:
+          type: string
+          format: uuid
+        kind:
+          type: string
+        value:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: integer
+              - type: boolean
+              - type: object
+              - type: array
+                items: {}
+        hash:
+          type: string
+          minLength: 0
+          maxLength: 256
+          default: ''
+        full_hash:
+          type: string
+          minLength: 0
+          maxLength: 256
+          default: ''
+        status:
+          type: string
+          minLength: 0
+          maxLength: 32
+          default: ACTIVE
+        node:
+          type: string
+          format: uuid
+          nullable: true
+        res_uuid:
+          type: string
+          format: uuid
+      required:
+        - created_at
+        - updated_at
+        - kind
+        - res_uuid
+    Resource_Update:
+      type: object
+      properties:
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        uuid:
+          type: string
+          format: uuid
+        kind:
+          type: string
+        value:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: integer
+              - type: boolean
+              - type: object
+              - type: array
+                items: {}
+        hash:
+          type: string
+          minLength: 0
+          maxLength: 256
+          default: ''
+        full_hash:
+          type: string
+          minLength: 0
+          maxLength: 256
+          default: ''
+        status:
+          type: string
+          minLength: 0
+          maxLength: 32
+          default: ACTIVE
+        node:
+          type: string
+          format: uuid
+          nullable: true
+        res_uuid:
+          type: string
+          format: uuid
+      required:
+        - created_at
+        - updated_at
+        - kind
+        - res_uuid
+    NodeEncryptionKey_Get:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        private_key:
+          type: string
+          minLength: 0
+          maxLength: 44
+        encryption_disabled_until:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+      required:
+        - created_at
+        - updated_at
+        - private_key
+  parameters:
+    UniversalAgentUuid:
+      name: UniversalAgentUuid
+      in: path
+      schema:
+        type: string
+        format: uuid
+      required: true
+    name:
+      name: name
+      in: query
+      schema:
+        type: string
+        minLength: 0
+        maxLength: 255
+        default: ''
+    description:
+      name: description
+      in: query
+      schema:
+        type: string
+        minLength: 0
+        maxLength: 255
+        default: ''
+    created_at:
+      name: created_at
+      in: query
+      schema:
+        type: string
+        x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        format: date-time
+        default: '2006-01-02T15:04:05.000576Z'
+    updated_at:
+      name: updated_at
+      in: query
+      schema:
+        type: string
+        x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        format: date-time
+        default: '2006-01-02T15:04:05.000576Z'
+    capabilities:
+      name: capabilities
+      in: query
+      schema:
+        type: object
+        additionalProperties:
+          oneOf:
+            - type: string
+            - type: integer
+            - type: boolean
+            - type: object
+            - type: array
+              items: {}
+        default: {}
+    facts:
+      name: facts
+      in: query
+      schema:
+        type: object
+        additionalProperties:
+          oneOf:
+            - type: string
+            - type: integer
+            - type: boolean
+            - type: object
+            - type: array
+              items: {}
+        default: {}
+    node:
+      name: node
+      in: query
+      schema:
+        type: string
+        format: uuid
+        nullable: true
+    status:
+      name: status
+      in: query
+      schema:
+        type: string
+        minLength: 0
+        maxLength: 32
+        default: ACTIVE
+    MachineNetbootUuid:
+      name: MachineNetbootUuid
+      in: path
+      schema:
+        type: string
+        format: uuid
+      required: true
+    project_id:
+      name: project_id
+      in: query
+      schema:
+        type: string
+        format: uuid
+    cores:
+      name: cores
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 4096
+    ram:
+      name: ram
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 9223372036854775807
+    machine_type:
+      name: machine_type
+      in: query
+      schema:
+        type: string
+        enum:
+          - HW
+          - VM
+        default: VM
+    pool:
+      name: pool
+      in: query
+      schema:
+        type: string
+        format: uuid
+        nullable: true
+    boot:
+      name: boot
+      in: query
+      schema:
+        type: string
+        enum:
+          - cdrom
+          - hd0
+          - hd1
+          - hd2
+          - hd3
+          - hd4
+          - hd5
+          - hd6
+          - hd7
+          - network
+        default: network
+    image:
+      name: image
+      in: query
+      schema:
+        type: string
+        minLength: 0
+        maxLength: 255
+        nullable: true
+    firmware_uuid:
+      name: firmware_uuid
+      in: query
+      schema:
+        type: string
+        format: uuid
+        nullable: true
+    block_devices:
+      name: block_devices
+      in: query
+      schema:
+        type: object
+        additionalProperties:
+          oneOf:
+            - type: string
+            - type: integer
+            - type: boolean
+            - type: object
+            - type: array
+              items: {}
+        default: {}
+    KindModelKind:
+      name: KindModelKind
+      in: path
+      schema:
+        type: string
+        minLength: 0
+        maxLength: 64
+      required: true
+    uuid:
+      name: uuid
+      in: query
+      schema:
+        type: string
+        format: uuid
+    kind:
+      name: kind
+      in: query
+      schema:
+        type: string
+    value:
+      name: value
+      in: query
+      schema:
+        type: object
+        additionalProperties:
+          oneOf:
+            - type: string
+            - type: integer
+            - type: boolean
+            - type: object
+            - type: array
+              items: {}
+    hash:
+      name: hash
+      in: query
+      schema:
+        type: string
+        minLength: 0
+        maxLength: 256
+        default: ''
+    full_hash:
+      name: full_hash
+      in: query
+      schema:
+        type: string
+        minLength: 0
+        maxLength: 256
+        default: ''
+    ResourceRes_uuid:
+      name: ResourceRes_uuid
+      in: path
+      schema:
+        type: string
+        format: uuid
+      required: true
+    NodeEncryptionKeyUuid:
+      name: NodeEncryptionKeyUuid
+      in: path
+      schema:
+        type: string
+        format: uuid
+      required: true
+    private_key:
+      name: private_key
+      in: query
+      schema:
+        type: string
+        minLength: 0
+        maxLength: 44
+    encryption_disabled_until:
+      name: encryption_disabled_until
+      in: query
+      schema:
+        type: string
+        x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        format: date-time
+        default: '2006-01-02T15:04:05.000576Z'
+paths:
+  /:
+    get:
+      summary: Base application url
+      responses:
+        '200':
+          description: Get nested urls
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Get_urls
+  /specifications/:
+    get:
+      summary: Get OpenApiSpecificationRoute OpenApiSpecificationControllers
+      tags: []
+      parameters: []
+      responses:
+        '200':
+          description: Get nested urls
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Filter_specifications
+  /specifications/3.0.3:
+    get:
+      summary: OpenApi specification
+      tags: []
+      parameters: []
+      responses:
+        '200':
+          description: OpenApi specification
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Get_OpenApi_specification
+  /v1/:
+    get:
+      summary: Returns a list of all routes in the main route that are collection
+      tags: []
+      parameters:
+        - name: filters
+          description: "the filters to apply when filtering the routes (Is not\nimplemented
+            now)\n"
+          schema:
+            type: string
+          in: query
+        - name: order_by
+          description: "fields to order the routes by (Is not implemented\nnow)\n"
+          schema:
+            type: string
+          in: query
+      responses:
+        '200':
+          description: Get nested urls
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Filter_v1
+  /v1/agents/:
+    post:
+      summary: Create UniversalAgent
+      tags:
+        - UniversalAgent
+      parameters: []
+      responses:
+        '201':
+          description: UniversalAgent_Create
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UniversalAgent_Create'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Create_v1_agents
+      requestBody:
+        description: UniversalAgent_Create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UniversalAgent_Create'
+  /v1/agents/{UniversalAgentUuid}:
+    get:
+      summary: Get UniversalAgent
+      tags:
+        - UniversalAgent
+      parameters:
+        - name: UniversalAgentUuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '200':
+          description: UniversalAgent_Get
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UniversalAgent_Get'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Get_v1_agents_UniversalAgentUuid
+    put:
+      summary: Update UniversalAgent
+      tags:
+        - UniversalAgent
+      parameters:
+        - name: UniversalAgentUuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '200':
+          description: UniversalAgent_Update
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UniversalAgent_Update'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Update_v1_agents_UniversalAgentUuid
+      requestBody:
+        description: UniversalAgent_Update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UniversalAgent_Update'
+    delete:
+      summary: Delete UniversalAgent
+      tags:
+        - UniversalAgent
+      parameters:
+        - name: UniversalAgentUuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '204':
+          description: UniversalAgent_Delete
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Delete_v1_agents_UniversalAgentUuid
+  /v1/agents/{UniversalAgentUuid}/actions/get_payload:
+    get:
+      summary: Get_payload UniversalAgent
+      tags:
+        - UniversalAgent
+      parameters:
+        - name: UniversalAgentUuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '200':
+          description: Get nested urls
+          content:
+            application/json:
+              schema: {}
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Get_payload_v1_agents_UniversalAgentUuid_actions_get_payload
+  /v1/boots/{MachineNetbootUuid}:
+    get:
+      summary: Get MachineNetboot
+      tags:
+        - MachineNetboot
+      parameters:
+        - name: MachineNetbootUuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '200':
+          description: MachineNetboot_Get
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MachineNetboot_Get'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Get_v1_boots_MachineNetbootUuid
+  /v1/kind/:
+    get:
+      summary: Get KindModels
+      tags:
+        - KindModel
+      parameters:
+        - name: kind
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: KindModel_Filter
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/KindModel_Filter'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Filter_v1_kind
+  /v1/kind/{KindModelKind}:
+    get:
+      summary: Get KindModel
+      tags:
+        - KindModel
+      parameters:
+        - name: KindModelKind
+          in: path
+          schema:
+            type: string
+            minLength: 0
+            maxLength: 64
+          required: true
+      responses:
+        '200':
+          description: KindModel_Get
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KindModel_Get'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Get_v1_kind_KindModelKind
+  /v1/kind/{KindModelKind}/resources/:
+    post:
+      summary: Create Resource
+      tags:
+        - Resource
+      parameters:
+        - name: KindModelKind
+          in: path
+          schema:
+            type: string
+            minLength: 0
+            maxLength: 64
+          required: true
+      responses:
+        '201':
+          description: Resource_Create
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Resource_Create'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Create_v1_kind_KindModelKind_resources
+      requestBody:
+        description: Resource_Create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Resource_Create'
+  /v1/kind/{KindModelKind}/resources/{ResourceRes_uuid}:
+    get:
+      summary: Get Resource
+      tags:
+        - Resource
+      parameters:
+        - name: KindModelKind
+          in: path
+          schema:
+            type: string
+            minLength: 0
+            maxLength: 64
+          required: true
+        - name: ResourceRes_uuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '200':
+          description: Resource_Get
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Resource_Get'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Get_v1_kind_KindModelKind_resources_ResourceRes_uuid
+    put:
+      summary: Update Resource
+      tags:
+        - Resource
+      parameters:
+        - name: KindModelKind
+          in: path
+          schema:
+            type: string
+            minLength: 0
+            maxLength: 64
+          required: true
+        - name: ResourceRes_uuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '200':
+          description: Resource_Update
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Resource_Update'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Update_v1_kind_KindModelKind_resources_ResourceRes_uuid
+      requestBody:
+        description: Resource_Update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Resource_Update'
+    delete:
+      summary: Delete Resource
+      tags:
+        - Resource
+      parameters:
+        - name: KindModelKind
+          in: path
+          schema:
+            type: string
+            minLength: 0
+            maxLength: 64
+          required: true
+        - name: ResourceRes_uuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '204':
+          description: Resource_Delete
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Delete_v1_kind_KindModelKind_resources_ResourceRes_uuid
+  /v1/nodes/{NodeEncryptionKeyUuid}:
+  /v1/nodes/{NodeEncryptionKeyUuid}:
+    get:
+      summary: Get NodeEncryptionKey
+      tags:
+        - NodeEncryptionKey
+      parameters:
+        - name: NodeEncryptionKeyUuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '200':
+          description: NodeEncryptionKey_Get
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NodeEncryptionKey_Get'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Get_v1_nodes_NodeEncryptionKeyUuid
+  /v1/nodes/{NodeEncryptionKeyUuid}/actions/refresh_secret/invoke:
+    post:
+      summary: Refresh_secret NodeEncryptionKey
+      tags:
+        - NodeEncryptionKey
+      parameters:
+        - name: NodeEncryptionKeyUuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '200':
+          description: Get nested urls
+          content:
+            application/json:
+              schema: {}
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Refresh_secret_v1_nodes_NodeEncryptionKeyUuid_actions_refresh_secret_invoke
+servers:
+  - url: http://127.0.0.1:10000
+    description: ''
+    variables:
+      version:
+        enum:
+          - v1
+        default: v1
+tags:
+  - name: UniversalAgent
+    description: ''
+  - name: MachineNetboot
+    description: ''
+  - name: Resource
+    description: ''
+  - name: KindModel
+    description: ''
+  - name: NodeEncryptionKey
+    description: ''

@@ -255,8 +255,8 @@ def _install_core_manifest(spec: dict[str, tp.Any], core_element_name: str = "co
                                 "user": CONF.core_user,
                                 "password": admin_pass,
                             },
-                        "current-context": "default-context",
                         },
+                        "current-context": "default-context",
                     }
                 },
                 "current-realm": "default-realm",

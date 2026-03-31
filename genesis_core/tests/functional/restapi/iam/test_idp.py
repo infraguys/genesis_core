@@ -149,9 +149,7 @@ class TestIdp(base.BaseIamResourceTest):
         assert response.status_code == 201
         idp = response.json()
         assert idp["callback"]["kind"] == "callback_regexp"
-        assert idp["callback"]["pattern"] == (
-            r"https://example\.test/callback(/.*)?"
-        )
+        assert idp["callback"]["pattern"] == (r"https://example\.test/callback(/.*)?")
 
     def test_list_idp_no_permission_fails(self, user_api_client, auth_test1_user):
         client = user_api_client(auth_test1_user)
