@@ -1,0 +1,335 @@
+openapi: 3.0.3
+info:
+  title: Genesis Core v1 Orch API
+  version: 0.1.dev205+g5e9177075.d20260327
+  description: OpenAPI - Genesis Core v1
+components:
+  responses:
+    Error:
+      description: Error response.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      title: error
+      description: Error occurred while processing request
+      type: object
+      required:
+        - status
+        - json
+      properties:
+        status:
+          type: integer
+          description: The HTTP status code
+          minimum: 400
+          exclusiveMaximum: true
+          example: 503
+        json:
+          type: object
+          description: Detail error map
+          required:
+            - code
+            - type
+            - message
+          properties:
+            code:
+              type: integer
+              description: The HTTP status code
+              minimum: 400
+              exclusiveMaximum: true
+              example: 503
+            type:
+              type: string
+              description: Error class name
+              example: OSError
+            message:
+              type: string
+              description: Error message
+              example: A human-readable explanation of problem
+      example:
+        code: 400
+        json:
+          code: 400
+          type: ValidationErrorException
+          message: Validation error occurred.
+    UniversalAgent_Get:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 0
+          maxLength: 255
+        description:
+          type: string
+          minLength: 0
+          maxLength: 255
+          default: ''
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        capabilities:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: integer
+              - type: boolean
+              - type: object
+              - type: array
+                items: {}
+          default: {}
+        facts:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: integer
+              - type: boolean
+              - type: object
+              - type: array
+                items: {}
+          default: {}
+        node:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - DISABLED
+            - ERROR
+            - NEW
+          default: NEW
+      required:
+        - uuid
+        - name
+        - created_at
+        - updated_at
+        - node
+  parameters:
+    UniversalAgentUuid:
+      name: UniversalAgentUuid
+      in: path
+      schema:
+        type: string
+        format: uuid
+      required: true
+    name:
+      name: name
+      in: query
+      schema:
+        type: string
+        minLength: 0
+        maxLength: 255
+    description:
+      name: description
+      in: query
+      schema:
+        type: string
+        minLength: 0
+        maxLength: 255
+        default: ''
+    created_at:
+      name: created_at
+      in: query
+      schema:
+        type: string
+        x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        format: date-time
+        default: '2006-01-02T15:04:05.000576Z'
+    updated_at:
+      name: updated_at
+      in: query
+      schema:
+        type: string
+        x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        format: date-time
+        default: '2006-01-02T15:04:05.000576Z'
+    capabilities:
+      name: capabilities
+      in: query
+      schema:
+        type: object
+        additionalProperties:
+          oneOf:
+            - type: string
+            - type: integer
+            - type: boolean
+            - type: object
+            - type: array
+              items: {}
+        default: {}
+    facts:
+      name: facts
+      in: query
+      schema:
+        type: object
+        additionalProperties:
+          oneOf:
+            - type: string
+            - type: integer
+            - type: boolean
+            - type: object
+            - type: array
+              items: {}
+        default: {}
+    node:
+      name: node
+      in: query
+      schema:
+        type: string
+        format: uuid
+    status:
+      name: status
+      in: query
+      schema:
+        type: string
+        enum:
+          - ACTIVE
+          - DISABLED
+          - ERROR
+          - NEW
+        default: NEW
+paths:
+  /:
+    get:
+      summary: Base application url
+      responses:
+        '200':
+          description: Get nested urls
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Get_urls
+  /specifications/:
+    get:
+      summary: Get OpenApiSpecificationRoute OpenApiSpecificationControllers
+      tags: []
+      parameters: []
+      responses:
+        '200':
+          description: Get nested urls
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Filter_specifications
+  /specifications/3.0.3:
+    get:
+      summary: OpenApi specification
+      tags: []
+      parameters: []
+      responses:
+        '200':
+          description: OpenApi specification
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Get_OpenApi_specification
+  /v1/:
+    get:
+      summary: Returns a list of all routes in the main route that are collection
+      tags: []
+      parameters:
+        - name: filters
+          description: "the filters to apply when filtering the routes (Is not\nimplemented
+            now)\n"
+          schema:
+            type: string
+          in: query
+        - name: order_by
+          description: "fields to order the routes by (Is not implemented\nnow)\n"
+          schema:
+            type: string
+          in: query
+      responses:
+        '200':
+          description: Get nested urls
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Filter_v1
+  /v1/agents/{UniversalAgentUuid}:
+    get:
+      summary: Get UniversalAgent
+      tags:
+        - UniversalAgent
+      parameters:
+        - name: UniversalAgentUuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '200':
+          description: UniversalAgent_Get
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UniversalAgent_Get'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Get_v1_agents_UniversalAgentUuid
+  /v1/agents/{UniversalAgentUuid}/actions/get_payload:
+    get:
+      summary: Get_payload UniversalAgent
+      tags:
+        - UniversalAgent
+      parameters:
+        - name: UniversalAgentUuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '200':
+          description: Get nested urls
+          content:
+            application/json:
+              schema: {}
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Get_payload_v1_agents_UniversalAgentUuid_actions_get_payload
+servers:
+  - url: http://127.0.0.1:10002
+    description: ''
+    variables:
+      version:
+        enum:
+          - v1
+        default: v1
+tags:
+  - name: UniversalAgent
+    description: ''

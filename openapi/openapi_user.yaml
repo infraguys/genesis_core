@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Genesis Core v1 User API
-  version: 0.1.dev192+gadafb9403.d20260318
+  version: 0.1.dev204+g87300a3b9.d20260401
   description: OpenAPI - Genesis Core v1
 components:
   responses:
@@ -3480,6 +3480,314 @@ components:
         - created_at
         - updated_at
         - version
+    Export_Get:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        element:
+          type: string
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        kind:
+          type: string
+          enum:
+            - resource
+          default: resource
+        link:
+          type: string
+          minLength: 2
+          maxLength: 255
+      required:
+        - created_at
+        - updated_at
+        - element
+        - link
+    Export_Create:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        element:
+          type: string
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        kind:
+          type: string
+          enum:
+            - resource
+          default: resource
+        link:
+          type: string
+          minLength: 2
+          maxLength: 255
+      required:
+        - created_at
+        - updated_at
+        - element
+        - link
+    Export_Update:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        element:
+          type: string
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        kind:
+          type: string
+          enum:
+            - resource
+          default: resource
+        link:
+          type: string
+          minLength: 2
+          maxLength: 255
+      required:
+        - created_at
+        - updated_at
+        - element
+        - link
+    Export_Filter:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        element:
+          type: string
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        kind:
+          type: string
+          enum:
+            - resource
+          default: resource
+        link:
+          type: string
+          minLength: 2
+          maxLength: 255
+      required:
+        - created_at
+        - updated_at
+        - element
+        - link
+    Import_Get:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        element:
+          type: string
+        from_element:
+          type: string
+        from_resource:
+          type: string
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        kind:
+          type: string
+          enum:
+            - resource
+          default: resource
+        link:
+          type: string
+          minLength: 2
+          maxLength: 256
+      required:
+        - created_at
+        - updated_at
+        - element
+        - from_element
+        - from_resource
+    Import_Create:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        element:
+          type: string
+        from_element:
+          type: string
+        from_resource:
+          type: string
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        kind:
+          type: string
+          enum:
+            - resource
+          default: resource
+        link:
+          type: string
+          minLength: 2
+          maxLength: 256
+      required:
+        - created_at
+        - updated_at
+        - element
+        - from_element
+        - from_resource
+    Import_Update:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        element:
+          type: string
+        from_element:
+          type: string
+        from_resource:
+          type: string
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        kind:
+          type: string
+          enum:
+            - resource
+          default: resource
+        link:
+          type: string
+          minLength: 2
+          maxLength: 256
+      required:
+        - created_at
+        - updated_at
+        - element
+        - from_element
+        - from_resource
+    Import_Filter:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        element:
+          type: string
+        from_element:
+          type: string
+        from_resource:
+          type: string
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        kind:
+          type: string
+          enum:
+            - resource
+          default: resource
+        link:
+          type: string
+          minLength: 2
+          maxLength: 256
+      required:
+        - created_at
+        - updated_at
+        - element
+        - from_element
+        - from_resource
     Resource_Get:
       type: object
       properties:
@@ -13649,8 +13957,8 @@ components:
         type: string
         minLength: 2
         maxLength: 256
-    ResourceUuid:
-      name: ResourceUuid
+    ExportUuid:
+      name: ExportUuid
       in: path
       schema:
         type: string
@@ -13661,6 +13969,37 @@ components:
       in: query
       schema:
         type: string
+    kind:
+      name: kind
+      in: query
+      schema:
+        type: string
+        minLength: 2
+        maxLength: 256
+    ImportUuid:
+      name: ImportUuid
+      in: path
+      schema:
+        type: string
+        format: uuid
+      required: true
+    from_element:
+      name: from_element
+      in: query
+      schema:
+        type: string
+    from_resource:
+      name: from_resource
+      in: query
+      schema:
+        type: string
+    ResourceUuid:
+      name: ResourceUuid
+      in: path
+      schema:
+        type: string
+        format: uuid
+      required: true
     resource_link_prefix:
       name: resource_link_prefix
       in: query
@@ -13694,13 +14033,6 @@ components:
         minLength: 0
         maxLength: 256
         default: ''
-    kind:
-      name: kind
-      in: query
-      schema:
-        type: string
-        minLength: 2
-        maxLength: 256
     ManifestUuid:
       name: ManifestUuid
       in: path
@@ -16527,6 +16859,280 @@ paths:
         default:
           $ref: '#/components/responses/Error'
       operationId: Delete_v1_em_elements_ElementUuid
+  /v1/em/elements/{ElementUuid}/exports/:
+    get:
+      summary: Get Exports
+      tags:
+        - Export
+      parameters:
+        - name: ElementUuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '200':
+          description: Export_Filter
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Export_Filter'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Filter_v1_em_elements_ElementUuid_exports
+    post:
+      summary: Create Export
+      tags:
+        - Export
+      parameters:
+        - name: ElementUuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '201':
+          description: Export_Create
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Export_Create'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Create_v1_em_elements_ElementUuid_exports
+      requestBody:
+        description: Export_Create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Export_Create'
+  /v1/em/elements/{ElementUuid}/exports/{ExportUuid}:
+    get:
+      summary: Get Export
+      tags:
+        - Export
+      parameters:
+        - name: ElementUuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - name: ExportUuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '200':
+          description: Export_Get
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Export_Get'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Get_v1_em_elements_ElementUuid_exports_ExportUuid
+    put:
+      summary: Update Export
+      tags:
+        - Export
+      parameters:
+        - name: ElementUuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - name: ExportUuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '200':
+          description: Export_Update
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Export_Update'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Update_v1_em_elements_ElementUuid_exports_ExportUuid
+      requestBody:
+        description: Export_Update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Export_Update'
+    delete:
+      summary: Delete Export
+      tags:
+        - Export
+      parameters:
+        - name: ElementUuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - name: ExportUuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '204':
+          description: Export_Delete
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Delete_v1_em_elements_ElementUuid_exports_ExportUuid
+  /v1/em/elements/{ElementUuid}/imports/:
+    get:
+      summary: Get Imports
+      tags:
+        - Import
+      parameters:
+        - name: ElementUuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '200':
+          description: Import_Filter
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Import_Filter'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Filter_v1_em_elements_ElementUuid_imports
+    post:
+      summary: Create Import
+      tags:
+        - Import
+      parameters:
+        - name: ElementUuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '201':
+          description: Import_Create
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Import_Create'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Create_v1_em_elements_ElementUuid_imports
+      requestBody:
+        description: Import_Create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Import_Create'
+  /v1/em/elements/{ElementUuid}/imports/{ImportUuid}:
+    get:
+      summary: Get Import
+      tags:
+        - Import
+      parameters:
+        - name: ElementUuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - name: ImportUuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '200':
+          description: Import_Get
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Import_Get'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Get_v1_em_elements_ElementUuid_imports_ImportUuid
+    put:
+      summary: Update Import
+      tags:
+        - Import
+      parameters:
+        - name: ElementUuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - name: ImportUuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '200':
+          description: Import_Update
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Import_Update'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Update_v1_em_elements_ElementUuid_imports_ImportUuid
+      requestBody:
+        description: Import_Update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Import_Update'
+    delete:
+      summary: Delete Import
+      tags:
+        - Import
+      parameters:
+        - name: ElementUuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - name: ImportUuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '204':
+          description: Import_Delete
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Delete_v1_em_elements_ElementUuid_imports_ImportUuid
   /v1/em/elements/{ElementUuid}/resources/:
     get:
       summary: Get Resources
@@ -16809,6 +17415,32 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/Manifest_Create'
+  /v1/em/manifests/validate/:
+    post:
+      summary: Validate manifest
+      tags: []
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Create_v1_em_manifests_validate
+      requestBody:
+        description: ''
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                manifest:
+                  type: object
   /v1/em/manifests/{ManifestUuid}:
     get:
       summary: Get Manifest
@@ -17923,6 +18555,33 @@ paths:
         default:
           $ref: '#/components/responses/Error'
       operationId: Filter_v1_iam_idp_IdpUuid_well_known
+    post:
+      summary: Create WellKnownRoute WellKnownController
+      tags: []
+      parameters:
+        - name: IdpUuid
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '201':
+          description: Unknown_Create
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unknown_Create'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Create_v1_iam_idp_IdpUuid_well_known
+      requestBody:
+        description: Unknown_Create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Unknown_Create'
   /v1/iam/idp/{IdpUuid}/actions/authorize/invoke:
     get:
       summary: Authorize Idp
@@ -21517,6 +22176,10 @@ tags:
   - name: Record
     description: ''
   - name: Domain
+    description: ''
+  - name: Export
+    description: ''
+  - name: Import
     description: ''
   - name: Resource
     description: ''
