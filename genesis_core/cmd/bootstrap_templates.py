@@ -213,9 +213,10 @@ def main() -> None:
         _render_or_restore_template(src, dst, persisted, context)
         # Save persisted version
         os.makedirs(os.path.dirname(persisted), exist_ok=True)
-        with open(persisted, "w", encoding="utf-8") as fp, open(
-            dst, "r", encoding="utf-8"
-        ) as fd:
+        with (
+            open(persisted, "w", encoding="utf-8") as fp,
+            open(dst, "r", encoding="utf-8") as fd,
+        ):
             fp.write(fd.read())
         LOG.info("Saved persisted template %s", persisted)
 

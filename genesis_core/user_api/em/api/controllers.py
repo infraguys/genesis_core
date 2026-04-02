@@ -14,7 +14,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-
 from gcl_iam.api import controllers as iam_controllers
 from restalchemy.dm import filters as dm_filters
 from restalchemy.api import actions
@@ -59,6 +58,10 @@ class ManifestController(
     @actions.post
     def uninstall(self, resource):
         return resource.uninstall()
+
+    @actions.get
+    def validate(self, resource):
+        return resource.validate()
 
 
 class ElementController(
@@ -142,6 +145,36 @@ class ElementResourceController(
                 "version",
             ],
         ),
+    )
+
+    def __init__(self, *args, **kwargs):
+        models.element_engine.load_from_database()
+        super().__init__(*args, **kwargs)
+
+
+class ElementExportController(
+    controllers.BaseNestedResourceControllerPaginated,
+):
+    __pr_name__ = "element"
+    __resource__ = resources.ResourceByRAModel(
+        model_class=models.Export,
+        process_filters=True,
+        convert_underscore=False,
+    )
+
+    def __init__(self, *args, **kwargs):
+        models.element_engine.load_from_database()
+        super().__init__(*args, **kwargs)
+
+
+class ElementImportController(
+    controllers.BaseNestedResourceControllerPaginated,
+):
+    __pr_name__ = "element"
+    __resource__ = resources.ResourceByModelWithCustomProps(
+        model_class=models.Import,
+        process_filters=True,
+        convert_underscore=False,
     )
 
     def __init__(self, *args, **kwargs):

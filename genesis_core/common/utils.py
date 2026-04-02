@@ -14,6 +14,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import os
 import typing as tp
 import uuid as sys_uuid
 from importlib.metadata import entry_points
@@ -84,3 +85,11 @@ def remove_nested_dm(dm_class, parent_field_name, parent, session=None, **kwargs
 
 def get_or_create_uuid_from_dict(data: tp.Dict[str, tp.Any]) -> sys_uuid.UUID:
     return sys_uuid.UUID(data.get("uuid", str(sys_uuid.uuid4())))
+
+
+def get_project_path() -> str:
+    # Repository path
+    return os.sep.join(__file__.split(os.sep)[:-3])
+
+
+PROJECT_PATH = get_project_path()

@@ -32,3 +32,9 @@ class CommonForbiddenException(GCException):
 
 class CommonValueErrorException(GCException):
     __template__ = "The provided value is invalid."
+
+
+class OpenApiValidateException(GCException):
+    __template__ = "OpenApiValidateException: {err}"
+
+    err: str
