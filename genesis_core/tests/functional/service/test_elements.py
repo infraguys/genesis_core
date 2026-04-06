@@ -17,7 +17,7 @@
 from genesis_core.elements.services import builders
 
 
-class TestSecretsServiceBuilder:
+class TestElementManagerBuilder:
     def setup_method(self) -> None:
         # Run service
         self._service = builders.ElementManagerBuilder()
