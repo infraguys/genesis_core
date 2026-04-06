@@ -27,5 +27,6 @@ class TestElementManagerBuilder:
 
     def test_element_manager_builder(
         self,
+        default_node,
     ):
         self._service._iteration()

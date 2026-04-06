@@ -315,12 +315,16 @@ else
 fi
 
 # Prepare templated configuration files and apply them
+log "gc-bootstrap-templates"
 sudo gc-bootstrap-templates
+log "netplan apply"
 sudo netplan apply
+log "systemctl restart systemd-resolved.service dnsdist@private.service"
 sudo systemctl restart \
   systemd-resolved.service \
   dnsdist@private.service
 
+log "Apply migrations"
 # Apply migrations
 source "$VENV_PATH/bin/activate"
 # TODO(akremenetsky): Database configuration parameters should be taken
@@ -328,6 +332,7 @@ source "$VENV_PATH/bin/activate"
 ra-apply-migration --config-dir "$GC_CFG_DIR/" --path "$GC_PATH/migrations"
 
 # Enable genesis core services
+log "systemctl enable --now gc-services"
 sudo systemctl enable --now \
     gc-user-api \
     gc-orch-api \
@@ -339,15 +344,19 @@ sudo systemctl enable --now \
     genesis-universal-scheduler
 
 # Perform the bootstrap of GC
+log "Perform the bootstrap of GC"
 gc-bootstrap --config-file /etc/genesis_core/genesis_core.conf
 
 
 # Configure NAT
+log "Configure NAT"
 echo "net.ipv4.ip_forward=1" | sudo tee -a /etc/sysctl.conf
 sudo sysctl -p
 
 # Configure iptables
+log "Configure iptables"
 sudo iptables -t nat -A POSTROUTING -o enp1s0 -j MASQUERADE
 
 # Save iptables rules
+log "Save iptables rules"
 sudo netfilter-persistent save

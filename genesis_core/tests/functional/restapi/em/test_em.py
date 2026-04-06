@@ -15,6 +15,7 @@
 #    under the License.
 
 import os
+import pytest
 import yaml
 
 from gcl_iam.tests.functional import clients as iam_clients
@@ -23,6 +24,20 @@ from genesis_core.common.utils import PROJECT_PATH
 
 
 class TestEmUserApi:
+    @pytest.mark.skip(reason="for manual running")
+    def test_openapi(
+        self,
+        user_api,
+        user_api_client: iam_clients.GenesisCoreTestRESTClient,
+        auth_user_admin: iam_clients.GenesisCoreAuth,
+    ):
+
+        client = user_api_client(auth_user_admin)
+        url = f"{user_api.get_endpoint()}specifications/3.0.3"
+
+        response = client.get(url)
+        assert response.status_code == 200
+
     def test_manifests(
         self,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,

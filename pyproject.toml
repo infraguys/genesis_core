@@ -149,7 +149,6 @@ gc-gservice = "genesis_core.cmd.gservice:main"
 gc-core-agent = "genesis_core.cmd.core_agent:main"
 gc-bootstrap = "genesis_core.cmd.bootstrap:main"
 gc-bootstrap-templates = "genesis_core.cmd.bootstrap_templates:main"
-gc-manifest-parser = "genesis_core.cmd.manifest_parser:main"
 
 [project.entry-points."gcn_machine_pool_driver"]
 DummyPoolDriver = "genesis_core.compute.pool.drivers.base:DummyPoolDriver"

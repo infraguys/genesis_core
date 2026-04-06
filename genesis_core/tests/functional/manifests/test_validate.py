@@ -15,19 +15,13 @@
 #    under the License.
 
 import os
-import os
 import pytest
 import requests
 import yaml
 
-from genesis_core.elements.dm.validate import (
-    validate_manifest,
-    dump_full_manifest_schema,
-    build_full_schema,
-    build_full_schema,
-)
-from genesis_core.common import exceptions
-from genesis_core.common.utils import PROJECT_PATH
+from genesis_core.elements.dm import models
+from genesis_core.elements.dm import utils
+
 from genesis_core.common import exceptions
 from genesis_core.common.utils import PROJECT_PATH
 
@@ -54,8 +48,34 @@ class TestSpec:
             pytest.skip(f"latest version for {element} is not available")
         assert resp.status_code == 200
         manifest = yaml.safe_load(resp.text)
-        validate_manifest(manifest, base_manifest_schema)
-        validate_manifest(manifest, full_manifest_schema)
+
+        utils.validate_manifest(manifest, base_manifest_schema)
+
+        # TODO(slashburygin): full_schema is not ready now
+        mutated_manifest = utils.mutate_manifest(manifest, full_manifest_schema)
+        utils.validate_manifest(mutated_manifest, full_manifest_schema)
+
+    def test_validate_example(
+        self,
+        full_manifest_schema,
+        user_api,
+    ):
+        path = os.path.join(
+            PROJECT_PATH, "genesis", "manifests", "examples", "core.element.yaml"
+        )
+        with open(path, "r") as f:
+            manifest_data = yaml.safe_load(f)
+
+        manifest = models.Manifest(**manifest_data)
+        manifest.save()
+
+        manifest.install()
+
+        manifest.validate_schema_base()
+        manifest.validate_schema_full()
+
+        manifest.uninstall()
+        manifest.delete()
 
     @pytest.mark.parametrize(
         "invalid_manifest",
@@ -70,18 +90,24 @@ class TestSpec:
     ):
         with open(
             os.path.join(
-                PROJECT_PATH, "genesis_core", "tests", "functional", "manifests", "examples", invalid_manifest
+                PROJECT_PATH,
+                "genesis_core",
+                "tests",
+                "functional",
+                "manifests",
+                "examples",
+                invalid_manifest,
             ),
             "r",
         ) as f:
             manifest = yaml.safe_load(f)
         with pytest.raises(exceptions.OpenApiValidateException):
-            validate_manifest(manifest, base_manifest_schema)
-            validate_manifest(manifest, full_manifest_schema)
+            utils.validate_manifest(manifest, base_manifest_schema)
+            utils.validate_manifest(manifest, full_manifest_schema)
 
     @pytest.mark.skip(reason="for manual running")
     def test_build_full_schema(self, base_manifest_schema, user_api_spec):
-        full_schema = build_full_schema(base_manifest_schema, user_api_spec)
-        dump_full_manifest_schema(full_schema)
-        full_schema = build_full_schema(base_manifest_schema, user_api_spec)
-        dump_full_manifest_schema(full_schema)
+        full_schema = utils.build_full_schema(base_manifest_schema, user_api_spec)
+        utils.dump_full_manifest_schema(full_schema)
+        full_schema = utils.build_full_schema(base_manifest_schema, user_api_spec)
+        utils.dump_full_manifest_schema(full_schema)

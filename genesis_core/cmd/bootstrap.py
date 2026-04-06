@@ -264,7 +264,7 @@ def _install_core_manifest(spec: dict[str, tp.Any], core_element_name: str = "co
             f,
         )
 
-    os.system(f"genesis elements install {manifest_path}")
+    os.system(f"genesis --config {GCTL_CFG_DIR}/genesisctl.yaml elements install {manifest_path}")
 
 
 def _init_secrets(spec: dict[str, tp.Any]):

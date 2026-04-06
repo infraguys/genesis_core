@@ -61,7 +61,7 @@ class ManifestController(
 
     @actions.get
     def validate(self, resource):
-        return resource.validate()
+        return resource.validate_schema_base()
 
 
 class ElementController(

@@ -801,12 +801,12 @@ class PermissionFastView(
     user = relationships.relationship(
         User,
         prefetch=True,
-        required=True,
+        required=False,
     )
     role = relationships.relationship(
         Role,
         prefetch=True,
-        required=True,
+        required=False,
     )
     project = relationships.relationship(
         Project,
