@@ -21,6 +21,12 @@ resources:
         size: 10
         image: "{{ base_image_url | default('https://repository.genesis-core.tech/genesis-base/0.4.1/genesis-base.raw.gz') }}"
 
-exports:
-  example_node:
-    no_link: "$core.compute.nodes.example_node"
+imports:
+  pg18_valid:
+    element: "$dbaas"
+    kind: "resource"
+    link: "$dbaas.types.postgres.versions.$pg18"
+  var_default_cores_invalid:
+#    element: "$core"
+    kind: "resource"
+    link: "$core.vs.variables.$default_cores"

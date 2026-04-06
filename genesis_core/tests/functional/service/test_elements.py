@@ -14,10 +14,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import typing as tp
-
-from gcl_iam.tests.functional import clients as iam_clients
-
 from genesis_core.elements.services import builders
 
 
@@ -31,8 +27,5 @@ class TestSecretsServiceBuilder:
 
     def test_element_manager_builder(
         self,
-        password_factory: tp.Callable,
-        user_api_client: iam_clients.GenesisCoreTestRESTClient,
-        auth_user_admin: iam_clients.GenesisCoreAuth,
     ):
         self._service._iteration()

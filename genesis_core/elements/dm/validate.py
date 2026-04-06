@@ -74,5 +74,34 @@ def validate_manifest(data: dict, schema: tp.Optional[dict]) -> None:
             )
         except ValidationError as err:
             LOG.exception("Failed to validate data %s: %s", data, err)
-            raise exceptions.OpenApiValidateException(err=str(err))
+            raise exceptions.OpenApiValidateException(
+                err=f"{err.message} in {err.json_path}"
+            )
     return None
+
+
+def build_full_schema(base_manifest_schema: dict, user_api_spec: dict) -> dict:
+    for path, path_obj in user_api_spec["paths"].items():
+        path_parts = path.split("/")
+        if len(path_parts) > 5:
+            continue
+        post_path = path_obj.get("post")
+        if post_path:
+            operation_id = post_path.get("operationId")
+            if operation_id and operation_id.startswith("Create_v1"):
+                schema_ref = post_path["requestBody"]["content"]["application/json"][
+                    "schema"
+                ]
+                model_name = schema_ref["$ref"].split("/")[-1]
+                api_part_1 = path_parts[2]
+                api_part_2 = path_parts[3]
+                model = user_api_spec["components"]["schemas"][model_name]
+                resource = f"$core.{api_part_1}.{api_part_2}"
+                base_manifest_schema["components"]["schemas"][model_name] = model
+                base_manifest_schema["properties"]["resources"]["properties"][
+                    resource
+                ] = {
+                    "type": "object",
+                    "additionalProperties": schema_ref,
+                }
+    return base_manifest_schema

@@ -42,7 +42,7 @@ from genesis_core.common.dm import targets as ct
 from genesis_core.common import utils as cm_utils
 from genesis_core.elements.dm import utils
 from genesis_core.elements.dm.validate import (
-    load_base_manifest_schema,
+    load_full_manifest_schema,
     validate_manifest,
 )
 from genesis_core.elements import constants as cc
@@ -1072,7 +1072,7 @@ class ElementEngine:
 
     def load_schema(self):
         if not self.schema:
-            self.schema = load_base_manifest_schema()
+            self.schema = load_full_manifest_schema()
 
     def load_element_from_manifest(self, manifest):
         schema_version = utils.get_required_field(manifest, "SchemaVersion")

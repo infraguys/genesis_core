@@ -15,8 +15,13 @@ resources:
       description: "Example node"
       cores: 1
       ram: 1024
-#      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
       disk_spec:
         kind: "root_disk"
         size: 10
         image: "{{ base_image_url | default('https://repository.genesis-core.tech/genesis-base/0.4.1/genesis-base.raw.gz') }}"
+
+exports:
+  example_node:
+    # link: "$core.compute.nodes.example_node"
+    no_link: "$core.compute.nodes.example_node"

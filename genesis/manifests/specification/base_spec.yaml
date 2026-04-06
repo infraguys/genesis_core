@@ -26,12 +26,47 @@ properties:
       - v1
   requirements:
     type: object
+    additionalProperties:
+      $ref: '#/components/schemas/requirements'
   resources:
     type: object
     properties: {}
   exports:
     type: object
+    additionalProperties:
+      $ref: '#/components/schemas/export'
   imports:
     type: object
+    additionalProperties:
+      $ref: '#/components/schemas/import'
 components:
-  schemas: {}
+  schemas:
+    export:
+      type: object
+      properties:
+        link:
+          type: string
+      required:
+        - link
+    requirements:
+      type: object
+      properties:
+        from_version:
+          type: string
+        to_version:
+          type: string
+    import:
+      type: object
+      properties:
+        element:
+          type: string
+        kind:
+          type: string
+          enum:
+            - resource
+        link:
+          type: string
+      required:
+        - element
+        - kind
+        - link
