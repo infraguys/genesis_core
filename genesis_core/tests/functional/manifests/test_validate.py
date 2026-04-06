@@ -15,6 +15,7 @@
 #    under the License.
 
 import os
+import os
 import pytest
 import requests
 import yaml
@@ -23,7 +24,10 @@ from genesis_core.elements.dm.validate import (
     validate_manifest,
     dump_full_manifest_schema,
     build_full_schema,
+    build_full_schema,
 )
+from genesis_core.common import exceptions
+from genesis_core.common.utils import PROJECT_PATH
 from genesis_core.common import exceptions
 from genesis_core.common.utils import PROJECT_PATH
 
@@ -66,7 +70,7 @@ class TestSpec:
     ):
         with open(
             os.path.join(
-                PROJECT_PATH, "genesis", "manifests", "examples", invalid_manifest
+                PROJECT_PATH, "genesis_core", "tests", "functional", "manifests", "examples", invalid_manifest
             ),
             "r",
         ) as f:
@@ -77,5 +81,7 @@ class TestSpec:
 
     @pytest.mark.skip(reason="for manual running")
     def test_build_full_schema(self, base_manifest_schema, user_api_spec):
+        full_schema = build_full_schema(base_manifest_schema, user_api_spec)
+        dump_full_manifest_schema(full_schema)
         full_schema = build_full_schema(base_manifest_schema, user_api_spec)
         dump_full_manifest_schema(full_schema)
