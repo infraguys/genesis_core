@@ -1,0 +1,26 @@
+name: "core-node-set-example"
+description: "Genesis Core node & set example"
+schema_version: 1
+version: "0.0.1"
+api_version: "v1"
+
+requirements:
+  core:
+    from_version: "0.0.0"
+
+resources:
+  $core.compute.nodes:
+    example_node:
+      name: "example-node"
+      description: "Example node"
+      cores: 1
+      ram: 1024
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      disk_spec:
+        kind: "root_disk"
+        size: 10
+        image: "{{ base_image_url | default('https://repository.genesis-core.tech/genesis-base/0.4.1/genesis-base.raw.gz') }}"
+
+exports:
+  example_node:
+    no_link: "$core.compute.nodes.example_node"
