@@ -15,6 +15,7 @@
 #    under the License.
 
 import logging
+import time
 import uuid as sys_uuid
 
 from restalchemy.dm import filters as dm_filters
@@ -51,6 +52,7 @@ from genesis_core.secret import service as secret_service
 from genesis_core.janitor import service as janitor_service
 from genesis_core.compute.node_set.dm import models as node_set_models
 from genesis_core.compute import constants as nc
+from genesis_core.telemetry import service as telemetry_service
 
 LOG = logging.getLogger(__name__)
 NODE_SET_TF_STORAGE = "/var/lib/genesis/genesis_core/node_set/target_fields.json"
@@ -187,6 +189,12 @@ class GeneralService(basic.BasicService):
             iter_pause=0,
         )
 
+        # Telemetry
+        telemetry = telemetry_service.TelemetryService(
+            iter_min_period=60 * 60,
+            iter_pause=0,
+        )
+
         self._services = [
             vs_builder_service,
             set_builder,
@@ -205,8 +213,11 @@ class GeneralService(basic.BasicService):
             secret_svc,
             event_sender,
             em_builder,
+            # non-essential services should be last
             janitor,
+            telemetry,
         ]
+        self._next_run_times = {id(s): 0 for s in self._services}
 
     def _setup(self):
         LOG.info("Setup all services")
@@ -214,6 +225,9 @@ class GeneralService(basic.BasicService):
             service._setup()
 
     def _iteration(self):
-        # Iterate all services
+        now = time.monotonic()
         for service in self._services:
-            service._loop_iteration()
+            svc_id = id(service)
+            if now >= self._next_run_times[svc_id]:
+                self._next_run_times[svc_id] = now + service._iter_min_period
+                service._loop_iteration()

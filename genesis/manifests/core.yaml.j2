@@ -31,7 +31,7 @@ resources:
       profile_type: "GLOBAL"
       project_id: "12345678-c625-4fee-81d5-f691897b8142"
       description: "The legacy profile"
-  
+
   $core.vs.variables:
     default_replicas:
       name: "default_replicas"
@@ -91,6 +91,60 @@ resources:
     core_ip_address:
       uuid: "55814431-ede5-4c4e-abd6-e61600a3069b"
       name: "core_ip_address"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      setter:
+        kind: selector
+        selector_strategy: latest
+
+    # Ecosystem endpoint URL for external services
+    ecosystem_endpoint:
+      uuid: "a1b2c3d4-e5f6-4a7b-8c9d-e0f1a2b3c4d5"
+      name: "ecosystem_endpoint"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      setter:
+        kind: selector
+        selector_strategy: latest
+
+    # Flag to disable telemetry collection
+    disable_telemetry:
+      uuid: "f6e5d4c3-b2a1-4f9e-8d7c-6b5a4f3e2d1c"
+      name: "disable_telemetry"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      setter:
+        kind: selector
+        selector_strategy: latest
+
+    # Stand UUID identifier
+    stand_uuid:
+      uuid: "9f8e7d6c-5b4a-4c3d-2e1f-0a9b8c7d6e5f"
+      name: "stand_uuid"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      setter:
+        kind: selector
+        selector_strategy: latest
+
+    # Stand secret for authentication
+    stand_secret:
+      uuid: "3e2d1c0b-9a8f-4e7d-6c5b-4a3f2e1d0c9b"
+      name: "stand_secret"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      setter:
+        kind: selector
+        selector_strategy: latest
+
+    # Stand access token for API authentication
+    stand_access_token:
+      uuid: "7c6b5a4f-3e2d-4c1b-0a9f-8e7d6c5b4a3f"
+      name: "stand_access_token"
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      setter:
+        kind: selector
+        selector_strategy: latest
+
+    # Stand refresh token for API authentication
+    stand_refresh_token:
+      uuid: "eacf0c1f-3495-4986-89a5-80139526b82a"
+      name: "stand_refresh_token"
       project_id: "12345678-c625-4fee-81d5-f691897b8142"
       setter:
         kind: selector

@@ -52,7 +52,6 @@ GCTL_CFG_DIR = f"/home/{USER}/.genesis"
 SPEC_PATH = "/mnt/cdrom/spec.json"
 MANIFEST_PATH = "/mnt/cdrom/core.yaml"
 MAIN_SUBNET_UUID = sys_uuid.UUID("c910a7e1-61ae-4d56-bdd6-a59faa3cbda3")
-VAR_CORE_IP_ADDRESS_UUID = sys_uuid.UUID("55814431-ede5-4c4e-abd6-e61600a3069b")
 
 
 cli_opts = [
@@ -449,7 +448,7 @@ def _set_defaults(spec: dict[str, tp.Any]):
 
         LOG.info("Set core_ip_address variable")
         core_ip_var = vs_models.Variable.objects.get_one_or_none(
-            filters={"uuid": dm_filters.EQ(VAR_CORE_IP_ADDRESS_UUID)}
+            filters={"uuid": dm_filters.EQ(c.VAR_CORE_IP_ADDRESS_UUID)}
         )
         if not core_ip_var:
             return False
@@ -464,7 +463,194 @@ def _set_defaults(spec: dict[str, tp.Any]):
         core_ip_value.insert()
         return True
 
-    tasks = [_activate_profile, _set_core_ip_var]
+    def _set_ecosystem_endpoint_var() -> bool:
+        val_uuid = sys_uuid.UUID("0a810628-544e-4a1a-a895-d5e4176eec06")
+        existing_value = vs_models.Value.objects.get_one_or_none(
+            filters={"uuid": dm_filters.EQ(val_uuid)}
+        )
+        if existing_value:
+            LOG.info("Ecosystem endpoint variable already exists")
+            return True
+
+        LOG.info("Set ecosystem_endpoint variable")
+        ecosystem_endpoint_var = vs_models.Variable.objects.get_one_or_none(
+            filters={"uuid": dm_filters.EQ(c.VAR_ECOSYSTEM_ENDPOINT_UUID)}
+        )
+        if not ecosystem_endpoint_var:
+            return False
+
+        endpoint_value = spec.get("ecosystem_endpoint", "")
+        ecosystem_endpoint_value = vs_models.Value(
+            uuid=val_uuid,
+            variable=ecosystem_endpoint_var,
+            value=endpoint_value,
+            project_id=c.EM_HIDDEN_PROJECT_ID,
+        )
+        ecosystem_endpoint_value.insert()
+        return True
+
+    def _set_disable_telemetry_var() -> bool:
+        val_uuid = sys_uuid.UUID("4c4b1ce8-4d39-4000-a826-098053d796e4")
+        existing_value = vs_models.Value.objects.get_one_or_none(
+            filters={"uuid": dm_filters.EQ(val_uuid)}
+        )
+        if existing_value:
+            LOG.info("Disable telemetry variable already exists")
+            return True
+
+        LOG.info("Set disable_telemetry variable")
+        disable_telemetry_var = vs_models.Variable.objects.get_one_or_none(
+            filters={"uuid": dm_filters.EQ(c.VAR_DISABLE_TELEMETRY_UUID)}
+        )
+        if not disable_telemetry_var:
+            return False
+
+        # Get disable telemetry flag from spec or use default False
+        telemetry_value = spec.get("disable_telemetry", False)
+
+        disable_telemetry_value = vs_models.Value(
+            uuid=val_uuid,
+            variable=disable_telemetry_var,
+            value=telemetry_value,
+            project_id=c.EM_HIDDEN_PROJECT_ID,
+        )
+        disable_telemetry_value.insert()
+        return True
+
+    def _set_stand_uuid_var() -> bool:
+        val_uuid = sys_uuid.UUID("f134c97f-bb4d-4d67-9527-8c90e2f04f8c")
+        existing_value = vs_models.Value.objects.get_one_or_none(
+            filters={"uuid": dm_filters.EQ(val_uuid)}
+        )
+        if existing_value:
+            LOG.info("Stand UUID variable already exists")
+            return True
+
+        LOG.info("Set stand_uuid variable")
+        stand_uuid_var = vs_models.Variable.objects.get_one_or_none(
+            filters={"uuid": dm_filters.EQ(c.VAR_STAND_UUID_UUID)}
+        )
+        if not stand_uuid_var:
+            return False
+
+        # Get stand UUID from spec
+        stand_uuid_value = spec.get("stand_uuid", "")
+        if not stand_uuid_value:
+            LOG.warning("No stand UUID found in spec")
+            return True
+
+        stand_uuid_val = vs_models.Value(
+            uuid=val_uuid,
+            variable=stand_uuid_var,
+            value=stand_uuid_value,
+            project_id=c.EM_HIDDEN_PROJECT_ID,
+        )
+        stand_uuid_val.insert()
+        return True
+
+    def _set_stand_secret_var() -> bool:
+        val_uuid = sys_uuid.UUID("c5548ad1-7990-4283-ba1f-725fd7a7b9d4")
+        existing_value = vs_models.Value.objects.get_one_or_none(
+            filters={"uuid": dm_filters.EQ(val_uuid)}
+        )
+        if existing_value:
+            LOG.info("Stand secret variable already exists")
+            return True
+
+        LOG.info("Set stand_secret variable")
+        stand_secret_var = vs_models.Variable.objects.get_one_or_none(
+            filters={"uuid": dm_filters.EQ(c.VAR_STAND_SECRET_UUID)}
+        )
+        if not stand_secret_var:
+            return False
+
+        # Get stand secret from spec
+        stand_secret_value = spec.get("stand_secret", "")
+        if not stand_secret_value:
+            LOG.warning("No stand secret found in spec")
+            return True
+
+        stand_secret_val = vs_models.Value(
+            uuid=val_uuid,
+            variable=stand_secret_var,
+            value=stand_secret_value,
+            project_id=c.EM_HIDDEN_PROJECT_ID,
+        )
+        stand_secret_val.insert()
+        return True
+
+    def _set_stand_access_token_var() -> bool:
+        val_uuid = sys_uuid.UUID("2e0a0f6f-0568-4804-91d2-1f68f43afda9")
+        existing_value = vs_models.Value.objects.get_one_or_none(
+            filters={"uuid": dm_filters.EQ(val_uuid)}
+        )
+        if existing_value:
+            LOG.info("Stand access token variable already exists")
+            return True
+
+        LOG.info("Set stand_access_token variable")
+        stand_access_token_var = vs_models.Variable.objects.get_one_or_none(
+            filters={"uuid": dm_filters.EQ(c.VAR_STAND_ACCESS_TOKEN_UUID)}
+        )
+        if not stand_access_token_var:
+            return False
+
+        # Get stand access token from spec (could be a dict or string)
+        token_value = spec.get("stand_tokens", {})
+        if not token_value:
+            LOG.warning("No stand access token found in spec")
+            return True
+
+        stand_access_token_val = vs_models.Value(
+            uuid=val_uuid,
+            variable=stand_access_token_var,
+            value=token_value.get("access_token", ""),
+            project_id=c.EM_HIDDEN_PROJECT_ID,
+        )
+        stand_access_token_val.insert()
+        return True
+
+    def _set_stand_refresh_token_var() -> bool:
+        val_uuid = sys_uuid.UUID("eacf0c1f-3495-4986-89a5-80139526b82a")
+        existing_value = vs_models.Value.objects.get_one_or_none(
+            filters={"uuid": dm_filters.EQ(val_uuid)}
+        )
+        if existing_value:
+            LOG.info("Stand refresh token variable already exists")
+            return True
+
+        LOG.info("Set stand_refresh_token variable")
+        stand_refresh_token_var = vs_models.Variable.objects.get_one_or_none(
+            filters={"uuid": dm_filters.EQ(c.VAR_STAND_REFRESH_TOKEN_UUID)}
+        )
+        if not stand_refresh_token_var:
+            return False
+
+        # Get stand refresh token from spec (could be a dict or string)
+        token_value = spec.get("stand_tokens", {})
+        if not token_value:
+            LOG.warning("No stand refresh token found in spec")
+            return True
+
+        stand_refresh_token_val = vs_models.Value(
+            uuid=val_uuid,
+            variable=stand_refresh_token_var,
+            value=token_value.get("refresh_token", ""),
+            project_id=c.EM_HIDDEN_PROJECT_ID,
+        )
+        stand_refresh_token_val.insert()
+        return True
+
+    tasks = [
+        _activate_profile,
+        _set_core_ip_var,
+        _set_ecosystem_endpoint_var,
+        _set_disable_telemetry_var,
+        _set_stand_uuid_var,
+        _set_stand_secret_var,
+        _set_stand_access_token_var,
+        _set_stand_refresh_token_var,
+    ]
 
     # Perform all tasks to set default values until timeout
     timeout_at = time.monotonic() + 120
