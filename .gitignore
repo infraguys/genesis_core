@@ -42,6 +42,7 @@ ChangeLog
 cover/
 version.txt
 etc/genesis_core/genesis_core.d/*.conf
+etc/*/*.local
 
 # OS
 .DS_Store
