@@ -75,6 +75,8 @@ markdown_extensions:
 nav:
   - Software: index.md
   - OpenAPI: openapi/openapi.md
+  - IAM:
+    - Permissions Overview: iam/permissions_overview.md
   - Network:
     - Load Balancer as a Service API: network/load_balancer.md
   - Service:
