@@ -1,4 +1,4 @@
-#    Copyright 2025 Genesis Corporation.
+#    Copyright 2025-2026 Genesis Corporation.
 #
 #    All Rights Reserved.
 #
@@ -52,6 +52,7 @@ from genesis_core.secret import service as secret_service
 from genesis_core.janitor import service as janitor_service
 from genesis_core.compute.node_set.dm import models as node_set_models
 from genesis_core.compute import constants as nc
+from genesis_core.dns_sync import service as dns_sync_service
 from genesis_core.telemetry import service as telemetry_service
 
 LOG = logging.getLogger(__name__)
@@ -195,6 +196,12 @@ class GeneralService(basic.BasicService):
             iter_pause=0,
         )
 
+        # DNS Sync
+        dns_sync = dns_sync_service.DNSSyncService(
+            iter_min_period=5,
+            iter_pause=0,
+        )
+
         self._services = [
             vs_builder_service,
             set_builder,
@@ -213,6 +220,7 @@ class GeneralService(basic.BasicService):
             secret_svc,
             event_sender,
             em_builder,
+            dns_sync,
             # non-essential services should be last
             janitor,
             telemetry,

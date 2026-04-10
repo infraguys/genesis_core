@@ -1,4 +1,4 @@
-#    Copyright 2025 Genesis Corporation.
+#    Copyright 2025-2026 Genesis Corporation.
 #
 #    All Rights Reserved.
 #
@@ -51,6 +51,7 @@ class CommonModel(
 class Domain(CommonModel, models.ModelWithProject, ua_models.TargetResourceMixin):
     __tablename__ = "dns_domains"
     name = properties.property(types.String(), required=True)
+    sync_to_ecosystem = properties.property(types.Boolean(), default=False)
     # Used only for PDNS
     id = properties.property(types.Integer())
     # Next columns exist in DB but used only for PDNS support and have
