@@ -20,7 +20,6 @@ import enum
 import re
 import typing as tp
 import uuid as sys_uuid
-import yaml
 
 from gcl_sdk.agents.universal.dm import models as sdk_models
 from gcl_sdk.agents.universal import utils as sdk_utils
@@ -41,10 +40,6 @@ from genesis_core.common.dm import models as cm
 from genesis_core.common.dm import targets as ct
 from genesis_core.common import utils as cm_utils
 from genesis_core.elements.dm import utils
-from genesis_core.elements.dm.validate import (
-    load_base_manifest_schema,
-    validate_manifest,
-)
 from genesis_core.elements import constants as cc
 from genesis_core.vs.dm import models as vs_models
 
@@ -92,7 +87,8 @@ class LinkResolver:
         )
         self._discarded_part = self._full_link[len(link) :]
 
-    def _extract_resource_link(self, full_link):
+    @staticmethod
+    def _extract_resource_link(full_link):
 
         full_link = full_link.split(":", 1)[0]
 
@@ -150,7 +146,7 @@ class Manifest(
     project_id = properties.property(
         ra_types.UUID(),
         read_only=True,
-        default=sys_uuid.UUID("12345678-cd58-4c33-a0c3-23a1086a53b7"),
+        default=utils.get_project_id(),
     )
     requirements = properties.property(
         ra_types.Dict(),
@@ -177,7 +173,11 @@ class Manifest(
         default=dict,
     )
 
-    def install(self):
+    def install(self) -> "Manifest":
+        """
+        Create an element from the manifest if it does not exist.
+
+        """
         if Element.objects.get_one_or_none(filters={"name": ra_filters.EQ(self.name)}):
             raise ValueError(f"Element '{self.name}' already exists.")
 
@@ -196,7 +196,7 @@ class Manifest(
 
         return self.apply_element(element)
 
-    def upgrade(self):
+    def upgrade(self) -> "Manifest":
         element = Element.objects.get_one_or_none(
             filters={"name": ra_filters.EQ(self.name)}
         )
@@ -213,8 +213,11 @@ class Manifest(
         element.save()
         return self.apply_element(element)
 
-    def apply_element(self, element):
-        # Imports
+    def apply_requirements(self, element: "Element"):
+        element.requirements = self.requirements
+        element.save()
+
+    def apply_imports(self, element: "Element"):
         existing_imports = {
             i.name: i
             for i in Import.objects.get_all(
@@ -267,7 +270,41 @@ class Manifest(
             element_engine.delete_resource(resource)
             imp.delete()
 
-        # Resources
+    def apply_exports(self, element: "Element"):
+        existing_exports = {
+            i.name: i
+            for i in Export.objects.get_all(
+                filters={"element": ra_filters.EQ(element.uuid)}
+            )
+        }
+
+        for export_name, export_data in self.exports.items():
+            export_kwargs = dict(
+                name=export_name,
+                element=element,
+                link=export_data["link"],
+            )
+            if "kind" in export_data:
+                export_kwargs["kind"] = export_data["kind"]
+
+            if export_model := existing_exports.pop(export_name, None):
+                for k, v in export_kwargs.items():
+                    setattr(export_model, k, v)
+                export_model.save()
+            else:
+                export_model = Export(
+                    uuid=cm_utils.get_or_create_uuid_from_dict(export_data),
+                    **export_kwargs,
+                )
+
+                export_model.insert()
+                element_engine.add_resource_export(export_model)
+
+        for exp in existing_exports.values():
+            element_engine.delete_resource_export(exp)
+            exp.delete()
+
+    def apply_resources(self, element: "Element"):
         existing_resources = {
             (i.resource_link_prefix, i.name): i
             for i in Resource.objects.get_all(
@@ -312,43 +349,18 @@ class Manifest(
             element_engine.delete_resource(res)
             res.delete()
 
-        # Exports
-        existing_exports = {
-            i.name: i
-            for i in Export.objects.get_all(
-                filters={"element": ra_filters.EQ(element.uuid)}
-            )
-        }
+    def apply_element(self, element: "Element") -> "Manifest":
+        """
+        Create or update imports, exports, resources from element.
+        """
 
-        for export_name, export_data in self.exports.items():
-            export_kwargs = dict(
-                name=export_name,
-                element=element,
-                link=export_data["link"],
-            )
-            if "kind" in export_data:
-                export_kwargs["kind"] = export_data["kind"]
-
-            if export_model := existing_exports.pop(export_name, None):
-                for k, v in export_kwargs.items():
-                    setattr(export_model, k, v)
-                export_model.save()
-            else:
-                export_model = Export(
-                    uuid=cm_utils.get_or_create_uuid_from_dict(export_data),
-                    **export_kwargs,
-                )
-
-                export_model.insert()
-                element_engine.add_resource_export(export_model)
-
-        for exp in existing_exports.values():
-            element_engine.delete_resource_export(exp)
-            exp.delete()
-
+        self.apply_requirements(element)
+        self.apply_imports(element)
+        self.apply_resources(element)
+        self.apply_exports(element)
         return self
 
-    def uninstall(self):
+    def uninstall(self) -> "Manifest":
         element_engine.load_from_database()
 
         elements = Element.objects.get_all(
@@ -362,9 +374,24 @@ class Manifest(
             element_engine.remove_element(element)
         return self
 
-    def validate(self):
-        element_engine.load_schema()
-        validate_manifest(self.dump_to_simple_view(), element_engine.schema)
+    def view(self) -> dict:
+        element_engine.load_schemas()
+
+        manifest = self.dump_to_simple_view()
+        full_schema = element_engine.full_schema
+
+        utils.mutate_manifest(manifest, full_schema)
+
+        return manifest
+
+    def validate_schema_base(self) -> "Manifest":
+        element_engine.load_schemas()
+        utils.validate_manifest(self.dump_to_simple_view(), element_engine.base_schema)
+        return self
+
+    def validate_schema_full(self) -> "Manifest":
+        element_engine.load_schemas()
+        utils.validate_manifest(self.view(), element_engine.full_schema)
         return self
 
 
@@ -403,38 +430,20 @@ class Element(
         default=INSTALL_TYPES.MANUAL.value,
     )
     profile = relationships.relationship(vs_models.Profile, prefetch=True)
+    project_id = properties.property(
+        ra_types.UUID(),
+        read_only=True,
+        default=utils.get_project_id(),
+    )
+    requirements = properties.property(
+        ra_types.Dict(),
+        mutable=True,
+        default=dict,
+    )
 
     @property
     def link(self):
         return f"${self.name}"
-
-    # def get_requirements(self):
-    #     return self._requirements
-
-    # def _add_requirement_to_list(self, requirement, list_of_requirements):
-    #     for req in list_of_requirements:
-    #         if req.name == requirement.name:
-    #             raise exceptions.ConflictRequirement(requirement=requirement)
-    #     list_of_requirements.append(requirement)
-    #     return list_of_requirements
-
-    # def add_requirement(self, requirement):
-    #     self._requirements = self._add_requirement_to_list(
-    #         requirement,
-    #         self._requirements,
-    #     )
-
-    # def add_requirements(self, requirements):
-    #     copy_requirements = self._requirements
-    #     for req in requirements:
-    #         copy_requirements = self._add_requirement_to_list(
-    #             req,
-    #             copy_requirements,
-    #         )
-    #     self._requirements = copy_requirements
-
-    # def get_resources(self):
-    #     return self._resources
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -594,7 +603,7 @@ class Resource(
         except (TypeError, IndexError):
             return None
 
-    def get_parameter_value(self, parameter):
+    def get_parameter_value(self, parameter: str):
         parts = parameter.split(":")
         resource_name = parts[0][1:]
         if resource_name != self.name:
@@ -743,7 +752,7 @@ class Resource(
         target_state = target_state or self.render_target_state()
         return sdk_utils.calculate_hash(target_state)
 
-    def _find_actual_resource(self):
+    def _find_actual_resource(self) -> sdk_models.Resource | None:
         if self.actual_resource is None:
             for actual_resource in sdk_models.Resource.objects.get_all(
                 filters={
@@ -1003,96 +1012,27 @@ class Namespace:
         return self._namespace_resources[clear_link]
 
 
-class BaseManifestParser:
-    SCHEMA_VERSION = 0
-
-    def __init__(self, manifest):
-        super().__init__()
-        self._manifest = manifest
-
-    def load_element_from_manifest(self, manifest):
-        raise NotImplementedError("Subclasses must implement this method.")
-
-
-class ManifestParserV1(BaseManifestParser):
-    SCHEMA_VERSION = 1
-
-    def load_element(
-        self,
-    ):
-        name = utils.get_required_field(self._manifest, "Name")
-        version = utils.get_required_field(self._manifest, "Version")
-        description = self._manifest.get("Description", "")
-        uuid = utils.get_element_uuid(name, version)
-        project_id = utils.get_project_id()
-        element = Element(
-            uuid=uuid,
-            name=name,
-            version=version,
-            description=description,
-            project_id=project_id,
-        )
-        return element
-
-    def load_resources(self, element):
-        result = []
-        data = self._manifest.get("Resources", {})
-        for resource_link_prefix, resource_data in data.items():
-            for resource_name, resource_data in resource_data.items():
-                resource_uuid = resource_data.get("uuid", str(sys_uuid.uuid4()))
-                project_id = resource_data.get("project_id", str(element.project_id))
-                raw_properties = resource_data.copy()
-                raw_properties.update(
-                    {
-                        "uuid": resource_uuid,
-                        "project_id": project_id,
-                    }
-                )
-                resource = Resource(
-                    uuid=sys_uuid.UUID(resource_uuid),
-                    element=element,
-                    resource_link_prefix=resource_link_prefix,
-                    name=resource_name,
-                    manifest_state=raw_properties,
-                )
-                result.append(resource)
-        return result
-
-
 class ElementEngine:
-    MANIFEST_PARSER_MAP = {
-        ManifestParserV1.SCHEMA_VERSION: ManifestParserV1,
-    }
-
     def __init__(self):
         super().__init__()
-        self._namespaces = {}
-        self._resource_exports = {}
-        self.schema = {}
+        self._namespaces: tp.Dict[str, Namespace] = {}
+        self._resource_exports: tp.Dict[str, Resource] = {}
+        self.base_schema: tp.Dict[str, tp.Any] = {}
+        self.full_schema: tp.Dict[str, tp.Any] = {}
 
-    def load_schema(self):
-        if not self.schema:
-            self.schema = load_base_manifest_schema()
+    def load_schemas(self) -> None:
+        if not self.base_schema:
+            self.base_schema = utils.load_base_manifest_schema()
+        if not self.full_schema:
+            self.full_schema = utils.load_full_manifest_schema()
 
-    def load_element_from_manifest(self, manifest):
-        schema_version = utils.get_required_field(manifest, "SchemaVersion")
-        manifest_parser_class = self.MANIFEST_PARSER_MAP.get(
-            schema_version,
-            BaseManifestParser,
-        )
-        manifest_parser = manifest_parser_class(manifest=manifest)
-        element = manifest_parser.load_element()
-        self.add_element(element)
-        for resource in manifest_parser.load_resources(element):
-            self.add_resource(resource)
-
-    def get_namespace(self, name: str):
+    def get_namespace(self, name: str) -> Namespace:
         try:
             return self._namespaces[name]
         except KeyError:
             raise NamespaceNotFound(name=name)
 
-    def load_from_database(self):
+    def load_from_database(self) -> None:
         self._namespaces = {}
         self._resource_exports = {}
         for element in Element.objects.get_all():
@@ -1126,12 +1066,7 @@ class ElementEngine:
                     f"exports are currently supported."
                 )
 
-    def load_element_from_manifest_file(self, manifest_file_path):
-        with open(manifest_file_path, "r") as file:
-            manifest = yaml.safe_load(file)
-        self.load_element_from_manifest(manifest)
-
-    def add_resource(self, resource):
+    def add_resource(self, resource: "Resource") -> None:
         element = resource.element
         if element.link not in self._namespaces:
             ValueError(
@@ -1141,17 +1076,17 @@ class ElementEngine:
         namespace = self._namespaces[resource.element.link]
         namespace.add_resource(resource)
 
-    def delete_resource(self, resource):
+    def delete_resource(self, resource: "Resource") -> None:
         namespace = self._namespaces[resource.element.link]
         namespace.delete_resource(resource)
 
-    def get_resources(self):
+    def get_resources(self) -> tp.List["Resource"]:
         result = []
         for namespace in self._namespaces.values():
             result.extend(namespace.get_resources())
         return result
 
-    def get_resource_by_link(self, element, link):
+    def get_resource_by_link(self, element: "Element", link: str) -> "Resource":
         if element.link not in self._namespaces:
             raise ValueError(
                 f"Can't load element {element}. Element"
@@ -1160,7 +1095,7 @@ class ElementEngine:
         namespace = self._namespaces[element.link]
         return namespace.get_resource_by_link(link)
 
-    def add_element(self, element):
+    def add_element(self, element: "Element") -> None:
         if element.link in self._namespaces:
             raise ValueError(
                 f"Can't load element {element}. Element"
@@ -1169,16 +1104,16 @@ class ElementEngine:
             )
         self._namespaces[element.link] = Namespace(element)
 
-    def get_element(self, link):
+    def get_element(self, link: str) -> "Element":
         return self.get_namespace(name=link).element
 
-    def remove_element(self, element):
+    def remove_element(self, element: "Element") -> None:
         if element.link not in self._namespaces:
             raise ValueError(f"Can't remove element {element}. Element does not exist.")
 
         del self._namespaces[element.link]
 
-    def add_resource_export(self, export_resource):
+    def add_resource_export(self, export_resource: "Resource") -> None:
         element = export_resource.element
         resource = self.get_resource_by_link(
             element=element,
@@ -1191,17 +1126,14 @@ class ElementEngine:
             )
         self._resource_exports[export_resource.link] = resource
 
-    def delete_resource_export(self, export_resource):
+    def delete_resource_export(self, export_resource: "Resource") -> None:
         del self._resource_exports[export_resource.link]
 
-    def get_export_resource(self, from_element, link):
+    def get_export_resource(self, from_element: "Element", link: str) -> "Resource":
         # Implement check element here for export resources
         if link not in self._resource_exports:
             raise ValueError(f"Resource {link} is not in export list")
         return self._resource_exports[link]
-
-    def save_to_database(self):
-        pass
 
 
 element_engine = ElementEngine()

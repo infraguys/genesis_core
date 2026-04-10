@@ -14,27 +14,19 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from izulu import root
+from genesis_core.elements.services import builders
 
 
-class GCException(root.Error):
-    __toggles__ = root.Toggles.DEFAULT ^ root.Toggles.FORBID_UNANNOTATED_FIELDS
-    __template__ = "An unknown exception occurred."
+class TestElementManagerBuilder:
+    def setup_method(self) -> None:
+        # Run service
+        self._service = builders.ElementManagerBuilder()
 
+    def teardown_method(self) -> None:
+        pass
 
-class CommonNotFoundException(GCException):
-    __template__ = "The requested resource was not found."
-
-
-class CommonForbiddenException(GCException):
-    __template__ = "Access to the requested resource is forbidden."
-
-
-class CommonValueErrorException(GCException):
-    __template__ = "The provided value is invalid."
-
-
-class OpenApiValidateException(CommonValueErrorException):
-    __template__ = "OpenApiValidateException: {err}"
-
-    err: str
+    def test_element_manager_builder(
+        self,
+        default_node,
+    ):
+        self._service._iteration()

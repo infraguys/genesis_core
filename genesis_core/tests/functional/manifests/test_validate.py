@@ -14,14 +14,16 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import os
 import pytest
 import requests
 import yaml
 
-from genesis_core.elements.dm.validate import (
-    validate_manifest,
-    dump_full_manifest_schema,
-)
+from genesis_core.elements.dm import models
+from genesis_core.elements.dm import utils
+
+from genesis_core.common import exceptions
+from genesis_core.common.utils import PROJECT_PATH
 
 REPO_URL = "https://repository.genesis-core.tech/genesis-elements"
 
@@ -46,44 +48,66 @@ class TestSpec:
             pytest.skip(f"latest version for {element} is not available")
         assert resp.status_code == 200
         manifest = yaml.safe_load(resp.text)
-        validate_manifest(manifest, base_manifest_schema)
-        validate_manifest(manifest, full_manifest_schema)
+
+        utils.validate_manifest(manifest, base_manifest_schema)
+
+        # TODO(slashburygin): full_schema is not ready now
+        mutated_manifest = utils.mutate_manifest(manifest, full_manifest_schema)
+        utils.validate_manifest(mutated_manifest, full_manifest_schema)
+
+    def test_validate_example(
+        self,
+        full_manifest_schema,
+        user_api,
+    ):
+        path = os.path.join(
+            PROJECT_PATH, "genesis", "manifests", "examples", "core.element.yaml"
+        )
+        with open(path, "r") as f:
+            manifest_data = yaml.safe_load(f)
+
+        manifest = models.Manifest(**manifest_data)
+        manifest.save()
+
+        manifest.install()
+
+        manifest.validate_schema_base()
+        manifest.validate_schema_full()
+
+        manifest.uninstall()
+        manifest.delete()
+
+    @pytest.mark.parametrize(
+        "invalid_manifest",
+        [
+            "invalid_exports.yaml",
+            "invalid_imports.yaml",
+            "invalid_resource.yaml",
+        ],
+    )
+    def test_validate_error(
+        self, invalid_manifest, base_manifest_schema, full_manifest_schema
+    ):
+        with open(
+            os.path.join(
+                PROJECT_PATH,
+                "genesis_core",
+                "tests",
+                "functional",
+                "manifests",
+                "examples",
+                invalid_manifest,
+            ),
+            "r",
+        ) as f:
+            manifest = yaml.safe_load(f)
+        with pytest.raises(exceptions.OpenApiValidateException):
+            utils.validate_manifest(manifest, base_manifest_schema)
+            utils.validate_manifest(manifest, full_manifest_schema)
 
     @pytest.mark.skip(reason="for manual running")
     def test_build_full_schema(self, base_manifest_schema, user_api_spec):
-        path_schema = []
-        for path, path_obj in user_api_spec["paths"].items():
-            path_parts = path.split("/")
-            if len(path_parts) > 5:
-                continue
-            post_path = path_obj.get("post")
-            if post_path:
-                operation_id = post_path.get("operationId")
-                if operation_id and operation_id.startswith("Create_v1"):
-                    schema_ref = post_path["requestBody"]["content"][
-                        "application/json"
-                    ]["schema"]
-                    model_name = schema_ref["$ref"].split("/")[-1]
-                    api_part_1 = path_parts[2]
-                    api_part_2 = path_parts[3]
-                    model = user_api_spec["components"]["schemas"][model_name]
-                    resource = f"$core.{api_part_1}.{api_part_2}"
-                    path_schema.append(
-                        {
-                            "path": path,
-                            "schema": schema_ref,
-                            "resource": resource,
-                            "model_name": model_name,
-                            "model": model,
-                        }
-                    )
-                    base_manifest_schema["components"]["schemas"][model_name] = model
-                    base_manifest_schema["properties"]["resources"]["properties"][
-                        resource
-                    ] = {
-                        "type": "object",
-                        "additionalProperties": schema_ref,
-                    }
-
-        assert path_schema
-        dump_full_manifest_schema(base_manifest_schema)
+        full_schema = utils.build_full_schema(base_manifest_schema, user_api_spec)
+        utils.dump_full_manifest_schema(full_schema)
+        full_schema = utils.build_full_schema(base_manifest_schema, user_api_spec)
+        utils.dump_full_manifest_schema(full_schema)

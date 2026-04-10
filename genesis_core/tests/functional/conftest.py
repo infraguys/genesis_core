@@ -36,11 +36,7 @@ from genesis_core.common import utils
 from genesis_core.compute import constants as nc
 from genesis_core.compute.dm import models as node_models
 from genesis_core.compute.node_set.dm import models as node_set_models
-from genesis_core.elements.dm.validate import (
-    load_base_manifest_schema,
-    load_full_manifest_schema,
-    load_user_api_spec,
-)
+from genesis_core.elements.dm import utils as element_utils
 from genesis_core.user_api.api import app as user_app
 from genesis_core.user_api.iam import constants as iam_c
 from genesis_core.tests.functional import consts
@@ -925,14 +921,14 @@ def setup_db_for_worker(worker_id):
 
 @pytest.fixture(scope="session")
 def base_manifest_schema():
-    return load_base_manifest_schema()
+    return element_utils.load_base_manifest_schema()
 
 
 @pytest.fixture(scope="session")
 def full_manifest_schema():
-    return load_full_manifest_schema()
+    return element_utils.load_full_manifest_schema()
 
 
 @pytest.fixture(scope="session")
 def user_api_spec():
-    return load_user_api_spec()
+    return element_utils.load_user_api_spec()
