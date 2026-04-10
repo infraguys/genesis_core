@@ -222,7 +222,7 @@ class TelemetryService(basic.BasicService):
     def _register_stand(self, endpoint, stand_uuid, stand_secret):
         """Register stand in ecosystem."""
         self._client.post(
-            f"{endpoint}/v1/realms/",
+            f"{endpoint}/api/ecosystem/v1/realms/",
             json={"uuid": stand_uuid, "secret": stand_secret},
             headers={"Content-Type": "application/json"},
         )
@@ -230,7 +230,7 @@ class TelemetryService(basic.BasicService):
 
     def _send_telemetry(self, endpoint, stand_uuid, stand_secret, data):
         """Send telemetry data to the ecosystem endpoint."""
-        url = f"{endpoint}/v1/realms/{stand_uuid}/actions/push_telemetry/invoke"
+        url = f"{endpoint}/api/ecosystem/v1/realms/{stand_uuid}/actions/push_telemetry/invoke"
         auth = requests_auth.HTTPBasicAuth(stand_uuid, stand_secret)
 
         try:
