@@ -197,9 +197,63 @@ resources:
         name: "core"
         address: $core.vs.variables.$core_ip_address:value
 
+# Core LB
+  $core.network.lb:
+    core_lb:
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      type:
+        kind: core_agent
+  $core.network.lb.$core_lb.backend_pools:
+    core_lb_core_backend_http:
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      parent: $core.network.lb.$core_lb:uuid
+      endpoints:
+        - kind: host
+          host: 127.0.0.1
+          port: 11010
+  $core.network.lb.$core_lb.vhosts:
+    core_lb_core_http:
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      parent: $core.network.lb.$core_lb:uuid
+      domains:
+        - "_"
+      protocol: http
+      port: 80
+  $core.network.lb.$core_lb.vhosts.$core_lb_core_http.routes:
+    core_lb_core_route:
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      parent: $core.network.lb.$core_lb.vhosts.$core_lb_core_http:uuid
+      condition:
+        kind: prefix
+        value: /api/core/
+        actions:
+          - kind: backend
+            pool: $core.network.lb.$core_lb.backend_pools.$core_lb_core_backend_http:uuid
+            protocol:
+              kind: http
+        modifiers:
+          - kind: auto_header
+          - kind: rewrite_url
+            regex: "^/api/core/(.*)"
+            replacement: "/$1"
+    core_lb_static_route:
+      project_id: "12345678-c625-4fee-81d5-f691897b8142"
+      parent: $core.network.lb.$core_lb.vhosts.$core_lb_core_http:uuid
+      condition:
+        kind: prefix
+        value: /
+        actions:
+          - kind: local_dir
+            path: /var/www/html
+            is_spa: true
+
 exports:
   local_domain:
     link: "$core.dns.domains.$local_domain"
+  core_lb:
+    link: "$core.network.lb.$core_lb"
+  core_lb_http_vhost:
+    link: "$core.network.lb.$core_lb.vhosts.$core_lb_core_http"
   var_core_ip_address:
     link: "$core.vs.variables.$core_ip_address"
   var_default_cores:
