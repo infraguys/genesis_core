@@ -1,7 +1,5 @@
 server {
-    listen 80 default_server reuseport;
     listen 443 ssl default_server reuseport;
-    listen [::]:80 default_server;
     listen [::]:443 ssl default_server;
     server_name _;
     ssl_certificate /etc/nginx/ssl/nginx.crt;
