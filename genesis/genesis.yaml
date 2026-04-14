@@ -63,5 +63,7 @@ build:
         envs:
           - ALLOW_USER_PASSWD
           - FREQUENT_LOG_VACUUM
+    # eco manifest must be after core manifest!
+    - manifest: manifests/ecosystem_instance.yaml.j2
     - manifest: manifests/core-node-set-example.yaml.j2
     - manifest: manifests/core-service-example.yaml.j2
