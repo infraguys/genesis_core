@@ -99,9 +99,22 @@ class TestEmUserApi:
         response = client.get(url)
         assert response.status_code == 200
 
+        url = client.build_collection_uri(["em", "elements", element_uuid, "resources"])
+        response = client.get(url)
+        assert response.status_code == 200
+        resources_data = response.json()
+        assert isinstance(resources_data, list)
+
+        url = client.build_collection_uri(["em", "resources"])
+        response = client.get(url)
+        assert response.status_code == 200
+        resources_data = response.json()
+        assert isinstance(resources_data, list)
+
         imports_data = response.json()
         assert isinstance(imports_data, list)
 
+        # uninstall
         url = client.build_resource_uri(
             ["em", "manifests", manifest_uuid, "actions", "uninstall", "invoke"]
         )
@@ -115,6 +128,7 @@ class TestEmUserApi:
         element_data = response.json()
         assert len(element_data) == 0
 
+        # delete manifest
         url = client.build_resource_uri(["em", "manifests", manifest_uuid])
         response = client.delete(url)
         assert response.status_code == 204

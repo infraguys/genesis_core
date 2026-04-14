@@ -1,0 +1,21 @@
+name: Build elements inventory
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '5 * * * 0'
+
+permissions:
+  contents: read
+
+jobs:
+  Build:
+    runs-on: self-hosted
+    strategy:
+      fail-fast: true
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 30
+      - name: Build elements inventory
+        run: python3 genesis_core/cmd/elements_inventory.py

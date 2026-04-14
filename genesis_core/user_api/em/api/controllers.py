@@ -15,11 +15,11 @@
 #    under the License.
 
 from gcl_iam.api import controllers as iam_controllers
-from restalchemy.dm import filters as dm_filters
 from restalchemy.api import actions
 from restalchemy.api import controllers
 from restalchemy.api import resources
 from restalchemy.common import exceptions as ra_e
+from restalchemy.dm import filters as dm_filters
 
 from genesis_core.elements.dm import models
 from genesis_core.vs.dm import models as vs_models
@@ -146,6 +146,17 @@ class ElementResourceController(
             ],
         ),
     )
+
+    def __init__(self, *args, **kwargs):
+        models.element_engine.load_from_database()
+        super().__init__(*args, **kwargs)
+
+
+class ResourceAllController(controllers.BaseResourceController):
+    """Controller for /v1/resources/ endpoint"""
+
+    # NOTE(slashburygin): we need it here because in restalchemy we can add model to resources only once
+    __resource__ = resources.ResourceMap.model_type_to_resource[models.Resource]
 
     def __init__(self, *args, **kwargs):
         models.element_engine.load_from_database()

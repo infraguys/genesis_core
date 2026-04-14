@@ -6,8 +6,6 @@ Welcome to Genesis Core!
 
 The Genesis Core is an open source software that offers a one turnkey solution to deal with infrastructure at all levels - from bare metal and virtual machines to applications and services.
 
-Refer to the [wiki](https://github.com/infraguys/genesis_core/wiki) for more detailed information.
-
 ## 📦 Installation
 
 There are several ways to install Genesis Core and depend on your purpose you can choose one of them.
@@ -19,7 +17,7 @@ This stand may be used for development purposes as well if you are focusing on a
 
 ## Basic usage
 
-In a case you would like to run Genesis Core on your own infrastructure, you can use the [basic guide](https://github.com/infraguys/genesis_core/wiki/BasicUsage) for more details.
+In a case you would like to run Genesis Core on your own infrastructure, you can use the [basic guide](./usage/basic_usage.md) for more details.
 
 ## 🚀 Development
 

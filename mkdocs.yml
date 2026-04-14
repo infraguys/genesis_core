@@ -74,11 +74,15 @@ markdown_extensions:
 
 nav:
   - Software: index.md
+  - Usage: usage/basic_usage.md
   - OpenAPI: openapi/openapi.md
   - Element:
-    - Manifest: element_manager/manifest.md
-    - Service as a Service API: element_manager/service.md
+    - Manifest: em/manifest.md
+    - Service as a Service API: em/service.md
+    - Example commands: em/cli.md
   - IAM:
     - Permissions Overview: iam/permissions_overview.md
   - Network:
     - Load Balancer as a Service API: network/load_balancer.md
+  - Secrets:
+      - Certificates: secret/certificates.md
