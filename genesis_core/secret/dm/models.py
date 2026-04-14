@@ -75,6 +75,10 @@ class Password(
         types.Enum([s.value for s in sc.SecretMethod]),
         default=sc.SecretMethod.AUTO_HEX.value,
     )
+    default_length = properties.property(
+        types.Integer(min_value=1, max_value=512),
+        default=32,
+    )
     value = properties.property(
         types.AllowNone(types.String(min_length=1, max_length=512)),
         default=None,
@@ -92,6 +96,7 @@ class Password(
             "project_id",
             "uuid",
             "description",
+            "default_length",
         }
 
         if sc.SecretMethod.MANUAL == self.method:

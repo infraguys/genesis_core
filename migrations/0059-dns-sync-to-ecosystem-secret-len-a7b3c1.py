@@ -42,6 +42,11 @@ class MigrationStep(migrations.AbstractMigrationStep):
                 CREATE INDEX IF NOT EXISTS dns_records_updated_at_idx
                     ON dns_records (updated_at);
             """,
+            """
+                ALTER TABLE "secret_passwords"
+                ADD COLUMN IF NOT EXISTS "default_length"
+                    INTEGER NOT NULL DEFAULT 32;
+            """,
         ]
 
         for expression in expressions:
@@ -51,6 +56,10 @@ class MigrationStep(migrations.AbstractMigrationStep):
         expressions = [
             """
                 DROP INDEX IF EXISTS dns_records_updated_at_idx;
+            """,
+            """
+                ALTER TABLE "secret_passwords"
+                DROP COLUMN IF EXISTS "default_length";
             """,
             """
                 ALTER TABLE "dns_domains"
