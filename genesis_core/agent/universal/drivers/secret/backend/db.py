@@ -68,9 +68,11 @@ class DatabaseSecretBackendClient(base.AbstractBackendClient):
         # Generate plain password
         if sc.SecretMethod[password.method].is_auto:
             if password.method == sc.SecretMethod.AUTO_HEX:
-                plain_password = secrets.token_hex(16)
+                plain_password = secrets.token_hex(password.default_length // 2)
             elif password.method == sc.SecretMethod.AUTO_URL_SAFE:
-                plain_password = secrets.token_urlsafe(16)
+                plain_password = secrets.token_urlsafe(password.default_length)[
+                    : password.default_length
+                ]
             else:
                 raise ValueError("Unknown auto-generated password method.")
         else:
