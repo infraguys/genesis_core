@@ -1,4 +1,4 @@
-#    Copyright 2025 Genesis Corporation.
+#    Copyright 2025-2026 Genesis Corporation.
 #
 #    All Rights Reserved.
 #
@@ -35,6 +35,7 @@ from restalchemy.common import config_opts as ra_config_opts
 from gcl_sdk.infra.dm import models as infra_models
 
 from genesis_core.common import config
+from genesis_core.common import log as infra_log
 from genesis_core.compute.dm import models
 from genesis_core.compute.node_set.dm import models as node_set_models
 from genesis_core.common import constants as c
@@ -46,11 +47,11 @@ from genesis_core.elements.dm import models as em_models
 
 
 LOG = logging.getLogger(__name__)
-LOG.setLevel(logging.INFO)
 USER = "ubuntu"
 GCTL_CFG_DIR = f"/home/{USER}/.genesis"
 SPEC_PATH = "/mnt/cdrom/spec.json"
 MANIFEST_PATH = "/mnt/cdrom/core.yaml"
+ECOSYSTEM_INSTANCE_MANIFEST_PATH = "/mnt/cdrom/ecosystem_instance.yaml"
 MAIN_SUBNET_UUID = sys_uuid.UUID("c910a7e1-61ae-4d56-bdd6-a59faa3cbda3")
 
 
@@ -64,6 +65,11 @@ cli_opts = [
         "manifest_path",
         default=MANIFEST_PATH,
         help="Path to the core manifest",
+    ),
+    cfg.StrOpt(
+        "ecosystem_instance_manifest_path",
+        default=ECOSYSTEM_INSTANCE_MANIFEST_PATH,
+        help="Path to the ecosystem instance manifest",
     ),
     cfg.StrOpt(
         "core_endpoint",
@@ -87,6 +93,11 @@ iam_opts = [
         "client_secret",
         default="GenesisCoreSecret",
         help="Client secret for IAM",
+    ),
+    cfg.StrOpt(
+        "hs256_jwks_encryption_key",
+        default=c.DEFAULT_HS256_JWKS_ENCRYPTION_KEY,
+        help="Encryption key for HS256 JWKS secret (A256GCM, 32 bytes)",
     ),
 ]
 
@@ -222,27 +233,13 @@ def _apply_startup_db(spec: dict[str, tp.Any]) -> None:
         LOG.info("Machine pool %s already exists, skipping", pool.uuid)
 
 
-def _install_core_manifest(spec: dict[str, tp.Any], core_element_name: str = "core"):
-    """Idempotent core manifest installation."""
-    core_element = em_models.Element.objects.get_one_or_none(
-        filters={"name": dm_filters.EQ(core_element_name)}
-    )
-
-    if core_element is not None:
-        LOG.info("Core element %s already installed, skipping", core_element_name)
-        return
-
-    manifest_path = CONF.manifest_path
-    if not os.path.exists(manifest_path):
-        LOG.info("No manifest file found at %s", manifest_path)
-        return
-
+def _ensure_gctl_config(spec: dict[str, tp.Any]):
+    """Ensure gctl configuration file exists."""
     if "admin_password" not in spec:
         raise RuntimeError("No admin password found in spec")
 
     admin_pass = spec["admin_password"]
 
-    # Create a configuration file for gctl
     os.makedirs(GCTL_CFG_DIR, exist_ok=True)
     # chown GCTL_CFG_DIR to ubuntu user
     uid = pwd.getpwnam(USER).pw_uid
@@ -272,9 +269,30 @@ def _install_core_manifest(spec: dict[str, tp.Any], core_element_name: str = "co
             f,
         )
     os.chown(config_path, uid, gid)
-
     os.system("genesis autocomplete")
-    os.system(f"genesis --config {config_path} elements install {manifest_path}")
+
+
+def _install_element_manifest(
+    spec: dict[str, tp.Any],
+    element_name: str,
+    manifest_path: str,
+):
+    """Idempotent element manifest installation."""
+    element = em_models.Element.objects.get_one_or_none(
+        filters={"name": dm_filters.EQ(element_name)}
+    )
+
+    if element is not None:
+        LOG.info("Element %s already installed, skipping", element_name)
+        return
+
+    if not os.path.exists(manifest_path):
+        LOG.info("No manifest file found at %s", manifest_path)
+        return
+
+    os.system(
+        f"genesis --config {GCTL_CFG_DIR}/genesisctl.yaml elements install {manifest_path}"
+    )
 
 
 def _init_secrets(spec: dict[str, tp.Any]):
@@ -641,6 +659,36 @@ def _set_defaults(spec: dict[str, tp.Any]):
         stand_refresh_token_val.insert()
         return True
 
+    def _set_hs256_jwks_encryption_key_var() -> bool:
+        val_uuid = sys_uuid.UUID("b16ba886-c18d-4842-9815-ba09d2aae2cb")
+        existing_value = vs_models.Value.objects.get_one_or_none(
+            filters={"uuid": dm_filters.EQ(val_uuid)}
+        )
+        if existing_value:
+            LOG.info("HS256 JWKS encryption key variable already exists")
+            return True
+
+        LOG.info("Set hs256_jwks_encryption_key variable")
+        hs256_var = vs_models.Variable.objects.get_one_or_none(
+            filters={"uuid": dm_filters.EQ(c.VAR_HS256_JWKS_ENCRYPTION_KEY_UUID)}
+        )
+        if not hs256_var:
+            return False
+
+        key_value = CONF["iam"].hs256_jwks_encryption_key
+        if not key_value:
+            LOG.warning("No HS256 JWKS encryption key provided")
+            return True
+
+        hs256_val = vs_models.Value(
+            uuid=val_uuid,
+            variable=hs256_var,
+            value=key_value,
+            project_id=c.EM_HIDDEN_PROJECT_ID,
+        )
+        hs256_val.insert()
+        return True
+
     tasks = [
         _activate_profile,
         _set_core_ip_var,
@@ -650,6 +698,7 @@ def _set_defaults(spec: dict[str, tp.Any]):
         _set_stand_secret_var,
         _set_stand_access_token_var,
         _set_stand_refresh_token_var,
+        _set_hs256_jwks_encryption_key_var,
     ]
 
     # Perform all tasks to set default values until timeout
@@ -677,6 +726,9 @@ def main() -> None:
     # Parse config
     config.parse(sys.argv[1:])
 
+    # Configure logging
+    infra_log.configure()
+
     retry_on_error = CONF.retry_on_error
     engines.engine_factory.configure_postgresql_factory(CONF)
 
@@ -693,7 +745,13 @@ def main() -> None:
             _apply_startup_db(spec)
             _init_secrets(spec)
             _add_core_set(spec)
-            _install_core_manifest(spec)
+            _ensure_gctl_config(spec)
+            _install_element_manifest(spec, "core", CONF.manifest_path)
+            _install_element_manifest(
+                spec,
+                "ecosystem_instance",
+                CONF.ecosystem_instance_manifest_path,
+            )
             _set_defaults(spec)
             return
         except Exception:
