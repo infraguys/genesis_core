@@ -219,19 +219,19 @@ class TelemetryService(basic.BasicService):
 
         return data
 
-    def _register_stand(self, endpoint, stand_uuid, stand_secret):
+    def _register_stand(self, endpoint, realm_uuid, realm_secret):
         """Register stand in ecosystem."""
         self._client.post(
             f"{endpoint}/api/ecosystem/v1/realms/",
-            json={"uuid": stand_uuid, "secret": stand_secret},
+            json={"uuid": realm_uuid, "secret": realm_secret},
             headers={"Content-Type": "application/json"},
         )
         LOG.info("Stand registered in ecosystem successfully")
 
-    def _send_telemetry(self, endpoint, stand_uuid, stand_secret, data):
+    def _send_telemetry(self, endpoint, realm_uuid, realm_secret, data):
         """Send telemetry data to the ecosystem endpoint."""
-        url = f"{endpoint}/api/ecosystem/v1/realms/{stand_uuid}/actions/push_telemetry/invoke"
-        auth = requests_auth.HTTPBasicAuth(stand_uuid, stand_secret)
+        url = f"{endpoint}/api/ecosystem/v1/realms/{realm_uuid}/actions/push_telemetry/invoke"
+        auth = requests_auth.HTTPBasicAuth(realm_uuid, realm_secret)
 
         try:
             self._client.post(
@@ -244,7 +244,7 @@ class TelemetryService(basic.BasicService):
         except bazooka_exc.ForbiddenError:
             LOG.warning("Stand is not registered, attempting registration")
             try:
-                self._register_stand(endpoint, stand_uuid, stand_secret)
+                self._register_stand(endpoint, realm_uuid, realm_secret)
                 self._client.post(
                     url,
                     json={"data": data},
@@ -278,10 +278,10 @@ class TelemetryService(basic.BasicService):
 
             # Read required variables
             ecosystem_endpoint = self._get_variable_value(c.VAR_ECOSYSTEM_ENDPOINT_UUID)
-            stand_uuid = self._get_variable_value(c.VAR_STAND_UUID_UUID)
-            stand_secret = self._get_variable_value(c.VAR_STAND_SECRET_UUID)
+            realm_uuid = self._get_variable_value(c.VAR_REALM_UUID_UUID)
+            realm_secret = self._get_variable_value(c.VAR_REALM_SECRET_UUID)
 
-            if not all([ecosystem_endpoint, stand_uuid, stand_secret]):
+            if not all([ecosystem_endpoint, realm_uuid, realm_secret]):
                 LOG.debug("Telemetry variables are not configured, skipping")
                 return
 
@@ -291,7 +291,7 @@ class TelemetryService(basic.BasicService):
         self._pending_future = self._executor.submit(
             self._send_telemetry,
             ecosystem_endpoint,
-            stand_uuid,
-            stand_secret,
+            realm_uuid,
+            realm_secret,
             data,
         )
