@@ -4,83 +4,49 @@ title: Genesis Core
 
 Welcome to Genesis Core!
 
-The Genesis Core is an open source software that offers a one turnkey solution to deal with infrastructure at all levels - from bare metal and virtual machines to applications and services.
+**Genesis** is an open-source NoOps platform for managing infrastructure at every level, along with the ecosystem built on top of it.
 
 ## 📦 Installation
 
-There are several ways to install Genesis Core and depend on your purpose you can choose one of them.
-
-## Try it out
-
-If you want to try Genesis Core in a few minutes, download the `all-in-one` [stand](https://github.com/infraguys/gci_dev_all_in_one). It's a ready-to-go virtual machine image with preinstalled Genesis Core and ability to get full functionality such as creating inner(nested) virtual machines, installation elements and many others.
-This stand may be used for development purposes as well if you are focusing on a new element development.
-
-## Basic usage
-
-In a case you would like to run Genesis Core on your own infrastructure, you can use the [basic guide](./usage/basic_usage.md) for more details.
-
-## 🚀 Development
-
-**Ubuntu:**
+### Linux
 
 ```bash
-sudo apt-get install build-essential python3.12-dev python3.12-venv \
-    libev-dev libvirt-dev
-curl -LsSf https://astral.sh/uv/install.sh | sh
-source "$HOME"/.local/bin/env    
+curl -fsSL https://repository.genesis-core.tech/install.sh | sudo sh
 ```
 
-**Fedora:**
+## 🚀 Application Developer Guide
 
-```bash
-sudo dnf install gcc libev-devel libvirt-devel
-curl -LsSf https://astral.sh/uv/install.sh | sh
-source "$HOME"/.local/bin/env    
-```
+Everything you need to develop and deploy applications on the Genesis Core platform. In platform terminology, applications are called **elements**. The guide covers all stages of the element lifecycle:
 
-Initialize virtual environment:
+- **Writing a manifest** — defining the element structure, its dependencies and configuration.
+- **Building** — packaging the element and its artifacts.
+- **Publishing** — releasing the element to the ecosystem registry.
+- **Deploying** — installing and running the element on the platform.
 
-```bash
-uv sync
-source .tox/develop/bin/activate
-```
+[Go to the guide →](app-developer-guide/index.md)
 
-Follow the development guide [here](https://github.com/infraguys/genesis_core/wiki/DevelopmentGuide) for more details.
+## 🔧 Core Developer Guide
 
-## ⚙️ Tests
+A guide for developers of the platform core and ecosystem elements — for example, a new PaaS service that other developers will use going forward.
 
-**NOTE:** Python version 3.12 is supposed to be used, but you can use other versions
+[Go to the guide →](core-developer-guide/index.md)
 
-```bash
-# Unit tests
-tox -e py312
+## 🛠️ Admin Guide
 
-# Functional tests
-tox -e py312-functional
-```
+Platform administrator documentation: managing the installation, configuring components, monitoring and maintaining the deployment.
 
-## Functional tests environment
+[Go to the guide →](admin-guide/index.md)
 
-To run functional tests, export the following environment variables:
+## 🔒 Security Guide
 
-```bash
-export DATABASE_URI="postgresql://genesis_core:genesis_core@127.0.0.1:5432/genesis_core"
-export ADMIN_PASSWORD="admin"
-export DEFAULT_CLIENT_SECRET="GenesisCoreSecret"
-export GLOBAL_SALT="FOy/2kwwdn0ig1QOq7cestqe"
-export HS256_KEY="secret"
-```
+Documentation for security engineers. Special focus on IAM and user management, system auditing, access policies, and other information security aspects of the platform.
 
-## 🔗 Related projects
+[Go to the guide →](security-guide/index.md)
 
-- Genesis SDK is a set of tools for developing Genesis elements. You can find it [here](https://github.com/infraguys/gcl_sdk).
-- Genesis DevTools it's a set of tools to manager life cycle of genesis projects. You can find it [here](https://github.com/infraguys/genesis_devtools).
+## 📎 Miscellaneous
 
-## 💡 Contributing
+Additional reference materials for the platform.
 
-Contributing to the project is highly appreciated! However, some rules should be followed for successful inclusion of new changes in the project:
-
-- All changes should be done in a separate branch.
-- Changes should include not only new functionality or bug fixes, but also tests for the new code.
-- After the changes are completed and **tested**, a Pull Request should be created with a clear description of the new functionality. Add one of the project maintainers as a reviewer.
-- Changes can be merged only after receiving an approve from one of the project maintainers.
+- [Manifests](misc/manifests.md) — manifest format specification and examples.
+- [API Reference](misc/api-reference.md) — full HTTP API reference for platform services.
+- [CLI Reference](misc/cli-reference.md) — complete reference for the Genesis CLI tool.
