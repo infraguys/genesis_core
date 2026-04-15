@@ -63,8 +63,8 @@ NODE_SET_TARGET_TF_STORAGE = (
 
 
 class GeneralService(basic.BasicService):
-    def __init__(self, iter_min_period=1, iter_pause=0.1):
-        super().__init__(iter_min_period, iter_pause)
+    def __init__(self, iter_min_period=3, iter_pause=0.1):
+        super().__init__(iter_min_period=iter_min_period, iter_pause=iter_pause)
 
         # TODO(akremenetsky): Form a pipliene from the configuration
         # and entry points
@@ -89,15 +89,14 @@ class GeneralService(basic.BasicService):
             pool_weighters=pool_weighters,
             machine_filters=machine_filters,
             machine_weighters=machine_weighters,
-            iter_min_period=1,
-            iter_pause=0.1,
+            iter_min_period=iter_min_period,
         )
-        n_network = n_network_service.NetworkService(iter_min_period=1, iter_pause=0.1)
+        n_network = n_network_service.NetworkService(iter_min_period=iter_min_period)
         node_builder = node_builder_svc.NodeBuilderService(
-            iter_min_period=1, iter_pause=0.1
+            iter_min_period=iter_min_period
         )
         volume_builder = volume_builder_svc.VolumeBuilderService(
-            iter_min_period=1, iter_pause=0.1
+            iter_min_period=iter_min_period
         )
         pool_driver = ua_pool_drivers.PoolAgentDriver(
             meta_file="/var/lib/genesis/genesis_core/pool_agent_meta.json"
@@ -125,7 +124,8 @@ class GeneralService(basic.BasicService):
 
         # Infra scheduler
         infra_scheduler = ua_scheduler_service.UniversalAgentSchedulerService(
-            capabilities=["set_agent_node", "target_node_set"]
+            capabilities=["set_agent_node", "target_node_set"],
+            iter_min_period=iter_min_period,
         )
 
         # Infra agent
@@ -171,35 +171,36 @@ class GeneralService(basic.BasicService):
         pool_builder_service = pool_builder_svc.PoolBuilderService(
             uuid=sys_uuid.uuid5(ua_utils.system_uuid(), "pool_builder"),
             orch_client=orch_db.DatabaseOrchClient(),
+            iter_min_period=iter_min_period,
         )
 
         # ValuesStore
         vs_builder_service = vs_builder_svc.VSBuilderService(
             uuid=sys_uuid.uuid5(ua_utils.system_uuid(), "vs_builder"),
             orch_client=orch_db.DatabaseOrchClient(),
+            iter_min_period=iter_min_period,
         )
 
-        cfg_service = config_service.ConfigServiceBuilder()
-        secret_svc = secret_service.SecretServiceBuilder()
-        event_sender = senders.EventSenderService.build_from_config()
-        em_builder = em_builders.ElementManagerBuilder(
-            iter_min_period=1, iter_pause=0.1
+        cfg_service = config_service.ConfigServiceBuilder(
+            iter_min_period=iter_min_period,
         )
+        secret_svc = secret_service.SecretServiceBuilder(
+            iter_min_period=iter_min_period,
+        )
+        event_sender = senders.EventSenderService.build_from_config()
+        em_builder = em_builders.ElementManagerBuilder(iter_min_period=iter_min_period)
         janitor = janitor_service.ExpiredEmailConfirmationCodeJanitorService(
             iter_min_period=60 * 60,
-            iter_pause=0,
         )
 
         # Telemetry
         telemetry = telemetry_service.TelemetryService(
             iter_min_period=60 * 60,
-            iter_pause=0,
         )
 
         # DNS Sync
         dns_sync = dns_sync_service.DNSSyncService(
-            iter_min_period=5,
-            iter_pause=0,
+            iter_min_period=iter_min_period * 2,
         )
 
         self._services = [

@@ -39,9 +39,7 @@ class TestUserResetPassword(base.BaseIamResourceTest):
             password=password,
             email="reset-pwd-target@test.com",
         )
-        user_obj = iam_models.User.objects.get_one(
-            filters={"uuid": user["uuid"]}
-        )
+        user_obj = iam_models.User.objects.get_one(filters={"uuid": user["uuid"]})
         admin_client.confirm_email(
             user_uuid=user_obj.uuid,
             code=str(user_obj.confirmation_code),
@@ -60,9 +58,7 @@ class TestUserResetPassword(base.BaseIamResourceTest):
         user, _ = target_user
         admin_client = user_api_client(auth_user_admin)
 
-        user_obj = iam_models.User.objects.get_one(
-            filters={"uuid": user["uuid"]}
-        )
+        user_obj = iam_models.User.objects.get_one(filters={"uuid": user["uuid"]})
         user_obj.create_confirmation_code()
         code = str(user_obj.confirmation_code)
 
@@ -187,9 +183,7 @@ class TestSendResetPasswordCode(base.BaseIamResourceTest):
             password=password,
             email="send-reset-code@test.com",
         )
-        user_obj = iam_models.User.objects.get_one(
-            filters={"uuid": user["uuid"]}
-        )
+        user_obj = iam_models.User.objects.get_one(filters={"uuid": user["uuid"]})
         admin_client.confirm_email(
             user_uuid=user_obj.uuid,
             code=str(user_obj.confirmation_code),
@@ -245,9 +239,7 @@ class TestSendResetPasswordCode(base.BaseIamResourceTest):
             json={"email": user["email"]},
         )
 
-        user_obj = iam_models.User.objects.get_one(
-            filters={"uuid": user["uuid"]}
-        )
+        user_obj = iam_models.User.objects.get_one(filters={"uuid": user["uuid"]})
         assert user_obj.confirmation_code is not None
 
     def test_send_reset_password_code_without_permission_forbidden(
@@ -320,9 +312,7 @@ class TestSendResetPasswordCode(base.BaseIamResourceTest):
             permissions=[iam_c.PERMISSION_IAM_CLIENT_SEND_RESET_PASSWORD_CODE],
         )
 
-        user_obj = iam_models.User.objects.get_one(
-            filters={"uuid": user["uuid"]}
-        )
+        user_obj = iam_models.User.objects.get_one(filters={"uuid": user["uuid"]})
         original_secret_hash = user_obj.secret_hash
         assert user_obj.confirmation_code is None
 
@@ -331,9 +321,7 @@ class TestSendResetPasswordCode(base.BaseIamResourceTest):
             json={"email": user["email"]},
         )
 
-        user_obj = iam_models.User.objects.get_one(
-            filters={"uuid": user["uuid"]}
-        )
+        user_obj = iam_models.User.objects.get_one(filters={"uuid": user["uuid"]})
         assert user_obj.confirmation_code is not None
         code = str(user_obj.confirmation_code)
         new_password = "FlowNewPass1"
@@ -346,9 +334,7 @@ class TestSendResetPasswordCode(base.BaseIamResourceTest):
             json={"new_password": new_password, "code": code},
         )
 
-        user_obj = iam_models.User.objects.get_one(
-            filters={"uuid": user["uuid"]}
-        )
+        user_obj = iam_models.User.objects.get_one(filters={"uuid": user["uuid"]})
         assert user_obj.confirmation_code is None
         assert user_obj.secret_hash != original_secret_hash
 
