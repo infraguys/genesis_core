@@ -913,6 +913,8 @@ class ClientsController(controllers.BaseResourceControllerPaginated, EnforceMixi
                 rule=c.PERMISSION_IAM_CLIENT_SEND_RESET_PASSWORD_CODE,
             )
         email = email or self._req.params.get("email")
+        if not email:
+            raise ValidationException(description="Email is required")
         app_endpoint = _get_app_endpoint(req=self._req)
         resource.send_reset_password_event(email=email, app_endpoint=app_endpoint)
 

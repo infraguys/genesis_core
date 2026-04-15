@@ -286,6 +286,24 @@ class TestSendResetPasswordCode(base.BaseIamResourceTest):
 
         assert response.status_code == 200
 
+    def test_send_reset_password_code_missing_email_bad_request(
+        self,
+        user_api_client,
+        auth_user_admin,
+        default_client_uuid,
+    ):
+        """Missing email must return 400 instead of 500."""
+        client = user_api_client(
+            auth_user_admin,
+            permissions=[iam_c.PERMISSION_IAM_CLIENT_SEND_RESET_PASSWORD_CODE],
+        )
+
+        with pytest.raises(bazooka_exc.BadRequestError):
+            client.post(
+                self._send_reset_code_url(client, default_client_uuid),
+                json={},
+            )
+
     def test_send_reset_password_code_then_reset_password_flow(
         self,
         user_api_client,
