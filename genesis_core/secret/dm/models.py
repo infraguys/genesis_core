@@ -85,7 +85,7 @@ class Password(
 
         Refer to the Resource model for more details about target fields.
         """
-        return {
+        fields = {
             "method",
             "constructor",
             "name",
@@ -93,6 +93,11 @@ class Password(
             "uuid",
             "description",
         }
+
+        if sc.SecretMethod.MANUAL == self.method:
+            fields.add("value")
+
+        return fields
 
     @classmethod
     def get_new_passwords(cls, limit: int = c.DEFAULT_SQL_LIMIT) -> tp.List["Password"]:
