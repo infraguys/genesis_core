@@ -288,17 +288,18 @@ class UserController(
     @actions.post
     def reset_password(self, resource, new_password=None, code=None):
         code = code or self._req.params.get("code")
-        if not code and not self.enforce(c.PERMISSION_USER_RESET_PASSWORD):
+        has_permission = self.enforce(c.PERMISSION_USER_RESET_PASSWORD)
+        if not code and not has_permission:
             raise iam_e.CanNotResetUserPassword(
                 uuid=resource.uuid,
                 rule=c.PERMISSION_USER_RESET_PASSWORD,
             )
         new_secret = new_password or self._req.params.get("new_password")
         self.validate(new_secret)
-        resource.reset_secret_by_code(
-            new_secret=new_secret,
-            code=code,
-        )
+        if code:
+            resource.reset_secret_by_code(new_secret=new_secret, code=code)
+        else:
+            resource.reset_secret(new_secret=new_secret)
         return resource
 
     @actions.get
