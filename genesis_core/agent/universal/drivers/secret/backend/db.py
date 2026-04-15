@@ -47,6 +47,20 @@ class DatabaseSecretBackendClient(base.AbstractBackendClient):
 
         return driver_password.meta
 
+    def _gen_password(self, password: secret_dm.Password) -> str:
+        """Generate a password based on the password model."""
+        if sc.SecretMethod[password.method].is_auto:
+            if password.method == sc.SecretMethod.AUTO_HEX:
+                return secrets.token_hex(password.default_length // 2)
+            elif password.method == sc.SecretMethod.AUTO_URL_SAFE:
+                return secrets.token_urlsafe(password.default_length)[
+                    : password.default_length
+                ]
+            else:
+                raise ValueError("Unknown auto-generated password method")
+        else:
+            return password.value
+
     def create(self, resource: models.Resource) -> tp.Dict[str, tp.Any]:
         """Creates the resource. Returns the created resource."""
         try:
@@ -65,18 +79,7 @@ class DatabaseSecretBackendClient(base.AbstractBackendClient):
         if not sc.SecretMethod[password.method].is_auto and password.value is None:
             raise ValueError("Cannot create non-auto-generated password.")
 
-        # Generate plain password
-        if sc.SecretMethod[password.method].is_auto:
-            if password.method == sc.SecretMethod.AUTO_HEX:
-                plain_password = secrets.token_hex(password.default_length // 2)
-            elif password.method == sc.SecretMethod.AUTO_URL_SAFE:
-                plain_password = secrets.token_urlsafe(password.default_length)[
-                    : password.default_length
-                ]
-            else:
-                raise ValueError("Unknown auto-generated password method.")
-        else:
-            plain_password = password.value
+        plain_password = self._gen_password(password)
 
         # Build password from the plain view
         pass_value = password.constructor.build(plain_password)
@@ -91,9 +94,23 @@ class DatabaseSecretBackendClient(base.AbstractBackendClient):
     def update(self, resource: models.Resource) -> tp.Dict[str, tp.Any]:
         """Update the resource. Returns the updated resource."""
 
-        # The simplest implementation. Update via recreation.
-        self.delete(resource)
-        return self.create(resource)
+        target = secret_dm.Password.from_ua_resource(resource)
+        actual = driver_dm.Password.objects.get_one(
+            filters={
+                "uuid": dm_filters.EQ(resource.uuid),
+            }
+        )
+
+        if target.default_length != actual.meta.get("default_length", 32) or (
+            target.method == "MANUAL" and target.value != actual.value
+        ):
+            actual.meta["default_length"] = target.default_length
+            plain_password = self._gen_password(target)
+            pass_value = target.constructor.build(plain_password)
+            actual.meta["value"] = actual.value = pass_value
+            actual.save()
+
+        return actual.meta
 
     def list(self, kind: str, **kwargs) -> tp.List[tp.Dict[str, tp.Any]]:
         """Lists all resources by kind."""
