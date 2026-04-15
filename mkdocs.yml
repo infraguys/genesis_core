@@ -26,6 +26,16 @@ theme:
         name: Switch to light mode
 
 plugins:
+  - i18n:
+      docs_structure: suffix
+      languages:
+        - locale: en
+          default: true
+          name: English
+          build: true
+        - locale: ru
+          name: Russian
+          build: true
   - search:
       lang:
         - en

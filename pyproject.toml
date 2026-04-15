@@ -80,6 +80,7 @@ docs = [
     "mkdocs-material==9.1.0",
     "mkdocs-glightbox",
     "mkdocs-render-swagger-plugin",
+    "mkdocs-static-i18n[material]"
 ]
 
 [tool.ruff]
