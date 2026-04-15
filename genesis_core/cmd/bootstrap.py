@@ -535,7 +535,7 @@ def _set_defaults(spec: dict[str, tp.Any]):
         disable_telemetry_value.insert()
         return True
 
-    def _set_stand_uuid_var() -> bool:
+    def _set_realm_uuid_var() -> bool:
         val_uuid = sys_uuid.UUID("f134c97f-bb4d-4d67-9527-8c90e2f04f8c")
         existing_value = vs_models.Value.objects.get_one_or_none(
             filters={"uuid": dm_filters.EQ(val_uuid)}
@@ -544,29 +544,29 @@ def _set_defaults(spec: dict[str, tp.Any]):
             LOG.info("Stand UUID variable already exists")
             return True
 
-        LOG.info("Set stand_uuid variable")
-        stand_uuid_var = vs_models.Variable.objects.get_one_or_none(
-            filters={"uuid": dm_filters.EQ(c.VAR_STAND_UUID_UUID)}
+        LOG.info("Set realm_uuid variable")
+        realm_uuid_var = vs_models.Variable.objects.get_one_or_none(
+            filters={"uuid": dm_filters.EQ(c.VAR_REALM_UUID_UUID)}
         )
-        if not stand_uuid_var:
+        if not realm_uuid_var:
             return False
 
         # Get stand UUID from spec
-        stand_uuid_value = spec.get("stand_uuid", "")
-        if not stand_uuid_value:
+        realm_uuid_value = spec.get("realm_uuid", "")
+        if not realm_uuid_value:
             LOG.warning("No stand UUID found in spec")
             return True
 
-        stand_uuid_val = vs_models.Value(
+        realm_uuid_val = vs_models.Value(
             uuid=val_uuid,
-            variable=stand_uuid_var,
-            value=stand_uuid_value,
+            variable=realm_uuid_var,
+            value=realm_uuid_value,
             project_id=c.EM_HIDDEN_PROJECT_ID,
         )
-        stand_uuid_val.insert()
+        realm_uuid_val.insert()
         return True
 
-    def _set_stand_secret_var() -> bool:
+    def _set_realm_secret_var() -> bool:
         val_uuid = sys_uuid.UUID("c5548ad1-7990-4283-ba1f-725fd7a7b9d4")
         existing_value = vs_models.Value.objects.get_one_or_none(
             filters={"uuid": dm_filters.EQ(val_uuid)}
@@ -575,29 +575,29 @@ def _set_defaults(spec: dict[str, tp.Any]):
             LOG.info("Stand secret variable already exists")
             return True
 
-        LOG.info("Set stand_secret variable")
-        stand_secret_var = vs_models.Variable.objects.get_one_or_none(
-            filters={"uuid": dm_filters.EQ(c.VAR_STAND_SECRET_UUID)}
+        LOG.info("Set realm_secret variable")
+        realm_secret_var = vs_models.Variable.objects.get_one_or_none(
+            filters={"uuid": dm_filters.EQ(c.VAR_REALM_SECRET_UUID)}
         )
-        if not stand_secret_var:
+        if not realm_secret_var:
             return False
 
         # Get stand secret from spec
-        stand_secret_value = spec.get("stand_secret", "")
-        if not stand_secret_value:
+        realm_secret_value = spec.get("realm_secret", "")
+        if not realm_secret_value:
             LOG.warning("No stand secret found in spec")
             return True
 
-        stand_secret_val = vs_models.Value(
+        realm_secret_val = vs_models.Value(
             uuid=val_uuid,
-            variable=stand_secret_var,
-            value=stand_secret_value,
+            variable=realm_secret_var,
+            value=realm_secret_value,
             project_id=c.EM_HIDDEN_PROJECT_ID,
         )
-        stand_secret_val.insert()
+        realm_secret_val.insert()
         return True
 
-    def _set_stand_access_token_var() -> bool:
+    def _set_realm_access_token_var() -> bool:
         val_uuid = sys_uuid.UUID("2e0a0f6f-0568-4804-91d2-1f68f43afda9")
         existing_value = vs_models.Value.objects.get_one_or_none(
             filters={"uuid": dm_filters.EQ(val_uuid)}
@@ -606,29 +606,29 @@ def _set_defaults(spec: dict[str, tp.Any]):
             LOG.info("Stand access token variable already exists")
             return True
 
-        LOG.info("Set stand_access_token variable")
-        stand_access_token_var = vs_models.Variable.objects.get_one_or_none(
-            filters={"uuid": dm_filters.EQ(c.VAR_STAND_ACCESS_TOKEN_UUID)}
+        LOG.info("Set realm_access_token variable")
+        realm_access_token_var = vs_models.Variable.objects.get_one_or_none(
+            filters={"uuid": dm_filters.EQ(c.VAR_REALM_ACCESS_TOKEN_UUID)}
         )
-        if not stand_access_token_var:
+        if not realm_access_token_var:
             return False
 
         # Get stand access token from spec (could be a dict or string)
-        token_value = spec.get("stand_tokens", {})
+        token_value = spec.get("realm_tokens", {})
         if not token_value:
             LOG.warning("No stand access token found in spec")
             return True
 
-        stand_access_token_val = vs_models.Value(
+        realm_access_token_val = vs_models.Value(
             uuid=val_uuid,
-            variable=stand_access_token_var,
+            variable=realm_access_token_var,
             value=token_value.get("access_token", ""),
             project_id=c.EM_HIDDEN_PROJECT_ID,
         )
-        stand_access_token_val.insert()
+        realm_access_token_val.insert()
         return True
 
-    def _set_stand_refresh_token_var() -> bool:
+    def _set_realm_refresh_token_var() -> bool:
         val_uuid = sys_uuid.UUID("eacf0c1f-3495-4986-89a5-80139526b82a")
         existing_value = vs_models.Value.objects.get_one_or_none(
             filters={"uuid": dm_filters.EQ(val_uuid)}
@@ -637,26 +637,26 @@ def _set_defaults(spec: dict[str, tp.Any]):
             LOG.info("Stand refresh token variable already exists")
             return True
 
-        LOG.info("Set stand_refresh_token variable")
-        stand_refresh_token_var = vs_models.Variable.objects.get_one_or_none(
-            filters={"uuid": dm_filters.EQ(c.VAR_STAND_REFRESH_TOKEN_UUID)}
+        LOG.info("Set realm_refresh_token variable")
+        realm_refresh_token_var = vs_models.Variable.objects.get_one_or_none(
+            filters={"uuid": dm_filters.EQ(c.VAR_REALM_REFRESH_TOKEN_UUID)}
         )
-        if not stand_refresh_token_var:
+        if not realm_refresh_token_var:
             return False
 
         # Get stand refresh token from spec (could be a dict or string)
-        token_value = spec.get("stand_tokens", {})
+        token_value = spec.get("realm_tokens", {})
         if not token_value:
             LOG.warning("No stand refresh token found in spec")
             return True
 
-        stand_refresh_token_val = vs_models.Value(
+        realm_refresh_token_val = vs_models.Value(
             uuid=val_uuid,
-            variable=stand_refresh_token_var,
+            variable=realm_refresh_token_var,
             value=token_value.get("refresh_token", ""),
             project_id=c.EM_HIDDEN_PROJECT_ID,
         )
-        stand_refresh_token_val.insert()
+        realm_refresh_token_val.insert()
         return True
 
     def _set_hs256_jwks_encryption_key_var() -> bool:
@@ -694,10 +694,10 @@ def _set_defaults(spec: dict[str, tp.Any]):
         _set_core_ip_var,
         _set_ecosystem_endpoint_var,
         _set_disable_telemetry_var,
-        _set_stand_uuid_var,
-        _set_stand_secret_var,
-        _set_stand_access_token_var,
-        _set_stand_refresh_token_var,
+        _set_realm_uuid_var,
+        _set_realm_secret_var,
+        _set_realm_access_token_var,
+        _set_realm_refresh_token_var,
         _set_hs256_jwks_encryption_key_var,
     ]
 

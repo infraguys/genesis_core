@@ -62,15 +62,15 @@ class DNSSyncService(basic.BasicService):
     def _get_ecosystem_credentials(self):
         """Read ecosystem endpoint, stand UUID, secret and token from VS."""
         endpoint = self._get_variable_value(c.VAR_ECOSYSTEM_ENDPOINT_UUID)
-        stand_uuid = self._get_variable_value(c.VAR_STAND_UUID_UUID)
-        stand_secret = self._get_variable_value(c.VAR_STAND_SECRET_UUID)
-        access_token = self._get_variable_value(c.VAR_STAND_ACCESS_TOKEN_UUID)
-        if not all([endpoint, stand_uuid, stand_secret, access_token]):
+        realm_uuid = self._get_variable_value(c.VAR_REALM_UUID_UUID)
+        realm_secret = self._get_variable_value(c.VAR_REALM_SECRET_UUID)
+        access_token = self._get_variable_value(c.VAR_REALM_ACCESS_TOKEN_UUID)
+        if not all([endpoint, realm_uuid, realm_secret, access_token]):
             return None
-        return endpoint, stand_uuid, stand_secret, access_token
+        return endpoint, realm_uuid, realm_secret, access_token
 
-    def _make_basic_auth(self, stand_uuid, stand_secret):
-        return requests_auth.HTTPBasicAuth(stand_uuid, stand_secret)
+    def _make_basic_auth(self, realm_uuid, realm_secret):
+        return requests_auth.HTTPBasicAuth(realm_uuid, realm_secret)
 
     @staticmethod
     def _bearer_headers(access_token):
@@ -83,9 +83,9 @@ class DNSSyncService(basic.BasicService):
     # Ecosystem HTTP helpers
     # ------------------------------------------------------------------
 
-    def _eco_get_realm(self, endpoint, stand_uuid, auth):
-        """GET /api/ecosystem/v1/realms/{stand_uuid} -> realm dict."""
-        url = f"{endpoint}/api/ecosystem/v1/realms/{stand_uuid}"
+    def _eco_get_realm(self, endpoint, realm_uuid, auth):
+        """GET /api/ecosystem/v1/realms/{realm_uuid} -> realm dict."""
+        url = f"{endpoint}/api/ecosystem/v1/realms/{realm_uuid}"
         resp = self._client.get(url, auth=auth)
         return resp.json()
 
@@ -146,11 +146,11 @@ class DNSSyncService(basic.BasicService):
     # Initialization: fetch realm domain, mark local domain for sync
     # ------------------------------------------------------------------
 
-    def _ensure_realm_domain(self, endpoint, stand_uuid, basic_auth):
+    def _ensure_realm_domain(self, endpoint, realm_uuid, basic_auth):
         """Fetch realm domain from ecosystem and ensure it exists locally
         with sync_to_ecosystem=True.
         """
-        realm = self._eco_get_realm(endpoint, stand_uuid, basic_auth)
+        realm = self._eco_get_realm(endpoint, realm_uuid, basic_auth)
         realm_domain_name = realm.get("domain")
         if not realm_domain_name:
             LOG.warning("Realm has no domain field, skipping init")
@@ -381,16 +381,16 @@ class DNSSyncService(basic.BasicService):
     # Orchestration: decide fast path vs full reconciliation
     # ------------------------------------------------------------------
 
-    def _sync_all_domains(self, endpoint, stand_uuid, stand_secret, access_token):
+    def _sync_all_domains(self, endpoint, realm_uuid, realm_secret, access_token):
         """Sync all local domains marked for ecosystem sync."""
-        basic_auth = self._make_basic_auth(stand_uuid, stand_secret)
+        basic_auth = self._make_basic_auth(realm_uuid, realm_secret)
         headers = self._bearer_headers(access_token)
 
         # Initialize on first successful call
         if not self._initialized:
             try:
                 initialized = self._ensure_realm_domain(
-                    endpoint, stand_uuid, basic_auth
+                    endpoint, realm_uuid, basic_auth
                 )
             except bazooka_exc.ForbiddenError:
                 LOG.warning("Not authorized to fetch realm, skipping")
@@ -471,20 +471,20 @@ class DNSSyncService(basic.BasicService):
                 LOG.debug("DNS sync variables are not configured, skipping")
                 return
 
-            endpoint, stand_uuid, stand_secret, access_token = creds
+            endpoint, realm_uuid, realm_secret, access_token = creds
 
         self._pending_future = self._executor.submit(
             self._do_sync,
             endpoint,
-            stand_uuid,
-            stand_secret,
+            realm_uuid,
+            realm_secret,
             access_token,
         )
 
-    def _do_sync(self, endpoint, stand_uuid, stand_secret, access_token):
+    def _do_sync(self, endpoint, realm_uuid, realm_secret, access_token):
         """Run the full sync inside a DB session (executed in thread)."""
         try:
             with contexts.Context().session_manager():
-                self._sync_all_domains(endpoint, stand_uuid, stand_secret, access_token)
+                self._sync_all_domains(endpoint, realm_uuid, realm_secret, access_token)
         except Exception:
             LOG.exception("DNS sync iteration failed")
