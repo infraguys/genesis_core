@@ -320,6 +320,12 @@ class TestSendResetPasswordCode(base.BaseIamResourceTest):
             permissions=[iam_c.PERMISSION_IAM_CLIENT_SEND_RESET_PASSWORD_CODE],
         )
 
+        user_obj = iam_models.User.objects.get_one(
+            filters={"uuid": user["uuid"]}
+        )
+        original_secret_hash = user_obj.secret_hash
+        assert user_obj.confirmation_code is None
+
         admin_client.post(
             self._send_reset_code_url(admin_client, default_client_uuid),
             json={"email": user["email"]},
@@ -328,6 +334,7 @@ class TestSendResetPasswordCode(base.BaseIamResourceTest):
         user_obj = iam_models.User.objects.get_one(
             filters={"uuid": user["uuid"]}
         )
+        assert user_obj.confirmation_code is not None
         code = str(user_obj.confirmation_code)
         new_password = "FlowNewPass1"
 
@@ -338,6 +345,12 @@ class TestSendResetPasswordCode(base.BaseIamResourceTest):
             reset_url,
             json={"new_password": new_password, "code": code},
         )
+
+        user_obj = iam_models.User.objects.get_one(
+            filters={"uuid": user["uuid"]}
+        )
+        assert user_obj.confirmation_code is None
+        assert user_obj.secret_hash != original_secret_hash
 
         new_auth = iam_clients.GenesisCoreAuth(
             username=user["username"],
