@@ -14,6 +14,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from restalchemy.api import constants as ra_c
 from restalchemy.openapi import constants as oa_c
 from genesis_core.user_api.iam import constants as c
 
@@ -98,6 +99,80 @@ responses.update(
     )
 )
 
+
+OA_SPEC_SEND_RESET_PASSWORD_CODE = dict(
+    summary="Send password reset code to email",
+    parameters=[
+        oa_c.build_openapi_parameter(
+            name="IamClientUuid",
+            openapi_type="string",
+            param_type="path",
+            required=True,
+        ),
+    ],
+    request_body=oa_c.build_openapi_req_body(
+        description="Trigger a password reset email for the specified user",
+        content_type=ra_c.CONTENT_TYPE_APPLICATION_JSON,
+        schema={
+            "type": "object",
+            "required": ["email"],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Email address of the user to send the reset link to",
+                    "example": "user@example.com",
+                },
+            },
+        },
+    ),
+    responses=oa_c.build_openapi_object_response(
+        properties={},
+        description="Password reset email sent successfully. No content returned.",
+    ),
+)
+
+OA_SPEC_RESET_PASSWORD_USER = dict(
+    summary="Reset user password",
+    parameters=[
+        oa_c.build_openapi_parameter(
+            name="UserUuid",
+            openapi_type="string",
+            param_type="path",
+            required=True,
+        ),
+    ],
+    request_body=oa_c.build_openapi_req_body(
+        description=(
+            "New password and optional confirmation code. "
+            "Either a valid reset code (from email) or the "
+            "`iam.user.reset_password` permission is required."
+        ),
+        content_type=ra_c.CONTENT_TYPE_APPLICATION_JSON,
+        schema={
+            "type": "object",
+            "required": ["new_password"],
+            "properties": {
+                "new_password": {
+                    "type": "string",
+                    "description": "New password for the user",
+                    "example": "MyNewP@ssw0rd",
+                },
+                "code": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": (
+                        "Confirmation code received via email. "
+                        "Required when caller does not have "
+                        "`iam.user.reset_password` permission."
+                    ),
+                    "example": "550e8400-e29b-41d4-a716-446655440000",
+                },
+            },
+        },
+    ),
+    responses=oa_c.build_openapi_get_update_response("User"),
+)
 
 OA_SPEC_GET_TOKEN_KWARGS = dict(
     summary="Create token by password",

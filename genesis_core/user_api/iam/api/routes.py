@@ -222,8 +222,8 @@ class MeAction(routes.Action):
     __controller__ = controllers.ClientsController
 
 
-class ResetPasswordEventAction(routes.Action):
-    """Handler for .../<uuid>/actions/reset_password/invoke endpoint"""
+class SendResetPasswordCodeAction(routes.Action):
+    """Handler for .../<uuid>/actions/send_reset_password_code/invoke endpoint"""
 
     __controller__ = controllers.ClientsController
 
@@ -258,7 +258,10 @@ class IamClientsRoute(routes.Route):
     me = routes.action(MeAction)
     userinfo = routes.action(UserinfoAction)
     logout = routes.action(LogoutAction, invoke=True)
-    reset_password = routes.action(ResetPasswordEventAction, invoke=True)
+    send_reset_password_code = routes.action(
+        SendResetPasswordCodeAction,
+        invoke=True,
+    )
     jwks = routes.action(JwksAction)
 
 

@@ -128,6 +128,9 @@ PERMISSION_USER_DELETE_ALL = rules.Rule.from_raw(
 PERMISSION_USER_DELETE = rules.Rule.from_raw(
     "iam.user.delete",
 )
+PERMISSION_USER_RESET_PASSWORD = rules.Rule.from_raw(
+    "iam.user.reset_password",
+)
 
 
 # Organizations
@@ -241,6 +244,9 @@ PERMISSION_IAM_CLIENT_UPDATE = rules.Rule.from_raw(
 )
 PERMISSION_IAM_CLIENT_DELETE = rules.Rule.from_raw(
     "iam.iam_client.delete",
+)
+PERMISSION_IAM_CLIENT_SEND_RESET_PASSWORD_CODE = rules.Rule.from_raw(
+    "iam.iam_client.send_reset_password_code",
 )
 
 

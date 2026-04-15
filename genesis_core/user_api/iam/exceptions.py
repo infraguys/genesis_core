@@ -171,6 +171,28 @@ class CanNotDeleteIamClient(
     )
 
 
+class CanNotSendResetPasswordCode(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = (
+        "The current user is not permitted to send a reset password code"
+        " for IAM client `{uuid}`. This action requires the `{rule}`,"
+        " which has not been granted."
+    )
+
+
+class CanNotResetUserPassword(
+    exceptions.CommonForbiddenException,
+    iam_exc.Forbidden,
+):
+    __template__ = (
+        "Password reset failed for user `{uuid}`: a valid reset code or the"
+        " `{rule}` permission is required. Please use the reset link sent to"
+        " your email or contact your administrator."
+    )
+
+
 class CanNotCreateIdp(exceptions.CommonForbiddenException, iam_exc.Forbidden):
     __template__ = (
         "The current user is not permitted to create an IDP `{name}`."

@@ -284,9 +284,15 @@ class UserController(
         resource.confirm_email_by_code(code)
         return resource
 
+    @oa_utils.extend_schema(**oa_specs.OA_SPEC_RESET_PASSWORD_USER)
     @actions.post
     def reset_password(self, resource, new_password=None, code=None):
         code = code or self._req.params.get("code")
+        if not code and not self.enforce(c.PERMISSION_USER_RESET_PASSWORD):
+            raise iam_e.CanNotResetUserPassword(
+                uuid=resource.uuid,
+                rule=c.PERMISSION_USER_RESET_PASSWORD,
+            )
         new_secret = new_password or self._req.params.get("new_password")
         self.validate(new_secret)
         resource.reset_secret_by_code(
@@ -897,8 +903,14 @@ class ClientsController(controllers.BaseResourceControllerPaginated, EnforceMixi
     def userinfo(self, resource):
         return resource.userinfo().get_response_body()
 
+    @oa_utils.extend_schema(**oa_specs.OA_SPEC_SEND_RESET_PASSWORD_CODE)
     @actions.post
-    def reset_password(self, resource, email=None):
+    def send_reset_password_code(self, resource, email=None):
+        if not self.enforce(c.PERMISSION_IAM_CLIENT_SEND_RESET_PASSWORD_CODE):
+            raise iam_e.CanNotSendResetPasswordCode(
+                uuid=resource.uuid,
+                rule=c.PERMISSION_IAM_CLIENT_SEND_RESET_PASSWORD_CODE,
+            )
         email = email or self._req.params.get("email")
         app_endpoint = _get_app_endpoint(req=self._req)
         resource.send_reset_password_event(email=email, app_endpoint=app_endpoint)
