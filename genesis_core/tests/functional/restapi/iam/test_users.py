@@ -15,10 +15,8 @@
 #    under the License.
 import contextlib
 import datetime
-from urllib import parse as urllib_parse
 
 import pytest
-import requests
 import jwt
 from bazooka import exceptions as bazooka_exc
 from gcl_iam.tests.functional import clients as iam_clients
