@@ -615,17 +615,31 @@ class TestUsers(base.BaseIamResourceTest):
         assert "access_token" in client._auth_cache
 
     def test_reset_password_success(
-        self, auth_test1_user, user_api, default_client_uuid
+        self,
+        user_api_client,
+        auth_user_admin,
+        auth_test1_user,
+        default_client_uuid,
     ):
         user = iam_models.User.objects.get_one(filters={"uuid": auth_test1_user.uuid})
         # after confirm email (auth_test1_user) confirmation_code is None
         assert user.confirmation_code is None
 
-        url = urllib_parse.urljoin(
-            user_api.base_url,
-            f"iam/clients/{default_client_uuid}/actions/reset_password/invoke",
+        client = user_api_client(
+            auth_user_admin,
+            permissions=[
+                iam_c.PERMISSION_IAM_CLIENT_SEND_RESET_PASSWORD_CODE,
+            ],
         )
-        result = requests.post(url, json={"email": user.email})
+
+        send_url = client.build_resource_uri(
+            [
+                "iam/clients",
+                default_client_uuid,
+                "actions/send_reset_password_code/invoke",
+            ]
+        )
+        result = client.post(send_url, json={"email": user.email})
         assert result.status_code == 200
 
         user_updated = iam_models.User.objects.get_one(
@@ -635,12 +649,11 @@ class TestUsers(base.BaseIamResourceTest):
         assert user_updated.confirmation_code
 
         new_password = f"{auth_test1_user.password}_changed"
-        url = urllib_parse.urljoin(
-            user_api.base_url,
-            f"iam/users/{user.uuid}/actions/reset_password/invoke",
+        reset_url = client.build_resource_uri(
+            ["iam/users", user.uuid, "actions/reset_password/invoke"]
         )
-        result = requests.post(
-            url,
+        result = client.post(
+            reset_url,
             json={
                 "new_password": new_password,
                 "code": str(user_updated.confirmation_code),
