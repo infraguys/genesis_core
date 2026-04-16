@@ -60,6 +60,16 @@ class ElementResourceRoute(routes.Route):
     __controller__ = controllers.ElementResourceController
 
 
+class ResourceAllRoute(routes.Route):
+    """Handler for /v1/resources/[<id>] endpoint"""
+
+    __controller__ = controllers.ResourceAllController
+    __allow_methods__ = [
+        routes.FILTER,
+        routes.GET,
+    ]
+
+
 class ElementExportRoute(routes.Route):
     """Handler for /v1/em/elements/<uuid>/exports/ endpoint"""
 
@@ -110,4 +120,5 @@ class ElementManagerRoute(routes.Route):
 
     manifests = routes.route(ManifestRoute)
     elements = routes.route(ElementRoute)
+    resources = routes.route(ResourceAllRoute)
     services = routes.route(ServicesRoute)

@@ -19,6 +19,8 @@ import json
 import ipaddress
 import logging
 import os
+import pwd
+import grp
 import sys
 import time
 import typing as tp
@@ -45,7 +47,8 @@ from genesis_core.elements.dm import models as em_models
 
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
-GCTL_CFG_DIR = "/home/ubuntu/.genesis"
+USER = "ubuntu"
+GCTL_CFG_DIR = f"/home/{USER}/.genesis"
 SPEC_PATH = "/mnt/cdrom/spec.json"
 MANIFEST_PATH = "/mnt/cdrom/core.yaml"
 MAIN_SUBNET_UUID = sys_uuid.UUID("c910a7e1-61ae-4d56-bdd6-a59faa3cbda3")
@@ -242,7 +245,13 @@ def _install_core_manifest(spec: dict[str, tp.Any], core_element_name: str = "co
 
     # Create a configuration file for gctl
     os.makedirs(GCTL_CFG_DIR, exist_ok=True)
-    with open(os.path.join(GCTL_CFG_DIR, "genesisctl.yaml"), "w") as f:
+    # chown GCTL_CFG_DIR to ubuntu user
+    uid = pwd.getpwnam(USER).pw_uid
+    gid = grp.getgrnam(USER).gr_gid
+    os.chown(GCTL_CFG_DIR, uid, gid)
+
+    config_path = os.path.join(GCTL_CFG_DIR, "genesisctl.yaml")
+    with open(config_path, "w") as f:
         yaml.safe_dump(
             {
                 "schema_version": 1,
@@ -263,8 +272,10 @@ def _install_core_manifest(spec: dict[str, tp.Any], core_element_name: str = "co
             },
             f,
         )
+    os.chown(config_path, uid, gid)
 
-    os.system(f"genesis --config {GCTL_CFG_DIR}/genesisctl.yaml elements install {manifest_path}")
+    os.system("genesis autocomplete")
+    os.system(f"genesis --config {config_path} elements install {manifest_path}")
 
 
 def _init_secrets(spec: dict[str, tp.Any]):
