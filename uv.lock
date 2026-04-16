@@ -690,7 +690,7 @@ wheels = [
 
 [[package]]
 name = "gcl-sdk"
-version = "2.0.1"
+version = "2.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bjoern" },
@@ -700,13 +700,13 @@ dependencies = [
     { name = "izulu" },
     { name = "orjson" },
     { name = "oslo-config" },
-    { name = "renameat2" },
+    { name = "renameat2", marker = "sys_platform == 'linux'" },
     { name = "restalchemy" },
     { name = "xxhash" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ee/34/04c0dcf93b03238ef0c043b79f466ab39f3accb3f18b84a313c527e8d597/gcl_sdk-2.0.1.tar.gz", hash = "sha256:7f624edca70baa0c6e8632085b9d040258199e8ad449c34b61a99a54b006440c", size = 301953, upload-time = "2026-02-24T11:04:51.507Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/85/fa/0a17e90396c40d194cc0a4f65031376b6be8ba0d086312b390eacabba2ed/gcl_sdk-2.2.0.tar.gz", hash = "sha256:27ef647195c9c254d61d2ee5c0d4171afc6e4a0a9f9b70a26c16a7ad1dfa1d32", size = 273796, upload-time = "2026-04-17T16:48:00.446Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/90/fc/ea1f1d2ab5629d8365f51ebae3ee3741cedcfc0d591056bcdcd6ce0f7905/gcl_sdk-2.0.1-py3-none-any.whl", hash = "sha256:36008796f76fd192d99b1e12cf72c77572960f8f69dd0c95f732e8a653c32104", size = 182070, upload-time = "2026-02-24T11:04:49.684Z" },
+    { url = "https://files.pythonhosted.org/packages/9f/73/94219a78f9bf0f6c6813dcc826d0b9614b133d14d5535e2c59f35698c571/gcl_sdk-2.2.0-py3-none-any.whl", hash = "sha256:e97b16aeba123fdeb309cd238298522e9e54643cc36cadd31d0bf51ae0d06f1e", size = 209560, upload-time = "2026-04-17T16:47:58.887Z" },
 ]
 
 [[package]]
@@ -778,7 +778,7 @@ requires-dist = [
     { name = "gcl-certbot-plugin", specifier = ">=0.0.5,<1.0.0" },
     { name = "gcl-iam", specifier = ">=1.2.0,<2.0.0" },
     { name = "gcl-looper", specifier = ">=1.0.1,<2.0.0" },
-    { name = "gcl-sdk", specifier = ">=2.0.0,<3.0.0" },
+    { name = "gcl-sdk", specifier = ">=2.2.0,<3.0.0" },
     { name = "izulu", specifier = ">=0.50.0,<1.0.0" },
     { name = "jinja2", specifier = ">=3.1.5,<4.0.0" },
     { name = "libvirt-python", specifier = ">=11.0.0,<12.0.0" },

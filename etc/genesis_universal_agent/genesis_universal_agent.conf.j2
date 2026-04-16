@@ -13,7 +13,7 @@ orch_secure_communication = False
 orch_endpoint = http://{{ boot_ip }}:11013
 status_endpoint = http://{{ boot_ip }}:11013
 caps_drivers =
-    RestCoreCapabilityDriver,
+    UserCapabilityDriver,
     PasswordCapabilityDriver,
     CoreDNSCertificateCapabilityDriver,
     LBAgentCapabilityDriver,
@@ -35,8 +35,7 @@ password = {{ admin_password }}
 user_api_base_url = http://localhost:11010/v1
 
 
-[RestCoreCapabilityDriver]
+[UserCapabilityDriver]
 username = admin
 password = {{ admin_password }}
 user_api_base_url = http://localhost:11010
-em_core_iam_users = /v1/iam/users/
