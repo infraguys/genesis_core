@@ -2,26 +2,38 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://github.com/infraguys/</loc>
-         <lastmod>2026-04-10</lastmod>
+         <lastmod>2026-04-16</lastmod>
     </url>
     <url>
-         <loc>https://github.com/infraguys/element_manager/manifest/</loc>
-         <lastmod>2026-04-10</lastmod>
+         <loc>https://github.com/infraguys/em/cli/</loc>
+         <lastmod>2026-04-16</lastmod>
     </url>
     <url>
-         <loc>https://github.com/infraguys/element_manager/service/</loc>
-         <lastmod>2026-04-10</lastmod>
+         <loc>https://github.com/infraguys/em/manifest/</loc>
+         <lastmod>2026-04-16</lastmod>
+    </url>
+    <url>
+         <loc>https://github.com/infraguys/em/service/</loc>
+         <lastmod>2026-04-16</lastmod>
     </url>
     <url>
          <loc>https://github.com/infraguys/iam/permissions_overview/</loc>
-         <lastmod>2026-04-10</lastmod>
+         <lastmod>2026-04-16</lastmod>
     </url>
     <url>
          <loc>https://github.com/infraguys/network/load_balancer/</loc>
-         <lastmod>2026-04-10</lastmod>
+         <lastmod>2026-04-16</lastmod>
     </url>
     <url>
          <loc>https://github.com/infraguys/openapi/openapi/</loc>
-         <lastmod>2026-04-10</lastmod>
+         <lastmod>2026-04-16</lastmod>
+    </url>
+    <url>
+         <loc>https://github.com/infraguys/secret/certificates/</loc>
+         <lastmod>2026-04-16</lastmod>
+    </url>
+    <url>
+         <loc>https://github.com/infraguys/usage/basic_usage/</loc>
+         <lastmod>2026-04-16</lastmod>
     </url>
 </urlset>
