@@ -20,12 +20,19 @@ import bazooka
 
 
 class KeycloakClient:
-    def __init__(self, endpoint, timeout=5):
+    def __init__(self, endpoint: str, timeout: int = 5) -> None:
         super().__init__()
         self._endpoint = endpoint
         self._client = bazooka.Client(default_timeout=timeout)
 
-    def check_password(self, realm, client_id, client_secret, login, password):
+    def check_password(
+        self,
+        realm: str,
+        client_id: str,
+        client_secret: str,
+        login: str,
+        password: str,
+    ) -> bool:
         endpoint = self._endpoint.rstrip("/") + "/"
         token_endpoint = urllib.parse.urljoin(
             endpoint,

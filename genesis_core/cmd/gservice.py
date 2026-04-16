@@ -44,7 +44,7 @@ sdk_opts.register_event_opts(CONF)
 CONF.register_cli_opts(cli_opts, DOMAIN)
 
 
-def main():
+def main() -> None:
     # Parse config
     config.parse(sys.argv[1:])
 

@@ -38,9 +38,9 @@ class MachineNetboot(models.Machine):
         gc_boot_api: str = LOCAL_GC_BOOT_API,
         kernel: tp.Optional[str] = None,
         initrd: tp.Optional[str] = None,
-        *args,
-        **kwargs,
-    ):
+        *args: tp.Any,
+        **kwargs: tp.Any,
+    ) -> None:
         super().__init__(*args, **kwargs)
         self.set_netboot_params(gc_host, gc_boot_api, kernel, initrd)
 
@@ -51,8 +51,8 @@ class MachineNetboot(models.Machine):
         gc_boot_api: str = LOCAL_GC_BOOT_API,
         kernel: tp.Optional[str] = None,
         initrd: tp.Optional[str] = None,
-        **kwargs,
-    ):
+        **kwargs: tp.Any,
+    ) -> "MachineNetboot":
         obj = super().restore_from_storage(**kwargs)
         obj.set_netboot_params(gc_host, gc_boot_api, kernel, initrd)
         return obj

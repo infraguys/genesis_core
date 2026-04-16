@@ -15,12 +15,13 @@
 #    under the License.
 
 import re
+import typing as tp
 
 from restalchemy.dm import types
 
 
 class Username(types.BaseCompiledRegExpType):
-    def __init__(self, min_length=1, max_length=128):
+    def __init__(self, min_length: int = 1, max_length: int = 128) -> None:
         pattern = re.compile(
             r"^(?!\s)[\w!#$%& \'*+/=?^_`{|}~.-]+(?!\s)$",
             flags=re.UNICODE,
@@ -30,24 +31,24 @@ class Username(types.BaseCompiledRegExpType):
         self._max_length = max_length
 
     @property
-    def min_length(self):
+    def min_length(self) -> int:
         return self._min_length
 
     @property
-    def max_length(self):
+    def max_length(self) -> int:
         return self._max_length
 
-    def from_unicode(self, value):
+    def from_unicode(self, value: tp.Any) -> tp.Any:
         return self.from_simple_type(value)
 
-    def validate(self, value):
+    def validate(self, value: tp.Any) -> bool:
         result = super().validate(value)
         length = len(str(value))
         return result and self.min_length <= length <= self.max_length
 
 
 class Name(types.BaseCompiledRegExpType):
-    def __init__(self, min_length=1, max_length=128):
+    def __init__(self, min_length: int = 1, max_length: int = 128) -> None:
         pattern = re.compile(
             r"^.*$",
             flags=re.UNICODE,
@@ -57,21 +58,21 @@ class Name(types.BaseCompiledRegExpType):
         self._max_length = max_length
 
     @property
-    def min_length(self):
+    def min_length(self) -> int:
         return self._min_length
 
     @property
-    def max_length(self):
+    def max_length(self) -> int:
         return self._max_length
 
-    def validate(self, value):
+    def validate(self, value: tp.Any) -> bool:
         result = super().validate(value)
         return result and self.min_length <= len(str(value)) <= self.max_length
 
 
 class Email(types.Email):
-    def to_simple_type(self, value):
+    def to_simple_type(self, value: str) -> str:
         return value.lower()
 
-    def from_simple_type(self, value):
+    def from_simple_type(self, value: str) -> str:
         return value.lower()

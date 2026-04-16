@@ -15,8 +15,8 @@
 #    under the License.
 from __future__ import annotations
 
-import json
 import ipaddress
+import json
 import logging
 import os
 import sys
@@ -25,23 +25,22 @@ import typing as tp
 import uuid as sys_uuid
 
 import yaml
+from gcl_sdk.infra.dm import models as infra_models
 from oslo_config import cfg
-from restalchemy.storage.sql import engines
+from restalchemy.common import config_opts as ra_config_opts
 from restalchemy.dm import filters as dm_filters
 from restalchemy.storage import exceptions as ra_exceptions
-from restalchemy.common import config_opts as ra_config_opts
-from gcl_sdk.infra.dm import models as infra_models
+from restalchemy.storage.sql import engines
 
 from genesis_core.common import config
+from genesis_core.common import constants as c
+from genesis_core.compute import constants as nc
 from genesis_core.compute.dm import models
 from genesis_core.compute.node_set.dm import models as node_set_models
-from genesis_core.common import constants as c
-from genesis_core.secret import utils as secret_utils
-from genesis_core.vs.dm import models as vs_models
-from genesis_core.compute import constants as nc
-from genesis_core.user_api.iam.dm import models as iam_models
 from genesis_core.elements.dm import models as em_models
-
+from genesis_core.secret import utils as secret_utils
+from genesis_core.user_api.iam.dm import models as iam_models
+from genesis_core.vs.dm import models as vs_models
 
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
@@ -129,8 +128,8 @@ def _apply_flat_network(stand: dict[str, tp.Any]) -> None:
     LOG.info("Created network %s", network.uuid)
 
     #
-    main_net = ipaddress.ip_network(stand["network"]["cidr"])
-    boot_net = ipaddress.ip_network(stand["boot_network"]["cidr"])
+    main_net = ipaddress.IPv4Network(stand["network"]["cidr"])
+    boot_net = ipaddress.IPv4Network(stand["boot_network"]["cidr"])
 
     subnets = [
         {
@@ -220,7 +219,9 @@ def _apply_startup_db(spec: dict[str, tp.Any]) -> None:
         LOG.info("Machine pool %s already exists, skipping", pool.uuid)
 
 
-def _install_core_manifest(spec: dict[str, tp.Any], core_element_name: str = "core"):
+def _install_core_manifest(
+    spec: dict[str, tp.Any], core_element_name: str = "core"
+) -> None:
     """Idempotent core manifest installation."""
     core_element = em_models.Element.objects.get_one_or_none(
         filters={"name": dm_filters.EQ(core_element_name)}
@@ -264,10 +265,12 @@ def _install_core_manifest(spec: dict[str, tp.Any], core_element_name: str = "co
             f,
         )
 
-    os.system(f"genesis --config {GCTL_CFG_DIR}/genesisctl.yaml elements install {manifest_path}")
+    os.system(
+        f"genesis --config {GCTL_CFG_DIR}/genesisctl.yaml elements install {manifest_path}"
+    )
 
 
-def _init_secrets(spec: dict[str, tp.Any]):
+def _init_secrets(spec: dict[str, tp.Any]) -> None:
     """Idempotent secrets initialization."""
     # Check if the secrets are already initialized
     default_client = iam_models.IamClient.objects.get_one_or_none(
@@ -313,7 +316,7 @@ def _init_secrets(spec: dict[str, tp.Any]):
     default_user.save()
 
 
-def _add_core_set(spec: dict[str, tp.Any]):
+def _add_core_set(spec: dict[str, tp.Any]) -> None:
     """Idempotent core set and nodes addition.
 
     We need to add the core set and nodes to the database
@@ -399,7 +402,7 @@ def _add_core_set(spec: dict[str, tp.Any]):
             p.insert()
 
 
-def _set_defaults(spec: dict[str, tp.Any]):
+def _set_defaults(spec: dict[str, tp.Any]) -> None:
     """Set default values, profiles, etc."""
 
     # Activate default profile

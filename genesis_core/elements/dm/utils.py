@@ -14,16 +14,16 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import dataclasses
 import logging
 import os
-import yaml
-import dataclasses
-import typing as tp
 import re
+import typing as tp
 import uuid as sys_uuid
 
-from jsonschema.exceptions import ValidationError
 import openapi_schema_validator
+import yaml
+from jsonschema.exceptions import ValidationError
 
 from genesis_core.common import exceptions
 from genesis_core.common.utils import PROJECT_PATH
@@ -32,6 +32,9 @@ LOG = logging.getLogger(__name__)
 ELEMENT_NAMESPACE = sys_uuid.UUID("f277e88a-cd58-4c33-a0c3-23a1086a53b7")
 UUID_PREFIX = "12345678"
 REGEXP = re.compile(r"\$(.+?)(?:\:(.+))?$")
+
+SchemaDict = dict[str, tp.Any]
+ManifestNode = dict[str, tp.Any] | list[tp.Any] | str
 
 
 @dataclasses.dataclass
@@ -49,26 +52,26 @@ class Parsed:
     is_resource_type: bool = False
 
 
-def clear_parameters(resource_link):
+def clear_parameters(resource_link: str) -> str:
     parts = resource_link.split(".")
     return ".".join(parts[:-1] + [parts[-1].split(":")[0]])
 
 
 class ResourceLink:
-    def __init__(self, link_string):
+    def __init__(self, link_string: str) -> None:
         super().__init__()
         self._link_string = link_string
 
     @property
-    def location(self):
+    def location(self) -> str:
         return clear_parameters(self._link_string)
 
     @property
-    def parameter(self):
+    def parameter(self) -> str:
         return self._link_string.split(".")[-1]
 
 
-def get_element_uuid(element_name, element_version):
+def get_element_uuid(element_name: str, element_version: str) -> sys_uuid.UUID:
     tmp = str(
         sys_uuid.uuid5(
             ELEMENT_NAMESPACE,
@@ -78,14 +81,14 @@ def get_element_uuid(element_name, element_version):
     return sys_uuid.UUID(f"{UUID_PREFIX}{tmp[8:]}")
 
 
-def get_project_id():
+def get_project_id() -> sys_uuid.UUID:
     # return sys_uuid.UUID(f"{UUID_PREFIX}{str(sys_uuid.uuid4())[8:]}")
     return sys_uuid.UUID(
         f"{UUID_PREFIX}{str('00000000-0000-0000-0000-000000000000')[8:]}"
     )
 
 
-def get_required_field(data, field_name):
+def get_required_field(data: SchemaDict, field_name: str) -> tp.Any:
     if field_name not in data:
         raise ValueError(
             f"required field '{field_name}' is missing in the provided data: {data}"
@@ -94,7 +97,6 @@ def get_required_field(data, field_name):
 
 
 def parse_variable(var: str) -> Parsed:
-
     res = re.findall(REGEXP, var)
 
     result = Parsed(input_string=var)
@@ -134,7 +136,7 @@ def parse_variable(var: str) -> Parsed:
             resource_name = parts[-1][1:]
             resource_parts = parts[1:-1]
             is_resource = True
-            is_variable = True if value else False
+            is_variable = value is not None
             resource_type = f"${element_name}.{'.'.join(resource_parts)}"
         elif value:
             result.valid = False
@@ -156,8 +158,8 @@ def parse_variable(var: str) -> Parsed:
     return result
 
 
-def walk(node: tp.Union[dict, list, str]) -> tp.List[Parsed]:
-    variables = []
+def walk(node: ManifestNode) -> list[Parsed]:
+    variables: list[Parsed] = []
     if isinstance(node, dict):
         for value in node.values():
             variables += walk(value)
@@ -171,78 +173,94 @@ def walk(node: tp.Union[dict, list, str]) -> tp.List[Parsed]:
     return variables
 
 
-def walk_replace(resource_type: str, scheme: dict, node: tp.Union[dict, list, str]):
+def walk_replace(resource_type: str, scheme: SchemaDict, node: ManifestNode) -> None:
     if isinstance(node, dict):
         for key, value in node.items():
             if isinstance(value, str):
                 parsed_var = parse_variable(value)
                 if parsed_var.valid and parsed_var.is_variable:
+                    replacement: tp.Any = None
                     if parsed_var.resource_type == "$core.vs.variables":
-                        example = search_parameter_example(scheme, resource_type, key)
-                    else:
-                        example = search_parameter_example(
-                            scheme, parsed_var.resource_type, parsed_var.value
+                        replacement = search_parameter_example(
+                            scheme, resource_type, key
                         )
-                    if example is not None:
-                        node[key] = example
+                    elif (
+                        parsed_var.resource_type is not None
+                        and parsed_var.value is not None
+                    ):
+                        replacement = search_parameter_example(
+                            scheme,
+                            parsed_var.resource_type,
+                            parsed_var.value,
+                        )
+                    if replacement is not None:
+                        node[key] = replacement
             else:
                 walk_replace(resource_type, scheme, value)
     elif isinstance(node, list):
-        for i, item in enumerate(node):
+        for index, item in enumerate(node):
             if isinstance(item, str):
                 parsed_var = parse_variable(item)
                 if parsed_var.valid and parsed_var.is_variable:
+                    replacement = None
                     if parsed_var.resource_type == "$core.vs.variables":
-                        example = search_parameter_example(scheme, resource_type, item)
-                    else:
-                        example = search_parameter_example(
-                            scheme, parsed_var.resource_type, parsed_var.value
+                        replacement = search_parameter_example(
+                            scheme, resource_type, item
                         )
-                    if example is not None:
-                        node[i] = example
+                    elif (
+                        parsed_var.resource_type is not None
+                        and parsed_var.value is not None
+                    ):
+                        replacement = search_parameter_example(
+                            scheme,
+                            parsed_var.resource_type,
+                            parsed_var.value,
+                        )
+                    if replacement is not None:
+                        node[index] = replacement
             else:
                 walk_replace(resource_type, scheme, item)
 
 
-def load_base_manifest_schema() -> dict:
+def load_base_manifest_schema() -> SchemaDict:
     with open(
         os.path.join(
             PROJECT_PATH, "genesis", "manifests", "specification", "base_spec.yaml"
         ),
         "r",
-    ) as f:
-        return yaml.safe_load(f)
+    ) as file_obj:
+        return tp.cast(SchemaDict, yaml.safe_load(file_obj))
 
 
-def load_full_manifest_schema() -> dict:
+def load_full_manifest_schema() -> SchemaDict:
     with open(
         os.path.join(
             PROJECT_PATH, "genesis", "manifests", "specification", "full_spec.yaml"
         ),
         "r",
-    ) as f:
-        return yaml.safe_load(f)
+    ) as file_obj:
+        return tp.cast(SchemaDict, yaml.safe_load(file_obj))
 
 
-def dump_full_manifest_schema(data):
+def dump_full_manifest_schema(data: SchemaDict) -> None:
     with open(
         os.path.join(
             PROJECT_PATH, "genesis", "manifests", "specification", "full_spec.yaml"
         ),
         "w",
-    ) as f:
-        yaml.safe_dump(data, f)
+    ) as file_obj:
+        yaml.safe_dump(data, file_obj)
 
 
-def load_user_api_spec() -> dict:
+def load_user_api_spec() -> SchemaDict:
     with open(
         os.path.join(PROJECT_PATH, "docs", "openapi", "openapi_user.yaml"),
         "r",
-    ) as f:
-        return yaml.safe_load(f)
+    ) as file_obj:
+        return tp.cast(SchemaDict, yaml.safe_load(file_obj))
 
 
-def validate_manifest(data: dict, schema: tp.Optional[dict]) -> None:
+def validate_manifest(data: SchemaDict, schema: SchemaDict | None) -> None:
     if data and schema:
         try:
             openapi_schema_validator.validate(
@@ -256,7 +274,10 @@ def validate_manifest(data: dict, schema: tp.Optional[dict]) -> None:
     return None
 
 
-def build_full_schema(base_manifest_schema: dict, user_api_spec: dict) -> dict:
+def build_full_schema(
+    base_manifest_schema: SchemaDict,
+    user_api_spec: SchemaDict,
+) -> SchemaDict:
     for path, path_obj in user_api_spec["paths"].items():
         path_parts = path.split("/")
         if len(path_parts) > 5:
@@ -284,22 +305,39 @@ def build_full_schema(base_manifest_schema: dict, user_api_spec: dict) -> dict:
 
 
 def search_parameter_example(
-    scheme: dict, resource_type: str, parameter: str
+    scheme: SchemaDict,
+    resource_type: str,
+    parameter: str,
 ) -> tp.Any:
-    resource_type = scheme["properties"]["resources"]["properties"].get(resource_type)
-    if not resource_type:
+    resource_schema = scheme["properties"]["resources"]["properties"].get(resource_type)
+    if not isinstance(resource_schema, dict):
         return None
-    ref = resource_type.get("additionalProperties", {}).get("$ref")
-    if not ref:
+
+    additional_properties = resource_schema.get("additionalProperties")
+    if not isinstance(additional_properties, dict):
         return None
+
+    ref = additional_properties.get("$ref")
+    if not isinstance(ref, str):
+        return None
+
     model_name = ref.split("/")[-1]
     model = scheme["components"]["schemas"].get(model_name)
-    if model:
-        return model["properties"].get(parameter, {}).get("example")
-    return None
+    if not isinstance(model, dict):
+        return None
+
+    model_properties = model.get("properties")
+    if not isinstance(model_properties, dict):
+        return None
+
+    parameter_schema = model_properties.get(parameter)
+    if not isinstance(parameter_schema, dict):
+        return None
+
+    return parameter_schema.get("example")
 
 
-def mutate_manifest(manifest: dict, scheme: dict) -> dict:
+def mutate_manifest(manifest: SchemaDict, scheme: SchemaDict) -> SchemaDict:
     for resource_type, resource in manifest["resources"].items():
         for resource_name, resource_value in resource.items():
             walk_replace(resource_type, scheme, resource_value)

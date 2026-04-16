@@ -14,12 +14,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import enum
+import re
+import typing as tp
+
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
-import enum
-import re
-
+from gcl_sdk.agents.universal.dm import models as ua_models
 from restalchemy.dm import filters as dm_filters
 from restalchemy.dm import models
 from restalchemy.dm import properties
@@ -28,7 +30,6 @@ from restalchemy.dm import types
 from restalchemy.dm import types_dynamic
 from restalchemy.dm import types_network
 from restalchemy.storage.sql import orm
-from gcl_sdk.agents.universal.dm import models as ua_models
 
 from genesis_core.common import utils as u
 from genesis_core.secret import utils as su
@@ -89,7 +90,7 @@ class LB(
         required=True,
     )
 
-    def delete(self, session=None, **kwargs):
+    def delete(self, session: tp.Any = None, **kwargs: tp.Any) -> tp.Any:
         u.remove_nested_dm(Vhost, "parent", self, session=session)
         u.remove_nested_dm(BackendPool, "parent", self, session=session)
         return super().delete(session=session, **kwargs)
@@ -105,21 +106,21 @@ class ChildModel(
 ):
     parent = relationships.relationship(LB, required=True, read_only=True)
 
-    def touch_parent(self, session=None):
+    def touch_parent(self, session: tp.Any = None) -> None:
         # Now we enforce dataplane updates via parent model, so we don't need
         #  to implement explicit child entities' resources on dataplane level
         # TODO: optimize and bump only updated_at
         self.parent.update(force=True)
 
-    def insert(self, session=None):
+    def insert(self, session: tp.Any = None) -> None:
         super().insert(session=session)
         self.touch_parent(session=session)
 
-    def update(self, session=None, force=False):
+    def update(self, session: tp.Any = None, force: bool = False) -> None:
         super().update(session=session, force=force)
         self.touch_parent(session=session)
 
-    def delete(self, session=None, **kwargs):
+    def delete(self, session: tp.Any = None, **kwargs: tp.Any) -> tp.Any:
         res = super().delete(session=session, **kwargs)
         self.touch_parent(session=session)
         return res
@@ -159,7 +160,7 @@ class BackendPool(ChildModel):
         default=BalanceTypes.RR.value,
     )
 
-    def delete(self, session=None, **kwargs):
+    def delete(self, session: tp.Any = None, **kwargs: tp.Any) -> tp.Any:
         # TODO: optimize this "foreign key" check
         for v in Vhost.objects.get_all(filters={"parent": dm_filters.EQ(self.parent)}):
             for r in Route.objects.get_all(filters={"parent": dm_filters.EQ(v.uuid)}):
@@ -246,7 +247,7 @@ class Vhost(ChildModel):
         types.AllowNone(types_network.IpWithMask()), default=None
     )
 
-    def _validate(self, check_all=False):
+    def _validate(self, check_all: bool = False) -> None:
         if self.proxy_protocol_from and self.protocol == Protocol.UDP.value:
             raise ValueError(
                 "'proxy_protocol_from' is only supported for 'tcp'-based protocols."
@@ -296,15 +297,15 @@ class Vhost(ChildModel):
                     "Private key for external_source with type ssh_forward is invalid."
                 )
 
-    def insert(self, session=None):
+    def insert(self, session: tp.Any = None) -> None:
         self._validate()
         super().insert(session=session)
 
-    def update(self, session=None, force=False):
+    def update(self, session: tp.Any = None, force: bool = False) -> None:
         self._validate()
         super().update(session=session, force=force)
 
-    def delete(self, session=None, **kwargs):
+    def delete(self, session: tp.Any = None, **kwargs: tp.Any) -> tp.Any:
         u.remove_nested_dm(Route, "parent", self, session=session)
         return super().delete(session=session, **kwargs)
 
@@ -368,8 +369,10 @@ class RuleStaticKind(AbstractRuleKind):
 
 
 class ArchivedTarUrl(types.Url):
-    def validate(self, value):
+    def validate(self, value: tp.Any) -> bool:
         if not super().validate(value):
+            return False
+        if not isinstance(value, str):
             return False
         return value.endswith("tar.gz") or value.endswith("tar.zst")
 
@@ -436,7 +439,7 @@ class ModifierInsertHeaderKind(AbstractModifierKind):
 
 
 class Regex(types.String):
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: tp.Any) -> None:
         """
         Regex type.
         """
@@ -446,8 +449,10 @@ class Regex(types.String):
             openapi_type=openapi_type, openapi_format=openapi_format, **kwargs
         )
 
-    def validate(self, value):
+    def validate(self, value: tp.Any) -> bool:
         result = super().validate(value)
+        if not isinstance(value, str):
+            return False
         try:
             re.compile(value)
         except re.error:
@@ -521,7 +526,11 @@ class AbstractHTTPRouteCondKind(AbstractRouteCondKind):
         default=lambda: [],
     )
 
-    def __init__(self, modifiers=None, **kwargs):
+    def __init__(
+        self,
+        modifiers: list[tp.Any] | None = None,
+        **kwargs: tp.Any,
+    ) -> None:
         if modifiers is None:
             modifiers = [ModifierAutoHeaderKind()]
         super().__init__(modifiers=modifiers, **kwargs)
@@ -550,7 +559,11 @@ class RouteRegexConditionKind(AbstractHTTPRouteCondKind):
         default=lambda: [],
     )
 
-    def __init__(self, modifiers=None, **kwargs):
+    def __init__(
+        self,
+        modifiers: list[tp.Any] | None = None,
+        **kwargs: tp.Any,
+    ) -> None:
         if modifiers is None:
             modifiers = [ModifierAutoHeaderForRegexKind()]
         super().__init__(modifiers=modifiers, **kwargs)
@@ -575,7 +588,7 @@ class Route(ChildModel):
         required=True,
     )
 
-    def _validate(self, check_all=False):
+    def _validate(self, check_all: bool = False) -> None:
         if self.parent.protocol.startswith("http"):
             if self.condition.kind == RouteRawConditionKind.KIND:
                 raise ValueError("L7 protocols can't have `raw` routes.")
@@ -583,10 +596,10 @@ class Route(ChildModel):
             if self.condition.kind != RouteRawConditionKind.KIND:
                 raise ValueError("L4 protocols can have only `raw` routes.")
 
-    def insert(self, session=None):
+    def insert(self, session: tp.Any = None) -> None:
         self._validate()
         super().insert(session=session)
 
-    def update(self, session=None, force=False):
+    def update(self, session: tp.Any = None, force: bool = False) -> None:
         self._validate()
         super().update(session=session, force=force)

@@ -15,11 +15,12 @@
 #    under the License.
 
 import dataclasses
+import typing as tp
 
+from gcl_iam import exceptions as gcl_iam_exceptions
 from restalchemy.api import middlewares as ra_middlewares
 from restalchemy.common import contexts as ra_contexts
 from restalchemy.dm import filters as ra_filters
-from gcl_iam import exceptions as gcl_iam_exceptions
 
 from genesis_core.user_api.security import exceptions as security_exceptions
 from genesis_core.user_api.security.dm import models as security_models
@@ -27,8 +28,8 @@ from genesis_core.user_api.security.dm import models as security_models
 
 @dataclasses.dataclass
 class RulesContext:
-    and_rules: list
-    or_rules: list
+    and_rules: list[tp.Any]
+    or_rules: list[tp.Any]
 
     @property
     def available(self) -> bool:
@@ -36,14 +37,14 @@ class RulesContext:
 
 
 class SecurityRulesMiddleware(ra_middlewares.Middleware):
-    def process_request(self, req):
+    def process_request(self, req: tp.Any) -> None:
         context = ra_contexts.get_context()
         rules_context = self._prepare_rules(context)
         if self._verify_rules(context, rules_context):
             return None
         self._raise_error_answer()
 
-    def _prepare_rules(self, context):
+    def _prepare_rules(self, context: tp.Any) -> RulesContext:
         try:
             project_id = context.iam_context.get_introspection_info().project_id
         except gcl_iam_exceptions.NoIamSessionStored:
@@ -72,7 +73,7 @@ class SecurityRulesMiddleware(ra_middlewares.Middleware):
             or_rules=or_rules,
         )
 
-    def _verify_rules(self, context, rules_context):
+    def _verify_rules(self, context: tp.Any, rules_context: RulesContext) -> bool:
         if not rules_context.available:
             return True
         if rules_context.and_rules and all(
@@ -84,5 +85,5 @@ class SecurityRulesMiddleware(ra_middlewares.Middleware):
 
         return False
 
-    def _raise_error_answer(self):
+    def _raise_error_answer(self) -> tp.NoReturn:
         raise security_exceptions.ActionNotAllowed()

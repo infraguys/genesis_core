@@ -17,23 +17,23 @@
 import random
 import typing as tp
 import uuid as sys_uuid
-import netaddr
 
+import netaddr
+from gcl_sdk.agents.universal.api import crypto as ua_crypto
+from gcl_sdk.agents.universal.dm import models as ua_models
+from gcl_sdk.infra.dm import models as infra_models
+from restalchemy.dm import filters as dm_filters
 from restalchemy.dm import models
 from restalchemy.dm import properties
 from restalchemy.dm import relationships
 from restalchemy.dm import types
 from restalchemy.dm import types_dynamic
 from restalchemy.dm import types_network as types_net
-from restalchemy.dm import filters as dm_filters
 from restalchemy.storage.sql import orm
-from gcl_sdk.infra.dm import models as infra_models
-from gcl_sdk.agents.universal.api import crypto as ua_crypto
-from gcl_sdk.agents.universal.dm import models as ua_models
 
-from genesis_core.common import utils
-from genesis_core.common import system
 from genesis_core.common import constants as cc
+from genesis_core.common import system
+from genesis_core.common import utils
 from genesis_core.common.dm import models as cm
 from genesis_core.compute import constants as nc
 
@@ -45,19 +45,19 @@ if tp.TYPE_CHECKING:
 class IPRange(types.BaseType):
     SEPARATOR = "-"
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: tp.Any) -> None:
         super(IPRange, self).__init__(openapi_type="string", **kwargs)
 
-    def validate(self, value):
+    def validate(self, value: tp.Any) -> bool:
         return isinstance(value, netaddr.IPRange)
 
-    def to_simple_type(self, value):
+    def to_simple_type(self, value: netaddr.IPRange) -> str:
         return str(value)
 
-    def from_simple_type(self, value):
+    def from_simple_type(self, value: str) -> netaddr.IPRange:
         return netaddr.IPRange(*value.split(self.SEPARATOR))
 
-    def from_unicode(self, value):
+    def from_unicode(self, value: str) -> netaddr.IPRange:
         return self.from_simple_type(value)
 
 
@@ -145,7 +145,7 @@ class MachinePool(
 ):
     __tablename__ = "machine_pools"
     __jsonfields__ = ["driver_spec"]
-    __driver_map__ = {}
+    __driver_map__: dict[str, "AbstractPoolDriver"] = {}
 
     driver_spec = properties.property(types.Dict(), default=dict)
     agent = properties.property(types.AllowNone(types.UUID()), default=None)
@@ -195,7 +195,7 @@ class MachinePool(
             },
         )
 
-    def load_driver(self) -> tp.Type["AbstractPoolDriver"]:
+    def load_driver(self) -> "AbstractPoolDriver":
         """
         Load the driver for the machine pool.
 
@@ -278,14 +278,14 @@ class NodeSet(
         default=nc.NodeStatus.NEW.value,
     )
 
-    def get_agents_private_keys(self):
+    def get_agents_private_keys(self) -> dict[sys_uuid.UUID, str]:
         enc_keys = ua_models.NodeEncryptionKey.objects.get_all(
             filters={"uuid": dm_filters.In(self.nodes.keys())}
         )
 
         return {i.uuid: i.private_key for i in enc_keys}
 
-    def delete(self, session=None):
+    def delete(self, session: tp.Any = None) -> None:
         for node in Node.objects.get_all(
             filters={"node_set": dm_filters.EQ(self.uuid)},
             session=session,
@@ -350,7 +350,7 @@ class Node(
             )
         )
 
-    def insert(self, session=None):
+    def insert(self, session: tp.Any = None) -> None:
         super().insert(session=session)
 
         for policy in self.placement_policies:
@@ -386,14 +386,14 @@ class Node(
         )
         private_key.insert(session=session)
 
-    def get_agent_private_key(self):
+    def get_agent_private_key(self) -> str:
         enc_key = ua_models.NodeEncryptionKey.objects.get_one(
             filters={"uuid": dm_filters.EQ(self.uuid)}
         )
 
         return enc_key.private_key
 
-    def delete(self, session=None):
+    def delete(self, session: tp.Any = None) -> None:
         # NOTE(akremenetsky): Perhaps it's better to add a `foreign key`
         # constraint to the `node_encryption_keys` table but not all
         # nodes present in the `nodes` table. So do cleanup here.
@@ -531,11 +531,11 @@ class Network(
 ):
     __tablename__ = "compute_networks"
     __jsonfields__ = ["driver_spec"]
-    __driver_map__ = {}
+    __driver_map__: dict[str, "AbstractNetworkDriver"] = {}
 
     driver_spec = properties.property(types.Dict(), default=lambda: {})
 
-    def load_driver(self) -> tp.Type["AbstractNetworkDriver"]:
+    def load_driver(self) -> "AbstractNetworkDriver":
         driver_key = str(self.driver_spec)
 
         if driver_key in self.__driver_map__:
@@ -697,7 +697,7 @@ class Port(cm.ModelWithFullAsset, orm.SQLStorableMixin, models.SimpleViewMixin):
         return "a9:%02x:%02x:%02x:%02x:%02x" % octets
 
     @classmethod
-    def from_boot_network(cls):
+    def from_boot_network(cls) -> "Port":
         # NOTE(akremenetsky): There is not SDK at the moment
         # so only single boot network is supported
         boot_subnet = Subnet.objects.get_one(
@@ -722,11 +722,11 @@ class NodeWithoutPorts(Node):
     __tablename__ = "compute_nodes_without_ports"
 
     @classmethod
-    def get_nodes(cls):
+    def get_nodes(cls) -> list["NodeWithoutPorts"]:
         return cls.objects.get_all()
 
     @classmethod
-    def get_vm_nodes(cls):
+    def get_vm_nodes(cls) -> list["NodeWithoutPorts"]:
         return cls.objects.get_all(
             filters={
                 "node_type": dm_filters.EQ(nc.NodeType.VM.value),
@@ -742,7 +742,7 @@ class HWNodeWithoutPorts(models.ModelWithUUID, orm.SQLStorableMixin):
     iface = properties.property(types.UUID())
 
     @classmethod
-    def get_nodes(cls):
+    def get_nodes(cls) -> list["HWNodeWithoutPorts"]:
         return cls.objects.get_all()
 
 

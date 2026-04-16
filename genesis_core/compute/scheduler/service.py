@@ -16,16 +16,16 @@
 
 import logging
 import random
-import uuid as sys_uuid
 import typing as tp
+import uuid as sys_uuid
 
-from restalchemy.common import contexts
-from restalchemy.dm import filters as dm_filters
 from gcl_looper.services import basic
 from gcl_sdk.agents.universal.dm import models as ua_models
+from restalchemy.common import contexts
+from restalchemy.dm import filters as dm_filters
 
-from genesis_core.compute.dm import models
 from genesis_core.compute import constants as nc
+from genesis_core.compute.dm import models
 from genesis_core.compute.scheduler.driver import base
 
 LOG = logging.getLogger(__name__)
@@ -98,7 +98,7 @@ class SchedulerService(basic.BasicService):
                 "node": dm_filters.In([u.uuid for u in unscheduled]),
             },
         )
-        volume_map = {}
+        volume_map: tp.Dict[tp.Optional[sys_uuid.UUID], tp.List[models.Volume]] = {}
         for v in volumes:
             volume_map.setdefault(v.node, []).append(v)
 
@@ -132,7 +132,9 @@ class SchedulerService(basic.BasicService):
                 "machine": dm_filters.In([m.uuid for m in idle]),
             },
         )
-        volume_map = {}
+        volume_map: tp.Dict[
+            tp.Optional[sys_uuid.UUID], tp.List[models.MachineVolume]
+        ] = {}
         for v in volumes:
             volume_map.setdefault(v.machine, []).append(v)
 
@@ -170,14 +172,16 @@ class SchedulerService(basic.BasicService):
                 "node_volume": dm_filters.Is(None),
             },
         )
-        volume_map = {}
+        volume_map: tp.Dict[
+            tp.Optional[sys_uuid.UUID], tp.List[models.MachineVolume]
+        ] = {}
         for v in volumes:
             volume_map.setdefault(v.pool, []).append(v)
 
-        return tuple(
+        return [
             base.MachinePoolBundle(pool=p, volumes=volume_map.get(p.uuid, []))
             for p in pools
-        )
+        ]
 
     def _build_machine_volume(
         self, pool: base.MachinePoolBundle, volume: models.Volume
@@ -252,7 +256,8 @@ class SchedulerService(basic.BasicService):
         storage_pool.allocate_capacity(need_size)
 
         # Remove the volume from the pool
-        pool.volumes.remove(pool_volume)
+        pool_volumes = tp.cast(tp.MutableSequence[models.MachineVolume], pool.volumes)
+        pool_volumes.remove(pool_volume)
         LOG.debug(
             "Found machine volume %s for node volume %s",
             pool_volume,
@@ -312,7 +317,7 @@ class SchedulerService(basic.BasicService):
         pool.pool.avail_cores -= machine.cores
         pool.pool.avail_ram -= machine.ram
 
-    def _schedule_on_existing_machines(self) -> tp.Tuple[base.MachineBundle, ...]:
+    def _schedule_on_existing_machines(self) -> tp.List[base.NodeBundle]:
         unscheduled = self._get_unscheduled_nodes()
 
         # TODO(akremenetsky): Idle machines are limited by some number
@@ -321,31 +326,33 @@ class SchedulerService(basic.BasicService):
         # unscheduled nodes and we will create another machines.
         idle_machines = self._get_idle_machines()
 
-        idle_hws = [
+        idle_hws: tp.List[base.MachineBundle] = [
             m for m in idle_machines if m.machine.machine_type == nc.NodeType.HW.value
         ]
-        idle_vms = [
+        idle_vms: tp.List[base.MachineBundle] = [
             m for m in idle_machines if m.machine.machine_type == nc.NodeType.VM.value
         ]
-        vms = []
+        vms: tp.List[base.NodeBundle] = []
 
         for unscheduled_node in unscheduled:
             node: models.Node = unscheduled_node.node
-            if node.node_type == nc.NodeType.HW:
-                idle_machines = idle_hws
+            if node.node_type == nc.NodeType.HW.value:
+                candidate_machines = idle_hws
             else:
-                idle_machines = idle_vms
+                candidate_machines = idle_vms
 
             # Filtering. We filter out unsuitable machines. For instance,
             # machines that doesn't have enough cores or ram or some
             # placement constraints.
-            for filter in self._machine_filters:
-                idle_machines = filter.filter(unscheduled_node, idle_machines)
+            for machine_filter in self._machine_filters:
+                candidate_machines = list(
+                    machine_filter.filter(unscheduled_node, candidate_machines)
+                )
 
             # There are no available HW machines for this node
             # This means we unable to proceed scheduling process
             # for this node.
-            if not idle_machines and node.node_type == nc.NodeType.HW:
+            if not candidate_machines and node.node_type == nc.NodeType.HW.value:
                 LOG.warning(
                     "No HW machines found to schedule node %s",
                     node.uuid,
@@ -359,7 +366,7 @@ class SchedulerService(basic.BasicService):
             # There are no available VM machines for this node
             # but it's not a problem. A virtual machine will be
             # created later.
-            if not idle_machines and node.node_type == nc.NodeType.VM:
+            if not candidate_machines and node.node_type == nc.NodeType.VM.value:
                 LOG.debug(
                     "No idle VM machines found to schedule node %s",
                     node.uuid,
@@ -370,16 +377,16 @@ class SchedulerService(basic.BasicService):
             # Weighting. We weight machines and choose the best one.
             # Accumulate weights from all weighters.
             # So that the best pool has the highest weight
-            accumulated_weights = [0.0] * len(idle_machines)
+            accumulated_weights = [0.0] * len(candidate_machines)
             for weighter in self._machine_weighters:
-                weights = weighter.weight(idle_machines)
+                weights = weighter.weight(candidate_machines)
                 accumulated_weights = [
                     w0 + w1 for w0, w1 in zip(accumulated_weights, weights)
                 ]
 
             # Choose the best machine, it means the one with the highest weight
             index = accumulated_weights.index(max(accumulated_weights))
-            machine_bundle = idle_machines[index]
+            machine_bundle = candidate_machines[index]
 
             # TODO(akremenetsky): Map volumes to machine volumes
             machine_bundle.machine.node = node.uuid
@@ -407,7 +414,7 @@ class SchedulerService(basic.BasicService):
     def _schedule_on_pools(
         self,
         nodes: tp.Collection[base.NodeBundle],
-        pools: tp.Collection[base.MachinePoolBundle],
+        pools: tp.List[base.MachinePoolBundle],
     ) -> None:
         if not nodes:
             LOG.debug("Nothing to schedule, no unscheduled nodes")
@@ -419,18 +426,18 @@ class SchedulerService(basic.BasicService):
             return
 
         # Save origin pools to filter them out for each machine
-        origin_pools = pools
+        origin_pools = list(pools)
 
         for node in nodes:
-            pools = origin_pools
+            candidate_pools = list(origin_pools)
 
             # Filtering. We filter out unsuitable pools. For instance, pools
             # that doesn't have enough cores or ram or some placement
             # constraints.
-            for filter in self._pool_filters:
-                pools = filter.filter(node, pools)
+            for pool_filter in self._pool_filters:
+                candidate_pools = list(pool_filter.filter(node, candidate_pools))
 
-            if not pools:
+            if not candidate_pools:
                 LOG.warning("No pools found to schedule node %s", node.node.uuid)
                 continue
 
@@ -439,16 +446,16 @@ class SchedulerService(basic.BasicService):
 
             # Accumulate weights from all weighters
             # So that the best pool has the highest weight
-            accumulated_weights = [0.0] * len(pools)
+            accumulated_weights = [0.0] * len(candidate_pools)
             for weighter in self._pool_weighters:
-                weights = weighter.weight(pools)
+                weights = weighter.weight(candidate_pools)
                 accumulated_weights = [
                     w0 + w1 for w0, w1 in zip(accumulated_weights, weights)
                 ]
 
             # Choose the best pool, it means the one with the highest weight
             index = accumulated_weights.index(max(accumulated_weights))
-            pool = pools[index]
+            pool = candidate_pools[index]
             if not pool:
                 LOG.warning("No pools found to schedule node %s", node.node.uuid)
                 continue
@@ -512,13 +519,17 @@ class SchedulerService(basic.BasicService):
             LOG.warning("Unable to schedule volumes, no pools")
             return
 
-        pools = {p.pool.uuid: p for p in pools}
+        pool_map: tp.Dict[sys_uuid.UUID, base.MachinePoolBundle] = {
+            p.pool.uuid: p for p in pools
+        }
 
-        machines = self._get_machines_for_nodes(
-            unscheduled.volume.node
-            for unscheduled in unscheduled_volumes
-            if unscheduled.volume.node is not None
-        )
+        node_uuids: tp.List[sys_uuid.UUID] = []
+        for unscheduled in unscheduled_volumes:
+            node_uuid = unscheduled.volume.node
+            if node_uuid is not None:
+                node_uuids.append(node_uuid)
+
+        machines = self._get_machines_for_nodes(node_uuids)
         node_map = {m.node: m for m in machines}
 
         for unscheduled in unscheduled_volumes:
@@ -541,8 +552,18 @@ class SchedulerService(basic.BasicService):
                 )
                 continue
 
+            machine = node_map[volume.node]
+            machine_pool_uuid = machine.pool
+            if machine_pool_uuid is None:
+                LOG.error(
+                    "Machine %s for volume %s is not assigned to a pool",
+                    machine.uuid,
+                    volume.uuid,
+                )
+                continue
+
             try:
-                pool = pools[node_map[volume.node].pool]
+                pool = pool_map[machine_pool_uuid]
             except KeyError:
                 LOG.error(
                     "Unable to find pool for volume %s assigned to node %s",
@@ -563,11 +584,11 @@ class SchedulerService(basic.BasicService):
                 LOG.exception(
                     "Error placing volume %s into pool %s",
                     volume.uuid,
-                    pool.uuid,
+                    pool.pool.uuid,
                 )
                 continue
 
-    def _iteration(self):
+    def _iteration(self) -> None:
         with contexts.Context().session_manager():
             pool_builders = self._get_pool_builders()
             pools = self._get_pools()

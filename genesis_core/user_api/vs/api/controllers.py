@@ -14,16 +14,17 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import typing as tp
 
-from restalchemy.api import actions
-from restalchemy.api import controllers
-from restalchemy.api import resources
-from restalchemy.api import constants as ra_c
-from restalchemy.dm import filters as dm_filters
-from restalchemy.api import field_permissions as field_p
-from restalchemy.common import exceptions as ra_e
-from gcl_sdk.infra import constants as infra_c
 from gcl_iam.api import controllers as iam_controllers
+from gcl_sdk.infra import constants as infra_c
+from restalchemy.api import actions
+from restalchemy.api import constants as ra_c
+from restalchemy.api import controllers
+from restalchemy.api import field_permissions as field_p
+from restalchemy.api import resources
+from restalchemy.common import exceptions as ra_e
+from restalchemy.dm import filters as dm_filters
 
 from genesis_core.vs.dm import models as models
 
@@ -62,7 +63,7 @@ class ProfilesController(
     )
 
     @actions.post
-    def activate(self, resource: models.Profile):
+    def activate(self, resource: models.Profile) -> models.Profile:
         resource.activate()
         return resource
 
@@ -90,17 +91,17 @@ class VariablesController(
         ),
     )
 
-    def update(self, uuid, **kwargs):
+    def update(self, uuid: tp.Any, **kwargs: tp.Any) -> tp.Any:
         kwargs["status"] = infra_c.VariableStatus.IN_PROGRESS.value
         return super().update(uuid, **kwargs)
 
     @actions.post
-    def select_value(self, resource: models.Variable, value: str):
-        value = models.Value.objects.get_one(
+    def select_value(self, resource: models.Variable, value: str) -> models.Variable:
+        selected_value = models.Value.objects.get_one(
             filters={"uuid": dm_filters.EQ(value)},
         )
         try:
-            value.select_me(resource)
+            selected_value.select_me(resource)
         except ValueError:
             raise ValueNotBelongsToVariableError()
 
@@ -109,7 +110,7 @@ class VariablesController(
         return resource
 
     @actions.post
-    def release_value(self, resource: models.Variable):
+    def release_value(self, resource: models.Variable) -> models.Variable:
         if resource.selected_value is None:
             raise NoValueSelectedError()
         resource.release_value()

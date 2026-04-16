@@ -14,12 +14,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import typing as tp
+
 from gcl_iam.api import controllers as iam_controllers
 from restalchemy.api import controllers
 from restalchemy.api import resources
 
-from genesis_core.config.dm import models as conf_models
 from genesis_core.config import constants as cc
+from genesis_core.config.dm import models as conf_models
 
 
 class ConfigController(controllers.RoutesListController):
@@ -38,7 +40,7 @@ class ConfigsController(iam_controllers.PolicyBasedController):
         convert_underscore=False,
     )
 
-    def update(self, uuid, **kwargs):
+    def update(self, uuid: tp.Any, **kwargs: tp.Any) -> tp.Any:
         # Force config to be NEW
         # In order to regenerate renders
         kwargs["status"] = cc.ConfigStatus.NEW.value

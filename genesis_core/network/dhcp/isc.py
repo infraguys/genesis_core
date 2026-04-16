@@ -37,14 +37,14 @@ class StaticRoute(tp.NamedTuple):
 
         # Special mask format for rfc3442
         # 10.130.4.0 -> 10,130,4,
-        mask = []
+        mask: list[str] = []
         for d in reversed(str(self.to.ip).split(".")):
             if not mask and d == "0":
                 continue
             mask.append(d)
 
-        mask = ",".join(reversed(mask))
-        return f" {self.to.prefixlen}, {mask}, {gw},"
+        mask_str = ",".join(reversed(mask))
+        return f" {self.to.prefixlen}, {mask_str}, {gw},"
 
 
 DHCP_ISC_SVC_NAME = "isc-dhcp-server.service"

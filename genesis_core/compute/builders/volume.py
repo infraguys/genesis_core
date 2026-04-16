@@ -17,14 +17,13 @@
 import logging
 import typing as tp
 
-from restalchemy.dm import relationships
-from restalchemy.dm import filters as dm_filters
 from gcl_sdk.agents.universal.dm import models as ua_models
 from gcl_sdk.agents.universal.services import builder as sdk_builder
-
-from genesis_core.compute.dm import models
+from restalchemy.dm import filters as dm_filters
+from restalchemy.dm import relationships
 
 from genesis_core.compute import constants as nc
+from genesis_core.compute.dm import models
 
 LOG = logging.getLogger(__name__)
 
@@ -157,4 +156,5 @@ class VolumeBuilderService(sdk_builder.UniversalBuilderService):
         For example, status changes.
         """
         if len(tracked_instances) == 1:
-            instance.status = tracked_instances[0].status
+            tracked_instance = next(iter(tracked_instances))
+            instance.status = tracked_instance.status

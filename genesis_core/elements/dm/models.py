@@ -14,33 +14,32 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from functools import partial
-import logging
 import enum
+import logging
 import re
 import typing as tp
 import uuid as sys_uuid
+from functools import partial
 
-from gcl_sdk.agents.universal.dm import models as sdk_models
 from gcl_sdk.agents.universal import utils as sdk_utils
+from gcl_sdk.agents.universal.dm import models as sdk_models
+from gcl_sdk.agents.universal.dm import models as ua_models
+from gcl_sdk.paas.dm import services as srv_models
 from restalchemy.dm import filters as ra_filters
 from restalchemy.dm import models
 from restalchemy.dm import properties
 from restalchemy.dm import relationships
 from restalchemy.dm import types as ra_types
 from restalchemy.dm import types_dynamic as ra_types_dyn
-from restalchemy.storage.sql import orm
 from restalchemy.storage.sql import engines
-
-from gcl_sdk.agents.universal.dm import models as ua_models
-from gcl_sdk.paas.dm import services as srv_models
+from restalchemy.storage.sql import orm
 
 from genesis_core.common import exceptions
+from genesis_core.common import utils as cm_utils
 from genesis_core.common.dm import models as cm
 from genesis_core.common.dm import targets as ct
-from genesis_core.common import utils as cm_utils
-from genesis_core.elements.dm import utils
 from genesis_core.elements import constants as cc
+from genesis_core.elements.dm import utils
 from genesis_core.vs.dm import models as vs_models
 
 LOG = logging.getLogger(__name__)
@@ -71,13 +70,18 @@ class LinkResolver:
     and retrieving appropriate resources from the element engine.
     """
 
-    def __init__(self, element_engine, element, full_link: str):
+    def __init__(
+        self,
+        element_engine: "ElementEngine",
+        element: "Element",
+        full_link: str,
+    ) -> None:
         super().__init__()
         self._element_engine = element_engine
         self._element = element
         self._full_link = full_link
         link = self._extract_resource_link(self._full_link)
-        self._resource = (
+        self._resource: tp.Any = (
             self._element_engine.get_resource_by_link(
                 element=self._element,
                 link=link,
@@ -88,28 +92,30 @@ class LinkResolver:
         self._discarded_part = self._full_link[len(link) :]
 
     @staticmethod
-    def _extract_resource_link(full_link):
-
+    def _extract_resource_link(full_link: str) -> str:
         full_link = full_link.split(":", 1)[0]
 
         parts = full_link.split(".")
-        result_parts = []
+        result_parts: list[str] = []
 
-        for part in parts:
+        for index, part in enumerate(parts):
             if part.startswith("$"):
                 # When we encounter a part with a $, we add all the preceding
                 #     parts.
-                result_parts = parts[: parts.index(part) + 1]
+                result_parts = parts[: index + 1]
 
-        return ".".join(result_parts) if result_parts else None
+        if not result_parts:
+            raise ValueError(f"Failed to extract resource link from '{full_link}'.")
+
+        return ".".join(result_parts)
 
     @property
-    def full_link_original(self):
+    def full_link_original(self) -> str:
         """Returns resource.original.link + discarded part"""
         return self._resource.original.link + self._discarded_part
 
     @property
-    def full_link(self):
+    def full_link(self) -> str:
         """Returns resource.link + discarded part"""
         return self._resource.link + self._discarded_part
 
@@ -213,11 +219,11 @@ class Manifest(
         element.save()
         return self.apply_element(element)
 
-    def apply_requirements(self, element: "Element"):
+    def apply_requirements(self, element: "Element") -> None:
         element.requirements = self.requirements
         element.save()
 
-    def apply_imports(self, element: "Element"):
+    def apply_imports(self, element: "Element") -> None:
         existing_imports = {
             i.name: i
             for i in Import.objects.get_all(
@@ -270,7 +276,7 @@ class Manifest(
             element_engine.delete_resource(resource)
             imp.delete()
 
-    def apply_exports(self, element: "Element"):
+    def apply_exports(self, element: "Element") -> None:
         existing_exports = {
             i.name: i
             for i in Export.objects.get_all(
@@ -304,7 +310,7 @@ class Manifest(
             element_engine.delete_resource_export(exp)
             exp.delete()
 
-    def apply_resources(self, element: "Element"):
+    def apply_resources(self, element: "Element") -> None:
         existing_resources = {
             (i.resource_link_prefix, i.name): i
             for i in Resource.objects.get_all(
@@ -442,14 +448,14 @@ class Element(
     )
 
     @property
-    def link(self):
+    def link(self) -> str:
         return f"${self.name}"
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: tp.Any) -> None:
         super().__init__(**kwargs)
-        self._requirements = []
+        self._requirements: list[tp.Any] = []
 
-    def delete(self, session=None):
+    def delete(self, session: tp.Any = None) -> None:
         for resource in Resource.objects.get_all(
             filters={"element": ra_filters.EQ(self)}
         ):
@@ -457,7 +463,7 @@ class Element(
         super().delete(session=session)
 
     @property
-    def original(self):
+    def original(self) -> "Element":
         return self
 
 
@@ -482,7 +488,7 @@ class ElementIncorrectStatusesView(
         read_only=True,
     )
 
-    def actualize_status(self):
+    def actualize_status(self) -> None:
         engine = engines.engine_factory.get_engine()
         with engine.session_manager() as s:
             s.execute(
@@ -583,7 +589,7 @@ class Resource(
 
     __inline_vars_regex__ = re.compile(r"[\\]{0,1}\{(.*?)}")
 
-    def get_uri(self):
+    def get_uri(self) -> str:
         version_prefix = ""
         if self.element.api_version:
             version_prefix = f"/{self.element.api_version}"
@@ -603,7 +609,7 @@ class Resource(
         except (TypeError, IndexError):
             return None
 
-    def get_parameter_value(self, parameter: str):
+    def get_parameter_value(self, parameter: str) -> tp.Any:
         parts = parameter.split(":")
         resource_name = parts[0][1:]
         if resource_name != self.name:
@@ -632,13 +638,17 @@ class Resource(
             result_value = result_value[part]
         return result_value
 
-    def get_actual_state_safe(self):
+    def get_actual_state_safe(self) -> dict[str, tp.Any]:
         if self.actual_resource is None:
             return self.render_target_state()
         return self.actual_resource.value
 
     # Support inplace vars with f"" syntax
-    def _fstring_replacement_callback(self, match, engine):
+    def _fstring_replacement_callback(
+        self,
+        match: re.Match[str],
+        engine: "ElementEngine",
+    ) -> str:
         # Just remove escape syntax
         if match.group(0).startswith("\\{") and match.group(0)[-1] == "}":
             return match.group(0)[1:]
@@ -658,7 +668,7 @@ class Resource(
                 f"Can't render value `{var}` for resource `{repr(self)}` by reason: {e}"
             )
 
-    def _render_value(self, value, engine):
+    def _render_value(self, value: str, engine: "ElementEngine") -> tp.Any:
         if value.startswith("$"):
             link = utils.ResourceLink(value)
             try:
@@ -683,9 +693,9 @@ class Resource(
 
         return value
 
-    def _recursive_render(self, data, engine):
+    def _recursive_render(self, data: tp.Any, engine: "ElementEngine") -> tp.Any:
         if isinstance(data, dict):
-            result = {}
+            result: dict[str, tp.Any] = {}
             for key, value in data.items():
                 if isinstance(
                     value,
@@ -700,8 +710,10 @@ class Resource(
                     result[key] = self._render_value(value, engine)
                 else:
                     result[key] = value
-        elif isinstance(data, list):
-            result = []
+            return result
+
+        if isinstance(data, list):
+            result_list: list[tp.Any] = []
             for item in data:
                 if isinstance(
                     item,
@@ -711,16 +723,19 @@ class Resource(
                     ),
                 ):
                     item = self._recursive_render(item, engine)
-                    result.append(item)
+                    result_list.append(item)
                 elif isinstance(item, str):
-                    result.append(self._render_value(item, engine))
+                    result_list.append(self._render_value(item, engine))
                 else:
-                    result.append(item)
-        else:
-            result = data
-        return result
+                    result_list.append(item)
+            return result_list
 
-    def render_target_state(self, engine=None):
+        return data
+
+    def render_target_state(
+        self,
+        engine: "ElementEngine | None" = None,
+    ) -> dict[str, tp.Any]:
         engine = engine or element_engine
         res = self._recursive_render(self.value, engine)
         # uuid is mandatory to find already created resources in services
@@ -729,16 +744,16 @@ class Resource(
         return res
 
     @property
-    def link(self):
+    def link(self) -> str:
         return f"{self.resource_link_prefix}.${self.name}"
 
-    def get_provider_element(self):
+    def get_provider_element(self) -> "Element":
         namespace_name = self.resource_link_prefix.split(".", 2)[0]
         namespace = element_engine.get_namespace(namespace_name)
         return namespace.element
 
     @property
-    def kind(self):
+    def kind(self) -> str:
         parts = [
             p for p in self.resource_link_prefix.split(".")[1:] if not p.startswith("$")
         ]
@@ -746,7 +761,10 @@ class Resource(
         provider_element = self.get_provider_element()
         return f"em_{provider_element.name}_{'_'.join(parts)}"
 
-    def calculate_full_hash(self, target_state=None):
+    def calculate_full_hash(
+        self,
+        target_state: dict[str, tp.Any] | None = None,
+    ) -> str:
         if self.actual_resource is not None:
             return self.actual_resource.full_hash
         target_state = target_state or self.render_target_state()
@@ -764,7 +782,7 @@ class Resource(
 
         return self.actual_resource
 
-    def actualize(self):
+    def actualize(self) -> None:
         try:
             target_state = self.render_target_state()
         except KeyError as e:
@@ -823,7 +841,7 @@ class Resource(
             )
         self.update()
 
-    def delete(self, session=None):
+    def delete(self, session: tp.Any = None) -> None:
         super().delete(session=session)
         for ts in sdk_models.TargetResource.objects.get_all(
             filters={
@@ -834,7 +852,7 @@ class Resource(
             ts.delete(session=session)
 
     @property
-    def original(self):
+    def original(self) -> "Resource":
         return self
 
 
@@ -905,33 +923,35 @@ class Import(
     )
 
     @property
-    def link(self):
+    def link(self) -> str:
         return f"{self.element.link}.imports.${self.name}"
 
 
 class ImportedResource:
-    def __init__(self, element, resource, name):
+    def __init__(self, element: "Element", resource: "Resource", name: str) -> None:
         super().__init__()
         self._element = element
         self._resource = resource
         self._name = name
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> tp.Any:
         return getattr(self._resource, name)
 
-    def get_parameter_value(self, parameter):
-        return type(self._resource).get_parameter_value(self, parameter)
+    def get_parameter_value(self, parameter: str) -> tp.Any:
+        return tp.cast(tp.Any, type(self._resource).get_parameter_value)(
+            self, parameter
+        )
 
     @property
-    def element(self):
+    def element(self) -> "Element":
         return self._element
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._name
 
     @property
-    def link(self):
+    def link(self) -> str:
         return f"{self.element.link}.imports.${self.name}"
 
 
@@ -962,7 +982,7 @@ class ResourceIncorrectStatusesView(models.ModelWithUUID, orm.SQLStorableMixin):
         default=None,
     )
 
-    def actualize_status(self, session):
+    def actualize_status(self, session: tp.Any) -> None:
         new_status = Status.NEW
         if self.actual_status == Status.ACTIVE:
             new_status = Status.ACTIVE
@@ -976,34 +996,34 @@ class ResourceIncorrectStatusesView(models.ModelWithUUID, orm.SQLStorableMixin):
 
 
 class Namespace:
-    def __init__(self, element):
+    def __init__(self, element: "Element") -> None:
         super().__init__()
         self._element = element
         # NOTE(efrolov): map of resources by link string
-        self._namespace_resources = {}
+        self._namespace_resources: dict[str, Resource | ImportedResource] = {}
 
     @property
-    def element(self):
+    def element(self) -> "Element":
         return self._element
 
-    def add_resource(self, resource):
+    def add_resource(self, resource: Resource | ImportedResource) -> None:
         if resource.link in self._namespace_resources:
             raise ValueError(
                 f"Resource with link string '{resource.link}' already exists."
             )
         self._namespace_resources[resource.link] = resource
 
-    def get_resources(self):
+    def get_resources(self) -> list[Resource | ImportedResource]:
         return list(self._namespace_resources.values())
 
-    def delete_resource(self, resource):
+    def delete_resource(self, resource: Resource | ImportedResource) -> None:
         if resource.link not in self._namespace_resources:
             raise ValueError(
                 f"Resource with link string '{resource.link}' does not exist."
             )
         del self._namespace_resources[resource.link]
 
-    def get_resource_by_link(self, link):
+    def get_resource_by_link(self, link: str) -> Resource | ImportedResource:
         clear_link = utils.clear_parameters(link)
         if clear_link not in self._namespace_resources:
             raise ValueError(
@@ -1013,7 +1033,7 @@ class Namespace:
 
 
 class ElementEngine:
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self._namespaces: tp.Dict[str, Namespace] = {}
         self._resource_exports: tp.Dict[str, Resource] = {}
@@ -1066,27 +1086,31 @@ class ElementEngine:
                     f"exports are currently supported."
                 )
 
-    def add_resource(self, resource: "Resource") -> None:
+    def add_resource(self, resource: Resource | ImportedResource) -> None:
         element = resource.element
         if element.link not in self._namespaces:
-            ValueError(
+            raise ValueError(
                 f"The element '{element}' is unknown. Please add the element"
                 " before adding resources to it."
             )
         namespace = self._namespaces[resource.element.link]
         namespace.add_resource(resource)
 
-    def delete_resource(self, resource: "Resource") -> None:
+    def delete_resource(self, resource: Resource | ImportedResource) -> None:
         namespace = self._namespaces[resource.element.link]
         namespace.delete_resource(resource)
 
-    def get_resources(self) -> tp.List["Resource"]:
-        result = []
+    def get_resources(self) -> list[Resource | ImportedResource]:
+        result: list[Resource | ImportedResource] = []
         for namespace in self._namespaces.values():
             result.extend(namespace.get_resources())
         return result
 
-    def get_resource_by_link(self, element: "Element", link: str) -> "Resource":
+    def get_resource_by_link(
+        self,
+        element: "Element",
+        link: str,
+    ) -> Resource | ImportedResource:
         if element.link not in self._namespaces:
             raise ValueError(
                 f"Can't load element {element}. Element"
@@ -1113,11 +1137,14 @@ class ElementEngine:
 
         del self._namespaces[element.link]
 
-    def add_resource_export(self, export_resource: "Resource") -> None:
+    def add_resource_export(self, export_resource: "Export") -> None:
         element = export_resource.element
-        resource = self.get_resource_by_link(
-            element=element,
-            link=export_resource.link,
+        resource = tp.cast(
+            Resource,
+            self.get_resource_by_link(
+                element=element,
+                link=export_resource.link,
+            ),
         )
 
         if export_resource.link in self._resource_exports:
@@ -1126,7 +1153,7 @@ class ElementEngine:
             )
         self._resource_exports[export_resource.link] = resource
 
-    def delete_resource_export(self, export_resource: "Resource") -> None:
+    def delete_resource_export(self, export_resource: "Export") -> None:
         del self._resource_exports[export_resource.link]
 
     def get_export_resource(self, from_element: "Element", link: str) -> "Resource":
@@ -1140,7 +1167,7 @@ element_engine = ElementEngine()
 
 
 class ServiceTarget(srv_models.ServiceTarget):
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: tp.Any) -> None:
         super().__init__(**kwargs)
         # Check for Service existence
         if not Service.objects.get_one_or_none(
@@ -1171,7 +1198,7 @@ class ServiceTarget(srv_models.ServiceTarget):
     def are_owners_alive(self) -> bool:
         return bool(self._fetch_services())
 
-    def get_dp_obj(self):
+    def get_dp_obj(self) -> srv_models.ServiceDPTarget:
         service = Service.objects.get_one(filters={"uuid": ra_filters.EQ(self.service)})
         return srv_models.ServiceDPTarget(
             service=self.service, service_name=service.name

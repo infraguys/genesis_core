@@ -14,15 +14,17 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import typing as tp
+
 from oslo_config import cfg
 from restalchemy.api import controllers
 from restalchemy.api import resources
 from restalchemy.storage import exceptions as ra_storage_exceptions
 
+from genesis_core.boot_api.api import packers
+from genesis_core.boot_api.dm import models
 from genesis_core.common import constants as c
 from genesis_core.compute import constants as nc
-from genesis_core.boot_api.dm import models
-from genesis_core.boot_api.api import packers
 
 DOMAIN = "boot_api"
 CONF = cfg.CONF
@@ -45,7 +47,9 @@ class NetBootController(controllers.BaseResourceController):
 
     __packer__ = packers.IPXEPacker
 
-    def get(self, uuid, **kwargs):
+    def get(
+        self, uuid: tp.Any, **kwargs: tp.Any
+    ) -> tuple[models.MachineNetboot, int, dict[str, str]]:
         try:
             netboot = super().get(uuid, **kwargs)
         except ra_storage_exceptions.RecordNotFound:

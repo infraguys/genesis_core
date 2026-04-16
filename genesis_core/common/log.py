@@ -15,11 +15,12 @@
 #    under the License.
 
 import logging
-from logging import config as logging_config
 import sys
+import typing as tp
+from logging import config as logging_config
 
-from oslo_config import cfg
 import yaml
+from oslo_config import cfg
 
 DEFAULT_CONFIG = {
     "version": 1,
@@ -61,15 +62,15 @@ class ConfigNotFound(Exception):
 cfg.CONF.register_cli_opts(logging_opts, "logging")
 
 
-def configure():
+def configure() -> None:
     config = cfg.CONF.logging.config
     config_file = cfg.CONF.find_file(config)
 
     if config_file is None:
-        config_data = DEFAULT_CONFIG
+        config_data: dict[str, tp.Any] = DEFAULT_CONFIG
     else:
-        with open(config_file) as f:
-            config_data = yaml.safe_load(f)
+        with open(config_file) as file_obj:
+            config_data = tp.cast(dict[str, tp.Any], yaml.safe_load(file_obj))
 
     logging_config.dictConfig(config_data)
 
@@ -79,6 +80,6 @@ def configure():
         )
 
 
-def die(logger, message):
+def die(logger: logging.Logger, message: str) -> tp.NoReturn:
     logger.error(message)
     sys.exit(1)

@@ -14,13 +14,15 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import typing as tp
+
 from gcl_iam import middlewares as iam_mw
 from restalchemy.api import applications
 from restalchemy.api import middlewares
 from restalchemy.api import routes
 from restalchemy.api.middlewares import logging as logging_mw
-from restalchemy.openapi import structures as openapi_structures
 from restalchemy.openapi import engines as openapi_engines
+from restalchemy.openapi import structures as openapi_structures
 
 from genesis_core import version
 from genesis_core.common import contexts as common_contexts
@@ -29,7 +31,7 @@ from genesis_core.user_api.api import middlewares as user_api_mw
 from genesis_core.user_api.api import routes as app_routes
 from genesis_core.user_api.api import versions
 
-skip_auth_endpoints = []
+skip_auth_endpoints: list[str] = []
 
 
 class UserApiApp(routes.RootRoute):
@@ -44,11 +46,11 @@ setattr(
 )
 
 
-def get_api_application():
+def get_api_application() -> type[UserApiApp]:
     return UserApiApp
 
 
-def get_openapi_engine():
+def get_openapi_engine() -> openapi_engines.OpenApiEngine:
     openapi_engine = openapi_engines.OpenApiEngine(
         info=openapi_structures.OpenApiInfo(
             title=f"Genesis Core {versions.API_VERSION_v1} User API",
@@ -61,7 +63,10 @@ def get_openapi_engine():
     return openapi_engine
 
 
-def build_wsgi_application(context_storage, iam_engine_driver):
+def build_wsgi_application(
+    context_storage: tp.Any,
+    iam_engine_driver: tp.Any,
+) -> tp.Any:
     return middlewares.attach_middlewares(
         applications.OpenApiApplication(
             route_class=get_api_application(),

@@ -14,19 +14,19 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import logging
-import netaddr
 import collections
+import logging
 import typing as tp
 
+import netaddr
+from gcl_looper.services import basic
 from restalchemy.common import contexts
 from restalchemy.dm import filters as dm_filters
-from gcl_looper.services import basic
 
 from genesis_core.compute.dm import models
+from genesis_core.network import ipam as net_ipam
 from genesis_core.network.dm import models as net_models
 from genesis_core.network.driver import base as net_base
-from genesis_core.network import ipam as net_ipam
 
 LOG = logging.getLogger(__name__)
 TARGET_IP_KEY = "target_ipv4"
@@ -39,7 +39,7 @@ class NetworkService(basic.BasicService):
     def _get_new_hw_ports(
         self, subnets: tp.Iterable[net_models.Subnet]
     ) -> tp.List[net_models.Port]:
-        ports = []
+        ports: list[net_models.Port] = []
         nodes = net_models.HWNodeWithoutPorts.get_nodes()
 
         if not nodes:
@@ -97,7 +97,9 @@ class NetworkService(basic.BasicService):
     ) -> tp.DefaultDict[
         models.Network, tp.Dict[net_models.Subnet, tp.List[net_models.Port]]
     ]:
-        network_map = collections.defaultdict(dict)
+        network_map: tp.DefaultDict[
+            models.Network, tp.Dict[net_models.Subnet, tp.List[net_models.Port]]
+        ] = collections.defaultdict(dict)
 
         for subnet in subnet_map.keys():
             network_map[subnet.network][subnet] = subnet_map[subnet]
@@ -153,7 +155,7 @@ class NetworkService(basic.BasicService):
         target_ports: tp.List[net_models.Port],
     ) -> None:
         actual_ports = {p.uuid: p for p in driver.list_ports(actual_subnet)}
-        target_ports = {p.uuid: p for p in target_ports}
+        target_ports_map = {p.uuid: p for p in target_ports}
 
         if (
             target_subnet.cidr != actual_subnet.cidr
@@ -168,19 +170,20 @@ class NetworkService(basic.BasicService):
                 LOG.exception("Error actualizing subnet %s", actual_subnet.uuid)
 
         # Create ports
-        ports = tuple(
-            target_ports[u].cast_to_base()
-            for u in target_ports.keys() - actual_ports.keys()
-        )
+        ports_to_create = [
+            target_ports_map[u].cast_to_base()
+            for u in target_ports_map.keys() - actual_ports.keys()
+        ]
+        created_ports: list[models.Port] = []
         try:
-            if ports:
-                ports = driver.create_ports(ports)
+            if ports_to_create:
+                created_ports = driver.create_ports(ports_to_create)
         except Exception:
-            LOG.exception("Error creating ports: %s", ports)
-            ports = tuple()
+            LOG.exception("Error creating ports: %s", ports_to_create)
+            created_ports = []
 
-        for p in ports:
-            target_port = target_ports[p.uuid]
+        for p in created_ports:
+            target_port = target_ports_map[p.uuid]
             target_port.status = p.status
             target_port.ipv4 = p.ipv4
             target_port.mask = p.mask
@@ -196,19 +199,19 @@ class NetworkService(basic.BasicService):
                 LOG.exception("Error creating port %s", target_port.uuid)
 
         # Delete ports
-        ports = tuple(
-            actual_ports[u] for u in actual_ports.keys() - target_ports.keys()
-        )
+        ports_to_delete = [
+            actual_ports[u] for u in actual_ports.keys() - target_ports_map.keys()
+        ]
         try:
-            if ports:
-                driver.delete_ports(ports)
+            if ports_to_delete:
+                driver.delete_ports(ports_to_delete)
         except Exception:
-            LOG.exception("Error creating ports: %s", ports)
-            ports = tuple()
+            LOG.exception("Error creating ports: %s", ports_to_delete)
+            ports_to_delete = []
 
         # Actualize ports
-        for uuid in actual_ports.keys() & target_ports.keys():
-            target_port = target_ports[uuid]
+        for uuid in actual_ports.keys() & target_ports_map.keys():
+            target_port = target_ports_map[uuid]
             actual_port = actual_ports[uuid]
 
             # Actualize a small set of fields so far

@@ -15,8 +15,8 @@
 #    under the License.
 from __future__ import annotations
 
-import json
 import ipaddress
+import json
 import logging
 import os
 import sys
@@ -25,10 +25,9 @@ import typing as tp
 import jinja2
 from oslo_config import cfg
 
-from genesis_core.common import constants as c
 from genesis_core.common import config
+from genesis_core.common import constants as c
 from genesis_core.secret import utils as secret_utils
-
 
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
@@ -100,7 +99,7 @@ def _persisted_path(dst_path: str) -> str:
     return os.path.join(c.DATA_DIR, dst_path)
 
 
-def _template_mappings() -> list[tuple[str, str]]:
+def _template_mappings() -> list[tuple[str, str, str]]:
     # Format: (source_template, destination_file, persisted_file)
     return [
         (
@@ -177,7 +176,7 @@ def _render_or_restore_template(
     if not os.path.exists(persisted):
         with open(src, "r", encoding="utf-8") as f:
             template_source = f.read()
-        rendered = jinja2.Template(template_source).render(**context)
+        rendered = jinja2.Template(template_source).render(**(context or {}))
         LOG.info("Rendered template from %s", src)
     else:
         with open(persisted, "r", encoding="utf-8") as f:

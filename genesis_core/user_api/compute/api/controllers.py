@@ -14,16 +14,16 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import typing as tp
 import uuid as sys_uuid
 
 from gcl_iam.api import controllers as iam_controllers
 from restalchemy.api import actions
-from restalchemy.api import controllers
-from restalchemy.api import resources
 from restalchemy.api import constants as ra_c
+from restalchemy.api import controllers
 from restalchemy.api import field_permissions as field_p
+from restalchemy.api import resources
 from restalchemy.common import exceptions as ra_e
-
 
 from genesis_core.compute import constants as nc
 from genesis_core.compute.dm import models as models
@@ -65,26 +65,26 @@ class VolumesController(
         ),
     )
 
-    def update(self, uuid, **kwargs):
+    def update(self, uuid: tp.Any, **kwargs: tp.Any) -> tp.Any:
         kwargs["status"] = nc.VolumeStatus.IN_PROGRESS.value
 
         return super().update(uuid, **kwargs)
 
     @actions.post
-    def attach(self, resource: user_models.Volume, node: str):
+    def attach(self, resource: user_models.Volume, node: str) -> user_models.Volume:
         volume = resource.cast_to_base()
 
         if volume.node is not None:
             raise VolumeAlreadyAttachedError()
 
-        node = sys_uuid.UUID(node)
+        node_uuid = sys_uuid.UUID(node)
 
-        volume.node = node
+        volume.node = node_uuid
         volume.update()
         return resource
 
     @actions.post
-    def detach(self, resource: user_models.Volume):
+    def detach(self, resource: user_models.Volume) -> user_models.Volume:
         volume = resource.cast_to_base()
 
         if volume.node is None:
@@ -116,20 +116,20 @@ class NodesController(
         ),
     )
 
-    def create(self, **kwargs):
+    def create(self, **kwargs: tp.Any) -> tp.Any:
         # Validate disk spec
         node = self.model(**kwargs)
         node.disk_spec.validate()
 
         return super().create(**kwargs)
 
-    def update(self, uuid, **kwargs):
+    def update(self, uuid: tp.Any, **kwargs: tp.Any) -> tp.Any:
         kwargs["status"] = nc.NodeStatus.IN_PROGRESS.value
 
         return super().update(uuid, **kwargs)
 
     @actions.get
-    def get_private_key(self, resource: user_models.Node):
+    def get_private_key(self, resource: user_models.Node) -> str:
         self._enforce("get_private_key")
 
         return resource.get_agent_private_key()
@@ -157,20 +157,20 @@ class NodeSetsController(
         ),
     )
 
-    def create(self, **kwargs):
+    def create(self, **kwargs: tp.Any) -> tp.Any:
         # Validate disk spec
         node_set = self.model(**kwargs)
         node_set.disk_spec.validate()
 
         return super().create(**kwargs)
 
-    def update(self, uuid, **kwargs):
+    def update(self, uuid: tp.Any, **kwargs: tp.Any) -> tp.Any:
         kwargs["status"] = nc.NodeStatus.IN_PROGRESS.value
 
         return super().update(uuid, **kwargs)
 
     @actions.get
-    def get_private_keys(self, resource: models.NodeSet):
+    def get_private_keys(self, resource: models.NodeSet) -> dict[sys_uuid.UUID, str]:
         self._enforce("get_private_key")
 
         return resource.get_agents_private_keys()
@@ -197,7 +197,7 @@ class HypervisorsController(
         ),
     )
 
-    def create(self, **kwargs):
+    def create(self, **kwargs: tp.Any) -> tp.Any:
         if "machine_type" in kwargs and kwargs["machine_type"] != nc.NodeType.VM.value:
             raise ValueError("Hyper must be VM type")
 

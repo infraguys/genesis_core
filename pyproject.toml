@@ -69,6 +69,7 @@ test = [
 ]
 mypy = [
     "mypy",
+    "types-PyYAML",
 ]
 ruff = [
     "ruff",
@@ -172,6 +173,7 @@ package = true
 [tool.mypy]
 exclude = [
     '.venv',
+    '.tox',
     'genesis_core/tests',
 ]
 python_version = "3.12"

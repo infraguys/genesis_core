@@ -16,18 +16,19 @@
 
 import errno
 import logging
-from os import path as os_path
 import mimetypes
 import re
 import string
-from urllib import parse as urllib_parse
 import typing as tp
+from os import path as os_path
+from urllib import parse as urllib_parse
 
-from authlib.integrations import requests_client
 import jinja2
+import pyotp
+from authlib.integrations import requests_client
+from gcl_iam import rules
 from gcl_iam.api import controllers as iam_controllers
 from gcl_iam.api import field_perms as iam_fp
-from gcl_iam import rules
 from restalchemy.api import actions
 from restalchemy.api import constants as ra_c
 from restalchemy.api import controllers
@@ -37,20 +38,23 @@ from restalchemy.common import exceptions as ra_e
 from restalchemy.common import utils as ra_utils
 from restalchemy.dm import filters as ra_filters
 from restalchemy.openapi import utils as oa_utils
-import pyotp
 
+from genesis_core.user_api.iam import constants as c
+from genesis_core.user_api.iam import exceptions as iam_e
 from genesis_core.user_api.iam.api import openapi_specs as oa_specs
 from genesis_core.user_api.iam.clients import idp
 from genesis_core.user_api.iam.dm import models
-from genesis_core.user_api.iam import constants as c
-from genesis_core.user_api.iam import exceptions as iam_e
-
 
 LOG = logging.getLogger(__name__)
 
 
 class EnforceMixin:
-    def enforce(self, rule, do_raise=False, exc=None):
+    def enforce(
+        self,
+        rule: tp.Any,
+        do_raise: bool = False,
+        exc: type[BaseException] | None = None,
+    ) -> bool:
         iam = contexts.get_context().iam_context
         return iam.enforcer.enforce(rule, do_raise, exc)
 
@@ -62,11 +66,11 @@ class ValidationException(ra_e.RestAlchemyException):
 
 class ValidateMixin:
     __validate_min_length__ = 8
-    __validate_not_contain__: tp.List[str] = [string.whitespace]
-    __validate_must_contain__: tp.List[str] = None  # [digits, punctuation]
-    __validate_regex__: str = None
+    __validate_not_contain__: list[str] = [string.whitespace]
+    __validate_must_contain__: list[str] | None = None  # [digits, punctuation]
+    __validate_regex__: str | None = None
 
-    def validate(self, value):
+    def validate(self, value: str | None) -> None:
         error = None
         if value is None:
             error = "Value is required"
@@ -93,7 +97,7 @@ class ValidateMixin:
 
 
 class ValidateSecretMixin(ValidateMixin):
-    def validate_secret(self, kwargs: dict):
+    def validate_secret(self, kwargs: dict[str, tp.Any]) -> None:
         if "secret" in kwargs:
             self.validate(kwargs["secret"])
 
@@ -102,7 +106,7 @@ class IamController(controllers.RoutesListController):
     __TARGET_PATH__ = "/v1/iam/"
 
 
-def _get_app_endpoint(req):
+def _get_app_endpoint(req: tp.Any) -> str:
     origin = req.headers.get("Origin")
     result = req.host_url
 
@@ -158,7 +162,7 @@ class UserController(
         name_map={"secret": "password", "name": "username"},
     )
 
-    def create(self, **kwargs):
+    def create(self, **kwargs: tp.Any) -> tp.Any:
         self.enforce(
             c.PERMISSION_USER_CREATE,
             do_raise=True,
@@ -178,13 +182,13 @@ class UserController(
         )
         return user
 
-    def filter(self, filters, **kwargs):
+    def filter(self, filters: tp.Any, **kwargs: tp.Any) -> tp.Any:
         self.enforce(
             c.PERMISSION_USER_LISTING, do_raise=True, exc=iam_e.CanNotListUsers
         )
         return super().filter(filters, **kwargs)
 
-    def update(self, uuid, **kwargs):
+    def update(self, uuid: tp.Any, **kwargs: tp.Any) -> tp.Any:
         self.validate_secret(kwargs)
         kwargs.pop("email_verified", None)
         is_me = models.User.me().uuid == uuid
@@ -192,7 +196,7 @@ class UserController(
             return super().update(uuid, **kwargs)
         raise iam_e.CanNotUpdateUser(uuid=uuid, rule=c.PERMISSION_USER_WRITE_ALL)
 
-    def delete(self, uuid):
+    def delete(self, uuid: tp.Any) -> tp.Any:
         is_me = models.User.me().uuid == uuid
         if self.enforce(c.PERMISSION_USER_DELETE_ALL) or (
             is_me and self.enforce(c.PERMISSION_USER_DELETE)
@@ -205,7 +209,12 @@ class UserController(
         )
 
     @actions.post
-    def change_password(self, resource, old_password, new_password):
+    def change_password(
+        self,
+        resource: tp.Any,
+        old_password: str,
+        new_password: str,
+    ) -> tp.Any:
         self.validate(new_password)
         is_me = models.User.me() == resource
         if self.enforce(c.PERMISSION_USER_WRITE_ALL) or is_me:
@@ -219,7 +228,7 @@ class UserController(
         )
 
     @actions.post
-    def enable_otp(self, resource, password):
+    def enable_otp(self, resource: tp.Any, password: str) -> tp.Any:
         is_me = models.User.me() == resource
         if self.enforce(c.PERMISSION_USER_WRITE_ALL) or is_me:
             resource.enable_otp(
@@ -237,7 +246,7 @@ class UserController(
         )
 
     @actions.post
-    def activate_otp(self, resource, code):
+    def activate_otp(self, resource: tp.Any, code: str) -> tp.Any:
         is_me = models.User.me() == resource
         if self.enforce(c.PERMISSION_USER_WRITE_ALL) or is_me:
             resource.activate_otp(
@@ -250,7 +259,7 @@ class UserController(
         )
 
     @actions.post
-    def disable_otp(self, resource, password):
+    def disable_otp(self, resource: tp.Any, password: str) -> tp.Any:
         # TODO: check token for OTP auth
         is_me = models.User.me() == resource
         if self.enforce(c.PERMISSION_USER_WRITE_ALL) or is_me:
@@ -264,13 +273,13 @@ class UserController(
         )
 
     @actions.post
-    def resend_email_confirmation(self, resource):
+    def resend_email_confirmation(self, resource: tp.Any) -> tp.Any:
         app_endpoint = _get_app_endpoint(req=self._req)
         resource.resend_confirmation_event(app_endpoint=app_endpoint)
         return resource
 
     @actions.post
-    def force_confirm_email(self, resource):
+    def force_confirm_email(self, resource: tp.Any) -> tp.Any:
         rule = c.PERMISSION_USER_WRITE_ALL
         if not self.enforce(rule):
             raise iam_e.CanNotUpdateUser(uuid=resource.uuid, rule=rule)
@@ -279,13 +288,18 @@ class UserController(
         return resource
 
     @actions.post
-    def confirm_email(self, resource, code=None):
+    def confirm_email(self, resource: tp.Any, code: str | None = None) -> tp.Any:
         code = code or self._req.params.get("code", "")
         resource.confirm_email_by_code(code)
         return resource
 
     @actions.post
-    def reset_password(self, resource, new_password=None, code=None):
+    def reset_password(
+        self,
+        resource: tp.Any,
+        new_password: str | None = None,
+        code: str | None = None,
+    ) -> tp.Any:
         code = code or self._req.params.get("code")
         new_secret = new_password or self._req.params.get("new_password")
         self.validate(new_secret)
@@ -296,7 +310,7 @@ class UserController(
         return resource
 
     @actions.get
-    def get_my_roles(self, resource):
+    def get_my_roles(self, resource: tp.Any) -> tp.Any:
         is_me = models.User.me() == resource
         if self.enforce(c.PERMISSION_USER_READ_ALL) or is_me:
             return resource.get_my_roles().get_response_body()
@@ -315,7 +329,7 @@ class OrganizationController(
     __policy_service_name__ = "iam"
     __policy_name__ = "organization"
 
-    def create(self, **kwargs):
+    def create(self, **kwargs: tp.Any) -> tp.Any:
         result = super().create(**kwargs)
         models.OrganizationMember(
             organization=result,
@@ -324,24 +338,24 @@ class OrganizationController(
         ).insert()
         return result
 
-    def filter(self, filters, **kwargs):
+    def filter(self, filters: tp.Any, **kwargs: tp.Any) -> tp.Any:
         pclass = iam_controllers.PolicyBasedWithoutProjectController
         if self.enforce(c.PERMISSION_ORGANIZATION_READ_ALL):
             return super(pclass, self).filter(filters, **kwargs)
         return models.Organization.list_my()
 
-    def get(self, uuid, **kwargs):
+    def get(self, uuid: tp.Any, **kwargs: tp.Any) -> tp.Any:
         pclass = iam_controllers.PolicyBasedWithoutProjectController
         return super(pclass, self).get(uuid, **kwargs)
 
-    def update(self, uuid, **kwargs):
+    def update(self, uuid: tp.Any, **kwargs: tp.Any) -> tp.Any:
         pclass = iam_controllers.PolicyBasedWithoutProjectController
         org = self.get(uuid)
         if org.are_i_owner() or self.enforce(c.PERMISSION_ORGANIZATION_WRITE_ALL):
             return super(pclass, self).update(uuid, **kwargs)
         raise iam_e.CanNotUpdateOrganization(name=org.name)
 
-    def delete(self, uuid):
+    def delete(self, uuid: tp.Any) -> tp.Any:
         pclass = iam_controllers.PolicyBasedWithoutProjectController
         org = self.get(uuid)
         if self.enforce(c.PERMISSION_ORGANIZATION_DELETE_ALL):
@@ -359,7 +373,7 @@ class OrganizationMemberController(
         convert_underscore=False,
     )
 
-    def create(self, organization, **kwargs):
+    def create(self, organization: tp.Any, **kwargs: tp.Any) -> tp.Any:
         if not (
             organization.are_i_owner()
             or self.enforce(c.PERMISSION_ORGANIZATION_WRITE_ALL)
@@ -368,7 +382,7 @@ class OrganizationMemberController(
 
         return super().create(organization=organization, **kwargs)
 
-    def update(self, uuid, **kwargs):
+    def update(self, uuid: tp.Any, **kwargs: tp.Any) -> tp.Any:
         member = super().get(uuid)
         organization = member.organization
         if organization.are_i_owner() or self.enforce(
@@ -377,7 +391,7 @@ class OrganizationMemberController(
             return super().update(uuid, **kwargs)
         raise iam_e.CanNotUpdateOrganization(name=organization.name)
 
-    def delete(self, uuid):
+    def delete(self, uuid: tp.Any) -> tp.Any:
         member = super().get(uuid)
         organization = member.organization
         if organization.are_i_owner() or self.enforce(
@@ -393,7 +407,7 @@ class ProjectController(controllers.BaseResourceControllerPaginated, EnforceMixi
         convert_underscore=False,
     )
 
-    def create(self, organization, **kwargs):
+    def create(self, organization: tp.Any, **kwargs: tp.Any) -> tp.Any:
         if not (
             organization.are_i_owner()
             or self.enforce(c.PERMISSION_PROJECT_WRITE_ALL)
@@ -405,12 +419,12 @@ class ProjectController(controllers.BaseResourceControllerPaginated, EnforceMixi
         project.add_owner(models.User.me())
         return project
 
-    def filter(self, filters, order_by=None):
+    def filter(self, filters: tp.Any, order_by: tp.Any = None) -> tp.Any:
         if self.enforce(c.PERMISSION_PROJECT_LIST_ALL):
             return super().filter(filters=filters, order_by=order_by)
         return models.Project.list_my()
 
-    def get(self, uuid, **kwargs):
+    def get(self, uuid: tp.Any, **kwargs: tp.Any) -> tp.Any:
         project = super().get(uuid, **kwargs)
         filters = {"project": ra_filters.EQ(project)}
         for _ in models.Project.list_my(filters=filters):
@@ -422,7 +436,7 @@ class ProjectController(controllers.BaseResourceControllerPaginated, EnforceMixi
             rule=c.PERMISSION_PROJECT_READ_ALL,
         )
 
-    def update(self, uuid, **kwargs):
+    def update(self, uuid: tp.Any, **kwargs: tp.Any) -> tp.Any:
         project = self.get(uuid)
         filters = {"project": ra_filters.EQ(project)}
         for _ in models.Project.list_my(filters=filters):
@@ -434,7 +448,7 @@ class ProjectController(controllers.BaseResourceControllerPaginated, EnforceMixi
             rule=c.PERMISSION_PROJECT_WRITE_ALL,
         )
 
-    def delete(self, uuid):
+    def delete(self, uuid: tp.Any) -> tp.Any:
         project = self.get(uuid)
         filters = {"project": ra_filters.EQ(project)}
         for _ in models.Project.list_my(filters=filters):
@@ -472,7 +486,7 @@ class RoleBindingController(
     __policy_service_name__ = "iam"
     __policy_name__ = "role_binding"
 
-    def create(self, **kwargs):
+    def create(self, **kwargs: tp.Any) -> tp.Any:
         role_binding = super().create(**kwargs)
         user = role_binding.user
         role = role_binding.role
@@ -513,7 +527,7 @@ class PermissionBindingController(
     __policy_service_name__ = "iam"
     __policy_name__ = "permission_binding"
 
-    def create(self, **kwargs):
+    def create(self, **kwargs: tp.Any) -> tp.Any:
         binding = super().create(**kwargs)
         role = binding.role
         permission = binding.permission
@@ -530,7 +544,7 @@ class PermissionBindingController(
         )
         return binding
 
-    def delete(self, uuid):
+    def delete(self, uuid: tp.Any) -> tp.Any:
         binding = None
         for item in models.PermissionBinding.objects.get_all(
             filters={"uuid": ra_filters.EQ(uuid)},
@@ -560,10 +574,10 @@ class WellKnownController(
     controllers.BaseNestedResourceController,
     EnforceMixin,
 ):
-    def get(self, parent_resource, uuid):
+    def get(self, parent_resource: tp.Any, uuid: tp.Any) -> tp.Any:
         return parent_resource.get_wellknown_info()
 
-    def filter(self, parent_resource, **kwargs):
+    def filter(self, parent_resource: tp.Any, **kwargs: tp.Any) -> tp.Any:
         return ["openid-configuration"]
 
 
@@ -576,7 +590,7 @@ class IdpController(
         convert_underscore=False,
     )
 
-    def create(self, **kwargs):
+    def create(self, **kwargs: tp.Any) -> tp.Any:
         if self.enforce(c.PERMISSION_IDP_CREATE):
             return super().create(**kwargs)
         raise iam_e.CanNotCreateIdp(
@@ -584,14 +598,14 @@ class IdpController(
             rule=c.PERMISSION_IDP_CREATE,
         )
 
-    def filter(self, filters, **kwargs):
+    def filter(self, filters: tp.Any, **kwargs: tp.Any) -> tp.Any:
         if self.enforce(c.PERMISSION_IDP_READ_ALL):
             return super().filter(filters, **kwargs)
         raise iam_e.CanNotListIdps(
             rule=c.PERMISSION_IDP_READ_ALL,
         )
 
-    def update(self, uuid, **kwargs):
+    def update(self, uuid: tp.Any, **kwargs: tp.Any) -> tp.Any:
         if self.enforce(c.PERMISSION_IDP_UPDATE):
             return super().update(uuid, **kwargs)
         raise iam_e.CanNotUpdateIdp(
@@ -599,7 +613,7 @@ class IdpController(
             rule=c.PERMISSION_IDP_UPDATE,
         )
 
-    def delete(self, uuid):
+    def delete(self, uuid: tp.Any) -> tp.Any:
         if self.enforce(c.PERMISSION_IDP_DELETE):
             return super().delete(uuid)
         raise iam_e.CanNotDeleteIdp(
@@ -607,13 +621,13 @@ class IdpController(
             rule=c.PERMISSION_IDP_DELETE,
         )
 
-    def _get_request_params(self, resource):
+    def _get_request_params(self, resource: tp.Any) -> tp.Any:
         return {
             "idp_uuid": resource.uuid,
             "host_url": self._req.host_url,
         }
 
-    def _build_oauth_session(self, resource):
+    def _build_oauth_session(self, resource: tp.Any) -> tp.Any:
 
         oauth_session = requests_client.OAuth2Session(
             client_id=resource.client_id,
@@ -626,7 +640,7 @@ class IdpController(
         return oauth_session
 
     @actions.get
-    def login(self, resource):
+    def login(self, resource: tp.Any) -> tp.Any:
         idp_client = idp.IdpClient(resource.well_known_endpoint)
         metadata = idp_client.get_idp_metadata()
 
@@ -642,14 +656,14 @@ class IdpController(
     @actions.get
     def authorize(
         self,
-        resource,
-        client_id,
-        redirect_uri,
-        state,
-        response_type,
-        scope,
-        nonce=models.Idp.NONCE_DEFAULT,
-    ):
+        resource: tp.Any,
+        client_id: tp.Any,
+        redirect_uri: tp.Any,
+        state: tp.Any,
+        response_type: tp.Any,
+        scope: tp.Any,
+        nonce: tp.Any = models.Idp.NONCE_DEFAULT,
+    ) -> tp.Any:
         redirect_uri = resource.authorize(
             client_id=client_id,
             redirect_uri=redirect_uri,
@@ -662,7 +676,14 @@ class IdpController(
         return None, 307, [("Location", redirect_uri)]
 
     @actions.get
-    def callback(self, resource, state, session_state, iss, code):
+    def callback(
+        self,
+        resource: tp.Any,
+        state: tp.Any,
+        session_state: tp.Any,
+        iss: tp.Any,
+        code: tp.Any,
+    ) -> tp.Any:
 
         idp_client = idp.IdpClient(resource.well_known_endpoint)
         metadata = idp_client.get_idp_metadata()
@@ -690,7 +711,7 @@ class ClientsController(controllers.BaseResourceControllerPaginated, EnforceMixi
         ),
     )
 
-    def create(self, **kwargs):
+    def create(self, **kwargs: tp.Any) -> tp.Any:
         if self.enforce(c.PERMISSION_IAM_CLIENT_CREATE):
             return super().create(**kwargs)
         raise iam_e.CanNotCreateIamClient(
@@ -698,14 +719,14 @@ class ClientsController(controllers.BaseResourceControllerPaginated, EnforceMixi
             rule=c.PERMISSION_IAM_CLIENT_CREATE,
         )
 
-    def filter(self, filters, **kwargs):
+    def filter(self, filters: tp.Any, **kwargs: tp.Any) -> tp.Any:
         if self.enforce(c.PERMISSION_IAM_CLIENT_READ_ALL):
             return super().filter(filters, **kwargs)
         raise iam_e.CanNotListIamClients(
             rule=c.PERMISSION_IAM_CLIENT_READ_ALL,
         )
 
-    def update(self, uuid, **kwargs):
+    def update(self, uuid: tp.Any, **kwargs: tp.Any) -> tp.Any:
         if self.enforce(c.PERMISSION_IAM_CLIENT_UPDATE):
             return super().update(uuid, **kwargs)
         raise iam_e.CanNotUpdateIamClient(
@@ -713,7 +734,7 @@ class ClientsController(controllers.BaseResourceControllerPaginated, EnforceMixi
             rule=c.PERMISSION_IAM_CLIENT_UPDATE,
         )
 
-    def delete(self, uuid):
+    def delete(self, uuid: tp.Any) -> tp.Any:
         if self.enforce(c.PERMISSION_IAM_CLIENT_DELETE):
             return super().delete(uuid)
         raise iam_e.CanNotDeleteIamClient(
@@ -722,7 +743,7 @@ class ClientsController(controllers.BaseResourceControllerPaginated, EnforceMixi
         )
 
     @actions.get
-    def auth(self, resource, **kwargs):
+    def auth(self, resource: tp.Any, **kwargs: tp.Any) -> tp.Any:
         login_url = (
             f"{self._req.host_url}/v1/iam/web/login/index.html?"
             + "&".join([f"{name}={value}" for name, value in kwargs.items()])
@@ -731,12 +752,23 @@ class ClientsController(controllers.BaseResourceControllerPaginated, EnforceMixi
         return None, 307, [("Location", login_url)]
 
     @actions.post
-    def login(self, resource, user, password, **kwargs):
+    def login(
+        self,
+        resource: tp.Any,
+        user: tp.Any,
+        password: tp.Any,
+        **kwargs: tp.Any,
+    ) -> tp.Any:
         raise NotImplementedError()
 
     @oa_utils.extend_schema(**oa_specs.OA_SPEC_GET_TOKEN_KWARGS)
     @actions.post
-    def get_token(self, resource, grant_type, **kwargs):
+    def get_token(
+        self,
+        resource: tp.Any,
+        grant_type: tp.Any,
+        **kwargs: tp.Any,
+    ) -> tp.Any:
         grant_type_map = {
             c.GRANT_TYPE_PASSWORD: (
                 c.PARAM_USERNAME,
@@ -886,47 +918,52 @@ class ClientsController(controllers.BaseResourceControllerPaginated, EnforceMixi
         return token.get_response_body()
 
     @actions.get
-    def introspect(self, resource):
+    def introspect(self, resource: tp.Any) -> tp.Any:
         return contexts.get_context().iam_context.introspection_info()
 
     @actions.get
-    def me(self, resource):
+    def me(self, resource: tp.Any) -> tp.Any:
         return resource.me().get_response_body()
 
     @actions.get
-    def userinfo(self, resource):
+    def userinfo(self, resource: tp.Any) -> tp.Any:
         return resource.userinfo().get_response_body()
 
     @actions.post
-    def reset_password(self, resource, email=None):
+    def reset_password(self, resource: tp.Any, email: tp.Any = None) -> tp.Any:
         email = email or self._req.params.get("email")
         app_endpoint = _get_app_endpoint(req=self._req)
         resource.send_reset_password_event(email=email, app_endpoint=app_endpoint)
 
     @actions.post
-    def logout(self, resource):
+    def logout(self, resource: tp.Any) -> tp.Any:
         token = models.Token.my()
         token.delete()
         return {}
 
     @actions.get
-    def jwks(self, resource):
+    def jwks(self, resource: tp.Any) -> tp.Any:
         return resource.get_jwks()
 
 
 class WebController:
-    def __init__(self, request):
+    def __init__(self, request: tp.Any) -> None:
         super().__init__()
         self._req = request
 
-    def do_404(self):
+    def do_404(self) -> tp.Any:
         return self._req.ResponseClass(body="Not Found", status=404)
 
-    def do(self, path, parent_resource=None, **kwargs):
+    def do(
+        self,
+        path: tp.Any,
+        parent_resource: tp.Any = None,
+        **kwargs: tp.Any,
+    ) -> tp.Any:
         return self.do_404()
 
     @classmethod
-    def get_resource(cls):
+    def get_resource(cls) -> tp.Any:
         return None
 
 
@@ -942,11 +979,15 @@ class IamWebController(WebController):
         "login/index.html",
     ]
 
-    def _get_file_body(self, full_path):
+    def _get_file_body(self, full_path: tp.Any) -> tp.Any:
         with open(full_path, "rb") as fp:
             return fp.read()
 
-    def _build_response(self, path, request_context=None):
+    def _build_response(
+        self,
+        path: tp.Any,
+        request_context: tp.Any = None,
+    ) -> tp.Any:
         full_path = os_path.join(self.TEMPLATE_DIR, path)
         http_code = 500
 
@@ -956,7 +997,9 @@ class IamWebController(WebController):
                 buff = buff.decode("utf-8")
                 buff = jinja2.Template(buff).render(**request_context)
                 buff = buff.encode("utf-8")
-            file_mimetype = mimetypes.guess_file_type(full_path)[0]
+            file_mimetype = (
+                mimetypes.guess_type(full_path)[0] or "application/octet-stream"
+            )
             http_code = 200
         except OSError as e:
             full_path = os_path.join(self.TEMPLATE_DIR, self.ERROR_FILES[500])
@@ -964,11 +1007,15 @@ class IamWebController(WebController):
                 full_path = os_path.join(self.TEMPLATE_DIR, self.ERROR_FILES[404])
                 http_code = 404
             buff = self._get_file_body(full_path)
-            file_mimetype = mimetypes.guess_file_type(full_path)[0]
+            file_mimetype = (
+                mimetypes.guess_type(full_path)[0] or "application/octet-stream"
+            )
         except Exception:
             full_path = os_path.join(self.TEMPLATE_DIR, self.ERROR_FILES[500])
             buff = self._get_file_body(full_path)
-            file_mimetype = mimetypes.guess_file_type(full_path)[0]
+            file_mimetype = (
+                mimetypes.guess_type(full_path)[0] or "application/octet-stream"
+            )
 
         return self._req.ResponseClass(
             body=buff,
@@ -976,12 +1023,17 @@ class IamWebController(WebController):
             headerlist=[("Content-Type", file_mimetype)],
         )
 
-    def _build_request_context(self):
+    def _build_request_context(self) -> tp.Any:
         result = dict(self._req.params)
         result.update({"host_url": self._req.host_url})
         return result
 
-    def do(self, path, parent_resource=None):
+    def do(
+        self,
+        path: tp.Any,
+        parent_resource: tp.Any = None,
+        **kwargs: tp.Any,
+    ) -> tp.Any:
         request_context = self._build_request_context()
         return self._build_response(path.lstrip("/"), request_context)
 
@@ -1001,7 +1053,7 @@ class AuthorizationInfoController(controllers.BaseResourceControllerPaginated):
     )
 
     @actions.post
-    def confirm(self, resource, redirect_me=None):
+    def confirm(self, resource: tp.Any, redirect_me: tp.Any = None) -> tp.Any:
         resource.confirm()
         callback_uri = resource.construct_callback_uri()
 

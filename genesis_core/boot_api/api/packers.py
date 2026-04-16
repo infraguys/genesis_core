@@ -16,8 +16,8 @@
 
 from restalchemy.api import packers
 
-from genesis_core.compute import constants as nc
 from genesis_core.boot_api.dm import models
+from genesis_core.compute import constants as nc
 
 _from_net_template = """#!ipxe
 :kernel
@@ -37,7 +37,7 @@ sanboot --no-describe --drive 0x8{disk_number}
 
 
 class IPXEPacker(packers.JSONPacker):
-    def pack(self, obj: models.MachineNetboot):
+    def pack(self, obj: models.MachineNetboot) -> str:
         boot = nc.BootAlternative[obj.boot]
 
         if boot == nc.BootAlternative.network:

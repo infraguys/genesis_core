@@ -14,14 +14,16 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import typing as tp
+
 from gcl_iam.api import controllers as iam_controllers
-from restalchemy.api import controllers
 from restalchemy.api import constants as ra_c
+from restalchemy.api import controllers
 from restalchemy.api import field_permissions as field_p
 from restalchemy.api import resources
 
-from genesis_core.secret.dm import models
 from genesis_core.secret import constants as sc
+from genesis_core.secret.dm import models
 
 
 class SecretController(controllers.RoutesListController):
@@ -47,7 +49,7 @@ class PasswordsController(iam_controllers.PolicyBasedController):
         ),
     )
 
-    def update(self, uuid, **kwargs):
+    def update(self, uuid: tp.Any, **kwargs: tp.Any) -> tp.Any:
         # Force config to be NEW
         # In order to regenerate renders
         kwargs["status"] = sc.SecretStatus.NEW.value
@@ -84,7 +86,7 @@ class RSAKeysController(iam_controllers.PolicyBasedController):
         ),
     )
 
-    def update(self, uuid, **kwargs):
+    def update(self, uuid: tp.Any, **kwargs: tp.Any) -> tp.Any:
         # NOTE: Do not enforce model state transitions from controller layer.
         #   This approach can update the status even if the model update fails.
         # TODO: Move this logic into RSAKey model update method.
@@ -117,7 +119,7 @@ class CertificatesController(iam_controllers.PolicyBasedController):
         ),
     )
 
-    def update(self, uuid, **kwargs):
+    def update(self, uuid: tp.Any, **kwargs: tp.Any) -> tp.Any:
         # Force config to be NEW
         # In order to regenerate renders
         kwargs["status"] = sc.SecretStatus.NEW.value
@@ -143,7 +145,7 @@ class SSHKeysController(iam_controllers.PolicyBasedController):
         ),
     )
 
-    def update(self, uuid, **kwargs):
+    def update(self, uuid: tp.Any, **kwargs: tp.Any) -> tp.Any:
         # Force config to be NEW
         # In order to regenerate renders
         kwargs["status"] = sc.SecretStatus.NEW.value

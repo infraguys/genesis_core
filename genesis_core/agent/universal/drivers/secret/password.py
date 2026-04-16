@@ -32,7 +32,7 @@ PASSWORD_TARGET_FIELDS_STORAGE = (
 class PasswordCapabilityDriver(direct.DirectAgentDriver):
     """Password capability driver."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         storage = fs.TargetFieldsFileStorage(PASSWORD_TARGET_FIELDS_STORAGE)
         client = db_back.DatabaseSecretBackendClient()
 

@@ -14,11 +14,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from collections import defaultdict
 import typing as tp
+from collections import defaultdict
 
-from gcl_sdk.infra.dm import models as sdk_models
 from gcl_sdk.agents.universal.dm import models as ua_models
+from gcl_sdk.infra.dm import models as sdk_models
 from restalchemy.dm import filters as dm_filters
 from restalchemy.dm import models as ra_models
 from restalchemy.dm import properties
@@ -122,8 +122,8 @@ class PaasLB(IaasLB):
             )
         )
 
-    def get_vhosts(self):
-        res = []
+    def get_vhosts(self) -> list[dict[str, tp.Any]]:
+        res: list[dict[str, tp.Any]] = []
 
         vhosts = models.Vhost.objects.get_all(
             filters={
@@ -167,7 +167,7 @@ class PaasLB(IaasLB):
             res.append(rvhost)
         return res
 
-    def get_backend_pools(self):
+    def get_backend_pools(self) -> dict[str, dict[str, tp.Any]]:
         return {
             str(b.uuid): {
                 "endpoints": [e.dump_to_simple_view() for e in b.endpoints],

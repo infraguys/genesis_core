@@ -14,20 +14,20 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import os
-import json
-import logging
-import subprocess
 import collections
 import dataclasses
+import json
+import logging
+import os
+import subprocess
 import typing as tp
 import uuid as sys_uuid
 
-from genesis_core.network.driver import base
+from genesis_core.compute import constants as nc
 from genesis_core.compute.dm import models
 from genesis_core.network import exceptions
 from genesis_core.network.dhcp import isc
-from genesis_core.compute import constants as nc
+from genesis_core.network.driver import base
 
 DHCP_CTX_FILE = "gc_ctx_dhcpd.json"
 
@@ -71,7 +71,7 @@ class DHCPContext:
 
     def save_ctx(self, ctx_path: str) -> None:
         with open(ctx_path, "w") as fctx:
-            port_map = {}
+            port_map: dict[str, list[dict[str, tp.Any]]] = {}
             for uuid, ports in self.port_map.items():
                 port_map[str(uuid)] = [p.dump_to_simple_view() for p in ports]
 
@@ -100,7 +100,9 @@ class DHCPContext:
 
         cfg_hash = data["cfg_hash"]
         subnets = [models.Subnet.restore_from_simple_view(**s) for s in data["subnets"]]
-        port_map = collections.defaultdict(list)
+        port_map: collections.defaultdict[sys_uuid.UUID, list[models.Port]] = (
+            collections.defaultdict(list)
+        )
         for uuid, ports in data["port_map"].items():
             port_map[sys_uuid.UUID(uuid)] = [
                 models.Port.restore_from_simple_view(**p) for p in ports
@@ -119,7 +121,9 @@ class DHCPContext:
 
     @classmethod
     def get_empty_ctx(cls) -> "DHCPContext":
-        port_map = collections.defaultdict(list)
+        port_map: collections.defaultdict[sys_uuid.UUID, list[models.Port]] = (
+            collections.defaultdict(list)
+        )
         return cls(subnets=[], port_map=port_map, cfg_hash="")
 
     def add_subnet(self, subnet: models.Subnet) -> None:

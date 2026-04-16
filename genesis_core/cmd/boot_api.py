@@ -73,7 +73,7 @@ CONF.register_cli_opts(api_cli_opts, DOMAIN)
 ra_config_opts.register_posgresql_db_opts(CONF)
 
 
-def main():
+def main() -> None:
     # Parse config
     config.parse(sys.argv[1:])
 

@@ -15,8 +15,8 @@
 #    under the License.
 
 import abc
-import uuid as sys_uuid
 import typing as tp
+import uuid as sys_uuid
 
 from genesis_core.compute.dm import models
 
@@ -31,6 +31,7 @@ class AbstractPoolDriver(abc.ABC):
         self,
     ) -> tp.Tuple[
         models.MachinePool,
+        tp.Collection[models.AbstractStoragePool],
         tp.Collection[tp.Tuple[models.Machine, tp.Tuple[models.Port, ...]]],
         tp.Collection[models.MachineVolume],
     ]:
@@ -153,15 +154,16 @@ class DummyPoolDriver(AbstractPoolDriver):
         self,
     ) -> tp.Tuple[
         models.MachinePool,
+        tp.Collection[models.AbstractStoragePool],
         tp.Collection[tp.Tuple[models.Machine, tp.Tuple[models.Port, ...]]],
         tp.Collection[models.MachineVolume],
     ]:
         """List pool resources."""
-        return models.MachinePool(), [], []
+        return models.MachinePool(), [], [], []
 
     def list_machines(
         self,
-    ) -> tp.Collection[tp.Tuple[models.Machine, tp.Tuple[models.Port, ...]]]:
+    ) -> tp.List[tp.Tuple[models.Machine, tp.Tuple[models.Port, ...]]]:
         """Create a machine."""
         return []
 
@@ -172,7 +174,7 @@ class DummyPoolDriver(AbstractPoolDriver):
         ports: tp.Iterable[models.Port],
     ) -> tp.Tuple[models.Machine, tp.Tuple[models.Port, ...]]:
         """Create a machine."""
-        return machine, ports
+        return machine, tuple(ports)
 
     def delete_machine(
         self, machine: models.Machine, delete_volumes: bool = True
@@ -199,7 +201,7 @@ class DummyPoolDriver(AbstractPoolDriver):
 
     def create_volume(self, volume: models.MachineVolume) -> models.MachineVolume:
         """Create a new volume."""
-        pass
+        return volume
 
     def delete_volume(self, volume: models.MachineVolume) -> None:
         """Delete the volume from data plane."""
@@ -213,6 +215,12 @@ class DummyPoolDriver(AbstractPoolDriver):
 
     def get_volume(self, volume: sys_uuid.UUID) -> models.MachineVolume:
         """Get the volume by uuid."""
+        return models.MachineVolume(
+            uuid=volume,
+            name="dummy-volume",
+            size=1,
+            project_id=sys_uuid.uuid4(),
+        )
 
     def resize_volume(self, volume: models.MachineVolume) -> None:
         """Resize the volume."""

@@ -17,18 +17,18 @@
 import base64
 import datetime
 import enum
-import re
 import hashlib
+import re
 import secrets
 import typing as tp
 import urllib.parse
 import uuid as sys_uuid
 
+import pyotp
 from gcl_iam import algorithms
 from gcl_iam import exceptions as iam_e
 from gcl_iam import tokens
 from gcl_sdk.agents.universal.dm import models as ua_models
-import pyotp
 from restalchemy.common import contexts
 from restalchemy.dm import filters as ra_filters
 from restalchemy.dm import models
@@ -49,7 +49,7 @@ from genesis_core.user_api.iam.dm import types
 
 
 class KindModelSelectorType(ra_types_dynamic.KindModelSelectorType):
-    def get_kind_types(self):
+    def get_kind_types(self) -> list[tp.Any]:
         return [self._kind_type_map[k] for k in self._kind_type_map]
 
 
@@ -68,7 +68,12 @@ class ModelWithSecret(models.Model, models.CustomPropertiesMixin):
         required=True,
     )
 
-    def __init__(self, secret, salt=None, **kwargs):
+    def __init__(
+        self,
+        secret: str,
+        salt: str | None = None,
+        **kwargs: tp.Any,
+    ) -> None:
         salt = salt or self._generate_salt()
 
         # Check if this is a service account and set password to empty
@@ -86,18 +91,22 @@ class ModelWithSecret(models.Model, models.CustomPropertiesMixin):
             **kwargs,
         )
 
-    def _generate_salt(self, length=18):
+    def _generate_salt(self, length: int = 18) -> str:
         return base64.b64encode(secrets.token_bytes(length)).decode("utf-8")
 
     @property
-    def _global_salt(self):
+    def _global_salt(self) -> str:
         ctx = contexts.get_context()
         storage = ctx.context_storage
         return storage.get(iam_c.STORAGE_KEY_IAM_GLOBAL_SALT)
 
     @classmethod
-    def _generate_hash(cls, secret, secret_salt, global_salt):
-
+    def _generate_hash(
+        cls,
+        secret: str,
+        secret_salt: str,
+        global_salt: str,
+    ) -> str:
         raw_secret_salt = base64.b64decode(secret_salt)
         raw_global_salt = base64.b64decode(global_salt)
 
@@ -110,23 +119,23 @@ class ModelWithSecret(models.Model, models.CustomPropertiesMixin):
 
         return hashed.hex()
 
-    def check_secret(self, secret):
+    def check_secret(self, secret: str) -> bool:
         return self.secret_hash == self._generate_hash(
             secret=secret,
             secret_salt=self.salt,
             global_salt=self._global_salt,
         )
 
-    def validate_secret(self, secret):
+    def validate_secret(self, secret: str) -> None:
         if not self.check_secret(secret):
             raise iam_e.CredentialsAreInvalidError()
 
     @property
-    def secret(self):
+    def secret(self) -> str:
         return "*******"
 
     @secret.setter
-    def secret(self, value):
+    def secret(self, value: str) -> None:
         # Prohibit password setting for service accounts
         if self.type == iam_c.UserType.SERVICE.value:
             raise iam_exceptions.ServiceAccountPasswordChangeError()
@@ -138,7 +147,7 @@ class ModelWithSecret(models.Model, models.CustomPropertiesMixin):
             global_salt=self._global_salt,
         )
 
-    def change_secret_safe(self, old_secret, new_secret):
+    def change_secret_safe(self, old_secret: str, new_secret: str) -> None:
         self.validate_secret(old_secret)
         self.secret = new_secret
         self.save()
@@ -163,11 +172,11 @@ class ModelWithAlwaysActiveStatus(models.Model):
 
 
 class RolesInfo:
-    def __init__(self, roles):
+    def __init__(self, roles: tp.Iterable[tp.Any]) -> None:
         super().__init__()
         self._roles = roles
 
-    def get_response_body(self):
+    def get_response_body(self) -> list[tp.Any]:
         return [role.get_storable_snapshot() for role in self._roles]
 
 
@@ -175,7 +184,7 @@ class IdpResponseType(str, enum.Enum):
     CODE = "code"
 
     @classmethod
-    def list_response_types(cls):
+    def list_response_types(cls) -> list[str]:
         return [cls.CODE.value]
 
 
@@ -222,14 +231,14 @@ class IdpCallbackRegexpKind(IdpCallbackBase):
 
 
 class AbstractUserSource(ra_types_dynamic.AbstractKindModel):
-    def process_secret(self, user, secret):
+    def process_secret(self, user: tp.Any, secret: str) -> None:
         raise NotImplementedError()
 
 
 class IamUserSource(AbstractUserSource):
     KIND = "IAM"
 
-    def process_secret(self, user, secret):
+    def process_secret(self, user: tp.Any, secret: str) -> None:
         if not user.check_secret(secret):
             raise iam_e.CredentialsAreInvalidError()
 
@@ -258,7 +267,7 @@ class KeycloakUserSource(AbstractUserSource):
         default=5,
     )
 
-    def process_secret(self, user, secret):
+    def process_secret(self, user: tp.Any, secret: str) -> None:
         if user.check_secret(secret):
             return
 
@@ -394,7 +403,7 @@ class User(
         default=None,
     )
 
-    def get_response_body(self):
+    def get_response_body(self) -> dict[str, tp.Any]:
         return {
             "uuid": str(self.uuid),
             "name": self.name,  # deprecated, use "username"
@@ -406,7 +415,7 @@ class User(
         }
 
     @classmethod
-    def me(cls, token_info=None):
+    def me(cls, token_info: tp.Any = None) -> tp.Any:
         token_info = token_info or contexts.get_context().iam_context.token_info
         if token_info.token_type == "anon":
             user_info = contexts.get_context().iam_context.introspection_info()[
@@ -425,7 +434,7 @@ class User(
             filters={"uuid": ra_filters.EQ(token_info.user_uuid)}
         )
 
-    def make_newcomer(self):
+    def make_newcomer(self) -> tp.Any:
         role_newcomer = Role.objects.get_one(
             filters={"uuid": ra_filters.EQ(c.NEWCOMER_ROLE_UUID)}
         )
@@ -436,7 +445,7 @@ class User(
         role_binding.save()
         return role_binding
 
-    def get_my_roles(self):
+    def get_my_roles(self) -> RolesInfo:
         return RolesInfo(
             [
                 role_binding.role
@@ -446,7 +455,7 @@ class User(
             ]
         )
 
-    def validate_otp(self, code):
+    def validate_otp(self, code: tp.Any) -> bool:
         if not self.otp_enabled:
             raise iam_e.OTPNotEnabledError()
         if not code:
@@ -454,7 +463,7 @@ class User(
         totp = pyotp.TOTP(self.otp_secret)
         return totp.verify(str(code))
 
-    def enable_otp(self, password):
+    def enable_otp(self, password: str) -> None:
         if self.otp_enabled:
             raise iam_e.OTPAlreadyEnabledError()
 
@@ -462,7 +471,7 @@ class User(
         self.otp_secret = pyotp.random_base32()
         self.save()
 
-    def activate_otp(self, code):
+    def activate_otp(self, code: tp.Any) -> None:
         if self.otp_enabled:
             raise iam_e.OTPAlreadyEnabledError()
 
@@ -477,18 +486,18 @@ class User(
         self.otp_enabled = True
         self.save()
 
-    def disable_otp(self, password):
+    def disable_otp(self, password: str) -> None:
         self.process_secret(password)
         self.otp_secret = ""
         self.otp_enabled = False
         self.save()
 
-    def delete(self, session=None, **kwargs):
+    def delete(self, session: tp.Any = None, **kwargs: tp.Any) -> tp.Any:
         u.remove_nested_dm(OrganizationMember, "user", self, session=session)
         u.remove_nested_dm(RoleBinding, "user", self, session=session)
         return super().delete(session=session, **kwargs)
 
-    def send_registration_event(self, app_endpoint="http://localhost/"):
+    def send_registration_event(self, app_endpoint: str = "http://localhost/") -> None:
         ctx = contexts.get_context()
         event_client = ctx.context_storage.get(iam_c.STORAGE_KEY_EVENTS_CLIENT)
 
@@ -505,7 +514,10 @@ class User(
             ),
         )
 
-    def send_reset_password_event(self, app_endpoint="http://localhost/"):
+    def send_reset_password_event(
+        self,
+        app_endpoint: str = "http://localhost/",
+    ) -> None:
         ctx = contexts.get_context()
         event_client = ctx.context_storage.get(iam_c.STORAGE_KEY_EVENTS_CLIENT)
 
@@ -524,24 +536,27 @@ class User(
             ),
         )
 
-    def resend_confirmation_event(self, app_endpoint="http://localhost/"):
+    def resend_confirmation_event(
+        self,
+        app_endpoint: str = "http://localhost/",
+    ) -> None:
         self.create_confirmation_code()
         self.save()
         self.send_registration_event(app_endpoint=app_endpoint)
 
-    def confirm_email(self):
+    def confirm_email(self) -> tp.Any:
         self.email_verified = True
         self.clear_confirmation_code()
         self.make_newcomer()
         self.save()
         return self
 
-    def confirm_email_by_code(self, code):
+    def confirm_email_by_code(self, code: tp.Any) -> tp.Any:
         if self.check_confirmation_code(code):
             return self.confirm_email()
         raise iam_exceptions.CanNotConfirmUser(code=code)
 
-    def create_confirmation_code(self):
+    def create_confirmation_code(self) -> None:
         # Janitor service will call .clear_confirmation_code()
         # to set confirmation_code and confirmation_code_made_at to nulls,
         # hourly, for all expired codes.
@@ -549,7 +564,7 @@ class User(
         self.confirmation_code_made_at = datetime.datetime.now(datetime.timezone.utc)
         self.save()
 
-    def check_confirmation_code(self, code):
+    def check_confirmation_code(self, code: tp.Any) -> bool:
         if not (code and self.confirmation_code and self.confirmation_code_made_at):
             return False
 
@@ -560,22 +575,23 @@ class User(
 
         return str(self.confirmation_code) == str(code)
 
-    def clear_confirmation_code(self):
+    def clear_confirmation_code(self) -> None:
         self.confirmation_code = None
         self.confirmation_code_made_at = None
         self.save()
 
-    def reset_secret(self, new_secret):
+    def reset_secret(self, new_secret: str) -> None:
         self.secret = new_secret
         self.clear_confirmation_code()
         self.save()
 
-    def reset_secret_by_code(self, new_secret, code):
+    def reset_secret_by_code(self, new_secret: str, code: tp.Any) -> None:
         if self.check_confirmation_code(code):
-            return self.reset_secret(new_secret)
+            self.reset_secret(new_secret)
+            return
         raise iam_exceptions.CanNotConfirmUser(code=code)
 
-    def process_secret(self, secret):
+    def process_secret(self, secret: str) -> None:
         self.user_source.process_secret(user=self, secret=secret)
 
 
@@ -645,7 +661,7 @@ class Organization(
     info = properties.property(ra_types.Dict(), default=dict)
 
     @classmethod
-    def list_my(cls):
+    def list_my(cls) -> list[tp.Any]:
         user = User.me()
 
         member_bindings = OrganizationMember.objects.get_all(
@@ -657,7 +673,7 @@ class Organization(
         return [m.organization for m in member_bindings]
 
     @classmethod
-    def get_default(cls, user=None):
+    def get_default(cls, user: tp.Any = None) -> tp.Any:
         for member in OrganizationMember.objects.get_all(
             filters={
                 "role": ra_filters.EQ(iam_c.OrganizationRole.OWNER.value),
@@ -669,7 +685,7 @@ class Organization(
             return member.organization
         return None
 
-    def are_i_owner(self):
+    def are_i_owner(self) -> bool:
         user = User.me()
         for member in OrganizationMember.objects.get_all(
             filters={
@@ -683,7 +699,7 @@ class Organization(
 
         return False
 
-    def are_i_member(self):
+    def are_i_member(self) -> bool:
         user = User.me()
         for member in OrganizationMember.objects.get_all(
             filters={
@@ -740,7 +756,7 @@ class Project(
         prefetch=True,
     )
 
-    def add_owner(self, user):
+    def add_owner(self, user: tp.Any) -> tp.Any:
         role_owner = Role.objects.get_one(
             filters={"uuid": ra_filters.EQ(c.OWNER_ROLE_UUID)}
         )
@@ -753,7 +769,11 @@ class Project(
         return role_binding
 
     @classmethod
-    def get_default(cls, organization=None, user=None):
+    def get_default(
+        cls,
+        organization: tp.Any = None,
+        user: tp.Any = None,
+    ) -> tp.Any:
         user = user or User.me()
         org = organization or Organization.get_default(user=user)
         for role_binding in RoleBinding.objects.get_all(
@@ -767,7 +787,7 @@ class Project(
         return None
 
     @classmethod
-    def list_my(cls, filters=None):
+    def list_my(cls, filters: dict[str, tp.Any] | None = None) -> list[tp.Any]:
         user = User.me()
         filters = filters or {}
         filters.update(
@@ -782,7 +802,7 @@ class Project(
         )
         return [binding.project for binding in role_bindings]
 
-    def delete(self, session=None):
+    def delete(self, session: tp.Any = None) -> tp.Any:
         u.remove_nested_dm(RoleBinding, "project", self, session=session)
         return super().delete(session=session)
 
@@ -862,7 +882,7 @@ class Introspection(
         default=list,
     )
 
-    def get_response_body(self):
+    def get_response_body(self) -> dict[str, tp.Any]:
         return {
             "user_info": self.user.get_response_body(),
             "project_id": str(self.project.uuid) if self.project else None,
@@ -872,14 +892,14 @@ class Introspection(
 
 
 class MeInfo:
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self._user = self.get_user()
 
-    def get_user(self):
+    def get_user(self) -> tp.Any:
         return User.me()
 
-    def get_response_body(self):
+    def get_response_body(self) -> dict[str, tp.Any]:
         skip_fields = [
             "otp_secret",
             "salt",
@@ -912,14 +932,14 @@ class MeInfo:
 
 
 class Userinfo:
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self._token = Token.my()
 
-    def get_user(self):
+    def get_user(self) -> tp.Any:
         return User.me()
 
-    def get_response_body(self):
+    def get_response_body(self) -> dict[str, tp.Any]:
         return self._token.extend_structure_by_scope({})
 
 
@@ -938,13 +958,13 @@ class HS256SignatureAlgorithm(ra_types_dynamic.AbstractKindModel):
     )
 
     @property
-    def secret(self):
+    def secret(self) -> tp.Any:
         return secret_models.Password.objects.get_one(
             filters={"uuid": ra_filters.EQ(str(self.secret_uuid))}
         )
 
     @property
-    def previous_secret(self):
+    def previous_secret(self) -> tp.Any:
         if self.previous_secret_uuid is None:
             return None
 
@@ -952,11 +972,11 @@ class HS256SignatureAlgorithm(ra_types_dynamic.AbstractKindModel):
             filters={"uuid": ra_filters.EQ(str(self.previous_secret_uuid))}
         )
 
-    def update_secret_uuid(self, new_secret_uuid):
+    def update_secret_uuid(self, new_secret_uuid: tp.Any) -> None:
         self.previous_secret_uuid = self.secret_uuid
         self.secret_uuid = new_secret_uuid
 
-    def update_secret(self, new_secret):
+    def update_secret(self, new_secret: tp.Any) -> None:
         self.update_secret_uuid(new_secret.uuid)
 
 
@@ -974,13 +994,13 @@ class RS256SignatureAlgorithm(ra_types_dynamic.AbstractKindModel):
     )
 
     @property
-    def secret(self):
+    def secret(self) -> tp.Any:
         return secret_models.RSAKey.objects.get_one(
             filters={"uuid": ra_filters.EQ(str(self.secret_uuid))}
         )
 
     @property
-    def previous_secret(self):
+    def previous_secret(self) -> tp.Any:
         if self.previous_secret_uuid is None:
             return None
 
@@ -988,17 +1008,17 @@ class RS256SignatureAlgorithm(ra_types_dynamic.AbstractKindModel):
             filters={"uuid": ra_filters.EQ(str(self.previous_secret_uuid))}
         )
 
-    def safe_update_secret_uuid(self, new_secret_uuid):
+    def safe_update_secret_uuid(self, new_secret_uuid: tp.Any) -> None:
         self.previous_secret_uuid = self.secret_uuid
         self.secret_uuid = new_secret_uuid
 
-    def force_update_secret_uuid(self, new_secret_uuid):
+    def force_update_secret_uuid(self, new_secret_uuid: tp.Any) -> None:
         self.secret_uuid = new_secret_uuid
 
-    def safe_update_secret(self, new_secret):
+    def safe_update_secret(self, new_secret: tp.Any) -> None:
         self.safe_update_secret_uuid(new_secret.uuid)
 
-    def force_update_secret(self, new_secret):
+    def force_update_secret(self, new_secret: tp.Any) -> None:
         self.force_update_secret_uuid(new_secret.uuid)
 
 
@@ -1036,7 +1056,7 @@ class IamClient(
         ].get_property_type()
         return [t.kind for t in selector_type.get_kind_types()]
 
-    def validate_client_creds(self, client_id, client_secret):
+    def validate_client_creds(self, client_id: str, client_secret: str) -> None:
         if not client_id or not client_secret:
             raise iam_e.ClientAuthenticationError()
 
@@ -1045,15 +1065,15 @@ class IamClient(
 
     def _get_token_by_password_and_smth(
         self,
-        users_query,
-        password,
-        scope=iam_c.PARAM_SCOPE_DEFAULT,
-        ttl=None,
-        refresh_ttl=None,
-        otp_code=None,
-        root_endpoint=c.DEFAULT_ROOT_ENDPOINT,
-        **kwargs,
-    ):
+        users_query: tp.Any,
+        password: str,
+        scope: str = iam_c.PARAM_SCOPE_DEFAULT,
+        ttl: tp.Any = None,
+        refresh_ttl: tp.Any = None,
+        otp_code: tp.Any = None,
+        root_endpoint: str = c.DEFAULT_ROOT_ENDPOINT,
+        **kwargs: tp.Any,
+    ) -> tp.Any:
         # Check if service account token is requested
         service_account_uuid = kwargs.get("service_account_uuid")
         if service_account_uuid:
@@ -1084,7 +1104,7 @@ class IamClient(
             **kwargs,
         )
 
-    def get_token_by_password(self, username, **kwargs):
+    def get_token_by_password(self, username: str, **kwargs: tp.Any) -> tp.Any:
         """
         Get auth token by username + password (default approach).
         If service_account_uuid is provided, returns token for service account instead.
@@ -1097,7 +1117,12 @@ class IamClient(
 
         return self._get_token_by_password_and_smth(users_query=users_query, **kwargs)
 
-    def _authenticate_user(self, users_query, password, otp_code=None):
+    def _authenticate_user(
+        self,
+        users_query: tp.Iterable[tp.Any],
+        password: str,
+        otp_code: tp.Any = None,
+    ) -> tp.Any:
         """
         Authenticate a user from users_query with password and optional OTP
         Returns the authenticated user or None if authentication fails
@@ -1114,7 +1139,7 @@ class IamClient(
 
         return None
 
-    def _perform_security_hardening(self, password):
+    def _perform_security_hardening(self, password: str | None) -> None:
         """
         Perform security hardening for failed authentication attempts
         This prevents timing attacks and username enumeration
@@ -1127,7 +1152,12 @@ class IamClient(
             ),
         )
 
-    def _authenticate_user_with_password(self, users_query, password, otp_code=None):
+    def _authenticate_user_with_password(
+        self,
+        users_query: tp.Iterable[tp.Any],
+        password: str,
+        otp_code: tp.Any = None,
+    ) -> tp.Any:
         """
         Authenticate a user from users_query with password and optional OTP
         Returns the authenticated user
@@ -1141,7 +1171,10 @@ class IamClient(
 
         return authenticated_user
 
-    def _check_service_token_permission(self, user_role_bindings):
+    def _check_service_token_permission(
+        self,
+        user_role_bindings: tp.Iterable[tp.Any],
+    ) -> bool:
         """
         Check if user has service token creation permission
         """
@@ -1162,23 +1195,23 @@ class IamClient(
 
     def _handle_service_account_token_request(
         self,
-        authenticated_user,
-        service_account_uuid,
-        scope,
-        **kwargs,
-    ):
+        authenticated_user: tp.Any,
+        service_account_uuid: tp.Any,
+        scope: str,
+        **kwargs: tp.Any,
+    ) -> tp.Any:
         """
         Handle service account token request - validation and token creation only.
         Authentication should be done by caller.
         """
         # Extract project UUID from scope for permission check
-        project_uuid = self._extract_project_from_scope(scope)
-        if not project_uuid:
+        project_uuid_str = self._extract_project_from_scope(scope)
+        if not project_uuid_str:
             raise iam_exceptions.ProjectScopeRequiredError()
 
         # Validate project UUID
         try:
-            project_uuid = sys_uuid.UUID(project_uuid)
+            project_uuid = sys_uuid.UUID(project_uuid_str)
         except ValueError:
             raise iam_exceptions.CanNotCreateServiceToken()
 
@@ -1235,18 +1268,20 @@ class IamClient(
 
     def _create_token_for_user(
         self,
-        user,
-        scope=iam_c.PARAM_SCOPE_DEFAULT,
-        ttl=None,
-        refresh_ttl=None,
-        root_endpoint=c.DEFAULT_ROOT_ENDPOINT,
-        **kwargs,
-    ):
+        user: tp.Any,
+        scope: str = iam_c.PARAM_SCOPE_DEFAULT,
+        ttl: tp.Any = None,
+        refresh_ttl: tp.Any = None,
+        root_endpoint: str = c.DEFAULT_ROOT_ENDPOINT,
+        **kwargs: tp.Any,
+    ) -> tp.Any:
         """
         Create token for specified user with given parameters
         """
 
-        def _calculate_delta(value, default_func):
+        def _calculate_delta(
+            value: tp.Any, default_func: tp.Callable[[], tp.Any]
+        ) -> tp.Any:
             return (
                 datetime.timedelta(seconds=float(value))
                 if value is not None
@@ -1271,7 +1306,7 @@ class IamClient(
         token.insert()
         return token
 
-    def get_token_by_password_username(self, username, **kwargs):
+    def get_token_by_password_username(self, username: str, **kwargs: tp.Any) -> tp.Any:
         """
         Get auth token by username + password.
         This method supports service account tokens via service_account_uuid parameter.
@@ -1285,7 +1320,7 @@ class IamClient(
 
         return self._get_token_by_password_and_smth(users_query=users_query, **kwargs)
 
-    def get_token_by_password_email(self, email, **kwargs):
+    def get_token_by_password_email(self, email: str, **kwargs: tp.Any) -> tp.Any:
         """
         Get auth token by email + password.
         This method supports service account tokens via service_account_uuid parameter.
@@ -1295,14 +1330,14 @@ class IamClient(
 
         return self._get_token_by_password_and_smth(users_query=users_query, **kwargs)
 
-    def get_token_by_password_phone(self, phone, **kwargs):
+    def get_token_by_password_phone(self, phone: str, **kwargs: tp.Any) -> None:
         """
         Get auth token by phone + password.
         Will be added later.
         """
         raise NotImplementedError()
 
-    def get_token_by_password_login(self, login, **kwargs):
+    def get_token_by_password_login(self, login: str, **kwargs: tp.Any) -> tp.Any:
         """
         Get auth token by any login field + password.
         Dynamic "smart" lookup is done by one of these fields:
@@ -1316,7 +1351,7 @@ class IamClient(
         else:
             return self.get_token_by_password_username(login, **kwargs)
 
-    def _extract_project_from_scope(self, scope):
+    def _extract_project_from_scope(self, scope: str | None) -> str | None:
         """
         Extract the single project UUID from scope string.
         Returns None if no project found.
@@ -1339,7 +1374,11 @@ class IamClient(
         else:
             raise ValueError(f"Multiple projects found in scope: {project_parts}")
 
-    def get_token_by_refresh_token(self, refresh_token, scope=None):
+    def get_token_by_refresh_token(
+        self,
+        refresh_token: str,
+        scope: str | None = None,
+    ) -> tp.Any:
         algorithm = self.get_token_algorithm()
         refresh_token_info = tokens.RefreshToken(
             token=refresh_token,
@@ -1356,7 +1395,11 @@ class IamClient(
         else:
             raise iam_e.InvalidRefreshTokenError()
 
-    def get_token_by_authorization_code(self, code, redirect_uri):
+    def get_token_by_authorization_code(
+        self,
+        code: tp.Any,
+        redirect_uri: str,
+    ) -> tp.Any:
         for auth_info in IdpAuthorizationInfo.objects.get_all(
             filters={"code": ra_filters.EQ(code)}
         ):
@@ -1366,16 +1409,20 @@ class IamClient(
 
         raise iam_e.CredentialsAreInvalidError()
 
-    def introspect(self):
+    def introspect(self) -> tp.Any:
         return Token.my().introspect()
 
-    def me(self):
+    def me(self) -> MeInfo:
         return MeInfo()
 
-    def userinfo(self):
+    def userinfo(self) -> Userinfo:
         return Userinfo()
 
-    def send_reset_password_event(self, email, app_endpoint="http://localhost/"):
+    def send_reset_password_event(
+        self,
+        email: str,
+        app_endpoint: str = "http://localhost/",
+    ) -> None:
         email = email.lower()
         # Result for non-existing email should not differ from existing one
         #  to mitigate with email enumeration.
@@ -1384,7 +1431,7 @@ class IamClient(
         ):
             user.send_reset_password_event(app_endpoint=app_endpoint)
 
-    def get_token_algorithm(self):
+    def get_token_algorithm(self) -> tp.Any:
         if self.signature_algorithm.kind == iam_c.ALGORITHM_HS256:
             secret = self.signature_algorithm.secret
             previous_secret = self.signature_algorithm.previous_secret
@@ -1412,7 +1459,7 @@ class IamClient(
             f"Unknown signature algorithm: {self.signature_algorithm.kind}"
         )
 
-    def get_jwks(self):
+    def get_jwks(self) -> dict[str, tp.Any]:
         if self.signature_algorithm.kind == iam_c.ALGORITHM_HS256:
             ctx = contexts.get_context()
             storage = ctx.context_storage
@@ -1490,11 +1537,11 @@ class Token(
     __tablename__ = "iam_tokens"
 
     @staticmethod
-    def get_default_expiration_delta():
+    def get_default_expiration_delta() -> datetime.timedelta:
         return datetime.timedelta(minutes=60)
 
     @staticmethod
-    def get_default_refresh_expiration_delta():
+    def get_default_refresh_expiration_delta() -> datetime.timedelta:
         return datetime.timedelta(days=1)
 
     expiration_delta = properties.property(
@@ -1554,7 +1601,13 @@ class Token(
         default=None,
     )
 
-    def __init__(self, user=None, scope="", project=None, **kwargs):
+    def __init__(
+        self,
+        user: tp.Any = None,
+        scope: str = "",
+        project: tp.Any = None,
+        **kwargs: tp.Any,
+    ) -> None:
         user = user or User.me()
         now = datetime.datetime.now(datetime.timezone.utc)
 
@@ -1578,33 +1631,35 @@ class Token(
             project = self._get_project_by_scope(user, scope)
         super().__init__(user=user, project=project, scope=scope, **kwargs)
 
-    def check_refresh_expiration(self):
+    def check_refresh_expiration(self) -> bool:
         now = datetime.datetime.now(datetime.timezone.utc)
         return now < self.refresh_expiration_at
 
-    def validate_refresh_expiration(self):
+    def validate_refresh_expiration(self) -> None:
         if not self.check_refresh_expiration():
             raise iam_e.InvalidRefreshTokenError()
 
-    def check_expiration(self):
+    def check_expiration(self) -> bool:
         now = datetime.datetime.now(datetime.timezone.utc)
         return now < self.expiration_at
 
-    def validate_expiration(self):
+    def validate_expiration(self) -> None:
         if not self.check_expiration():
             raise iam_e.InvalidAuthTokenError()
 
-    def _get_default_project(self, user):
+    def _get_default_project(self, user: tp.Any) -> tp.Any:
         return Project.get_default(user=user)
 
-    def _get_project_by_uuid(self, user, str_uuid):
+    def _get_project_by_uuid(self, user: tp.Any, str_uuid: tp.Any) -> tp.Any:
         for project in Project.objects.get_all(
             filters={"uuid": ra_filters.EQ(str_uuid)},
             limit=1,
         ):
             return project
 
-    def extend_structure_by_scope(self, struct_dict):
+    def extend_structure_by_scope(
+        self, struct_dict: dict[str, tp.Any]
+    ) -> dict[str, tp.Any]:
         if self.nonce:
             struct_dict["nonce"] = self.nonce
 
@@ -1628,7 +1683,7 @@ class Token(
 
         return struct_dict
 
-    def _get_project_by_scope(self, user, scope):
+    def _get_project_by_scope(self, user: tp.Any, scope: str) -> tp.Any:
         scope = scope.lower()
         project = None
         for piece in scope.split(" "):
@@ -1643,7 +1698,7 @@ class Token(
 
         return project
 
-    def refresh(self, scope=None):
+    def refresh(self, scope: str | None = None) -> None:
         scope = scope or self.scope
         now = datetime.datetime.now(datetime.timezone.utc)
         new_expiration_at = now + self.expiration_delta
@@ -1668,7 +1723,7 @@ class Token(
                 return True
         return False
 
-    def get_response_body(self):
+    def get_response_body(self) -> dict[str, tp.Any]:
         now = datetime.datetime.now(datetime.timezone.utc)
         algorithm = self.iam_client.get_token_algorithm()
 
@@ -1722,7 +1777,7 @@ class Token(
         }
 
     @classmethod
-    def my(cls, token_info=None):
+    def my(cls, token_info: tp.Any = None) -> tp.Any:
         token_info = token_info or contexts.get_context().iam_context.token_info
         for token in Token.objects.get_all(
             filters={"uuid": ra_filters.EQ(token_info.uuid)},
@@ -1731,7 +1786,11 @@ class Token(
             return token
         raise iam_e.InvalidAuthTokenError()
 
-    def introspect(self, token_info=None, otp_code=None):
+    def introspect(
+        self,
+        token_info: tp.Any = None,
+        otp_code: tp.Any = None,
+    ) -> Introspection:
         user = User.me(token_info=token_info)
 
         values = PermissionFastView.objects.get_all(
@@ -1794,20 +1853,20 @@ class Idp(
     )
 
     @property
-    def client_id(self):
+    def client_id(self) -> str:
         return self.iam_client.client_id
 
     @property
-    def client_secret(self):
+    def client_secret(self) -> str:
         return self.iam_client.secret
 
     @property
-    def well_known_endpoint(self):
+    def well_known_endpoint(self) -> str:
         ctx = contexts.get_context()
         app_url = ctx.get_real_url_with_prefix()
         return f"{app_url}/v1/iam/idp/{self.uuid}/.well-known/openid-configuration"
 
-    def get_wellknown_info(self):
+    def get_wellknown_info(self) -> dict[str, tp.Any]:
         ctx = contexts.get_context()
         app_url = ctx.get_real_url_with_prefix()
 
@@ -1840,13 +1899,13 @@ class Idp(
 
     def authorize(
         self,
-        client_id,
-        redirect_uri,
-        state,
-        response_type,
-        scope,
-        nonce=NONCE_DEFAULT,
-    ):
+        client_id: str,
+        redirect_uri: str,
+        state: str,
+        response_type: str,
+        scope: str,
+        nonce: str = NONCE_DEFAULT,
+    ) -> str:
         if self.client_id != client_id:
             raise iam_exceptions.InvalidClientId(client_id=client_id)
         if not self.callback.check(redirect_uri):
@@ -1875,7 +1934,7 @@ class Idp(
             f"&idp_uuid={self.uuid}",
         )
 
-    def construct_callback_uri(self, auth_info):
+    def construct_callback_uri(self, auth_info: tp.Any) -> str:
         if not auth_info.redirect_uri:
             raise iam_exceptions.InvalidRedirectUri(redirect_uri="")
         return (
@@ -1933,7 +1992,7 @@ class IdpAuthorizationInfo(
         default=sys_uuid.uuid4,
     )
 
-    def confirm(self):
+    def confirm(self) -> None:
         ctx = contexts.get_context()
         app_url = ctx.get_real_url_with_prefix()
 
@@ -1955,5 +2014,5 @@ class IdpAuthorizationInfo(
         self.token.insert()
         self.update()
 
-    def construct_callback_uri(self):
+    def construct_callback_uri(self) -> str:
         return self.idp.construct_callback_uri(self)

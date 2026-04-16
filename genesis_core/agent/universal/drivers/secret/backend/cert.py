@@ -18,18 +18,17 @@ import logging
 import typing as tp
 
 from cryptography import x509
-from restalchemy.dm import filters as dm_filters
-from restalchemy.storage import exceptions as ra_exc
-from gcl_sdk.agents.universal.dm import models
-from gcl_sdk.agents.universal.clients.backend import base
-from gcl_sdk.agents.universal.clients.backend import exceptions
-
 from gcl_certbot_plugin import acme
 from gcl_certbot_plugin import clients as dns_clients
 from gcl_certbot_plugin.acme import acme_lib_client
+from gcl_sdk.agents.universal.clients.backend import base
+from gcl_sdk.agents.universal.clients.backend import exceptions
+from gcl_sdk.agents.universal.dm import models
+from restalchemy.dm import filters as dm_filters
+from restalchemy.storage import exceptions as ra_exc
 
-from genesis_core.secret.dm import models as secret_dm
 from genesis_core.agent.universal.drivers.secret.dm import models as driver_dm
+from genesis_core.secret.dm import models as secret_dm
 
 LOG = logging.getLogger(__name__)
 
@@ -138,7 +137,7 @@ class CertBotBackendClient(base.AbstractBackendClient):
         driver_cert.save()
         return driver_cert.to_resource_value()
 
-    def list(self, kind: str, **kwargs) -> tp.List[tp.Dict[str, tp.Any]]:
+    def list(self, kind: str, **kwargs: tp.Any) -> tp.List[tp.Dict[str, tp.Any]]:
         """Lists all resources by kind."""
         certs = driver_dm.Certificate.objects.get_all()
 

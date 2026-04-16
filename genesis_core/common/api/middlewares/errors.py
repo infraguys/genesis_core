@@ -13,6 +13,7 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 
+import typing as tp
 from http import client as http_client
 
 from gcl_iam import middlewares
@@ -34,7 +35,7 @@ class ErrorsHandlerMiddleware(middlewares.ErrorsHandlerMiddleware):
         common_exc.CommonValueErrorException,
     )
 
-    def _construct_error_response(self, req, e):
+    def _construct_error_response(self, req: tp.Any, e: Exception) -> tp.Any:
         if isinstance(e, self.forbidden_exc):
             return req.ResponseClass(
                 status=http_client.FORBIDDEN, json=errors_mw.exception2dict(e)

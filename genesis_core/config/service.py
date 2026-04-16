@@ -14,21 +14,21 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import logging
-import datetime
 import collections
+import datetime
+import logging
 import typing as tp
 import uuid as sys_uuid
 
-from restalchemy.common import contexts
-from restalchemy.dm import filters as dm_filters
 from gcl_looper.services import basic
 from gcl_sdk.agents.universal.dm import models as ua_models
+from restalchemy.common import contexts
+from restalchemy.dm import filters as dm_filters
 
-from genesis_core.compute.dm import models as node_models
-from genesis_core.config.dm import models
 from genesis_core.common import constants as c
+from genesis_core.compute.dm import models as node_models
 from genesis_core.config import constants as cc
+from genesis_core.config.dm import models
 
 LOG = logging.getLogger(__name__)
 ORPHAN_CFG_ITERATION_FREQUENCY = 10
@@ -144,15 +144,15 @@ class ConfigServiceBuilder(basic.BasicService):
             return
 
         # Collect all target nodes
-        target_nodes = set()
+        target_node_ids: set[sys_uuid.UUID] = set()
         for config in configs:
-            target_nodes |= {n for n in config.target_nodes()}
+            target_node_ids |= {n for n in config.target_nodes()}
 
         nodes = {
             n.uuid: n
             for n in node_models.Node.objects.get_all(
                 filters={
-                    "uuid": dm_filters.In(str(u) for u in target_nodes),
+                    "uuid": dm_filters.In(str(u) for u in target_node_ids),
                 }
             )
         }
@@ -160,7 +160,7 @@ class ConfigServiceBuilder(basic.BasicService):
         # Make renders for each new config
         for config in configs:
             # Collect all available nodes for the config
-            target_nodes = tuple(nodes[n] for n in config.target_nodes() if n in nodes)
+            target_nodes = [nodes[n] for n in config.target_nodes() if n in nodes]
             try:
                 self._actualize_new_config(config, target_nodes)
             except Exception:

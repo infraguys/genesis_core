@@ -23,9 +23,9 @@ from oslo_config import cfg
 from restalchemy.common import config_opts as ra_config_opts
 from restalchemy.storage.sql import engines
 
-from genesis_core.status_api.api import app
 from genesis_core.common import config
 from genesis_core.common import log as infra_log
+from genesis_core.status_api.api import app
 
 api_cli_opts = [
     cfg.StrOpt(
@@ -53,7 +53,7 @@ CONF.register_cli_opts(api_cli_opts, DOMAIN)
 ra_config_opts.register_posgresql_db_opts(CONF)
 
 
-def main():
+def main() -> None:
     # Parse config
     config.parse(sys.argv[1:])
 

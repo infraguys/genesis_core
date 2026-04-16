@@ -14,20 +14,27 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import typing as tp
+
 from gcl_iam import algorithms as iam_algorithms
 from gcl_iam import drivers as iam_drivers
+
 from genesis_core.user_api.iam.dm import models
 
 
 class DirectDriver(iam_drivers.AbstractAuthDriver):
-    def get_introspection_info(self, token_info, otp_code=None):
+    def get_introspection_info(
+        self,
+        token_info: tp.Any,
+        otp_code: str | None = None,
+    ) -> dict[str, tp.Any]:
         token = models.Token.my(token_info=token_info)
         token.validate_expiration()
         return token.introspect(
             token_info=token_info, otp_code=otp_code
         ).get_response_body()
 
-    def get_algorithm(self, token_info):
+    def get_algorithm(self, token_info: tp.Any) -> tp.Any:
         token = models.Token.my(token_info=token_info)
         signature_algorithm = token.iam_client.signature_algorithm
 

@@ -1,13 +1,14 @@
 import logging
+import typing as tp
 from datetime import datetime, timezone
 
 from gcl_looper.services import basic
-from restalchemy.dm import filters as dm_filters
 from restalchemy.common import contexts
+from restalchemy.dm import filters as dm_filters
 
 from genesis_core.common import constants as c
-from genesis_core.user_api.iam.dm import models
 from genesis_core.user_api.iam import constants as iam_c
+from genesis_core.user_api.iam.dm import models
 
 LOG = logging.getLogger(__name__)
 
@@ -17,11 +18,16 @@ class ExpiredEmailConfirmationCodeJanitorService(basic.BasicService):
     Cleans up expired email confirmation codes from Users table.
     """
 
-    def __init__(self, limit=c.DEFAULT_SQL_LIMIT, *args, **kwargs):
+    def __init__(
+        self,
+        limit: int = c.DEFAULT_SQL_LIMIT,
+        *args: tp.Any,
+        **kwargs: tp.Any,
+    ) -> None:
         self._limit = limit
         super().__init__(*args, **kwargs)
 
-    def _clean_bad_confirmation_codes(self):
+    def _clean_bad_confirmation_codes(self) -> None:
         now = datetime.now(tz=timezone.utc)
         expiration_time = now - iam_c.USER_CONFIRMATION_CODE_TTL
         LOG.debug("Starting to clean codes older than %s", expiration_time)
@@ -50,6 +56,6 @@ class ExpiredEmailConfirmationCodeJanitorService(basic.BasicService):
 
         LOG.debug("Users cleaned: %s" % len(users))
 
-    def _iteration(self):
+    def _iteration(self) -> None:
         with contexts.Context().session_manager():
             self._clean_bad_confirmation_codes()

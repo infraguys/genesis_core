@@ -19,6 +19,7 @@ import enum
 import json
 import logging
 import re
+import typing as tp
 
 import altcha
 import firebase_admin
@@ -52,7 +53,7 @@ HTTP_METHODS = (
 
 class AbstractConditions(ra_types_dynamic.AbstractKindModel):
     @abc.abstractmethod
-    def can_handle(self, context):
+    def can_handle(self, context: tp.Any) -> bool:
         raise NotImplementedError()
 
 
@@ -68,7 +69,7 @@ class UriConditions(AbstractConditions):
         default=None,
     )
 
-    def can_handle(self, context):
+    def can_handle(self, context: tp.Any) -> bool:
         request = context.request
         if self.method:
             if request.method.upper() != self.method:
@@ -88,7 +89,7 @@ class UriRegexConditions(AbstractConditions):
         default=None,
     )
 
-    def can_handle(self, context):
+    def can_handle(self, context: tp.Any) -> bool:
         request = context.request
         if self.method:
             if request.method.upper() != self.method:
@@ -105,7 +106,7 @@ class UriRegexConditions(AbstractConditions):
 
 class AbstractVerifier(ra_types_dynamic.AbstractKindModel):
     @abc.abstractmethod
-    def verify(self, context):
+    def verify(self, context: tp.Any) -> bool:
         raise NotImplementedError()
 
 
@@ -117,7 +118,7 @@ class FieldNotInRequestVerifier(AbstractVerifier):
         required=True,
     )
 
-    def verify(self, context):
+    def verify(self, context: tp.Any) -> bool:
         payload = context.get_raw_payload()
         if not isinstance(payload, dict):
             return True
@@ -145,14 +146,14 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
         "X-Goog-Firebase-AppCheck",
     )
 
-    def _get_token_from_headers(self, request):
+    def _get_token_from_headers(self, request: tp.Any) -> str | None:
         for header_name in self.FIREBASE_HEADERS:
             token = request.headers.get(header_name)
             if token:
                 return token
         return None
 
-    def _get_firebase_app(self):
+    def _get_firebase_app(self) -> tp.Any:
         """Return initialised default Firebase app, same semantics as original verifier."""
         try:
             return firebase_admin.get_app()
@@ -160,7 +161,7 @@ class FirebaseAppCheckVerifier(AbstractVerifier):
             cred = credentials.Certificate(self.credentials_path)
             return firebase_admin.initialize_app(cred)
 
-    def verify(self, context):
+    def verify(self, context: tp.Any) -> bool:
         request = context.request
 
         token = self._get_token_from_headers(request)
@@ -202,7 +203,7 @@ class CaptchaVerifier(AbstractVerifier):
 
     CAPTCHA_HEADER = "X-Captcha"
 
-    def verify(self, context):
+    def verify(self, context: tp.Any) -> bool:
         request = context.request
         captcha_header = request.headers.get(self.CAPTCHA_HEADER)
         if not captcha_header:
@@ -233,7 +234,7 @@ class AdminBypassVerifier(AbstractVerifier):
         default=list,
     )
 
-    def verify(self, context):
+    def verify(self, context: tp.Any) -> bool:
         """Return True if current user is explicitly allowed to bypass."""
         # Introspection info may be missing for unauthenticated requests
         try:
@@ -307,8 +308,8 @@ class Rule(
         read_only=True,
     )
 
-    def can_handle(self, context):
+    def can_handle(self, context: tp.Any) -> bool:
         return self.condition.can_handle(context)
 
-    def verify(self, context):
+    def verify(self, context: tp.Any) -> bool:
         return self.verifier.verify(context)

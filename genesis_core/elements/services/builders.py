@@ -15,6 +15,7 @@
 #    under the License.
 
 import logging
+import typing as tp
 
 from gcl_looper.services import basic
 from restalchemy.common import contexts
@@ -29,12 +30,12 @@ class ElementManagerBuilder(basic.BasicService):
         self,
         iter_min_period: int = 1,
         iter_pause: float = 0.1,
-    ):
+    ) -> None:
         super().__init__(iter_min_period, iter_pause)
         self._element_engine = models.element_engine
         self._first_step = True
 
-    def _actualize_target_resources(self):
+    def _actualize_target_resources(self) -> None:
         # Delete outdated resources that do not have a corresponding EM
         for info in models.OutdatedResources.objects.get_all():
             if info.em_resource is None:
@@ -44,7 +45,7 @@ class ElementManagerBuilder(basic.BasicService):
         for resource in self._element_engine.get_resources():
             resource.actualize()
 
-    def _actualize_statuses(self, session):
+    def _actualize_statuses(self, session: tp.Any) -> None:
         incorrect_resource_statuses = (
             models.ResourceIncorrectStatusesView.objects.get_all()
         )
@@ -69,7 +70,7 @@ class ElementManagerBuilder(basic.BasicService):
             )
             em_status_model.actualize_status()
 
-    def _iteration(self):
+    def _iteration(self) -> None:
         with contexts.Context().session_manager() as session:
             if self._first_step:
                 self._element_engine.load_from_database()

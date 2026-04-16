@@ -26,7 +26,7 @@ _RAW_PAYLOAD_MISSING = object()
 
 
 class GenesisCoreAuthContext(iam_contexts.GenesisCoreAuthContext):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: tp.Any, **kwargs: tp.Any) -> None:
         super().__init__(*args, **kwargs)
         self._raw_payload_cache = _RAW_PAYLOAD_MISSING
 
@@ -49,7 +49,7 @@ class GenesisCoreAuthContext(iam_contexts.GenesisCoreAuthContext):
             return netaddr.IPAddress(remote_env) if remote_env else None
         return None
 
-    def me(self):
+    def me(self) -> tp.Any:
         return models.User.me()
 
     def get_raw_payload(self) -> tp.Any:

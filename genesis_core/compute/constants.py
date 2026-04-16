@@ -97,7 +97,7 @@ class BootAlternative(str, enum.Enum):
     network = "network"
 
     @property
-    def hd_prefix(self) -> str:
+    def hd_prefix(self) -> tp.Literal["hd"]:
         return "hd"
 
     @property

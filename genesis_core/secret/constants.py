@@ -38,5 +38,5 @@ class SecretMethod(str, enum.Enum):
     MANUAL = "MANUAL"
 
     @property
-    def is_auto(self):
+    def is_auto(self) -> bool:
         return self in {SecretMethod.AUTO_HEX, SecretMethod.AUTO_URL_SAFE}

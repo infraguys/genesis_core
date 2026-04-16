@@ -14,19 +14,21 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import typing as tp
+
 import bazooka
 
 
 class IdpClient:
-    def __init__(self, endpoint, timeout=5):
+    def __init__(self, endpoint: str, timeout: int = 5) -> None:
         super().__init__()
         self._endpoint = endpoint
         self._client = bazooka.Client(default_timeout=timeout)
 
-    def get_idp_metadata(self):
+    def get_idp_metadata(self) -> dict[str, tp.Any]:
         return self._client.get(self._endpoint).json()
 
-    def get_user_info(self, token):
+    def get_user_info(self, token: str) -> dict[str, tp.Any]:
         return self._client.get(
             self.get_idp_metadata()["userinfo_endpoint"],
             headers={

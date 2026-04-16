@@ -15,12 +15,13 @@
 #    under the License.
 
 import logging
-import netaddr
-import uuid as sys_uuid
 import typing as tp
+import uuid as sys_uuid
 
-from genesis_core.network.dm import models as net_models
+import netaddr
+
 from genesis_core.network import exceptions as net_exceptions
+from genesis_core.network.dm import models as net_models
 
 LOG = logging.getLogger(__name__)
 
@@ -65,7 +66,7 @@ class Ipam:
         ports that are already allocated from this subnet.
         :type subnet_map: Dict[net_models.Subnet, List[net_models.Port]]
         """
-        self._pool_map = {}
+        self._pool_map: dict[net_models.Subnet, list[tuple[int, int]]] = {}
 
         # TODO(akremenetsky): No need to calculate the pool for each subnet here,
         # we may do it in a lazy way when it will be required
@@ -142,12 +143,12 @@ class Ipam:
         target_ip: tp.Optional[netaddr.IPAddress] = None,
     ) -> netaddr.IPAddress:
         if subnet not in self._pool_map:
-            raise IpamUndefinedSubnet(subnet=str(subnet.uuid))
+            raise IpamUndefinedSubnet(subnet=subnet.uuid)
 
         address_pool = self._pool_map[subnet]
 
         if len(address_pool) == 0:
-            raise IpamNoIPsAvailable(subnet=str(subnet.uuid))
+            raise IpamNoIPsAvailable(subnet=subnet.uuid)
 
         # Try to occupy the target IP
         if target_ip is not None:
@@ -169,7 +170,7 @@ class Ipam:
         address: netaddr.IPAddress,
     ) -> None:
         if subnet not in self._pool_map:
-            raise IpamUndefinedSubnet(subnet=str(subnet.uuid))
+            raise IpamUndefinedSubnet(subnet=subnet.uuid)
 
         address_pool = self._pool_map[subnet]
 

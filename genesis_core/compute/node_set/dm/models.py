@@ -45,7 +45,7 @@ class NodeSet(compute_models.NodeSet):
         self,
         project_id: sys_uuid.UUID,
         placement_policies: tp.Collection[compute_models.PlacementPolicy] = tuple(),
-        node_uuids: tp.Collection[sys_uuid.UUID] = tuple(),
+        node_uuids: tp.Sequence[sys_uuid.UUID] = tuple(),
     ) -> tp.Collection[Node]:
         """Generate nodes for the node set."""
         # FIXME(akremenetsky): Perhaps this method should be moved to

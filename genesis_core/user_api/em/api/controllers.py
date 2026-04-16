@@ -14,12 +14,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import typing as tp
+
 from gcl_iam.api import controllers as iam_controllers
-from restalchemy.dm import filters as dm_filters
 from restalchemy.api import actions
 from restalchemy.api import controllers
 from restalchemy.api import resources
 from restalchemy.common import exceptions as ra_e
+from restalchemy.dm import filters as dm_filters
 
 from genesis_core.elements.dm import models
 from genesis_core.vs.dm import models as vs_models
@@ -48,19 +50,19 @@ class ManifestController(
     )
 
     @actions.post
-    def install(self, resource):
+    def install(self, resource: models.Manifest) -> tp.Any:
         return resource.install()
 
     @actions.post
-    def upgrade(self, resource):
+    def upgrade(self, resource: models.Manifest) -> tp.Any:
         return resource.upgrade()
 
     @actions.post
-    def uninstall(self, resource):
+    def uninstall(self, resource: models.Manifest) -> tp.Any:
         return resource.uninstall()
 
     @actions.get
-    def validate(self, resource):
+    def validate(self, resource: models.Manifest) -> tp.Any:
         return resource.validate_schema_base()
 
 
@@ -85,24 +87,24 @@ class ElementController(
     )
 
     @actions.post
-    def set_profile(self, resource: models.Element, profile: str):
-        profile = vs_models.Profile.objects.get_one(
+    def set_profile(self, resource: models.Element, profile: str) -> models.Element:
+        selected_profile: vs_models.Profile = vs_models.Profile.objects.get_one(
             filters={"uuid": dm_filters.EQ(profile)},
         )
-        resource.profile = profile
+        resource.profile = selected_profile
         resource.update()
 
         # Need to update force to rebuild the variables
         # related to the profile
-        profile.update(force=True)
+        selected_profile.update(force=True)
         return resource
 
     @actions.post
-    def clear_profile(self, resource: models.Element):
+    def clear_profile(self, resource: models.Element) -> models.Element:
         if not resource.profile:
             raise ElementHasNoProfileError()
 
-        profile = resource.profile
+        profile = tp.cast(vs_models.Profile, resource.profile)
         resource.profile = None
         resource.update()
 
@@ -147,7 +149,7 @@ class ElementResourceController(
         ),
     )
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: tp.Any, **kwargs: tp.Any) -> None:
         models.element_engine.load_from_database()
         super().__init__(*args, **kwargs)
 
@@ -162,7 +164,7 @@ class ElementExportController(
         convert_underscore=False,
     )
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: tp.Any, **kwargs: tp.Any) -> None:
         models.element_engine.load_from_database()
         super().__init__(*args, **kwargs)
 
@@ -177,7 +179,7 @@ class ElementImportController(
         convert_underscore=False,
     )
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: tp.Any, **kwargs: tp.Any) -> None:
         models.element_engine.load_from_database()
         super().__init__(*args, **kwargs)
 

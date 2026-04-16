@@ -19,8 +19,8 @@ import typing as tp
 
 from oslo_config import cfg
 
-from genesis_core.common import constants
 from genesis_core import version
+from genesis_core.common import constants
 
 GLOBAL_SERVICE_NAME = constants.GLOBAL_SERVICE_NAME
 _CONFIG_NOT_FOUND_MESSAGE = (
@@ -31,7 +31,10 @@ _CONFIG_NOT_FOUND_MESSAGE = (
 )
 
 
-def parse(args, conf: tp.Optional[cfg.ConfigOpts] = None):
+def parse(
+    args: tp.Sequence[str],
+    conf: cfg.ConfigOpts | None = None,
+) -> list[str] | None:
     if not conf:
         conf = cfg.CONF
 

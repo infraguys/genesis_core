@@ -18,15 +18,15 @@ import logging
 import typing as tp
 import uuid as sys_uuid
 
-from restalchemy.common import contexts
-from restalchemy.dm import filters as dm_filters
 from gcl_looper.services import basic
 from gcl_sdk.agents.universal.dm import models as ua_models
+from restalchemy.common import contexts
+from restalchemy.dm import filters as dm_filters
 
-from genesis_core.compute.dm import models as nm
-from genesis_core.secret.dm import models
 from genesis_core.common import constants as c
+from genesis_core.compute.dm import models as nm
 from genesis_core.secret import constants as sc
+from genesis_core.secret.dm import models
 
 LOG = logging.getLogger(__name__)
 
@@ -108,7 +108,7 @@ class SecretServiceBuilder(basic.BasicService):
 
     def _get_outdated_secrets(
         self,
-        model: models.Secret,
+        model: type[models.Secret],
         uuids: tp.Collection[sys_uuid.UUID],
     ) -> tp.List[models.Secret]:
         return model.objects.get_all(
@@ -126,7 +126,10 @@ class SecretServiceBuilder(basic.BasicService):
             filters={"kind": dm_filters.EQ(sc.SSH_KEY_TARGET_KIND)},
             limit=limit,
         )
-        key_map = {}
+        key_map: dict[
+            sys_uuid.UUID,
+            list[tuple[ua_models.TargetResource, ua_models.Resource]],
+        ] = {}
         for pair in outdated:
             key_map.setdefault(pair.target_resource.master, []).append(
                 (pair.target_resource, pair.actual_resource)
@@ -218,7 +221,7 @@ class SecretServiceBuilder(basic.BasicService):
     def _actualize_outdated_secrets(
         self,
         kind: str,
-        model: models.Secret,
+        model: type[models.Secret],
         secret_handler: tp.Callable[
             [models.Secret, ua_models.TargetResource, ua_models.Resource], None
         ],
@@ -464,17 +467,17 @@ class SecretServiceBuilder(basic.BasicService):
             return
 
         # Collect all target nodes
-        target_nodes = {n for key in keys for n in key.target_nodes()}
+        target_node_uuids = {n for key in keys for n in key.target_nodes()}
         nodes = {
             n.uuid: n
             for n in nm.Node.objects.get_all(
-                filters={"uuid": dm_filters.In(target_nodes)}
+                filters={"uuid": dm_filters.In(target_node_uuids)}
             )
         }
 
         for key in keys:
             # Collect all available nodes for the key
-            target_nodes = tuple(nodes[n] for n in key.target_nodes() if n in nodes)
+            target_nodes = [nodes[n] for n in key.target_nodes() if n in nodes]
             try:
                 self._actualize_new_ssh_key(key, target_nodes)
             except Exception:

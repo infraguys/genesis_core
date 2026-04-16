@@ -18,13 +18,13 @@ import logging
 import typing as tp
 import uuid
 
-from gcl_sdk.paas.services import builder
 from gcl_sdk.agents.universal.dm import models as ua_models
 from gcl_sdk.infra.dm import models as sdk_models
+from gcl_sdk.paas.services import builder
 from restalchemy.dm import filters as ra_filters
 
-from genesis_core.network.lb.dm import models
 from genesis_core.elements import constants as cc
+from genesis_core.network.lb.dm import models
 
 LOG = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ class LBBuilder(builder.PaaSBuilder):
     def __init__(
         self,
         instance_model: tp.Type[models.PaasLB] = models.PaasLB,
-    ):
+    ) -> None:
         super().__init__(instance_model)
 
     def create_paas_objects(
@@ -97,7 +97,7 @@ class LBBuilder(builder.PaaSBuilder):
 
         return actual_resources
 
-    def get_actual_nodeset(self, instance):
+    def get_actual_nodeset(self, instance: models.PaasLB) -> sdk_models.NodeSet:
         res = ua_models.Resource.objects.get_one(
             filters={
                 "uuid": ra_filters.EQ(instance.uuid),

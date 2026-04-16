@@ -19,8 +19,8 @@ import typing as tp
 import uuid as sys_uuid
 from importlib.metadata import entry_points
 
-from gcl_sdk.events import clients as sdk_clients
 from gcl_sdk.agents.universal import utils as sdk_utils
+from gcl_sdk.events import clients as sdk_clients
 from restalchemy.common import contexts
 from restalchemy.dm import filters as dm_filters
 
@@ -69,12 +69,23 @@ def get_context_storage(
     )
 
 
-def remove_all_dm(dm_class, filters, session=None, **kwargs):
+def remove_all_dm(
+    dm_class: tp.Any,
+    filters: dict[str, tp.Any],
+    session: tp.Any = None,
+    **kwargs: tp.Any,
+) -> None:
     for dm in dm_class.objects.get_all(filters=filters, session=session):
         dm.delete(session=session, **kwargs)
 
 
-def remove_nested_dm(dm_class, parent_field_name, parent, session=None, **kwargs):
+def remove_nested_dm(
+    dm_class: tp.Any,
+    parent_field_name: str,
+    parent: tp.Any,
+    session: tp.Any = None,
+    **kwargs: tp.Any,
+) -> None:
     remove_all_dm(
         dm_class,
         filters={parent_field_name: dm_filters.EQ(parent)},

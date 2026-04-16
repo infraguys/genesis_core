@@ -14,19 +14,19 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import logging
 import functools
-import uuid as sys_uuid
+import logging
 import typing as tp
+import uuid as sys_uuid
 
-from restalchemy.dm import filters as dm_filters
+from gcl_sdk.agents.universal.clients.orch import base as orch_base
 from gcl_sdk.agents.universal.dm import models as ua_models
 from gcl_sdk.agents.universal.services import builder as sdk_builder
 from gcl_sdk.agents.universal.services import common as sdk_svc_common
-from gcl_sdk.agents.universal.clients.orch import base as orch_base
+from restalchemy.dm import filters as dm_filters
 
-from genesis_core.compute.dm import models
 from genesis_core.compute import constants as nc
+from genesis_core.compute.dm import models
 from genesis_core.compute.pool.dm import models as pool_models
 
 LOG = logging.getLogger(__name__)
@@ -64,10 +64,10 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
 
     # Internal methods
 
-    def _agent_by_pool(self, pool_uuid: sys_uuid.UUID) -> sys_uuid.UUID:
+    def _agent_by_pool(self, pool_uuid: sys_uuid.UUID) -> str | None:
         for pool in self._iteration_context["clause_filters"]["pools"]:
             if pool.uuid == pool_uuid:
-                return pool.agent
+                return str(pool.agent) if pool.agent is not None else None
 
         raise ValueError(f"Pool {pool_uuid} not found")
 
@@ -90,9 +90,11 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
         volumes: tp.Collection[models.MachineVolume],
     ) -> None:
         """Set the machine context."""
+        ports_list = list(ports)
+        volumes_list = list(volumes)
         self._iteration_context[machine.uuid] = {
-            "machine_port": ports[0],
-            "root_volume": volumes[0],
+            "machine_port": ports_list[0],
+            "root_volume": volumes_list[0],
         }
 
     def _get_machine_ctx(
@@ -132,6 +134,9 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
             ports, volumes = self._fetch_machine_deps(machine)
             self._set_machine_ctx(machine, ports, volumes)
             machine_ctx = self._get_machine_ctx(machine)
+
+        if machine_ctx is None:
+            return None, None
 
         return machine_ctx
 
@@ -181,16 +186,18 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
             LOG.warning("Machine %s deps are not ready", machine.uuid)
             return False
 
+        ports_list = list(ports)
+
         # Check if the port is already allocated
-        if ports[0].status != nc.PortStatus.ACTIVE:
-            LOG.debug("Port %s is not active", ports[0].uuid)
+        if ports_list[0].status != nc.PortStatus.ACTIVE:
+            LOG.debug("Port %s is not active", ports_list[0].uuid)
             return False
 
         # FIXME(akremenetsky): No need to check volume status as we don't
         # want to wait until it is ready. Agent firstly create a volume and
         # then attach it to the machine.
 
-        self._set_machine_ctx(machine, ports, volumes)
+        self._set_machine_ctx(machine, ports_list, volumes)
         return True
 
     def _can_update_machine(

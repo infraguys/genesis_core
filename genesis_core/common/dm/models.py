@@ -14,6 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import typing as tp
+
 from restalchemy.dm import models
 
 
@@ -27,12 +29,18 @@ class ModelWithFullAsset(
 
 
 class CastToBaseMixin:
-    __cast_fields__ = None
+    __cast_fields__: tuple[str, ...] | None = None
 
     def cast_to_base(self) -> models.SimpleViewMixin:
         # Convert to simple view without relations
-        fields = self.__cast_fields__ or tuple(self.properties.properties.keys())
-        view = self.dump_to_simple_view(skip=fields)
+        castable_self = tp.cast(tp.Any, self)
+        fields = self.__cast_fields__ or tuple(
+            castable_self.properties.properties.keys()
+        )
+        view = tp.cast(
+            dict[str, tp.Any],
+            castable_self.dump_to_simple_view(skip=fields),
+        )
 
         # Translate relations into uuid
         for relation in fields:
@@ -41,12 +49,15 @@ class CastToBaseMixin:
                 view[relation] = value.uuid
 
         # Find base class
-        base_class = None
+        base_class: type[tp.Any] | None = None
         for base in self.__class__.__bases__:
             if base != CastToBaseMixin:
-                base_class = base
+                base_class = tp.cast(type[tp.Any], base)
                 break
         else:
             raise RuntimeError(f"Failed to find base class for {self.__class__}")
 
-        return base_class.restore_from_simple_view(**view)
+        return tp.cast(
+            models.SimpleViewMixin,
+            base_class.restore_from_simple_view(**view),
+        )

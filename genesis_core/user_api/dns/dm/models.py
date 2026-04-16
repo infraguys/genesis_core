@@ -15,8 +15,10 @@
 #    under the License.
 
 import re
+import typing as tp
 import uuid as sys_uuid
 
+from gcl_sdk.agents.universal.dm import models as ua_models
 from oslo_config import cfg
 from restalchemy.common import exceptions
 from restalchemy.dm import filters
@@ -27,7 +29,6 @@ from restalchemy.dm import types
 from restalchemy.dm import types_dynamic
 from restalchemy.dm import types_network
 from restalchemy.storage.sql import orm
-from gcl_sdk.agents.universal.dm import models as ua_models
 
 from genesis_core.common import utils as u
 
@@ -65,16 +66,16 @@ class Domain(CommonModel, models.ModelWithProject, ua_models.TargetResourceMixin
     # catalog = properties.property(types.Text(), default=None)
 
     @classmethod
-    def get_next_domain_id(cls, session=None):
+    def get_next_domain_id(cls, session: tp.Any = None) -> int:
         with cls._get_engine().session_manager(session=session) as s:
             return s.execute("SELECT nextval('dns_domain_id_seq') as val").fetchall()[
                 0
             ]["val"]
 
-    def __init__(self, session=None, **kwargs):
+    def __init__(self, session: tp.Any = None, **kwargs: tp.Any) -> None:
         super().__init__(id=self.get_next_domain_id(session=session), **kwargs)
 
-    def insert(self, session=None):
+    def insert(self, session: tp.Any = None) -> None:
         # TODO: to be public autoritative DNS, we need:
         #  - make sure the SOA record is correct (serial, too, for zone transfers)
         #    (or don't update serial, it's needed only for secondary DNS replicaion,
@@ -93,7 +94,7 @@ class Domain(CommonModel, models.ModelWithProject, ua_models.TargetResourceMixin
         )
         soa.save(session=session)
 
-    def delete(self, session=None, **kwargs):
+    def delete(self, session: tp.Any = None, **kwargs: tp.Any) -> tp.Any:
         Record.objects.get_one(
             session=session,
             filters={"domain": filters.EQ(self), "type": "SOA"},
@@ -110,10 +111,10 @@ class Domain(CommonModel, models.ModelWithProject, ua_models.TargetResourceMixin
 
 
 class AbstractRecord(types_dynamic.AbstractKindModel):
-    def get_name(self, domain) -> str:
+    def get_name(self, domain: Domain) -> str:
         return (".").join((self.name, domain.name)) if self.name else domain.name
 
-    def get_content(self, domain) -> str:
+    def get_content(self, domain: Domain) -> str:
         return str(self.content)
 
 
@@ -129,7 +130,7 @@ class ARecord(AbstractRecord):
         required=True,
     )
 
-    def get_content(self, domain) -> str:
+    def get_content(self, domain: Domain) -> str:
         return str(self.address)
 
 
@@ -150,7 +151,7 @@ class SOARecord(AbstractRecord):
     expire = properties.property(types.Integer(min_value=60), default=604800)
     ttl = properties.property(types.Integer(min_value=60), default=3600)
 
-    def get_content(self, domain) -> str:
+    def get_content(self, domain: Domain) -> str:
         return f"{self.primary_dns} {domain.name} {self.serial} {self.refresh} {self.retry} {self.expire} {self.ttl}"
 
 
@@ -211,7 +212,7 @@ class Record(CommonModel, models.ModelWithProject, ua_models.TargetResourceMixin
     # ordername = properties.property(types.String(), default=None)
     # auth = properties.property(types.Boolean(), default=True)С
 
-    def __init__(self, domain: Domain, **kwargs) -> None:
+    def __init__(self, domain: Domain, **kwargs: tp.Any) -> None:
         super().__init__(domain=domain, domain_id=domain.id, **kwargs)
 
         self._fill_n_validate_record()
@@ -223,17 +224,22 @@ class Record(CommonModel, models.ModelWithProject, ua_models.TargetResourceMixin
         self.content = self.record.get_content(self.domain)
         self.name = self.record.get_name(self.domain)
 
-    def update(self, session=None, force=False):
+    def update(self, session: tp.Any = None, force: bool = False) -> None:
         self._fill_n_validate_record()
 
         super().update(session=session, force=force)
 
-    def insert(self, session=None):
+    def insert(self, session: tp.Any = None) -> None:
         self._fill_n_validate_record()
 
         super().insert(session=session)
 
-    def delete(self, session=None, force=False, **kwargs):
+    def delete(
+        self,
+        session: tp.Any = None,
+        force: bool = False,
+        **kwargs: tp.Any,
+    ) -> tp.Any:
         if not force and self.type == "SOA":
             raise SOARecordDeleteRestricted()
         return super().delete(session=session, **kwargs)

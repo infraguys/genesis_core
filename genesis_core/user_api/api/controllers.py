@@ -14,6 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import typing as tp
+
 from restalchemy.api import controllers
 
 
@@ -26,5 +28,5 @@ class ApiEndpointController(controllers.RoutesListController):
 class HealthController(controllers.Controller):
     """Controller for /v1/health/ endpoint"""
 
-    def filter(self, filters, **kwargs):
+    def filter(self, filters: tp.Any, **kwargs: tp.Any) -> str:
         return "OK"

@@ -15,42 +15,44 @@
 #    under the License.
 
 import logging
+import typing as tp
 import uuid as sys_uuid
 
-from restalchemy.dm import filters as dm_filters
 from gcl_looper.services import basic
-from gcl_sdk.events.services import senders
+from gcl_sdk.agents.universal import utils as ua_utils
+from gcl_sdk.agents.universal.clients.backend import db as db_back
+from gcl_sdk.agents.universal.clients.orch import db as orch_db
+from gcl_sdk.agents.universal.drivers import core as ua_core_drivers
 from gcl_sdk.agents.universal.services import agent as ua_agent_service
 from gcl_sdk.agents.universal.services import scheduler as ua_scheduler_service
-from gcl_sdk.agents.universal import utils as ua_utils
-from gcl_sdk.agents.universal.clients.orch import db as orch_db
-from gcl_sdk.agents.universal.clients.backend import db as db_back
-from gcl_sdk.agents.universal.drivers import core as ua_core_drivers
+from gcl_sdk.events.services import senders
+from restalchemy.dm import filters as dm_filters
 
-from genesis_core.elements.services import builders as em_builders
-from genesis_core.elements.builders import service as service_builder_svc
-from genesis_core.compute.scheduler.driver.filters import available
-from genesis_core.compute.scheduler.driver.filters import affinity
-from genesis_core.compute.scheduler.driver.weighter import relative
-from genesis_core.compute.scheduler import service as n_scheduler_service
-from genesis_core.vs.builders import service as vs_builder_svc
-from genesis_core.compute.builders import node as node_builder_svc
-from genesis_core.compute.builders import volume as volume_builder_svc
-from genesis_core.compute.builders import pool as pool_builder_svc
-from genesis_core.compute.builders import node_set as set_builder_svc
+from genesis_core.compute import constants as nc
 from genesis_core.compute.agents.universal.drivers import (
     pool as ua_pool_drivers,
 )
+from genesis_core.compute.builders import node as node_builder_svc
+from genesis_core.compute.builders import node_set as set_builder_svc
+from genesis_core.compute.builders import pool as pool_builder_svc
+from genesis_core.compute.builders import volume as volume_builder_svc
 from genesis_core.compute.dm import models as compute_models
+from genesis_core.compute.node_set.dm import models as node_set_models
+from genesis_core.compute.scheduler import service as n_scheduler_service
+from genesis_core.compute.scheduler.driver import base as scheduler_driver_base
+from genesis_core.compute.scheduler.driver.filters import affinity
+from genesis_core.compute.scheduler.driver.filters import available
+from genesis_core.compute.scheduler.driver.weighter import relative
+from genesis_core.config import service as config_service
+from genesis_core.elements.builders import service as service_builder_svc
+from genesis_core.elements.services import builders as em_builders
+from genesis_core.janitor import service as janitor_service
 from genesis_core.network import service as n_network_service
 from genesis_core.network.lb.builders import iaas as net_lb_iaas
 from genesis_core.network.lb.builders import paas as net_lb_paas
 from genesis_core.network.lb.dm import models as lb_models
-from genesis_core.config import service as config_service
 from genesis_core.secret import service as secret_service
-from genesis_core.janitor import service as janitor_service
-from genesis_core.compute.node_set.dm import models as node_set_models
-from genesis_core.compute import constants as nc
+from genesis_core.vs.builders import service as vs_builder_svc
 
 LOG = logging.getLogger(__name__)
 NODE_SET_TF_STORAGE = "/var/lib/genesis/genesis_core/node_set/target_fields.json"
@@ -60,22 +62,22 @@ NODE_SET_TARGET_TF_STORAGE = (
 
 
 class GeneralService(basic.BasicService):
-    def __init__(self, iter_min_period=1, iter_pause=0.1):
+    def __init__(self, iter_min_period: int = 1, iter_pause: float = 0.1) -> None:
         super().__init__(iter_min_period, iter_pause)
 
         # TODO(akremenetsky): Form a pipliene from the configuration
         # and entry points
-        pool_filters = [
+        pool_filters: list[scheduler_driver_base.MachinePoolAbstractFilter] = [
             available.CoresRamAvailableFilter(),
             affinity.DummySoftAntiAffinityFilter(),
         ]
-        pool_weighters = [
+        pool_weighters: list[scheduler_driver_base.MachinePoolAbstractWeighter] = [
             relative.RelativeCoreRamWeighter(),
         ]
-        machine_filters = [
+        machine_filters: list[scheduler_driver_base.MachineAbstractFilter] = [
             available.HWCoresRamAvailableFilter(),
         ]
-        machine_weighters = [
+        machine_weighters: list[scheduler_driver_base.MachineAbstractWeighter] = [
             relative.SimpleMachineWeighter(),
         ]
 
@@ -154,7 +156,7 @@ class GeneralService(basic.BasicService):
             node_db_core_driver,
         ]
 
-        facts_drivers = []
+        facts_drivers: list[tp.Any] = []
 
         infra_agent = ua_agent_service.UniversalAgentService(
             agent_uuid=agent_uuid,
@@ -208,12 +210,12 @@ class GeneralService(basic.BasicService):
             janitor,
         ]
 
-    def _setup(self):
+    def _setup(self) -> None:
         LOG.info("Setup all services")
         for service in self._services:
             service._setup()
 
-    def _iteration(self):
+    def _iteration(self) -> None:
         # Iterate all services
         for service in self._services:
             service._loop_iteration()

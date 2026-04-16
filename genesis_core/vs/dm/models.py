@@ -14,21 +14,21 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import json
 import itertools
+import json
 import typing as tp
 import uuid as sys_uuid
 
+from gcl_sdk.infra import constants as infra_c
+from gcl_sdk.infra import exceptions as infra_exc
+from gcl_sdk.infra.dm import models as infra_models
+from restalchemy.dm import filters as dm_filters
 from restalchemy.dm import properties
 from restalchemy.dm import relationships
 from restalchemy.dm import types
 from restalchemy.dm import types_dynamic
-from restalchemy.dm import filters as dm_filters
-from restalchemy.storage.sql import orm
 from restalchemy.storage.sql import engines
-from gcl_sdk.infra.dm import models as infra_models
-from gcl_sdk.infra import constants as infra_c
-from gcl_sdk.infra import exceptions as infra_exc
+from restalchemy.storage.sql import orm
 
 
 class Profile(
@@ -100,7 +100,7 @@ class Profile(
             if p["profile"] == me:
                 raise infra_exc.ProfileInUse(profile=self.uuid)
 
-    def delete(self, session: tp.Any = None):
+    def delete(self, session: tp.Any = None) -> None:
         # Check the profile is not used by any variable
         # before deleting it.
         self._validate_not_used(session=session)
@@ -193,15 +193,15 @@ class SelectorVariableSetter(infra_models.SelectorVariableSetter):
         # the latest created value
         if not any(v.manual_selected for v in values):
             values = sorted(values, key=lambda v: v.created_at)
-            value = values[-1]
-            variable.value = value.value
+            latest_value: Value = values[-1]
+            variable.value = latest_value.value
             variable.update()
             return
 
         # Use the value selected by the user
-        value = next(v for v in values if v.manual_selected)
+        selected_value: Value = next(v for v in values if v.manual_selected)
 
-        variable.value = value.value
+        variable.value = selected_value.value
         variable.update()
 
     def set_value(self, variable: "Variable") -> None:
@@ -227,20 +227,22 @@ class SelectorVariableSetter(infra_models.SelectorVariableSetter):
 
 
 class AnySimpleTypeValueFieldSQLMixin(orm.SQLStorableMixin):
-    def insert(self, session=None) -> None:
+    value: tp.Any
+
+    def insert(self, session: tp.Any = None) -> None:
         # The `value` field is JSONB in the database
         # so we need to serialize it
-        origin_value = self.value
+        origin_value: tp.Any = self.value
         try:
             self.value = json.dumps(self.value)
             return super().insert(session=session)
         finally:
             self.value = origin_value
 
-    def update(self, session=None, force=False) -> None:
+    def update(self, session: tp.Any = None, force: bool = False) -> None:
         # The `value` field is JSONB in the database
         # so we need to serialize it
-        origin_value = self.value
+        origin_value: tp.Any = self.value
         try:
             self.value = json.dumps(self.value)
             return super().update(session=session, force=force)
@@ -282,7 +284,7 @@ class Variable(
 
         return None
 
-    def release_value(self):
+    def release_value(self) -> None:
         """Release the selected value for the variable."""
         var_values = Value.objects.get_all(
             filters={"variable": dm_filters.EQ(self)},
@@ -321,7 +323,7 @@ class Value(
         if self.variable:
             self.variable.update(session=session, force=True)
 
-    def delete(self, session: tp.Any = None):
+    def delete(self, session: tp.Any = None) -> None:
         super().delete(session=session)
 
         # Notify the variable that a value has been deleted

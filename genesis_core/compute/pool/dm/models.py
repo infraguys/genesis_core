@@ -14,24 +14,24 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import uuid as sys_uuid
 import typing as tp
+import uuid as sys_uuid
 
-from restalchemy.dm import types
-from restalchemy.dm import types_network
-from restalchemy.dm import properties
-from restalchemy.dm import relationships
-from restalchemy.dm import models as ra_models
-from restalchemy.dm import filters as dm_filters
 from gcl_sdk.agents.universal.dm import models as ua_models
 from gcl_sdk.agents.universal.services import builder as sdk_builder
+from restalchemy.dm import filters as dm_filters
+from restalchemy.dm import models as ra_models
+from restalchemy.dm import properties
+from restalchemy.dm import relationships
+from restalchemy.dm import types
+from restalchemy.dm import types_network
 
-from genesis_core.compute.dm import models
 from genesis_core.compute import constants as nc
+from genesis_core.compute.dm import models
 
 
 class SchedulableToAgentFromAgentFieldMixin(ua_models.SchedulableToAgentMixin):
-    def schedule_to_ua_agent(self, **kwargs) -> tp.Optional[sys_uuid.UUID]:
+    def schedule_to_ua_agent(self, **kwargs: tp.Any) -> tp.Optional[sys_uuid.UUID]:
         """Schedule the resource to the UA agent.
 
         The method returns the node UUID that is equal to the
@@ -42,7 +42,9 @@ class SchedulableToAgentFromAgentFieldMixin(ua_models.SchedulableToAgentMixin):
 
 class SchedulableToAgentFromPoolMixin(ua_models.SchedulableToAgentMixin):
     def schedule_to_ua_agent(
-        self, builder: sdk_builder.UniversalBuilderService, **kwargs
+        self,
+        builder: sdk_builder.UniversalBuilderService,
+        **kwargs: tp.Any,
     ) -> tp.Optional[sys_uuid.UUID]:
         """Schedule the resource to the UA agent.
 

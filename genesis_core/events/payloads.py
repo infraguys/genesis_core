@@ -33,7 +33,7 @@ class RegistrationEventPayload(sdk.AbstractEventPayload):
         required=True,
     )
 
-    def to_simple_dict(self):
+    def to_simple_dict(self) -> dict[str, str]:
         return {
             "site_endpoint": self.site_endpoint,
             "confirmation_code": str(self.confirmation_code),
@@ -52,7 +52,7 @@ class ResetPasswordEventPayload(sdk.AbstractEventPayload):
         required=True,
     )
 
-    def to_simple_dict(self):
+    def to_simple_dict(self) -> dict[str, str]:
         return {
             "site_endpoint": self.site_endpoint,
             "reset_code": str(self.reset_code),

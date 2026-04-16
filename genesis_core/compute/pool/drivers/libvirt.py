@@ -16,10 +16,10 @@
 
 import enum
 import logging
+import operator
 import time
 import typing as tp
 import uuid as sys_uuid
-import operator
 from xml.dom import minidom
 
 # It's more efficient to use ElementTree than minidom
@@ -27,9 +27,9 @@ from xml.etree import ElementTree as ET
 
 import libvirt
 
-from genesis_core.compute.dm import models
 from genesis_core.common import constants as c
 from genesis_core.compute import constants as nc
+from genesis_core.compute.dm import models
 from genesis_core.compute.pool.drivers import base
 from genesis_core.compute.pool.drivers import exceptions as pool_exc
 
@@ -37,6 +37,31 @@ ImageFormatType = tp.Literal["raw", "qcow2"]
 NetworkType = tp.Literal["bridge", "network"]
 
 MAX_VOLUME_INDEX = 4096
+
+
+def _document_root(document: minidom.Document) -> minidom.Element:
+    root = document.documentElement
+    if root is None:
+        raise ValueError("XML document has no root element")
+    return root
+
+
+def _parsed_document_root(xml: str) -> minidom.Element:
+    return _document_root(minidom.parseString(xml))
+
+
+def _required_child(element: ET.Element, path: str) -> ET.Element:
+    child = element.find(path)
+    if child is None:
+        raise ValueError(f"Missing required XML element: {path}")
+    return child
+
+
+def _required_text(element: ET.Element, path: str) -> str:
+    child = _required_child(element, path)
+    if child.text is None:
+        raise ValueError(f"Missing required XML text: {path}")
+    return child.text
 
 
 class StoragePoolType(enum.Enum):
@@ -175,9 +200,9 @@ class XMLLibvirtMixin:
         tag_name: str,
         parent: tp.Optional[minidom.Element] = None,
         text: tp.Optional[str] = None,
-        **kwargs,
+        **kwargs: str,
     ) -> None:
-        root = parent or document.firstChild
+        root = parent or _document_root(document)
         element = document.createElement(tag_name)
 
         for name, value in kwargs.items():
@@ -197,9 +222,9 @@ class XMLLibvirtMixin:
         text: tp.Optional[str] = None,
         meta_tag: tp.Optional[str] = None,
         parent: tp.Optional[minidom.Element] = None,
-        **kwargs,
+        **kwargs: str,
     ) -> None:
-        root = parent or docement.firstChild
+        root = parent or _document_root(docement)
         # Firstly we need to remove the old value
         for node in root.getElementsByTagName(tag_name):
             root.removeChild(node)
@@ -222,7 +247,7 @@ class XMLLibvirtMixin:
         docement: minidom.Document,
         tag: str,
         text: tp.Optional[str] = None,
-        **kwargs,
+        **kwargs: str,
     ) -> None:
         # Remove the old value from the meta
         meta_node = docement.getElementsByTagName(META_TAG)[0]
@@ -248,9 +273,7 @@ class XMLLibvirtVolume(XMLLibvirtMixin):
     def xml_from_base_template(
         cls, pool: libvirt.virStoragePool, name: str, size: int
     ) -> str:
-        pool_type = (
-            minidom.parseString(pool.XMLDesc()).firstChild.attributes["type"].value
-        )
+        pool_type = _parsed_document_root(pool.XMLDesc()).attributes["type"].value
         if pool_type == "zfs":
             return volume_template.format(name=name, size=size)
 
@@ -344,7 +367,7 @@ class XMLLibvirtInstance(XMLLibvirtMixin):
             discard="unmap",  # Support trimming of unused blocks
         )
 
-        return document.firstChild.toxml()
+        return _document_root(document).toxml()
 
     @classmethod
     def domain_add_disk(
@@ -356,7 +379,7 @@ class XMLLibvirtInstance(XMLLibvirtMixin):
     ) -> None:
         device_element = domain.getElementsByTagName("devices")[0]
         device_element.appendChild(
-            minidom.parseString(cls.disk_device_xml(image_path, device, bus)).firstChild
+            _parsed_document_root(cls.disk_device_xml(image_path, device, bus))
         )
 
     @classmethod
@@ -413,7 +436,7 @@ class XMLLibvirtInstance(XMLLibvirtMixin):
             rom=rom,
         )
         device_element = domain.getElementsByTagName("devices")[0]
-        device_element.appendChild(minidom.parseString(interface_xml).firstChild)
+        device_element.appendChild(_parsed_document_root(interface_xml))
 
     def set_name(self, name: str) -> None:
         return self.domain_set_name(self._domain, name)
@@ -482,7 +505,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         _ = self._client
 
     @property
-    def _client(self):
+    def _client(self) -> libvirt.virConnect:
         instance = getattr(self, "_client_instance", None)
         # isAlive() doesn't actually ping host (so it's cheap),
         #  but it will return 0 if there were any errors before
@@ -520,10 +543,8 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
     ) -> tp.Tuple[models.Machine, tp.Tuple[models.Port, ...]]:
         element = element or ET.fromstring(domain.XMLDesc())
 
-        cores_xml = element.find(f".//{{{GENESIS_NS}}}vcpu")
-        cores = int(cores_xml.text)
-        ram_xml = element.find(f".//{{{GENESIS_NS}}}mem")
-        ram = int(ram_xml.text)
+        cores = int(_required_text(element, f".//{{{GENESIS_NS}}}vcpu"))
+        ram = int(_required_text(element, f".//{{{GENESIS_NS}}}mem"))
         image_el = element.find(f".//{{{GENESIS_NS}}}image")
         image = image_el.get("uri") if image_el is not None else None
 
@@ -532,7 +553,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         # in the XML and not matter which order it has.
         boot = nc.BootAlternative.network.value
         for boot_el in element.findall(".//os/boot"):
-            boot = boot_el.get("dev")
+            boot = boot_el.get("dev") or nc.BootAlternative.network.value
             if nc.BootAlternative.hd0.value.startswith(boot):
                 boot = nc.BootAlternative.hd0.value
                 break
@@ -542,8 +563,8 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         # Extract network interfaces as ports
         ports = []
         for iface in element.findall(".//devices/interface"):
-            mac_el = iface.find("mac")
-            source_el = iface.find("source")
+            mac_el = _required_child(iface, "mac")
+            source_el = _required_child(iface, "source")
             mac = mac_el.get("address")
             source = source_el.get(self._spec.network_type)
 
@@ -621,8 +642,8 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         # Extract network interfaces as ports
         ports = []
         for iface in element.findall(".//devices/interface"):
-            mac_el = iface.find("mac")
-            source_el = iface.find("source")
+            mac_el = _required_child(iface, "mac")
+            source_el = _required_child(iface, "source")
             mac = mac_el.get("address")
             source = source_el.get(self._spec.network_type)
 
@@ -647,7 +668,9 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         domains: tp.Collection[tp.Tuple[libvirt.virDomain, ET.Element]],
         volumes: tp.Collection[libvirt.virStorageVol],
     ) -> tp.Dict[libvirt.virStorageVol, tp.Optional[tp.Tuple[libvirt.virDomain, int]]]:
-        result = {v: None for v in volumes}
+        result: tp.Dict[
+            libvirt.virStorageVol, tp.Optional[tp.Tuple[libvirt.virDomain, int]]
+        ] = {v: None for v in volumes}
         path_map = {v.path(): v for v in volumes}
 
         for domain, root in domains:
@@ -737,7 +760,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         self, domain: ET.Element, volume: models.MachineVolume
     ) -> tp.Optional[ET.Element]:
         # Check the volume is attached to the domain
-        for disk in domain.find("devices").findall("disk"):
+        for disk in _required_child(domain, "devices").findall("disk"):
             # Check source and path
             source_node = disk.find("source")
             if source_node is None:
@@ -798,6 +821,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         self,
     ) -> tp.Tuple[
         models.MachinePool,
+        tp.Collection[models.ThinStoragePool],
         tp.Collection[tp.Tuple[models.Machine, tp.Tuple[models.Port, ...]]],
         tp.Collection[models.MachineVolume],
     ]:
@@ -941,7 +965,8 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         # FIXME(akremenetsky): Use the simplest check by UUID
         # FIXME(akremenetsky): Check volume name in path. We can check by
         # name as the name is actual UUID of the volume.
-        disks = domain_element.find("devices").findall("disk")
+        devices = _required_child(domain_element, "devices")
+        disks = devices.findall("disk")
         for disk in disks:
             if bytes(volume.name, "utf-8") in ET.tostring(disk):
                 raise pool_exc.VolumeAlreadyAttachedError(
@@ -963,8 +988,8 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         image_path = vir_volume.path()
 
         # Detect next device name from domain XML
-        devices = len(domain_element.find("devices").findall("disk"))
-        device_name = "vd" + chr(ord("a") + devices)
+        device_count = len(devices.findall("disk"))
+        device_name = "vd" + chr(ord("a") + device_count)
 
         disk_xml = XMLLibvirtInstance.disk_device_xml(image_path, device_name)
 
@@ -1057,7 +1082,9 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
                 raise pool_exc.VolumeNotAttachedError(
                     volume=volume.uuid, machine=volume.machine
                 )
-            dev = disk.find("target").get("dev")
+            dev = _required_child(disk, "target").get("dev")
+            if dev is None:
+                raise ValueError("Missing disk target device")
             domain.blockResize(
                 dev, new_size_bytes, libvirt.VIR_DOMAIN_BLOCK_RESIZE_BYTES
             )
@@ -1082,7 +1109,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
             mac=port.mac,
             rom=self._spec.iface_rom_file,
             mtu=self._spec.iface_mtu,
-            source=port.source or self._spec.iface_source,
+            source=port.source or self._spec.network,
         )
 
         # Attach the interface both to live domain and persistent config
@@ -1111,7 +1138,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         domain_element = ET.fromstring(domain_xml)
 
         # Find the interface with matching MAC address
-        devices = domain_element.find("devices")
+        devices = _required_child(domain_element, "devices")
         interfaces = devices.findall("interface")
 
         target_interface = None
@@ -1181,7 +1208,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
 
         storage_pool_xml = ET.fromstring(storage_pool.XMLDesc())
         pool_type = StoragePoolType(storage_pool_xml.get("type"))
-        pool_path = storage_pool_xml.find("target").find("path").text
+        pool_path = _required_text(storage_pool_xml, "target/path")
 
         # Add the volumes to the domain
         for i, volume in enumerate(volumes):

@@ -19,16 +19,15 @@ import typing as tp
 import uuid as sys_uuid
 
 import netaddr
-
+from gcl_sdk.agents.universal.drivers import exceptions as ua_driver_exc
+from gcl_sdk.agents.universal.drivers import meta
 from restalchemy.dm import properties
 from restalchemy.dm import types
 from restalchemy.dm import types_dynamic
-from gcl_sdk.agents.universal.drivers import meta
-from gcl_sdk.agents.universal.drivers import exceptions as ua_driver_exc
 
 from genesis_core.common import utils
-from genesis_core.compute.dm import models
 from genesis_core.compute import constants as nc
+from genesis_core.compute.dm import models
 from genesis_core.compute.pool.drivers import base as driver_base
 from genesis_core.compute.pool.drivers import exceptions as driver_exc
 
@@ -43,7 +42,7 @@ class RootVolumeNotFound(ua_driver_exc.AgentDriverException):
 class MetaPool(meta.MetaCoordinatorDataPlaneModel):
     """Machine pool meta model."""
 
-    __driver_map__ = {}
+    __driver_map__: dict[str, driver_base.AbstractPoolDriver] = {}
 
     driver_spec = properties.property(types.Dict(), required=True)
     machine_type = properties.property(
@@ -69,12 +68,12 @@ class MetaPool(meta.MetaCoordinatorDataPlaneModel):
         default=list,
     )
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: tp.Any, **kwargs: tp.Any) -> None:
         super().__init__(*args, **kwargs)
-        self.dp_machine_map = {}
-        self.dp_port_map = {}
-        self.dp_volume_map = {}
-        self.dp_storage_pool_map = {}
+        self.dp_machine_map: dict[sys_uuid.UUID, models.Machine] = {}
+        self.dp_port_map: dict[sys_uuid.UUID, tuple[models.Port, ...]] = {}
+        self.dp_volume_map: dict[sys_uuid.UUID, models.MachineVolume] = {}
+        self.dp_storage_pool_map: dict[sys_uuid.UUID, models.AbstractStoragePool] = {}
 
     def load_driver(self) -> driver_base.AbstractPoolDriver:
         """
@@ -106,7 +105,7 @@ class MetaPool(meta.MetaCoordinatorDataPlaneModel):
         """
         return {"uuid", "driver_spec", "machine_type"}
 
-    def restore_from_dp(self, **kwargs) -> None:
+    def restore_from_dp(self, **kwargs: tp.Any) -> None:
         """Load the pool information."""
         driver = self.load_driver()
         pool_info, storage_pools, machines, volumes = driver.list_pool_resources()
@@ -126,7 +125,7 @@ class MetaPool(meta.MetaCoordinatorDataPlaneModel):
         )
         self.avail_ram = self.all_ram - sum(m.ram for m in self.dp_machine_map.values())
 
-    def dump_to_dp(self, **kwargs) -> None:
+    def dump_to_dp(self, **kwargs: tp.Any) -> None:
         """Configure the pool."""
         # Actually we do nothing to configure or dump to pool at the moment
         # but we need to synchronize the pool state since it will be used by
