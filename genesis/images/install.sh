@@ -151,7 +151,7 @@ source "$GC_PATH"/.venv/bin/activate
 
 # In the dev mode the gcl_sdk package is installed from the local machine
 if [[ "$SDK_DEV_MODE" == "true" ]]; then
-    uv pip uninstall -y gcl_sdk
+    uv pip uninstall gcl_sdk
     uv pip install -e "$DEV_SDK_PATH"
 fi
 
