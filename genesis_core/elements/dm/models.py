@@ -542,6 +542,7 @@ class Resource(
         "get_uri",
         "to_str",
         "index",
+        "join",
     ]
 
     element = relationships.relationship(
@@ -602,6 +603,11 @@ class Resource(
             return self.actual_resource.value[field][int(idx)]
         except (TypeError, IndexError):
             return None
+
+    def join(self, field: str, separator: str = ",") -> str:
+        if not self.actual_resource or not self.actual_resource.value:
+            return ""
+        return separator.join(self.actual_resource.value[field])
 
     def get_parameter_value(self, parameter: str):
         parts = parameter.split(":")
