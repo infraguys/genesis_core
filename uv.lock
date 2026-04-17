@@ -781,7 +781,7 @@ requires-dist = [
     { name = "gcl-sdk", specifier = ">=2.2.0,<3.0.0" },
     { name = "izulu", specifier = ">=0.50.0,<1.0.0" },
     { name = "jinja2", specifier = ">=3.1.5,<4.0.0" },
-    { name = "libvirt-python", specifier = ">=11.0.0,<12.0.0" },
+    { name = "libvirt-python", specifier = ">=11.0.0,<13.0.0" },
     { name = "mkdocs-glightbox", marker = "extra == 'docs'" },
     { name = "mkdocs-material", marker = "extra == 'docs'", specifier = "==9.1.0" },
     { name = "mkdocs-render-swagger-plugin", marker = "extra == 'docs'" },
@@ -1334,9 +1334,9 @@ wheels = [
 
 [[package]]
 name = "libvirt-python"
-version = "11.10.0"
+version = "12.2.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/c4/68/b3bfdce933c5c7c2ba0f7c70d851b073947bb8df0223809c6e08043a5fb5/libvirt_python-11.10.0.tar.gz", hash = "sha256:e76cdfa64bc55e7761f15a146006ee0c38736791c10a744e7a5e59ba34f4540b", size = 243286, upload-time = "2025-12-01T11:01:30.279Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/cc/ab/ba985048cc24be7b7050c479634d50c42cc1c0225735e516a81d609135c0/libvirt_python-12.2.0.tar.gz", hash = "sha256:742147988bba7d400f6892beeeb7e0a27758f10ff65421b569b7b4b6a2572e44", size = 244689, upload-time = "2026-04-01T07:43:05.709Z" }
 
 [[package]]
 name = "markdown"
