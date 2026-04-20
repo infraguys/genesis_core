@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Genesis Core v1 User API
-  version: 0.1.dev204+g87300a3b9.d20260401
+  version: latest
   description: OpenAPI - Genesis Core v1
 components:
   responses:
@@ -906,8 +906,7 @@ components:
           type: string
           pattern: 
             (?=^.{1,253}$)(^((?![-])[a-zA-Z0-9-]{1,63}(?<![-])\.){0,}((?!-)[a-zA-Z0-9-]{1,63}(?<!-))$)
-          example: 
-            (?=^.{1,253}$)(^((?![-])[a-zA-Z0-9-]{1,63}(?<![-])\.){0,}((?!-)[a-zA-Z0-9-]{1,63}(?<!-))$)
+          example: example.com
           nullable: true
         node_set:
           type: string
@@ -1080,8 +1079,7 @@ components:
           type: string
           pattern: 
             (?=^.{1,253}$)(^((?![-])[a-zA-Z0-9-]{1,63}(?<![-])\.){0,}((?!-)[a-zA-Z0-9-]{1,63}(?<!-))$)
-          example: 
-            (?=^.{1,253}$)(^((?![-])[a-zA-Z0-9-]{1,63}(?<![-])\.){0,}((?!-)[a-zA-Z0-9-]{1,63}(?<!-))$)
+          example: example.com
           nullable: true
         node_set:
           type: string
@@ -1254,8 +1252,7 @@ components:
           type: string
           pattern: 
             (?=^.{1,253}$)(^((?![-])[a-zA-Z0-9-]{1,63}(?<![-])\.){0,}((?!-)[a-zA-Z0-9-]{1,63}(?<!-))$)
-          example: 
-            (?=^.{1,253}$)(^((?![-])[a-zA-Z0-9-]{1,63}(?<![-])\.){0,}((?!-)[a-zA-Z0-9-]{1,63}(?<!-))$)
+          example: example.com
           nullable: true
         node_set:
           type: string
@@ -1428,8 +1425,7 @@ components:
           type: string
           pattern: 
             (?=^.{1,253}$)(^((?![-])[a-zA-Z0-9-]{1,63}(?<![-])\.){0,}((?!-)[a-zA-Z0-9-]{1,63}(?<!-))$)
-          example: 
-            (?=^.{1,253}$)(^((?![-])[a-zA-Z0-9-]{1,63}(?<![-])\.){0,}((?!-)[a-zA-Z0-9-]{1,63}(?<!-))$)
+          example: example.com
           nullable: true
         node_set:
           type: string
@@ -3411,7 +3407,7 @@ components:
                 name:
                   type: string
                   pattern: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
-                  example: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+                  example: '*.restalchemy.com'
                 address:
                   type: string
                   anyOf:
@@ -3428,13 +3424,12 @@ components:
                 name:
                   type: string
                   pattern: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
-                  example: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+                  example: '*.restalchemy.com'
                 primary_dns:
                   type: string
                   pattern: 
                     (?=^.{1,253}$)(^((?![-])[a-zA-Z0-9-]{1,63}(?<![-])\.){0,}((?!-)[a-zA-Z0-9-]{1,63}(?<!-))$)
-                  example: 
-                    (?=^.{1,253}$)(^((?![-])[a-zA-Z0-9-]{1,63}(?<![-])\.){0,}((?!-)[a-zA-Z0-9-]{1,63}(?<!-))$)
+                  example: example.com
                   default: a.misconfigured.dns.server.invalid
                 serial:
                   type: integer
@@ -3477,7 +3472,7 @@ components:
                 name:
                   type: string
                   pattern: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
-                  example: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+                  example: '*.restalchemy.com'
                 content:
                   type: string
                   pattern: ^([^\n]{1,8192})$
@@ -3493,11 +3488,11 @@ components:
                 name:
                   type: string
                   pattern: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
-                  example: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+                  example: '*.restalchemy.com'
                 content:
                   type: string
                   pattern: (?=^.{2,254}$)(^((?!-)[a-zA-Z0-9-_]{1,63}(?<!-)\.){1,}$)
-                  example: (?=^.{2,254}$)(^((?!-)[a-zA-Z0-9-_]{1,63}(?<!-)\.){1,}$)
+                  example: example.com
               example:
                 key: value
           example:
@@ -3583,7 +3578,7 @@ components:
                 name:
                   type: string
                   pattern: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
-                  example: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+                  example: '*.restalchemy.com'
                 address:
                   type: string
                   anyOf:
@@ -3600,13 +3595,12 @@ components:
                 name:
                   type: string
                   pattern: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
-                  example: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+                  example: '*.restalchemy.com'
                 primary_dns:
                   type: string
                   pattern: 
                     (?=^.{1,253}$)(^((?![-])[a-zA-Z0-9-]{1,63}(?<![-])\.){0,}((?!-)[a-zA-Z0-9-]{1,63}(?<!-))$)
-                  example: 
-                    (?=^.{1,253}$)(^((?![-])[a-zA-Z0-9-]{1,63}(?<![-])\.){0,}((?!-)[a-zA-Z0-9-]{1,63}(?<!-))$)
+                  example: example.com
                   default: a.misconfigured.dns.server.invalid
                 serial:
                   type: integer
@@ -3649,7 +3643,7 @@ components:
                 name:
                   type: string
                   pattern: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
-                  example: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+                  example: '*.restalchemy.com'
                 content:
                   type: string
                   pattern: ^([^\n]{1,8192})$
@@ -3665,11 +3659,11 @@ components:
                 name:
                   type: string
                   pattern: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
-                  example: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+                  example: '*.restalchemy.com'
                 content:
                   type: string
                   pattern: (?=^.{2,254}$)(^((?!-)[a-zA-Z0-9-_]{1,63}(?<!-)\.){1,}$)
-                  example: (?=^.{2,254}$)(^((?!-)[a-zA-Z0-9-_]{1,63}(?<!-)\.){1,}$)
+                  example: example.com
               example:
                 key: value
           example:
@@ -3755,7 +3749,7 @@ components:
                 name:
                   type: string
                   pattern: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
-                  example: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+                  example: '*.restalchemy.com'
                 address:
                   type: string
                   anyOf:
@@ -3772,13 +3766,12 @@ components:
                 name:
                   type: string
                   pattern: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
-                  example: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+                  example: '*.restalchemy.com'
                 primary_dns:
                   type: string
                   pattern: 
                     (?=^.{1,253}$)(^((?![-])[a-zA-Z0-9-]{1,63}(?<![-])\.){0,}((?!-)[a-zA-Z0-9-]{1,63}(?<!-))$)
-                  example: 
-                    (?=^.{1,253}$)(^((?![-])[a-zA-Z0-9-]{1,63}(?<![-])\.){0,}((?!-)[a-zA-Z0-9-]{1,63}(?<!-))$)
+                  example: example.com
                   default: a.misconfigured.dns.server.invalid
                 serial:
                   type: integer
@@ -3821,7 +3814,7 @@ components:
                 name:
                   type: string
                   pattern: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
-                  example: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+                  example: '*.restalchemy.com'
                 content:
                   type: string
                   pattern: ^([^\n]{1,8192})$
@@ -3837,11 +3830,11 @@ components:
                 name:
                   type: string
                   pattern: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
-                  example: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+                  example: '*.restalchemy.com'
                 content:
                   type: string
                   pattern: (?=^.{2,254}$)(^((?!-)[a-zA-Z0-9-_]{1,63}(?<!-)\.){1,}$)
-                  example: (?=^.{2,254}$)(^((?!-)[a-zA-Z0-9-_]{1,63}(?<!-)\.){1,}$)
+                  example: example.com
               example:
                 key: value
           example:
@@ -3927,7 +3920,7 @@ components:
                 name:
                   type: string
                   pattern: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
-                  example: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+                  example: '*.restalchemy.com'
                 address:
                   type: string
                   anyOf:
@@ -3944,13 +3937,12 @@ components:
                 name:
                   type: string
                   pattern: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
-                  example: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+                  example: '*.restalchemy.com'
                 primary_dns:
                   type: string
                   pattern: 
                     (?=^.{1,253}$)(^((?![-])[a-zA-Z0-9-]{1,63}(?<![-])\.){0,}((?!-)[a-zA-Z0-9-]{1,63}(?<!-))$)
-                  example: 
-                    (?=^.{1,253}$)(^((?![-])[a-zA-Z0-9-]{1,63}(?<![-])\.){0,}((?!-)[a-zA-Z0-9-]{1,63}(?<!-))$)
+                  example: example.com
                   default: a.misconfigured.dns.server.invalid
                 serial:
                   type: integer
@@ -3993,7 +3985,7 @@ components:
                 name:
                   type: string
                   pattern: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
-                  example: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+                  example: '*.restalchemy.com'
                 content:
                   type: string
                   pattern: ^([^\n]{1,8192})$
@@ -4009,11 +4001,11 @@ components:
                 name:
                   type: string
                   pattern: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
-                  example: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+                  example: '*.restalchemy.com'
                 content:
                   type: string
                   pattern: (?=^.{2,254}$)(^((?!-)[a-zA-Z0-9-_]{1,63}(?<!-)\.){1,}$)
-                  example: (?=^.{2,254}$)(^((?!-)[a-zA-Z0-9-_]{1,63}(?<!-)\.){1,}$)
+                  example: example.com
               example:
                 key: value
           example:
@@ -4092,6 +4084,23 @@ components:
           default: MANUAL
         profile:
           type: string
+        project_id:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+        requirements:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: integer
+              - type: boolean
+              - type: object
+              - type: array
+                items: {}
+          example:
+            key: value
+          default: {}
         link:
           type: string
           minLength: 0
@@ -4158,6 +4167,23 @@ components:
           default: MANUAL
         profile:
           type: string
+        project_id:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+        requirements:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: integer
+              - type: boolean
+              - type: object
+              - type: array
+                items: {}
+          example:
+            key: value
+          default: {}
         link:
           type: string
           minLength: 0
@@ -4194,6 +4220,23 @@ components:
           default: MANUAL
         profile:
           type: string
+        project_id:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+        requirements:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: integer
+              - type: boolean
+              - type: object
+              - type: array
+                items: {}
+          example:
+            key: value
+          default: {}
         link:
           type: string
           minLength: 0
@@ -4257,6 +4300,23 @@ components:
           default: MANUAL
         profile:
           type: string
+        project_id:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+        requirements:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: integer
+              - type: boolean
+              - type: object
+              - type: array
+                items: {}
+          example:
+            key: value
+          default: {}
         link:
           type: string
           minLength: 0
@@ -5743,10 +5803,7 @@ components:
         - project_id
         - path
         - target
-        - user
         - service_type
-        - before
-        - after
     Service_Update:
       type: object
       properties:
@@ -5968,10 +6025,7 @@ components:
         - project_id
         - path
         - target
-        - user
         - service_type
-        - before
-        - after
     Service_Filter:
       type: object
       properties:
@@ -6193,10 +6247,7 @@ components:
         - project_id
         - path
         - target
-        - user
         - service_type
-        - before
-        - after
     IdpAuthorizationInfo_Get:
       type: object
       properties:
@@ -8225,222 +8276,14 @@ components:
             key: value
           default:
             kind: IAM
-        first_name:
-          type: string
-          pattern: ^.*$
-          example: ^.*$
-          nullable: true
-        last_name:
-          type: string
-          pattern: ^.*$
-          example: ^.*$
-          nullable: true
-        surname:
-          type: string
-          pattern: ^.*$
-          example: ^.*$
-          default: ''
-        phone:
-          type: string
-          minLength: 0
-          maxLength: 15
-          example: any_string
-          default:
-        email:
-          type: string
-          minLength: 5
-          maxLength: 128
-          example: user@example.com
-        email_verified:
-          type: boolean
-          example: true
-        confirmation_code:
-          type: string
-          example: 00000000-0000-0000-0000-000000000000
-          format: uuid
-          nullable: true
-        confirmation_code_made_at:
-          type: string
-          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
-          example: '2006-01-02T15:04:05.000576Z'
-          format: date-time
-          nullable: true
-        otp_secret:
-          type: string
-          minLength: 0
-          maxLength: 128
-          example: any_string
-          default: ''
-        otp_enabled:
-          type: boolean
-          example: true
-        custom_props:
-          type: object
-          oneOf:
-            - type: object
-              properties:
-                kind:
-                  type: string
-                  enum:
-                    - basic
-                role:
-                  type: string
-                  minLength: 0
-                  maxLength: 255
-                  example: any_string
-                  default:
-                legal_entity:
-                  type: string
-                  minLength: 0
-                  maxLength: 255
-                  example: any_string
-                  default:
-                employment_format:
-                  type: string
-                  minLength: 0
-                  maxLength: 255
-                  example: any_string
-                  default:
-                hire_date:
-                  type: string
-                  x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
-                  example: '2006-01-02T15:04:05.000576Z'
-                  format: date-time
-                  nullable: true
-                layoff_date:
-                  type: string
-                  x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
-                  example: '2006-01-02T15:04:05.000576Z'
-                  format: date-time
-                  nullable: true
-                birth_date:
-                  type: string
-                  x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
-                  example: '2006-01-02T15:04:05.000576Z'
-                  format: date-time
-                  nullable: true
-                other:
-                  type: object
-                  additionalProperties:
-                    oneOf:
-                      - type: string
-                      - type: integer
-                      - type: boolean
-                      - type: object
-                      - type: array
-                        items: {}
-                  example:
-                    key: value
-                  default: {}
-              example:
-                key: value
-          example:
-            key: value
-          nullable: true
-        password:
-          type: string
-          minLength: 5
-          maxLength: 128
-          example: any_string
-      required:
-        - name
-        - secret_hash
-        - email
-    User_Create:
-      type: object
-      properties:
-        uuid:
-          type: string
-          example: 00000000-0000-0000-0000-000000000000
-          format: uuid
-        username:
-          type: string
-          pattern: ^(?!\s)[\w!#$%& \'*+/=?^_`{|}~.-]+(?!\s)$
-          example: ^(?!\s)[\w!#$%& \'*+/=?^_`{|}~.-]+(?!\s)$
-        description:
-          type: string
-          minLength: 0
-          maxLength: 255
-          example: any_string
-          default: ''
-        created_at:
-          type: string
-          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
-          example: '2006-01-02T15:04:05.000576Z'
-          format: date-time
-          default: '2006-01-02T15:04:05.000576Z'
-        updated_at:
-          type: string
-          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
-          example: '2006-01-02T15:04:05.000576Z'
-          format: date-time
-          default: '2006-01-02T15:04:05.000576Z'
-        salt:
-          type: string
-          minLength: 24
-          maxLength: 24
-          example: ssssssssssssssssssssssss
-        secret_hash:
-          type: string
-          minLength: 128
-          maxLength: 128
-          example: 
-            ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss
-        status:
+        type:
           type: string
           enum:
-            - ACTIVE
-          example: ACTIVE
-          default: ACTIVE
-        user_source:
-          type: object
-          oneOf:
-            - type: object
-              properties:
-                kind:
-                  type: string
-                  enum:
-                    - IAM
-              example:
-                key: value
-            - type: object
-              properties:
-                kind:
-                  type: string
-                  enum:
-                    - KEYCLOAK
-                endpoint:
-                  type: string
-                  pattern: 
-                    ^(?:http|ftp)s?://(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:/?|[/?]\S+)$
-                  example: http://example.com
-                realm:
-                  type: string
-                  minLength: 0
-                  maxLength: 256
-                  example: any_string
-                client_id:
-                  type: string
-                  minLength: 0
-                  maxLength: 256
-                  example: any_string
-                client_secret:
-                  type: string
-                  minLength: 0
-                  maxLength: 512
-                  example: any_string
-                timeout:
-                  type: integer
-                  minimum: 1
-                  maximum: 120
-                  example: 60
-                  default: 5
-              example:
-                key: value
-          example:
-            key: value
-          default:
-            kind: IAM
+            - anon
+            - service
+            - user
+          example: user
+          default: user
         first_name:
           type: string
           pattern: ^.*$
@@ -8560,9 +8403,9 @@ components:
           example: any_string
       required:
         - username
-        - password
+        - secret_hash
         - email
-    User_Update:
+    User_Create:
       type: object
       properties:
         uuid:
@@ -8657,6 +8500,14 @@ components:
             key: value
           default:
             kind: IAM
+        type:
+          type: string
+          enum:
+            - anon
+            - service
+            - user
+          example: user
+          default: user
         first_name:
           type: string
           pattern: ^.*$
@@ -8775,7 +8626,231 @@ components:
           maxLength: 128
           example: any_string
       required:
-        - name
+        - username
+        - secret_hash
+        - email
+    User_Update:
+      type: object
+      properties:
+        uuid:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+        username:
+          type: string
+          pattern: ^(?!\s)[\w!#$%& \'*+/=?^_`{|}~.-]+(?!\s)$
+          example: ^(?!\s)[\w!#$%& \'*+/=?^_`{|}~.-]+(?!\s)$
+        description:
+          type: string
+          minLength: 0
+          maxLength: 255
+          example: any_string
+          default: ''
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          default: '2006-01-02T15:04:05.000576Z'
+        salt:
+          type: string
+          minLength: 24
+          maxLength: 24
+          example: ssssssssssssssssssssssss
+        secret_hash:
+          type: string
+          minLength: 128
+          maxLength: 128
+          example: 
+            ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss
+        status:
+          type: string
+          enum:
+            - ACTIVE
+          example: ACTIVE
+          default: ACTIVE
+        user_source:
+          type: object
+          oneOf:
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - IAM
+              example:
+                key: value
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - KEYCLOAK
+                endpoint:
+                  type: string
+                  pattern: 
+                    ^(?:http|ftp)s?://(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:/?|[/?]\S+)$
+                  example: http://example.com
+                realm:
+                  type: string
+                  minLength: 0
+                  maxLength: 256
+                  example: any_string
+                client_id:
+                  type: string
+                  minLength: 0
+                  maxLength: 256
+                  example: any_string
+                client_secret:
+                  type: string
+                  minLength: 0
+                  maxLength: 512
+                  example: any_string
+                timeout:
+                  type: integer
+                  minimum: 1
+                  maximum: 120
+                  example: 60
+                  default: 5
+              example:
+                key: value
+          example:
+            key: value
+          default:
+            kind: IAM
+        type:
+          type: string
+          enum:
+            - anon
+            - service
+            - user
+          example: user
+          default: user
+        first_name:
+          type: string
+          pattern: ^.*$
+          example: ^.*$
+          nullable: true
+        last_name:
+          type: string
+          pattern: ^.*$
+          example: ^.*$
+          nullable: true
+        surname:
+          type: string
+          pattern: ^.*$
+          example: ^.*$
+          default: ''
+        phone:
+          type: string
+          minLength: 0
+          maxLength: 15
+          example: any_string
+          default:
+        email:
+          type: string
+          minLength: 5
+          maxLength: 128
+          example: user@example.com
+        email_verified:
+          type: boolean
+          example: true
+        confirmation_code:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          nullable: true
+        confirmation_code_made_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          nullable: true
+        otp_secret:
+          type: string
+          minLength: 0
+          maxLength: 128
+          example: any_string
+          default: ''
+        otp_enabled:
+          type: boolean
+          example: true
+        custom_props:
+          type: object
+          oneOf:
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - basic
+                role:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  default:
+                legal_entity:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  default:
+                employment_format:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  default:
+                hire_date:
+                  type: string
+                  x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+                  example: '2006-01-02T15:04:05.000576Z'
+                  format: date-time
+                  nullable: true
+                layoff_date:
+                  type: string
+                  x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+                  example: '2006-01-02T15:04:05.000576Z'
+                  format: date-time
+                  nullable: true
+                birth_date:
+                  type: string
+                  x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+                  example: '2006-01-02T15:04:05.000576Z'
+                  format: date-time
+                  nullable: true
+                other:
+                  type: object
+                  additionalProperties:
+                    oneOf:
+                      - type: string
+                      - type: integer
+                      - type: boolean
+                      - type: object
+                      - type: array
+                        items: {}
+                  example:
+                    key: value
+                  default: {}
+              example:
+                key: value
+          example:
+            key: value
+          nullable: true
+        password:
+          type: string
+          minLength: 5
+          maxLength: 128
+          example: any_string
+      required:
+        - username
         - secret_hash
         - email
     User_Filter:
@@ -8873,6 +8948,14 @@ components:
             key: value
           default:
             kind: IAM
+        type:
+          type: string
+          enum:
+            - anon
+            - service
+            - user
+          example: user
+          default: user
         first_name:
           type: string
           pattern: ^.*$
@@ -8991,7 +9074,7 @@ components:
           maxLength: 128
           example: any_string
       required:
-        - name
+        - username
         - secret_hash
         - email
     LB_Get:
@@ -9925,7 +10008,9 @@ components:
           default: []
         proxy_protocol_from:
           type: object
-          example:
+          anyOf:
+            - format: ipv4
+            - format: ipv6
           nullable: true
       required:
         - project_id
@@ -10070,7 +10155,9 @@ components:
           default: []
         proxy_protocol_from:
           type: object
-          example:
+          anyOf:
+            - format: ipv4
+            - format: ipv6
           nullable: true
       required:
         - project_id
@@ -10215,7 +10302,9 @@ components:
           default: []
         proxy_protocol_from:
           type: object
-          example:
+          anyOf:
+            - format: ipv4
+            - format: ipv6
           nullable: true
       required:
         - project_id
@@ -10360,7 +10449,9 @@ components:
           default: []
         proxy_protocol_from:
           type: object
-          example:
+          anyOf:
+            - format: ipv4
+            - format: ipv6
           nullable: true
       required:
         - project_id
@@ -10428,7 +10519,9 @@ components:
                   type: array
                   items:
                     type: object
-                    example:
+                    anyOf:
+                      - format: ipv4
+                      - format: ipv6
                   example:
                     - 
                   default:
@@ -10617,7 +10710,9 @@ components:
                   type: array
                   items:
                     type: object
-                    example:
+                    anyOf:
+                      - format: ipv4
+                      - format: ipv6
                   example:
                     - 
                   default:
@@ -10806,7 +10901,9 @@ components:
                   type: array
                   items:
                     type: object
-                    example:
+                    anyOf:
+                      - format: ipv4
+                      - format: ipv6
                   example:
                     - 
                   default:
@@ -10994,7 +11091,9 @@ components:
                   type: array
                   items:
                     type: object
-                    example:
+                    anyOf:
+                      - format: ipv4
+                      - format: ipv6
                   example:
                     - 
                   default:
@@ -11088,7 +11187,9 @@ components:
                   type: array
                   items:
                     type: object
-                    example:
+                    anyOf:
+                      - format: ipv4
+                      - format: ipv6
                   example:
                     - 
                   default:
@@ -11277,7 +11378,9 @@ components:
                   type: array
                   items:
                     type: object
-                    example:
+                    anyOf:
+                      - format: ipv4
+                      - format: ipv6
                   example:
                     - 
                   default:
@@ -11466,7 +11569,9 @@ components:
                   type: array
                   items:
                     type: object
-                    example:
+                    anyOf:
+                      - format: ipv4
+                      - format: ipv6
                   example:
                     - 
                   default:
@@ -11654,7 +11759,9 @@ components:
                   type: array
                   items:
                     type: object
-                    example:
+                    anyOf:
+                      - format: ipv4
+                      - format: ipv6
                   example:
                     - 
                   default:
@@ -11748,7 +11855,9 @@ components:
                   type: array
                   items:
                     type: object
-                    example:
+                    anyOf:
+                      - format: ipv4
+                      - format: ipv6
                   example:
                     - 
                   default:
@@ -11937,7 +12046,9 @@ components:
                   type: array
                   items:
                     type: object
-                    example:
+                    anyOf:
+                      - format: ipv4
+                      - format: ipv6
                   example:
                     - 
                   default:
@@ -12126,7 +12237,9 @@ components:
                   type: array
                   items:
                     type: object
-                    example:
+                    anyOf:
+                      - format: ipv4
+                      - format: ipv6
                   example:
                     - 
                   default:
@@ -12314,7 +12427,9 @@ components:
                   type: array
                   items:
                     type: object
-                    example:
+                    anyOf:
+                      - format: ipv4
+                      - format: ipv6
                   example:
                     - 
                   default:
@@ -12408,7 +12523,9 @@ components:
                   type: array
                   items:
                     type: object
-                    example:
+                    anyOf:
+                      - format: ipv4
+                      - format: ipv6
                   example:
                     - 
                   default:
@@ -12597,7 +12714,9 @@ components:
                   type: array
                   items:
                     type: object
-                    example:
+                    anyOf:
+                      - format: ipv4
+                      - format: ipv6
                   example:
                     - 
                   default:
@@ -12786,7 +12905,9 @@ components:
                   type: array
                   items:
                     type: object
-                    example:
+                    anyOf:
+                      - format: ipv4
+                      - format: ipv6
                   example:
                     - 
                   default:
@@ -12974,7 +13095,9 @@ components:
                   type: array
                   items:
                     type: object
-                    example:
+                    anyOf:
+                      - format: ipv4
+                      - format: ipv6
                   example:
                     - 
                   default:
@@ -13096,9 +13219,9 @@ components:
           items:
             type: string
             pattern: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
-            example: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+            example: '*.restalchemy.com'
           example:
-            - ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+            - '*.restalchemy.com'
         key:
           type: string
           minLength: 1
@@ -13215,9 +13338,9 @@ components:
           items:
             type: string
             pattern: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
-            example: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+            example: '*.restalchemy.com'
           example:
-            - ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+            - '*.restalchemy.com'
         key:
           type: string
           minLength: 1
@@ -13334,9 +13457,9 @@ components:
           items:
             type: string
             pattern: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
-            example: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+            example: '*.restalchemy.com'
           example:
-            - ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+            - '*.restalchemy.com'
         key:
           type: string
           minLength: 1
@@ -13453,9 +13576,9 @@ components:
           items:
             type: string
             pattern: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
-            example: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+            example: '*.restalchemy.com'
           example:
-            - ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+            - '*.restalchemy.com'
         key:
           type: string
           minLength: 1
@@ -16598,8 +16721,7 @@ components:
         type: string
         pattern: 
           (?=^.{1,253}$)(^((?![-])[a-zA-Z0-9-]{1,63}(?<![-])\.){0,}((?!-)[a-zA-Z0-9-]{1,63}(?<!-))$)
-        example: 
-          (?=^.{1,253}$)(^((?![-])[a-zA-Z0-9-]{1,63}(?<![-])\.){0,}((?!-)[a-zA-Z0-9-]{1,63}(?<!-))$)
+        example: example.com
         nullable: true
     node_set:
       name: node_set
@@ -17004,7 +17126,7 @@ components:
               name:
                 type: string
                 pattern: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
-                example: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+                example: '*.restalchemy.com'
               address:
                 type: string
                 anyOf:
@@ -17021,13 +17143,12 @@ components:
               name:
                 type: string
                 pattern: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
-                example: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+                example: '*.restalchemy.com'
               primary_dns:
                 type: string
                 pattern: 
                   (?=^.{1,253}$)(^((?![-])[a-zA-Z0-9-]{1,63}(?<![-])\.){0,}((?!-)[a-zA-Z0-9-]{1,63}(?<!-))$)
-                example: 
-                  (?=^.{1,253}$)(^((?![-])[a-zA-Z0-9-]{1,63}(?<![-])\.){0,}((?!-)[a-zA-Z0-9-]{1,63}(?<!-))$)
+                example: example.com
                 default: a.misconfigured.dns.server.invalid
               serial:
                 type: integer
@@ -17070,7 +17191,7 @@ components:
               name:
                 type: string
                 pattern: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
-                example: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+                example: '*.restalchemy.com'
               content:
                 type: string
                 pattern: ^([^\n]{1,8192})$
@@ -17086,11 +17207,11 @@ components:
               name:
                 type: string
                 pattern: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
-                example: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+                example: '*.restalchemy.com'
               content:
                 type: string
                 pattern: (?=^.{2,254}$)(^((?!-)[a-zA-Z0-9-_]{1,63}(?<!-)\.){1,}$)
-                example: (?=^.{2,254}$)(^((?!-)[a-zA-Z0-9-_]{1,63}(?<!-)\.){1,}$)
+                example: example.com
             example:
               key: value
         example:
@@ -17143,6 +17264,22 @@ components:
       in: query
       schema:
         type: string
+    requirements:
+      name: requirements
+      in: query
+      schema:
+        type: object
+        additionalProperties:
+          oneOf:
+            - type: string
+            - type: integer
+            - type: boolean
+            - type: object
+            - type: array
+              items: {}
+        example:
+          key: value
+        default: {}
     link:
       name: link
       in: query
@@ -17256,22 +17393,6 @@ components:
         maximum: 1
         example: 1
         default: 1
-    requirements:
-      name: requirements
-      in: query
-      schema:
-        type: object
-        additionalProperties:
-          oneOf:
-            - type: string
-            - type: integer
-            - type: boolean
-            - type: object
-            - type: array
-              items: {}
-        example:
-          key: value
-        default: {}
     resources:
       name: resources
       in: query
@@ -18147,9 +18268,9 @@ components:
         items:
           type: string
           pattern: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
-          example: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+          example: '*.restalchemy.com'
         example:
-          - ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+          - '*.restalchemy.com'
     cert:
       name: cert
       in: query
@@ -18206,7 +18327,9 @@ components:
       in: query
       schema:
         type: object
-        example:
+        anyOf:
+          - format: ipv4
+          - format: ipv6
         nullable: true
     RouteUuid:
       name: RouteUuid
@@ -19051,8 +19174,7 @@ paths:
             type: string
             pattern: 
               (?=^.{1,253}$)(^((?![-])[a-zA-Z0-9-]{1,63}(?<![-])\.){0,}((?!-)[a-zA-Z0-9-]{1,63}(?<!-))$)
-            example: 
-              (?=^.{1,253}$)(^((?![-])[a-zA-Z0-9-]{1,63}(?<![-])\.){0,}((?!-)[a-zA-Z0-9-]{1,63}(?<!-))$)
+            example: example.com
             nullable: true
         - name: node_set
           in: query
@@ -20304,6 +20426,12 @@ paths:
           in: query
           schema:
             type: string
+        - name: project_id
+          in: query
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
         - name: link
           in: query
           schema:
@@ -21164,6 +21292,136 @@ paths:
         default:
           $ref: '#/components/responses/Error'
       operationId: Validate_v1_em_manifests_ManifestUuid_actions_validate
+  /v1/em/resources/:
+    get:
+      summary: Get Resources
+      tags:
+        - Resource
+      parameters:
+        - name: created_at
+          in: query
+          schema:
+            type: string
+            x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+            example: '2006-01-02T15:04:05.000576Z'
+            format: date-time
+            default: '2006-01-02T15:04:05.000576Z'
+        - name: updated_at
+          in: query
+          schema:
+            type: string
+            x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+            example: '2006-01-02T15:04:05.000576Z'
+            format: date-time
+            default: '2006-01-02T15:04:05.000576Z'
+        - name: element
+          in: query
+          schema:
+            type: string
+        - name: name
+          in: query
+          schema:
+            type: string
+            minLength: 0
+            maxLength: 255
+            example: any_string
+            default: ''
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum:
+              - ACTIVE
+              - ERROR
+              - IN_PROGRESS
+              - NEW
+            example: NEW
+            default: NEW
+        - name: resource_link_prefix
+          in: query
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 256
+            example: any_string
+        - name: value
+          in: query
+          schema:
+            oneOf:
+              - type: string
+              - type: integer
+              - type: array
+              - type: boolean
+              - type: object
+            example: string
+            nullable: true
+        - name: target_resource
+          in: query
+          schema:
+            type: string
+            default:
+        - name: actual_resource
+          in: query
+          schema:
+            type: string
+            default:
+        - name: full_hash
+          in: query
+          schema:
+            type: string
+            minLength: 0
+            maxLength: 256
+            example: any_string
+            default: ''
+        - name: link
+          in: query
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 256
+            example: any_string
+        - name: kind
+          in: query
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 256
+            example: any_string
+      responses:
+        '200':
+          description: Resource_Filter
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Resource_Filter'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Filter_v1_em_resources
+  /v1/em/resources/{ResourceUuid}:
+    get:
+      summary: Get Resource
+      tags:
+        - Resource
+      parameters:
+        - name: ResourceUuid
+          in: path
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+          required: true
+      responses:
+        '200':
+          description: Resource_Get
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Resource_Get'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Get_v1_em_resources_ResourceUuid
   /v1/em/services/:
     get:
       summary: Get Services
@@ -21774,6 +22032,10 @@ paths:
                     refresh_ttl:
                       type: string
                       format: float
+                    service_account_uuid:
+                      type: string
+                      format: uuid
+                      description: UUID of the service account
                 - type: object
                   required:
                     - grant_type
@@ -21802,6 +22064,10 @@ paths:
                     refresh_ttl:
                       type: string
                       format: float
+                    service_account_uuid:
+                      type: string
+                      format: uuid
+                      description: UUID of the service account
                 - type: object
                   required:
                     - grant_type
@@ -21824,6 +22090,32 @@ paths:
                       type: string
                     scope:
                       type: string
+                    ttl:
+                      type: number
+                      format: float
+                    refresh_ttl:
+                      type: string
+                      format: float
+                    service_account_uuid:
+                      type: string
+                      format: uuid
+                      description: UUID of the service account
+                - type: object
+                  required:
+                    - grant_type
+                    - service_account_uuid
+                  properties:
+                    grant_type:
+                      type: string
+                      enum:
+                        - access_token
+                    service_account_uuid:
+                      type: string
+                      format: uuid
+                      description: UUID of the service account to get token for
+                    scope:
+                      type: string
+                      description: Project scope in format 'project:<uuid>' (required)
                     ttl:
                       type: number
                       format: float
@@ -21953,28 +22245,45 @@ paths:
         default:
           $ref: '#/components/responses/Error'
       operationId: Me_v1_iam_clients_IamClientUuid_actions_me
-  /v1/iam/clients/{IamClientUuid}/actions/reset_password/invoke:
+  /v1/iam/clients/{IamClientUuid}/actions/send_reset_password_code/invoke:
     post:
-      summary: Reset_password IamClient
+      summary: Send password reset code to email
       tags:
         - IamClient
       parameters:
         - name: IamClientUuid
+          description: ''
           in: path
           schema:
             type: string
-            example: 00000000-0000-0000-0000-000000000000
-            format: uuid
           required: true
       responses:
         '200':
-          description: Get nested urls
+          description: Password reset email sent successfully. No content returned.
           content:
             application/json:
-              schema: {}
+              schema:
+                type: object
+                properties: {}
         default:
           $ref: '#/components/responses/Error'
-      operationId: Reset_password_v1_iam_clients_IamClientUuid_actions_reset_password_invoke
+      operationId: 
+        Send_reset_password_code_v1_iam_clients_IamClientUuid_actions_send_reset_password_code_invoke
+      requestBody:
+        description: Trigger a password reset email for the specified user
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Email address of the user to send the reset link to
+                  example: user@example.com
   /v1/iam/clients/{IamClientUuid}/actions/userinfo:
     get:
       summary: Userinfo IamClient
@@ -23768,26 +24077,47 @@ paths:
         Resend_email_confirmation_v1_iam_users_UserUuid_actions_resend_email_confirmation_invoke
   /v1/iam/users/{UserUuid}/actions/reset_password/invoke:
     post:
-      summary: Reset_password User
+      summary: Reset user password
       tags:
         - User
       parameters:
         - name: UserUuid
+          description: ''
           in: path
           schema:
             type: string
-            example: 00000000-0000-0000-0000-000000000000
-            format: uuid
           required: true
       responses:
         '200':
-          description: Get nested urls
+          description: User
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/User'
         default:
           $ref: '#/components/responses/Error'
       operationId: Reset_password_v1_iam_users_UserUuid_actions_reset_password_invoke
+      requestBody:
+        description: New password and optional confirmation code. Either a valid reset
+          code (from email) or the `iam.user.reset_password` permission is required.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - new_password
+              properties:
+                new_password:
+                  type: string
+                  description: New password for the user
+                  example: MyNewP@ssw0rd
+                code:
+                  type: string
+                  format: uuid
+                  description: Confirmation code received via email. Required when
+                    caller does not have `iam.user.reset_password` permission.
+                  example: 550e8400-e29b-41d4-a716-446655440000
   /v1/network/:
     get:
       summary: Returns a list of all routes in the main route that are collection
@@ -26049,7 +26379,7 @@ paths:
           $ref: '#/components/responses/Error'
       operationId: Select_value_v1_vs_variables_VariableUuid_actions_select_value_invoke
 servers:
-  - url: http://10.20.0.2:11010
+  - url: http://127.0.0.1:42579
     description: ''
     variables:
       version:
@@ -26075,11 +26405,11 @@ tags:
     description: ''
   - name: Import
     description: ''
-  - name: Resource
-    description: ''
   - name: Element
     description: ''
   - name: Manifest
+    description: ''
+  - name: Resource
     description: ''
   - name: Service
     description: ''

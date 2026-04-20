@@ -2650,7 +2650,7 @@ wheels = [
 
 [[package]]
 name = "restalchemy"
-version = "15.0.5"
+version = "15.0.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "email-validator" },
@@ -2663,9 +2663,9 @@ dependencies = [
     { name = "requests" },
     { name = "webob" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/4d/da/12579911647de7730c0e893668e6d5e42042ade24bf58155793928c0428a/restalchemy-15.0.5.tar.gz", hash = "sha256:5ece171d150a34510cecc71c507b8a239ac3b39bb627bd97cd5fb845cd3817ae", size = 433187, upload-time = "2026-04-08T20:05:26.766Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f4/b5/06456d84689cae63089a146e175c2df293734928448aa1fccda66c80f48d/restalchemy-15.0.6.tar.gz", hash = "sha256:b16cdfc99f7ff491689b0b458982d12e18343f52e74101e4ccdcce04f2c95e32", size = 431937, upload-time = "2026-04-20T11:11:01.823Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/2d/a2/abd8c0655551b0a40d56337c461d50304504e9f412f21db919460bddc734/restalchemy-15.0.5-py3-none-any.whl", hash = "sha256:78432651aa9057d2da7f6d6b19e0fb628d6f1055be0c04ef7da1c49158018ce8", size = 484269, upload-time = "2026-04-08T20:05:25.049Z" },
+    { url = "https://files.pythonhosted.org/packages/c2/11/1033438a160c3f332d2ef2ddffeccfea2229f367fd2d8b64ee05569540d3/restalchemy-15.0.6-py3-none-any.whl", hash = "sha256:08d91489e6ba5a0491c5e79af918b0994584210131928954fe593a960b6aa4f9", size = 483273, upload-time = "2026-04-20T11:11:00.105Z" },
 ]
 
 [[package]]

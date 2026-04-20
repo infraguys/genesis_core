@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Genesis Core v1 Boot API
-  version: 0.1.dev205+g5e9177075.d20260327
+  version: latest
   description: OpenAPI - Genesis Core v1
 components:
   responses:
@@ -59,24 +59,29 @@ components:
       properties:
         uuid:
           type: string
+          example: 00000000-0000-0000-0000-000000000000
           format: uuid
         name:
           type: string
           minLength: 0
           maxLength: 255
+          example: any_string
         description:
           type: string
           minLength: 0
           maxLength: 255
+          example: any_string
           default: ''
         created_at:
           type: string
           x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
           format: date-time
           default: '2006-01-02T15:04:05.000576Z'
         updated_at:
           type: string
           x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
           format: date-time
           default: '2006-01-02T15:04:05.000576Z'
         capabilities:
@@ -89,6 +94,8 @@ components:
               - type: object
               - type: array
                 items: {}
+          example:
+            key: value
           default: {}
         facts:
           type: object
@@ -100,9 +107,12 @@ components:
               - type: object
               - type: array
                 items: {}
+          example:
+            key: value
           default: {}
         node:
           type: string
+          example: 00000000-0000-0000-0000-000000000000
           format: uuid
         status:
           type: string
@@ -111,36 +121,40 @@ components:
             - DISABLED
             - ERROR
             - NEW
+          example: NEW
           default: NEW
       required:
         - uuid
         - name
-        - created_at
-        - updated_at
         - node
     UniversalAgent_Create:
       type: object
       properties:
         uuid:
           type: string
+          example: 00000000-0000-0000-0000-000000000000
           format: uuid
         name:
           type: string
           minLength: 0
           maxLength: 255
+          example: any_string
         description:
           type: string
           minLength: 0
           maxLength: 255
+          example: any_string
           default: ''
         created_at:
           type: string
           x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
           format: date-time
           default: '2006-01-02T15:04:05.000576Z'
         updated_at:
           type: string
           x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
           format: date-time
           default: '2006-01-02T15:04:05.000576Z'
         capabilities:
@@ -153,6 +167,8 @@ components:
               - type: object
               - type: array
                 items: {}
+          example:
+            key: value
           default: {}
         facts:
           type: object
@@ -164,9 +180,12 @@ components:
               - type: object
               - type: array
                 items: {}
+          example:
+            key: value
           default: {}
         node:
           type: string
+          example: 00000000-0000-0000-0000-000000000000
           format: uuid
         status:
           type: string
@@ -175,36 +194,40 @@ components:
             - DISABLED
             - ERROR
             - NEW
+          example: NEW
           default: NEW
       required:
         - uuid
         - name
-        - created_at
-        - updated_at
         - node
     UniversalAgent_Update:
       type: object
       properties:
         uuid:
           type: string
+          example: 00000000-0000-0000-0000-000000000000
           format: uuid
         name:
           type: string
           minLength: 0
           maxLength: 255
+          example: any_string
         description:
           type: string
           minLength: 0
           maxLength: 255
+          example: any_string
           default: ''
         created_at:
           type: string
           x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
           format: date-time
           default: '2006-01-02T15:04:05.000576Z'
         updated_at:
           type: string
           x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
           format: date-time
           default: '2006-01-02T15:04:05.000576Z'
         capabilities:
@@ -217,6 +240,8 @@ components:
               - type: object
               - type: array
                 items: {}
+          example:
+            key: value
           default: {}
         facts:
           type: object
@@ -228,9 +253,12 @@ components:
               - type: object
               - type: array
                 items: {}
+          example:
+            key: value
           default: {}
         node:
           type: string
+          example: 00000000-0000-0000-0000-000000000000
           format: uuid
         status:
           type: string
@@ -239,50 +267,57 @@ components:
             - DISABLED
             - ERROR
             - NEW
+          example: NEW
           default: NEW
       required:
         - uuid
         - name
-        - created_at
-        - updated_at
         - node
     MachineNetboot_Get:
       type: object
       properties:
         uuid:
           type: string
+          example: 00000000-0000-0000-0000-000000000000
           format: uuid
         created_at:
           type: string
           x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
           format: date-time
           default: '2006-01-02T15:04:05.000576Z'
         updated_at:
           type: string
           x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
           format: date-time
           default: '2006-01-02T15:04:05.000576Z'
         project_id:
           type: string
+          example: 00000000-0000-0000-0000-000000000000
           format: uuid
         name:
           type: string
           minLength: 0
           maxLength: 255
+          example: any_string
           default: ''
         description:
           type: string
           minLength: 0
           maxLength: 255
+          example: any_string
           default: ''
         cores:
           type: integer
           minimum: 0
           maximum: 4096
+          example: 2048
         ram:
           type: integer
           minimum: 0
           maximum: 9223372036854775807
+          example: 0
         status:
           type: string
           enum:
@@ -295,19 +330,23 @@ components:
             - NEW
             - SCHEDULED
             - STARTED
+          example: NEW
           default: NEW
         machine_type:
           type: string
           enum:
             - HW
             - VM
+          example: VM
           default: VM
         node:
           type: string
+          example: 00000000-0000-0000-0000-000000000000
           format: uuid
           nullable: true
         pool:
           type: string
+          example: 00000000-0000-0000-0000-000000000000
           format: uuid
           nullable: true
         boot:
@@ -323,14 +362,17 @@ components:
             - hd6
             - hd7
             - network
+          example: hd0
           default: network
         image:
           type: string
           minLength: 0
           maxLength: 255
+          example: any_string
           nullable: true
         firmware_uuid:
           type: string
+          example: 00000000-0000-0000-0000-000000000000
           format: uuid
           nullable: true
         block_devices:
@@ -343,10 +385,10 @@ components:
               - type: object
               - type: array
                 items: {}
+          example:
+            key: value
           default: {}
       required:
-        - created_at
-        - updated_at
         - project_id
         - cores
         - ram
@@ -357,6 +399,7 @@ components:
           type: string
           minLength: 0
           maxLength: 64
+          example: any_string
       required:
         - kind
     KindModel_Get:
@@ -366,6 +409,7 @@ components:
           type: string
           minLength: 0
           maxLength: 64
+          example: any_string
       required:
         - kind
     Resource_Get:
@@ -374,15 +418,18 @@ components:
         created_at:
           type: string
           x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
           format: date-time
           default: '2006-01-02T15:04:05.000576Z'
         updated_at:
           type: string
           x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
           format: date-time
           default: '2006-01-02T15:04:05.000576Z'
         uuid:
           type: string
+          example: 00000000-0000-0000-0000-000000000000
           format: uuid
         kind:
           type: string
@@ -396,31 +443,36 @@ components:
               - type: object
               - type: array
                 items: {}
+          example:
+            key: value
         hash:
           type: string
           minLength: 0
           maxLength: 256
+          example: any_string
           default: ''
         full_hash:
           type: string
           minLength: 0
           maxLength: 256
+          example: any_string
           default: ''
         status:
           type: string
           minLength: 0
           maxLength: 32
+          example: any_string
           default: ACTIVE
         node:
           type: string
+          example: 00000000-0000-0000-0000-000000000000
           format: uuid
           nullable: true
         res_uuid:
           type: string
+          example: 00000000-0000-0000-0000-000000000000
           format: uuid
       required:
-        - created_at
-        - updated_at
         - kind
         - res_uuid
     Resource_Create:
@@ -429,15 +481,18 @@ components:
         created_at:
           type: string
           x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
           format: date-time
           default: '2006-01-02T15:04:05.000576Z'
         updated_at:
           type: string
           x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
           format: date-time
           default: '2006-01-02T15:04:05.000576Z'
         uuid:
           type: string
+          example: 00000000-0000-0000-0000-000000000000
           format: uuid
         kind:
           type: string
@@ -451,31 +506,36 @@ components:
               - type: object
               - type: array
                 items: {}
+          example:
+            key: value
         hash:
           type: string
           minLength: 0
           maxLength: 256
+          example: any_string
           default: ''
         full_hash:
           type: string
           minLength: 0
           maxLength: 256
+          example: any_string
           default: ''
         status:
           type: string
           minLength: 0
           maxLength: 32
+          example: any_string
           default: ACTIVE
         node:
           type: string
+          example: 00000000-0000-0000-0000-000000000000
           format: uuid
           nullable: true
         res_uuid:
           type: string
+          example: 00000000-0000-0000-0000-000000000000
           format: uuid
       required:
-        - created_at
-        - updated_at
         - kind
         - res_uuid
     Resource_Update:
@@ -484,15 +544,18 @@ components:
         created_at:
           type: string
           x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
           format: date-time
           default: '2006-01-02T15:04:05.000576Z'
         updated_at:
           type: string
           x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
           format: date-time
           default: '2006-01-02T15:04:05.000576Z'
         uuid:
           type: string
+          example: 00000000-0000-0000-0000-000000000000
           format: uuid
         kind:
           type: string
@@ -506,31 +569,36 @@ components:
               - type: object
               - type: array
                 items: {}
+          example:
+            key: value
         hash:
           type: string
           minLength: 0
           maxLength: 256
+          example: any_string
           default: ''
         full_hash:
           type: string
           minLength: 0
           maxLength: 256
+          example: any_string
           default: ''
         status:
           type: string
           minLength: 0
           maxLength: 32
+          example: any_string
           default: ACTIVE
         node:
           type: string
+          example: 00000000-0000-0000-0000-000000000000
           format: uuid
           nullable: true
         res_uuid:
           type: string
+          example: 00000000-0000-0000-0000-000000000000
           format: uuid
       required:
-        - created_at
-        - updated_at
         - kind
         - res_uuid
     NodeEncryptionKey_Get:
@@ -538,29 +606,32 @@ components:
       properties:
         uuid:
           type: string
+          example: 00000000-0000-0000-0000-000000000000
           format: uuid
         created_at:
           type: string
           x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
           format: date-time
           default: '2006-01-02T15:04:05.000576Z'
         updated_at:
           type: string
           x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
           format: date-time
           default: '2006-01-02T15:04:05.000576Z'
         private_key:
           type: string
           minLength: 0
           maxLength: 44
+          example: any_string
         encryption_disabled_until:
           type: string
           x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
           format: date-time
           default: '2006-01-02T15:04:05.000576Z'
       required:
-        - created_at
-        - updated_at
         - private_key
   parameters:
     UniversalAgentUuid:
@@ -568,6 +639,7 @@ components:
       in: path
       schema:
         type: string
+        example: 00000000-0000-0000-0000-000000000000
         format: uuid
       required: true
     name:
@@ -577,6 +649,7 @@ components:
         type: string
         minLength: 0
         maxLength: 255
+        example: any_string
         default: ''
     description:
       name: description
@@ -585,6 +658,7 @@ components:
         type: string
         minLength: 0
         maxLength: 255
+        example: any_string
         default: ''
     created_at:
       name: created_at
@@ -592,6 +666,7 @@ components:
       schema:
         type: string
         x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        example: '2006-01-02T15:04:05.000576Z'
         format: date-time
         default: '2006-01-02T15:04:05.000576Z'
     updated_at:
@@ -600,6 +675,7 @@ components:
       schema:
         type: string
         x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        example: '2006-01-02T15:04:05.000576Z'
         format: date-time
         default: '2006-01-02T15:04:05.000576Z'
     capabilities:
@@ -615,6 +691,8 @@ components:
             - type: object
             - type: array
               items: {}
+        example:
+          key: value
         default: {}
     facts:
       name: facts
@@ -629,12 +707,15 @@ components:
             - type: object
             - type: array
               items: {}
+        example:
+          key: value
         default: {}
     node:
       name: node
       in: query
       schema:
         type: string
+        example: 00000000-0000-0000-0000-000000000000
         format: uuid
         nullable: true
     status:
@@ -644,12 +725,14 @@ components:
         type: string
         minLength: 0
         maxLength: 32
+        example: any_string
         default: ACTIVE
     MachineNetbootUuid:
       name: MachineNetbootUuid
       in: path
       schema:
         type: string
+        example: 00000000-0000-0000-0000-000000000000
         format: uuid
       required: true
     project_id:
@@ -657,6 +740,7 @@ components:
       in: query
       schema:
         type: string
+        example: 00000000-0000-0000-0000-000000000000
         format: uuid
     cores:
       name: cores
@@ -665,6 +749,7 @@ components:
         type: integer
         minimum: 0
         maximum: 4096
+        example: 2048
     ram:
       name: ram
       in: query
@@ -672,6 +757,7 @@ components:
         type: integer
         minimum: 0
         maximum: 9223372036854775807
+        example: 0
     machine_type:
       name: machine_type
       in: query
@@ -680,12 +766,14 @@ components:
         enum:
           - HW
           - VM
+        example: VM
         default: VM
     pool:
       name: pool
       in: query
       schema:
         type: string
+        example: 00000000-0000-0000-0000-000000000000
         format: uuid
         nullable: true
     boot:
@@ -704,6 +792,7 @@ components:
           - hd6
           - hd7
           - network
+        example: hd0
         default: network
     image:
       name: image
@@ -712,12 +801,14 @@ components:
         type: string
         minLength: 0
         maxLength: 255
+        example: any_string
         nullable: true
     firmware_uuid:
       name: firmware_uuid
       in: query
       schema:
         type: string
+        example: 00000000-0000-0000-0000-000000000000
         format: uuid
         nullable: true
     block_devices:
@@ -733,6 +824,8 @@ components:
             - type: object
             - type: array
               items: {}
+        example:
+          key: value
         default: {}
     KindModelKind:
       name: KindModelKind
@@ -741,12 +834,14 @@ components:
         type: string
         minLength: 0
         maxLength: 64
+        example: any_string
       required: true
     uuid:
       name: uuid
       in: query
       schema:
         type: string
+        example: 00000000-0000-0000-0000-000000000000
         format: uuid
     kind:
       name: kind
@@ -766,6 +861,8 @@ components:
             - type: object
             - type: array
               items: {}
+        example:
+          key: value
     hash:
       name: hash
       in: query
@@ -773,6 +870,7 @@ components:
         type: string
         minLength: 0
         maxLength: 256
+        example: any_string
         default: ''
     full_hash:
       name: full_hash
@@ -781,12 +879,14 @@ components:
         type: string
         minLength: 0
         maxLength: 256
+        example: any_string
         default: ''
     ResourceRes_uuid:
       name: ResourceRes_uuid
       in: path
       schema:
         type: string
+        example: 00000000-0000-0000-0000-000000000000
         format: uuid
       required: true
     NodeEncryptionKeyUuid:
@@ -794,6 +894,7 @@ components:
       in: path
       schema:
         type: string
+        example: 00000000-0000-0000-0000-000000000000
         format: uuid
       required: true
     private_key:
@@ -803,12 +904,14 @@ components:
         type: string
         minLength: 0
         maxLength: 44
+        example: any_string
     encryption_disabled_until:
       name: encryption_disabled_until
       in: query
       schema:
         type: string
         x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        example: '2006-01-02T15:04:05.000576Z'
         format: date-time
         default: '2006-01-02T15:04:05.000576Z'
 paths:
@@ -921,6 +1024,7 @@ paths:
           in: path
           schema:
             type: string
+            example: 00000000-0000-0000-0000-000000000000
             format: uuid
           required: true
       responses:
@@ -942,6 +1046,7 @@ paths:
           in: path
           schema:
             type: string
+            example: 00000000-0000-0000-0000-000000000000
             format: uuid
           required: true
       responses:
@@ -970,6 +1075,7 @@ paths:
           in: path
           schema:
             type: string
+            example: 00000000-0000-0000-0000-000000000000
             format: uuid
           required: true
       responses:
@@ -988,6 +1094,7 @@ paths:
           in: path
           schema:
             type: string
+            example: 00000000-0000-0000-0000-000000000000
             format: uuid
           required: true
       responses:
@@ -1009,6 +1116,7 @@ paths:
           in: path
           schema:
             type: string
+            example: 00000000-0000-0000-0000-000000000000
             format: uuid
           required: true
       responses:
@@ -1055,6 +1163,7 @@ paths:
             type: string
             minLength: 0
             maxLength: 64
+            example: any_string
           required: true
       responses:
         '200':
@@ -1078,6 +1187,7 @@ paths:
             type: string
             minLength: 0
             maxLength: 64
+            example: any_string
           required: true
       responses:
         '201':
@@ -1108,11 +1218,13 @@ paths:
             type: string
             minLength: 0
             maxLength: 64
+            example: any_string
           required: true
         - name: ResourceRes_uuid
           in: path
           schema:
             type: string
+            example: 00000000-0000-0000-0000-000000000000
             format: uuid
           required: true
       responses:
@@ -1136,11 +1248,13 @@ paths:
             type: string
             minLength: 0
             maxLength: 64
+            example: any_string
           required: true
         - name: ResourceRes_uuid
           in: path
           schema:
             type: string
+            example: 00000000-0000-0000-0000-000000000000
             format: uuid
           required: true
       responses:
@@ -1171,11 +1285,13 @@ paths:
             type: string
             minLength: 0
             maxLength: 64
+            example: any_string
           required: true
         - name: ResourceRes_uuid
           in: path
           schema:
             type: string
+            example: 00000000-0000-0000-0000-000000000000
             format: uuid
           required: true
       responses:
@@ -1184,7 +1300,6 @@ paths:
         default:
           $ref: '#/components/responses/Error'
       operationId: Delete_v1_kind_KindModelKind_resources_ResourceRes_uuid
-  /v1/nodes/{NodeEncryptionKeyUuid}:
   /v1/nodes/{NodeEncryptionKeyUuid}:
     get:
       summary: Get NodeEncryptionKey
@@ -1195,6 +1310,7 @@ paths:
           in: path
           schema:
             type: string
+            example: 00000000-0000-0000-0000-000000000000
             format: uuid
           required: true
       responses:
@@ -1217,6 +1333,7 @@ paths:
           in: path
           schema:
             type: string
+            example: 00000000-0000-0000-0000-000000000000
             format: uuid
           required: true
       responses:
@@ -1229,7 +1346,7 @@ paths:
           $ref: '#/components/responses/Error'
       operationId: Refresh_secret_v1_nodes_NodeEncryptionKeyUuid_actions_refresh_secret_invoke
 servers:
-  - url: http://127.0.0.1:10000
+  - url: http://127.0.0.1:40937
     description: ''
     variables:
       version:
