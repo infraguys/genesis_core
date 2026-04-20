@@ -5521,10 +5521,7 @@ components:
         - project_id
         - path
         - target
-        - user
         - service_type
-        - before
-        - after
     Service_Create:
       type: object
       properties:
