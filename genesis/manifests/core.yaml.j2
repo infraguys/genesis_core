@@ -38,6 +38,7 @@ resources:
       project_id: "12345678-c625-4fee-81d5-f691897b8142"
       setter:
         kind: profile
+        element: null
         fallback_strategy: ignore
         profiles:
           - profile: $core.vs.profiles.$develop:uuid
@@ -55,6 +56,7 @@ resources:
       project_id: "12345678-c625-4fee-81d5-f691897b8142"
       setter:
         kind: profile
+        element: null
         fallback_strategy: ignore
         profiles:
           - profile: $core.vs.profiles.$develop:uuid
@@ -72,6 +74,7 @@ resources:
       project_id: "12345678-c625-4fee-81d5-f691897b8142"
       setter:
         kind: profile
+        element: null
         fallback_strategy: ignore
         profiles:
           - profile: $core.vs.profiles.$develop:uuid
@@ -166,6 +169,7 @@ resources:
         - kind: host
           host: 127.0.0.1
           port: 11010
+          weight: 1
   $core.network.lb.$core_lb.vhosts:
     core_lb_core_http:
       project_id: "12345678-c625-4fee-81d5-f691897b8142"
@@ -181,6 +185,8 @@ resources:
       condition:
         kind: prefix
         value: /api/core/
+        allowed_ips:
+          - 0.0.0.0/0
         actions:
           - kind: backend
             pool: $core.network.lb.$core_lb.backend_pools.$core_lb_core_backend_http:uuid
@@ -188,6 +194,12 @@ resources:
               kind: http
         modifiers:
           - kind: auto_header
+            headers:
+              - 'Host'
+              - 'X-Forwarded-For'
+              - 'X-Forwarded-Port'
+              - 'X-Forwarded-Proto'
+              - 'X-Forwarded-Prefix'
           - kind: rewrite_url
             regex: "^/api/core/(.*)"
             replacement: "/$1"
@@ -197,6 +209,16 @@ resources:
       condition:
         kind: prefix
         value: /
+        allowed_ips:
+          - 0.0.0.0/0
+        modifiers:
+          - kind: auto_header
+            headers:
+              - 'Host'
+              - 'X-Forwarded-For'
+              - 'X-Forwarded-Port'
+              - 'X-Forwarded-Proto'
+              - 'X-Forwarded-Prefix'
         actions:
           - kind: local_dir
             path: /var/www/html
