@@ -1,29 +1,31 @@
-<!DOCTYPE html><html lang="en" class="no-js"><head>
+<!DOCTYPE html><html lang="ru" class="no-js"><head>
     
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
       
       
-        <link rel="canonical" href="https://github.com/infraguys/">
+        <link rel="canonical" href="https://github.com/infraguys/ru/openapi/openapi_orch/">
       
       
+        <link rel="prev" href="../openapi_boot/">
       
-        <link rel="next" href="usage/basic_usage/">
       
-      <link rel="icon" href="assets/images/favicon.png">
+        <link rel="next" href="../openapi_status/">
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.1.0">
     
     
       
-        <title>Genesis Core - genesis_core</title>
+        <title>Orch - genesis_core</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.402914a4.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.402914a4.min.css">
       
         
-        <link rel="stylesheet" href="assets/stylesheets/palette.a0c5b2b5.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.a0c5b2b5.min.css">
       
       
 
@@ -39,14 +41,14 @@
       
     
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
     
     
     
-  <link href="assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+  <link href="../../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
             html.glightbox-open { overflow: initial; height: 100%; }
             .gslide-title { margin-top: 0px; user-select: text; }
             .gslide-desc { color: #666; user-select: text; }
@@ -78,8 +80,8 @@
     <div data-md-component="skip">
       
         
-        <a href="#-installation" class="md-skip">
-          Skip to content
+        <a href="#openapi-specification" class="md-skip">
+          Перейти к содержанию
         </a>
       
     </div>
@@ -93,8 +95,8 @@
   
 
 <header class="md-header md-header--shadow" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="genesis_core" class="md-header__button md-logo" aria-label="genesis_core" data-md-component="logo">
+  <nav class="md-header__inner md-grid" aria-label="Верхний колонтитул">
+    <a href="../../" title="genesis_core" class="md-header__button md-logo" aria-label="genesis_core" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
@@ -113,7 +115,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Genesis Core
+              Orch
             
           </span>
         </div>
@@ -144,20 +146,20 @@
       <div class="md-header__option">
         <div class="md-select">
           
-          <button class="md-header__button md-icon" aria-label="Select language">
+          <button class="md-header__button md-icon" aria-label="Выберите язык">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.52 17.52 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04M18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12m-2.62 7 1.62-4.33L19.12 17h-3.24Z"></path></svg>
           </button>
           <div class="md-select__inner">
             <ul class="md-select__list">
               
                 <li class="md-select__item">
-                  <a href="/infraguys/" hreflang="en" class="md-select__link">
+                  <a href="../../../openapi/openapi_orch/" hreflang="en" class="md-select__link">
                     English
                   </a>
                 </li>
               
                 <li class="md-select__item">
-                  <a href="/infraguys/ru/" hreflang="ru" class="md-select__link">
+                  <a href="./" hreflang="ru" class="md-select__link">
                     Russian
                   </a>
                 </li>
@@ -175,14 +177,14 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Поиск" placeholder="Поиск" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
       </label>
-      <nav class="md-search__options" aria-label="Search">
+      <nav class="md-search__options" aria-label="Поиск">
         
-        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Очистить" aria-label="Очистить" tabindex="-1">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
         </button>
       </nav>
@@ -194,7 +196,7 @@
       <div class="md-search__scrollwrap" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Initializing search
+            Инициализация поиска
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -205,7 +207,7 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/infraguys/genesis_core" title="Go to repository" class="md-source" data-md-component="source">
+        <a href="https://github.com/infraguys/genesis_core" title="Перейти к репозиторию" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
@@ -240,9 +242,9 @@
 
   
 
-<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Навигация" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="genesis_core" class="md-nav__button md-logo" aria-label="genesis_core" data-md-component="logo">
+    <a href="../../" title="genesis_core" class="md-nav__button md-logo" aria-label="genesis_core" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
@@ -252,7 +254,7 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/infraguys/genesis_core" title="Go to repository" class="md-source" data-md-component="source">
+      <a href="https://github.com/infraguys/genesis_core" title="Перейти к репозиторию" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
@@ -271,97 +273,11 @@
 
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Software
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="." class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
         Software
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#-installation" class="md-nav__link">
-    📦 Installation
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#try-it-out" class="md-nav__link">
-    Try it out
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#basic-usage" class="md-nav__link">
-    Basic usage
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#-development" class="md-nav__link">
-    🚀 Development
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#-tests" class="md-nav__link">
-    ⚙️ Tests
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#functional-tests-environment" class="md-nav__link">
-    Functional tests environment
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#-related-projects" class="md-nav__link">
-    🔗 Related projects
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#-contributing" class="md-nav__link">
-    💡 Contributing
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -374,7 +290,7 @@
   
   
     <li class="md-nav__item">
-      <a href="usage/basic_usage/" class="md-nav__link">
+      <a href="../../usage/basic_usage/" class="md-nav__link">
         Usage
       </a>
     </li>
@@ -387,14 +303,16 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
       
       
       
@@ -403,7 +321,7 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
         <label class="md-nav__title" for="__nav_3">
           <span class="md-nav__icon md-icon"></span>
           OpenAPI
@@ -416,7 +334,7 @@
   
   
     <li class="md-nav__item">
-      <a href="openapi/openapi_boot/" class="md-nav__link">
+      <a href="../openapi_boot/" class="md-nav__link">
         Boot
       </a>
     </li>
@@ -428,11 +346,21 @@
               
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="openapi/openapi_orch/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         Orch
       </a>
+      
     </li>
   
 
@@ -444,7 +372,7 @@
   
   
     <li class="md-nav__item">
-      <a href="openapi/openapi_status/" class="md-nav__link">
+      <a href="../openapi_status/" class="md-nav__link">
         Status
       </a>
     </li>
@@ -458,7 +386,7 @@
   
   
     <li class="md-nav__item">
-      <a href="openapi/openapi_user/" class="md-nav__link">
+      <a href="../openapi_user/" class="md-nav__link">
         User
       </a>
     </li>
@@ -507,7 +435,7 @@
   
   
     <li class="md-nav__item">
-      <a href="em/manifest/" class="md-nav__link">
+      <a href="../../em/manifest/" class="md-nav__link">
         Manifest
       </a>
     </li>
@@ -521,7 +449,7 @@
   
   
     <li class="md-nav__item">
-      <a href="em/service/" class="md-nav__link">
+      <a href="../../em/service/" class="md-nav__link">
         Service as a Service API
       </a>
     </li>
@@ -535,7 +463,7 @@
   
   
     <li class="md-nav__item">
-      <a href="em/cli/" class="md-nav__link">
+      <a href="../../em/cli/" class="md-nav__link">
         Example commands
       </a>
     </li>
@@ -584,7 +512,7 @@
   
   
     <li class="md-nav__item">
-      <a href="iam/permissions_overview/" class="md-nav__link">
+      <a href="../../iam/permissions_overview/" class="md-nav__link">
         Permissions Overview
       </a>
     </li>
@@ -633,7 +561,7 @@
   
   
     <li class="md-nav__item">
-      <a href="network/load_balancer/" class="md-nav__link">
+      <a href="../../network/load_balancer/" class="md-nav__link">
         Load Balancer as a Service API
       </a>
     </li>
@@ -682,7 +610,7 @@
   
   
     <li class="md-nav__item">
-      <a href="secret/certificates/" class="md-nav__link">
+      <a href="../../secret/certificates/" class="md-nav__link">
         Certificates
       </a>
     </li>
@@ -714,63 +642,18 @@
   
 
 
-  <h1>Software</h1>
-
-<p>Welcome to Genesis Core!</p>
-<p>The Genesis Core is an open source software that offers a one turnkey solution to deal with infrastructure at all levels - from bare metal and virtual machines to applications and services.</p>
-<h2 id="-installation">📦 Installation<a class="headerlink" href="#-installation" title="Permanent link">#</a></h2>
-<p>There are several ways to install Genesis Core and depend on your purpose you can choose one of them.</p>
-<h2 id="try-it-out">Try it out<a class="headerlink" href="#try-it-out" title="Permanent link">#</a></h2>
-<p>If you want to try Genesis Core in a few minutes, download the <code>all-in-one</code> <a href="https://github.com/infraguys/gci_dev_all_in_one">stand</a>. It's a ready-to-go virtual machine image with preinstalled Genesis Core and ability to get full functionality such as creating inner(nested) virtual machines, installation elements and many others.
-This stand may be used for development purposes as well if you are focusing on a new element development.</p>
-<h2 id="basic-usage">Basic usage<a class="headerlink" href="#basic-usage" title="Permanent link">#</a></h2>
-<p>In a case you would like to run Genesis Core on your own infrastructure, you can use the <a href="usage/basic_usage/">basic guide</a> for more details.</p>
-<h2 id="-development">🚀 Development<a class="headerlink" href="#-development" title="Permanent link">#</a></h2>
-<p><strong>Ubuntu:</strong></p>
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>build-essential<span class="w"> </span>python3.12-dev<span class="w"> </span>python3.12-venv<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>libev-dev<span class="w"> </span>libvirt-dev
-curl<span class="w"> </span>-LsSf<span class="w"> </span>https://astral.sh/uv/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
-<span class="nb">source</span><span class="w"> </span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">"</span>/.local/bin/env<span class="w">    </span>
-</code></pre></div>
-<p><strong>Fedora:</strong></p>
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>gcc<span class="w"> </span>libev-devel<span class="w"> </span>libvirt-devel
-curl<span class="w"> </span>-LsSf<span class="w"> </span>https://astral.sh/uv/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
-<span class="nb">source</span><span class="w"> </span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">"</span>/.local/bin/env<span class="w">    </span>
-</code></pre></div>
-<p>Initialize virtual environment:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>sync
-<span class="nb">source</span><span class="w"> </span>.tox/develop/bin/activate
-</code></pre></div>
-<p>Follow the development guide <a href="https://github.com/infraguys/genesis_core/wiki/DevelopmentGuide">here</a> for more details.</p>
-<h2 id="-tests">⚙️ Tests<a class="headerlink" href="#-tests" title="Permanent link">#</a></h2>
-<p><strong>NOTE:</strong> Python version 3.12 is supposed to be used, but you can use other versions</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Unit tests</span>
-tox<span class="w"> </span>-e<span class="w"> </span>py312
-
-<span class="c1"># Functional tests</span>
-tox<span class="w"> </span>-e<span class="w"> </span>py312-functional
-</code></pre></div>
-<h2 id="functional-tests-environment">Functional tests environment<a class="headerlink" href="#functional-tests-environment" title="Permanent link">#</a></h2>
-<p>To run functional tests, export the following environment variables:</p>
-<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">DATABASE_URI</span><span class="o">=</span><span class="s2">"postgresql://genesis_core:genesis_core@127.0.0.1:5432/genesis_core"</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">ADMIN_PASSWORD</span><span class="o">=</span><span class="s2">"admin"</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">DEFAULT_CLIENT_SECRET</span><span class="o">=</span><span class="s2">"GenesisCoreSecret"</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">GLOBAL_SALT</span><span class="o">=</span><span class="s2">"FOy/2kwwdn0ig1QOq7cestqe"</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">HS256_KEY</span><span class="o">=</span><span class="s2">"secret"</span>
-</code></pre></div>
-<h2 id="-related-projects">🔗 Related projects<a class="headerlink" href="#-related-projects" title="Permanent link">#</a></h2>
-<ul>
-<li>Genesis SDK is a set of tools for developing Genesis elements. You can find it <a href="https://github.com/infraguys/gcl_sdk">here</a>.</li>
-<li>Genesis DevTools it's a set of tools to manager life cycle of genesis projects. You can find it <a href="https://github.com/infraguys/genesis_devtools">here</a>.</li>
-</ul>
-<h2 id="-contributing">💡 Contributing<a class="headerlink" href="#-contributing" title="Permanent link">#</a></h2>
-<p>Contributing to the project is highly appreciated! However, some rules should be followed for successful inclusion of new changes in the project:</p>
-<ul>
-<li>All changes should be done in a separate branch.</li>
-<li>Changes should include not only new functionality or bug fixes, but also tests for the new code.</li>
-<li>After the changes are completed and <strong>tested</strong>, a Pull Request should be created with a clear description of the new functionality. Add one of the project maintainers as a reviewer.</li>
-<li>Changes can be merged only after receiving an approve from one of the project maintainers.</li>
-</ul>
+<h1 id="openapi-specification">OpenAPI Specification<a class="headerlink" href="#openapi-specification" title="Permanent link">#</a></h1>
+<p>You can view the OpenAPI specification for the Orch API here:</p>
+<p><link type="text/css" rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css"></p>
+<div id="swagger-ui-6">
+</div>
+<script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js" charset="UTF-8"></script>
+<script>
+    SwaggerUIBundle({
+      url: 'openapi_orch.yaml',
+      dom_id: '#swagger-ui-6',
+    })
+</script>
 
 
 
@@ -808,10 +691,10 @@ tox<span class="w"> </span>-e<span class="w"> </span>py312-functional
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": ".", "features": ["search.suggest", "search.highlight", "toc.integrate", "content.code.copy"], "search": "assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../../..", "features": ["search.suggest", "search.highlight", "toc.integrate", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}}</script>
     
     
-      <script src="assets/javascripts/bundle.ce72ebac.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.ce72ebac.min.js"></script>
       
     
   
