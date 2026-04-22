@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Genesis Core v1 Orch API
-  version: 0.1.dev205+g5e9177075.d20260327
+  version: latest
   description: OpenAPI - Genesis Core v1
 components:
   responses:
@@ -59,24 +59,29 @@ components:
       properties:
         uuid:
           type: string
+          example: 00000000-0000-0000-0000-000000000000
           format: uuid
         name:
           type: string
           minLength: 0
           maxLength: 255
+          example: any_string
         description:
           type: string
           minLength: 0
           maxLength: 255
+          example: any_string
           default: ''
         created_at:
           type: string
           x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
           format: date-time
           default: '2006-01-02T15:04:05.000576Z'
         updated_at:
           type: string
           x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
           format: date-time
           default: '2006-01-02T15:04:05.000576Z'
         capabilities:
@@ -89,6 +94,8 @@ components:
               - type: object
               - type: array
                 items: {}
+          example:
+            key: value
           default: {}
         facts:
           type: object
@@ -100,9 +107,12 @@ components:
               - type: object
               - type: array
                 items: {}
+          example:
+            key: value
           default: {}
         node:
           type: string
+          example: 00000000-0000-0000-0000-000000000000
           format: uuid
         status:
           type: string
@@ -111,12 +121,11 @@ components:
             - DISABLED
             - ERROR
             - NEW
+          example: NEW
           default: NEW
       required:
         - uuid
         - name
-        - created_at
-        - updated_at
         - node
   parameters:
     UniversalAgentUuid:
@@ -124,6 +133,7 @@ components:
       in: path
       schema:
         type: string
+        example: 00000000-0000-0000-0000-000000000000
         format: uuid
       required: true
     name:
@@ -133,6 +143,7 @@ components:
         type: string
         minLength: 0
         maxLength: 255
+        example: any_string
     description:
       name: description
       in: query
@@ -140,6 +151,7 @@ components:
         type: string
         minLength: 0
         maxLength: 255
+        example: any_string
         default: ''
     created_at:
       name: created_at
@@ -147,6 +159,7 @@ components:
       schema:
         type: string
         x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        example: '2006-01-02T15:04:05.000576Z'
         format: date-time
         default: '2006-01-02T15:04:05.000576Z'
     updated_at:
@@ -155,6 +168,7 @@ components:
       schema:
         type: string
         x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        example: '2006-01-02T15:04:05.000576Z'
         format: date-time
         default: '2006-01-02T15:04:05.000576Z'
     capabilities:
@@ -170,6 +184,8 @@ components:
             - type: object
             - type: array
               items: {}
+        example:
+          key: value
         default: {}
     facts:
       name: facts
@@ -184,12 +200,15 @@ components:
             - type: object
             - type: array
               items: {}
+        example:
+          key: value
         default: {}
     node:
       name: node
       in: query
       schema:
         type: string
+        example: 00000000-0000-0000-0000-000000000000
         format: uuid
     status:
       name: status
@@ -201,6 +220,7 @@ components:
           - DISABLED
           - ERROR
           - NEW
+        example: NEW
         default: NEW
 paths:
   /:
@@ -289,6 +309,7 @@ paths:
           in: path
           schema:
             type: string
+            example: 00000000-0000-0000-0000-000000000000
             format: uuid
           required: true
       responses:
@@ -311,6 +332,7 @@ paths:
           in: path
           schema:
             type: string
+            example: 00000000-0000-0000-0000-000000000000
             format: uuid
           required: true
       responses:
@@ -323,7 +345,7 @@ paths:
           $ref: '#/components/responses/Error'
       operationId: Get_payload_v1_agents_UniversalAgentUuid_actions_get_payload
 servers:
-  - url: http://127.0.0.1:10002
+  - url: http://127.0.0.1:47869
     description: ''
     variables:
       version:

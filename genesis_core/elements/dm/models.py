@@ -1211,7 +1211,6 @@ class Service(
     )
     user = properties.property(
         ra_types.String(min_length=1, max_length=255),
-        required=True,
         default="root",
     )
     group = properties.property(
@@ -1234,7 +1233,6 @@ class Service(
                 ra_types_dyn.KindModelType(ServiceTarget),
             ),
         ),
-        required=True,
         default=[],
     )
     after = properties.property(
@@ -1244,7 +1242,6 @@ class Service(
                 ra_types_dyn.KindModelType(ServiceTarget),
             ),
         ),
-        required=True,
         default=[],
     )
 

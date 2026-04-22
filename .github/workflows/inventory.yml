@@ -1,7 +1,6 @@
 name: Build elements inventory
 
 on:
-  workflow_dispatch:
   schedule:
     - cron: '5 * * * 0'
 

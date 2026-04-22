@@ -2345,10 +2345,7 @@ components:
       - project_id
       - path
       - target
-      - user
       - service_type
-      - before
-      - after
       type: object
     User_Create:
       properties:
