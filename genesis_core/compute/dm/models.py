@@ -294,6 +294,10 @@ class NodeSet(
 
         super().delete(session=session)
 
+    def set_active(self):
+        self.status = nc.NodeStatus.ACTIVE.value
+        self.save()
+
 
 class Node(
     infra_models.Node,
@@ -407,6 +411,10 @@ class Node(
 
         super().delete(session=session)
 
+    def set_active(self):
+        self.status = nc.NodeStatus.ACTIVE.value
+        self.save()
+
 
 class Machine(cm.ModelWithFullAsset, orm.SQLStorableMixin, models.SimpleViewMixin):
     __tablename__ = "machines"
@@ -443,6 +451,10 @@ class Machine(cm.ModelWithFullAsset, orm.SQLStorableMixin, models.SimpleViewMixi
     # It's a `fact` field
     block_devices = properties.property(types.Dict(), default=dict)
 
+    def set_active(self):
+        self.status = nc.MachineStatus.ACTIVE.value
+        self.save()
+
 
 class MachineVolume(
     cm.ModelWithFullAsset,
@@ -471,6 +483,10 @@ class MachineVolume(
     index = properties.property(
         types.Integer(min_value=0, max_value=4096), default=4096
     )
+
+    def set_active(self):
+        self.status = nc.VolumeStatus.ACTIVE.value
+        self.save()
 
 
 class UnscheduledNode(models.ModelWithUUID, orm.SQLStorableMixin):
@@ -686,6 +702,10 @@ class Port(cm.ModelWithFullAsset, orm.SQLStorableMixin, models.SimpleViewMixin):
         types.AllowNone(types.String(max_length=128)),
         default=None,
     )
+
+    def set_active(self):
+        self.status = nc.PortStatus.ACTIVE.value
+        self.save()
 
     @staticmethod
     def generate_mac(virtual_machine: bool = True) -> str:

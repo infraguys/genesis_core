@@ -45,6 +45,8 @@ build:
   elements:
     # List of images in the element
     - manifest: manifests/core.yaml.j2
+      artifacts:
+        - path: ../docs/openapi/openapi_user.yaml
       images:
       - name: genesis-core
         format: GEN_IMG_FORMAT_CORE=qcow2

@@ -40,8 +40,6 @@ SDK_DEV_MODE=$([ -d "$DEV_SDK_PATH" ] && echo "true" || echo "false")
 sudo apt update
 sudo apt install yq postgresql-common libev-dev libvirt-dev \
     tftpd-hpa nginx-full isc-dhcp-server curl iptables-persistent -y
-curl -LsSf https://releases.astral.sh/github/uv/releases/download/0.10.12/uv-installer.sh | sh
-source "$HOME"/.local/bin/env
 
 # Install PostgreSQL $PG_VERSION
 sudo YES=1 /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
@@ -148,6 +146,8 @@ sudo cp "$GC_PATH/genesis/images/bootstrap.sh" $BOOTSTRAP_PATH/0100-gc-bootstrap
 cd "$GC_PATH"
 uv sync
 source "$GC_PATH"/.venv/bin/activate
+
+sudo chown -R ubuntu:ubuntu "$GC_PATH"
 
 # In the dev mode the gcl_sdk package is installed from the local machine
 if [[ "$SDK_DEV_MODE" == "true" ]]; then

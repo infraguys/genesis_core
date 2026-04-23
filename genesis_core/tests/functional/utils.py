@@ -14,12 +14,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import contextlib
 import os
 import pathlib
 import socket
-import contextlib
-from urllib import parse
 import typing as tp
+from urllib import parse
 
 from gcl_sdk import migrations as sdk_migrations
 from restalchemy.storage.sql import migrations
@@ -82,30 +82,30 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
     @classmethod
     def apply_migrations(
         cls,
-        migration_path: str,
-        first_migration: str,
+        migration_engine: migrations.MigrationEngine,
         last_migration: tp.Optional[str] = None,
-    ) -> migrations.MigrationEngine:
-
-        migration_engine = cls.get_migration_engine(migrations_path=migration_path)
-        migration_engine.rollback_migration(first_migration)
-
+    ) -> None:
         last_migration = last_migration or migration_engine.get_latest_migration()
         migration_engine.apply_migration(last_migration)
-        return migration_engine
 
     def apply_all_migrations(self) -> None:
-        self._sdk_migration = self.apply_migrations(
-            migration_path=str(pathlib.Path(sdk_migrations.__file__).parent),
-            first_migration=sdk_migrations.INIT_MIGRATION_FILENAME,
-            last_migration=None,
+        self._sdk_migration = self.get_migration_engine(
+            migrations_path=str(pathlib.Path(sdk_migrations.__file__).parent)
         )
-        self._migration = self.apply_migrations(
-            migration_path=os.path.join(
+        self._migration = self.get_migration_engine(
+            migrations_path=os.path.join(
                 os.path.dirname(os.path.abspath(__file__)),
                 "../../../migrations",
-            ),
-            first_migration=self.__FIRST_MIGRATION__,
+            )
+        )
+        self.rollback_migrations()
+
+        self.apply_migrations(
+            migration_engine=self._sdk_migration,
+            last_migration=None,
+        )
+        self.apply_migrations(
+            migration_engine=self._migration,
             last_migration=self.__LAST_MIGRATION__,
         )
 
@@ -165,7 +165,10 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
         # Apply migrations
         self.apply_all_migrations()
 
-    def teardown_method(self) -> None:
+    def rollback_migrations(self) -> None:
         # Rollback migrations
         self._migration.rollback_migration(self.__FIRST_MIGRATION__)
         self._sdk_migration.rollback_migration(sdk_migrations.INIT_MIGRATION_FILENAME)
+
+    def teardown_method(self) -> None:
+        self.rollback_migrations()
