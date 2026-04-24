@@ -128,7 +128,7 @@ Routing rules that define how traffic is handled:
 
 #### External sources
 
-You may use external sources to forward traffic from LB to remote systems (use `proxy_protocol_from` to enable proxy protocol and pass real client IP to backend, nginx will be started on remote system):
+You may use external sources to forward traffic from LB to remote systems (use proxy_protocol_from to enable the PROXY protocol and pass the real client IP to the backend; Nginx will be started on the remote system):
 
 ```json
 {
