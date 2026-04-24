@@ -123,6 +123,21 @@ Routing rules that define how traffic is handled:
   "protocol": "http",
   "port": 80,
   "domains": ["example.com", "www.example.com"],
+}
+```
+
+#### External sources
+
+You may use external sources to forward traffic from LB to remote systems (use proxy_protocol_from to enable the PROXY protocol and pass the real client IP to the backend; Nginx will be started on the remote system):
+
+```json
+{
+  "name": "web-vhost",
+  "description": "Web server vhost",
+  "protocol": "http",
+  "port": 80,
+  "domains": ["example.com", "www.example.com"],
+  "proxy_protocol_from": "127.0.0.1/32",
   "external_sources": [
     {
       "kind": "ssh_forward",
@@ -135,9 +150,9 @@ Routing rules that define how traffic is handled:
 }
 ```
 
-#### External sources requirements
+##### Requirements
 
-##### SSH
+###### SSH
 
 Tested on Ubuntu 24, prepare remote system:
 
