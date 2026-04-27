@@ -51,7 +51,7 @@ USER = "ubuntu"
 GCTL_CFG_DIR = f"/home/{USER}/.genesis"
 SPEC_PATH = "/mnt/cdrom/spec.json"
 MANIFEST_PATH = "/mnt/cdrom/core.yaml"
-ECOSYSTEM_INSTANCE_MANIFEST_PATH = "/mnt/cdrom/ecosystem_instance.yaml"
+ECOSYSTEM_REALM_MANIFEST_PATH = "/mnt/cdrom/ecosystem_realm.yaml"
 MAIN_SUBNET_UUID = sys_uuid.UUID("c910a7e1-61ae-4d56-bdd6-a59faa3cbda3")
 
 
@@ -67,9 +67,9 @@ cli_opts = [
         help="Path to the core manifest",
     ),
     cfg.StrOpt(
-        "ecosystem_instance_manifest_path",
-        default=ECOSYSTEM_INSTANCE_MANIFEST_PATH,
-        help="Path to the ecosystem instance manifest",
+        "ecosystem_realm_manifest_path",
+        default=ECOSYSTEM_REALM_MANIFEST_PATH,
+        help="Path to the ecosystem realm manifest",
     ),
     cfg.StrOpt(
         "core_endpoint",
@@ -749,8 +749,8 @@ def main() -> None:
             _install_element_manifest(spec, "core", CONF.manifest_path)
             _install_element_manifest(
                 spec,
-                "ecosystem_instance",
-                CONF.ecosystem_instance_manifest_path,
+                "ecosystem_realm",
+                CONF.ecosystem_realm_manifest_path,
             )
             _set_defaults(spec)
             return
