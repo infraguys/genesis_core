@@ -1,4 +1,4 @@
-#    Copyright 2025 Genesis Corporation.
+#    Copyright 2025-2026 Genesis Corporation.
 #
 #    All Rights Reserved.
 #
@@ -13,9 +13,12 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-
+import grp
+import os
+import pwd
 import ipaddress
 import logging
+import pathlib
 import typing as tp
 import uuid as sys_uuid
 
@@ -32,6 +35,7 @@ from genesis_core.user_api.iam.dm import models as iam_models
 from genesis_core.vs.dm import models as vs_models
 
 LOG = logging.getLogger(__name__)
+USER = "ubuntu"
 
 
 def add_core_set(
@@ -126,6 +130,31 @@ def add_core_set(
             )
             p.insert()
     return node_set
+
+
+def save_developer_keys(keys: str) -> None:
+    """Save developer keys from the spec."""
+    if not keys:
+        LOG.debug("No developer keys provided.")
+        return
+
+    pw = pwd.getpwnam(USER)
+    uid, gid = pw.pw_uid, grp.getgrnam(USER).gr_gid
+    ssh_dir = pathlib.Path(pw.pw_dir) / ".ssh"
+
+    ssh_dir.mkdir(parents=True, exist_ok=True)
+    os.chown(ssh_dir, uid, gid)
+    ssh_dir.chmod(0o700)
+
+    keys_path = ssh_dir / "authorized_keys"
+    content = keys_path.read_text() if keys_path.exists() else ""
+    if keys not in content:
+        with keys_path.open("a") as f:
+            if content and not content.endswith("\n"):
+                f.write("\n")
+            f.write(keys + "\n")
+        os.chown(keys_path, uid, gid)
+        keys_path.chmod(0o600)
 
 
 def activate_profile(profile_name: str) -> bool:
