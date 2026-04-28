@@ -803,6 +803,9 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
     ]:
         pool = self.get_pool_info()
         vir_storage_pool = self._client.storagePoolLookupByName(self._spec.storage_pool)
+        # Refresh storage pool to get latest information
+        if vir_storage_pool.isActive():
+            vir_storage_pool.refresh()
         volumes = vir_storage_pool.listAllVolumes()
         domains = tuple(
             (d, ET.fromstring(d.XMLDesc())) for d in self._client.listAllDomains()
