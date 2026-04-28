@@ -347,6 +347,8 @@ def main() -> None:
     with open(SPEC_PATH, "r", encoding="utf-8") as f:
         spec = json.load(f)
 
+    bootstrap_defaults.save_developer_keys(spec.get("developer_keys", ""))
+
     while True:
         try:
             LOG.info("GC Bootstrap script")
