@@ -992,20 +992,20 @@ class Namespace:
     def element(self):
         return self._element
 
-    def add_resource(self, resource):
+    def add_resource(self, resource: "Resource") -> None:
         if resource.link in self._namespace_resources:
             raise ValueError(
-                f"Resource with link string '{resource.link}' already exists."
+                f"Resource with link string '{resource.link}' in element '{resource.element.name}' already exists."
             )
         self._namespace_resources[resource.link] = resource
 
     def get_resources(self):
         return list(self._namespace_resources.values())
 
-    def delete_resource(self, resource):
+    def delete_resource(self, resource: "Resource") -> None:
         if resource.link not in self._namespace_resources:
             raise ValueError(
-                f"Resource with link string '{resource.link}' does not exist."
+                f"Resource with link string '{resource.link}' in element '{resource.element.name}' does not exist."
             )
         del self._namespace_resources[resource.link]
 

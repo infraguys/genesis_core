@@ -152,7 +152,7 @@ class ElementResourceController(
         super().__init__(*args, **kwargs)
 
 
-class ResourceAllController(controllers.BaseResourceController):
+class ResourceAllController(iam_controllers.PolicyBasedController):
     """Controller for /v1/resources/ endpoint"""
 
     # NOTE(slashburygin): we need it here because in restalchemy we can add model to resources only once
@@ -178,6 +178,17 @@ class ElementExportController(
         super().__init__(*args, **kwargs)
 
 
+class ExportAllController(iam_controllers.PolicyBasedController):
+    """Controller for /v1/exports/ endpoint"""
+
+    # NOTE(slashburygin): we need it here because in restalchemy we can add model to resources only once
+    __resource__ = resources.ResourceMap.model_type_to_resource[models.Export]
+
+    def __init__(self, *args, **kwargs):
+        models.element_engine.load_from_database()
+        super().__init__(*args, **kwargs)
+
+
 class ElementImportController(
     controllers.BaseNestedResourceControllerPaginated,
 ):
@@ -187,6 +198,17 @@ class ElementImportController(
         process_filters=True,
         convert_underscore=False,
     )
+
+    def __init__(self, *args, **kwargs):
+        models.element_engine.load_from_database()
+        super().__init__(*args, **kwargs)
+
+
+class ImportAllController(iam_controllers.PolicyBasedController):
+    """Controller for /v1/imports/ endpoint"""
+
+    # NOTE(slashburygin): we need it here because in restalchemy we can add model to resources only once
+    __resource__ = resources.ResourceMap.model_type_to_resource[models.Import]
 
     def __init__(self, *args, **kwargs):
         models.element_engine.load_from_database()

@@ -76,10 +76,30 @@ class ElementExportRoute(routes.Route):
     __controller__ = controllers.ElementExportController
 
 
+class ExportAllRoute(routes.Route):
+    """Handler for /v1/exports/[<id>] endpoint"""
+
+    __controller__ = controllers.ExportAllController
+    __allow_methods__ = [
+        routes.FILTER,
+        routes.GET,
+    ]
+
+
 class ElementImportRoute(routes.Route):
     """Handler for /v1/em/elements/<uuid>/imports/ endpoint"""
 
     __controller__ = controllers.ElementImportController
+
+
+class ImportAllRoute(routes.Route):
+    """Handler for /v1/imports/[<id>] endpoint"""
+
+    __controller__ = controllers.ImportAllController
+    __allow_methods__ = [
+        routes.FILTER,
+        routes.GET,
+    ]
 
 
 class ElementSetProfileActionRoute(routes.Action):
@@ -121,4 +141,6 @@ class ElementManagerRoute(routes.Route):
     manifests = routes.route(ManifestRoute)
     elements = routes.route(ElementRoute)
     resources = routes.route(ResourceAllRoute)
+    exports = routes.route(ExportAllRoute)
+    imports = routes.route(ImportAllRoute)
     services = routes.route(ServicesRoute)
