@@ -15,14 +15,12 @@
 #    under the License.
 
 import logging
-import uuid as sys_uuid
 import typing as tp
 
-from gcl_sdk.infra import exceptions as infra_exc
 from gcl_sdk.agents.universal import constants as ua_c
 from gcl_sdk.agents.universal.dm import models as ua_models
 from gcl_sdk.agents.universal.services import builder as sdk_builder
-from gcl_sdk.agents.universal.clients.orch import base as orch_base
+from gcl_sdk.infra import exceptions as infra_exc
 
 from genesis_core.vs.dm import models
 
@@ -71,8 +69,6 @@ class Variable(
 class VSBuilderService(sdk_builder.CollectionUniversalBuilderService):
     def __init__(
         self,
-        uuid: sys_uuid.UUID,
-        orch_client: orch_base.AbstractOrchClient,
         iter_min_period: int = 1,
         iter_pause: float = 0.1,
     ) -> None:

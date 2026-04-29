@@ -15,11 +15,9 @@
 #    under the License.
 
 import typing as tp
-import uuid as sys_uuid
 
 from gcl_sdk.agents.universal import constants as ua_c
 from gcl_sdk.infra import constants as infra_c
-from gcl_sdk.agents.universal.clients.orch import db as orch_db
 from restalchemy.dm import filters as dm_filters
 
 from genesis_core.common import constants as c
@@ -29,10 +27,7 @@ from genesis_core.vs.dm import models
 
 class TestVSServiceBuilder:
     def setup_method(self) -> None:
-        self._service = service.VSBuilderService(
-            uuid=sys_uuid.uuid4(),
-            orch_client=orch_db.DatabaseOrchClient(),
-        )
+        self._service = service.VSBuilderService()
 
     def teardown_method(self) -> None:
         pass

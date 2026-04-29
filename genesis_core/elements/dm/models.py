@@ -14,33 +14,32 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from functools import partial
-import logging
 import enum
+import logging
 import re
 import typing as tp
 import uuid as sys_uuid
+from functools import partial
 
-from gcl_sdk.agents.universal.dm import models as sdk_models
 from gcl_sdk.agents.universal import utils as sdk_utils
+from gcl_sdk.agents.universal.dm import models as sdk_models
+from gcl_sdk.agents.universal.dm import models as ua_models
+from gcl_sdk.paas.dm import services as srv_models
 from restalchemy.dm import filters as ra_filters
 from restalchemy.dm import models
 from restalchemy.dm import properties
 from restalchemy.dm import relationships
 from restalchemy.dm import types as ra_types
 from restalchemy.dm import types_dynamic as ra_types_dyn
-from restalchemy.storage.sql import orm
 from restalchemy.storage.sql import engines
-
-from gcl_sdk.agents.universal.dm import models as ua_models
-from gcl_sdk.paas.dm import services as srv_models
+from restalchemy.storage.sql import orm
 
 from genesis_core.common import exceptions
+from genesis_core.common import utils as cm_utils
 from genesis_core.common.dm import models as cm
 from genesis_core.common.dm import targets as ct
-from genesis_core.common import utils as cm_utils
-from genesis_core.elements.dm import utils
 from genesis_core.elements import constants as cc
+from genesis_core.elements.dm import utils
 from genesis_core.vs.dm import models as vs_models
 
 LOG = logging.getLogger(__name__)
@@ -71,9 +70,9 @@ class LinkResolver:
     and retrieving appropriate resources from the element engine.
     """
 
-    def __init__(self, element_engine, element, full_link: str):
+    def __init__(self, engine, element, full_link: str):
         super().__init__()
-        self._element_engine = element_engine
+        self._element_engine = engine
         self._element = element
         self._full_link = full_link
         link = self._extract_resource_link(self._full_link)
@@ -89,7 +88,6 @@ class LinkResolver:
 
     @staticmethod
     def _extract_resource_link(full_link):
-
         full_link = full_link.split(":", 1)[0]
 
         parts = full_link.split(".")
@@ -226,17 +224,18 @@ class Manifest(
         }
 
         for import_name, import_data in self.imports.items():
-            from_element = element_engine.get_element(
+            import_from_element = element_engine.get_element(
                 link=import_data["element"],
             )
             from_resource = element_engine.get_export_resource(
-                from_element=from_element,
+                manifest=self,
+                from_element=import_from_element,
                 link=import_data["link"],
             )
             import_kwargs = dict(
                 name=import_name,
                 element=element,
-                from_element=from_element,
+                from_element=import_from_element,
                 from_resource=from_resource,
             )
 
@@ -315,7 +314,7 @@ class Manifest(
         for resource_link_prefix, resources in self.resources.items():
             link_resolver = LinkResolver(
                 element=element,
-                element_engine=element_engine,
+                engine=element_engine,
                 full_link=resource_link_prefix,
             )
             for resource_name, resource_value in resources.items():
@@ -459,6 +458,15 @@ class Element(
     @property
     def original(self):
         return self
+
+    def imports(self) -> tp.List["Import"]:
+        return Import.objects.get_all(filters={"element": ra_filters.EQ(self)})
+
+    def exports(self) -> tp.List["Export"]:
+        return Export.objects.get_all(filters={"element": ra_filters.EQ(self)})
+
+    def resources(self) -> tp.List["Resource"]:
+        return Resource.objects.get_all(filters={"element": ra_filters.EQ(self)})
 
 
 class ElementIncorrectStatusesView(
@@ -1135,10 +1143,15 @@ class ElementEngine:
     def delete_resource_export(self, export_resource: "Resource") -> None:
         del self._resource_exports[export_resource.link]
 
-    def get_export_resource(self, from_element: "Element", link: str) -> "Resource":
+    def get_export_resource(
+        self, manifest: "Manifest", from_element: "Element", link: str
+    ) -> "Resource":
         # Implement check element here for export resources
         if link not in self._resource_exports:
-            raise ValueError(f"Resource {link} is not in export list")
+            raise ValueError(
+                f"Resource {link} in manifest {manifest.name} {manifest.version} is not in export list "
+                f"in element {from_element.name}"
+            )
         return self._resource_exports[link]
 
 

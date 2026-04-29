@@ -176,8 +176,6 @@ class GeneralService(basic.BasicService):
 
         # ValuesStore
         vs_builder_service = vs_builder_svc.VSBuilderService(
-            uuid=sys_uuid.uuid5(ua_utils.system_uuid(), "vs_builder"),
-            orch_client=orch_db.DatabaseOrchClient(),
             iter_min_period=iter_min_period,
         )
 

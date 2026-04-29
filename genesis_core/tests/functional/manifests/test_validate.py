@@ -15,15 +15,15 @@
 #    under the License.
 
 import os
+
 import pytest
 import requests
 import yaml
 
-from genesis_core.elements.dm import models
-from genesis_core.elements.dm import utils
-
 from genesis_core.common import exceptions
 from genesis_core.common.utils import PROJECT_PATH
+from genesis_core.elements.dm import models
+from genesis_core.elements.dm import utils
 
 REPO_URL = "https://repository.genesis-core.tech/genesis-elements"
 
@@ -107,7 +107,5 @@ class TestSpec:
 
     @pytest.mark.skip(reason="for manual running")
     def test_build_full_schema(self, base_manifest_schema, user_api_spec):
-        full_schema = utils.build_full_schema(base_manifest_schema, user_api_spec)
-        utils.dump_full_manifest_schema(full_schema)
         full_schema = utils.build_full_schema(base_manifest_schema, user_api_spec)
         utils.dump_full_manifest_schema(full_schema)
