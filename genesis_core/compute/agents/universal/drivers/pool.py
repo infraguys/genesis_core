@@ -104,7 +104,7 @@ class MetaPool(meta.MetaCoordinatorDataPlaneModel):
         `None` means all fields are meta fields but it doesn't mean they
         won't be updated from the data plane.
         """
-        return {"uuid", "driver_spec", "machine_type"}
+        return {"uuid", "driver_spec", "machine_type", "cores_ratio", "ram_ratio"}
 
     def restore_from_dp(self, **kwargs) -> None:
         """Load the pool information."""
