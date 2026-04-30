@@ -3226,6 +3226,9 @@ components:
           minLength: 0
           maxLength: 9223372036854775807
           example: any_string
+        sync_to_ecosystem:
+          type: boolean
+          example: true
         id:
           type: integer
           minimum: -9223372036854775807
@@ -3262,6 +3265,9 @@ components:
           minLength: 0
           maxLength: 9223372036854775807
           example: any_string
+        sync_to_ecosystem:
+          type: boolean
+          example: true
         id:
           type: integer
           minimum: -9223372036854775807
@@ -3298,6 +3304,9 @@ components:
           minLength: 0
           maxLength: 9223372036854775807
           example: any_string
+        sync_to_ecosystem:
+          type: boolean
+          example: true
         id:
           type: integer
           minimum: -9223372036854775807
@@ -3334,6 +3343,9 @@ components:
           minLength: 0
           maxLength: 9223372036854775807
           example: any_string
+        sync_to_ecosystem:
+          type: boolean
+          example: true
         id:
           type: integer
           minimum: -9223372036854775807
@@ -13672,6 +13684,12 @@ components:
             - MANUAL
           example: AUTO_HEX
           default: AUTO_HEX
+        default_length:
+          type: integer
+          minimum: 1
+          maximum: 512
+          example: 256
+          default: 32
         value:
           type: string
           minLength: 1
@@ -13748,6 +13766,12 @@ components:
             - MANUAL
           example: AUTO_HEX
           default: AUTO_HEX
+        default_length:
+          type: integer
+          minimum: 1
+          maximum: 512
+          example: 256
+          default: 32
         value:
           type: string
           minLength: 1
@@ -13824,6 +13848,12 @@ components:
             - MANUAL
           example: AUTO_HEX
           default: AUTO_HEX
+        default_length:
+          type: integer
+          minimum: 1
+          maximum: 512
+          example: 256
+          default: 32
         value:
           type: string
           minLength: 1
@@ -13900,6 +13930,12 @@ components:
             - MANUAL
           example: AUTO_HEX
           default: AUTO_HEX
+        default_length:
+          type: integer
+          minimum: 1
+          maximum: 512
+          example: 256
+          default: 32
         value:
           type: string
           minLength: 1
@@ -17004,6 +17040,12 @@ components:
         example: 00000000-0000-0000-0000-000000000000
         format: uuid
       required: true
+    sync_to_ecosystem:
+      name: sync_to_ecosystem
+      in: query
+      schema:
+        type: boolean
+        example: true
     id:
       name: id
       in: query
@@ -18479,6 +18521,15 @@ components:
         example: 00000000-0000-0000-0000-000000000000
         format: uuid
       required: true
+    default_length:
+      name: default_length
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 512
+        example: 256
+        default: 32
     RSAKeyUuid:
       name: RSAKeyUuid
       in: path
@@ -20065,6 +20116,11 @@ paths:
             maxLength: 255
             example: any_string
             default: ''
+        - name: sync_to_ecosystem
+          in: query
+          schema:
+            type: boolean
+            example: true
         - name: id
           in: query
           schema:
@@ -21022,6 +21078,180 @@ paths:
         default:
           $ref: '#/components/responses/Error'
       operationId: Set_profile_v1_em_elements_ElementUuid_actions_set_profile_invoke
+  /v1/em/exports/:
+    get:
+      summary: Get Exports
+      tags:
+        - Export
+      parameters:
+        - name: created_at
+          in: query
+          schema:
+            type: string
+            x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+            example: '2006-01-02T15:04:05.000576Z'
+            format: date-time
+            default: '2006-01-02T15:04:05.000576Z'
+        - name: updated_at
+          in: query
+          schema:
+            type: string
+            x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+            example: '2006-01-02T15:04:05.000576Z'
+            format: date-time
+            default: '2006-01-02T15:04:05.000576Z'
+        - name: element
+          in: query
+          schema:
+            type: string
+        - name: name
+          in: query
+          schema:
+            type: string
+            minLength: 0
+            maxLength: 255
+            example: any_string
+            default: ''
+        - name: kind
+          in: query
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 256
+            example: any_string
+        - name: link
+          in: query
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 256
+            example: any_string
+      responses:
+        '200':
+          description: Export_Filter
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Export_Filter'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Filter_v1_em_exports
+  /v1/em/exports/{ExportUuid}:
+    get:
+      summary: Get Export
+      tags:
+        - Export
+      parameters:
+        - name: ExportUuid
+          in: path
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+          required: true
+      responses:
+        '200':
+          description: Export_Get
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Export_Get'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Get_v1_em_exports_ExportUuid
+  /v1/em/imports/:
+    get:
+      summary: Get Imports
+      tags:
+        - Import
+      parameters:
+        - name: created_at
+          in: query
+          schema:
+            type: string
+            x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+            example: '2006-01-02T15:04:05.000576Z'
+            format: date-time
+            default: '2006-01-02T15:04:05.000576Z'
+        - name: updated_at
+          in: query
+          schema:
+            type: string
+            x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+            example: '2006-01-02T15:04:05.000576Z'
+            format: date-time
+            default: '2006-01-02T15:04:05.000576Z'
+        - name: element
+          in: query
+          schema:
+            type: string
+        - name: from_element
+          in: query
+          schema:
+            type: string
+        - name: from_resource
+          in: query
+          schema:
+            type: string
+        - name: name
+          in: query
+          schema:
+            type: string
+            minLength: 0
+            maxLength: 255
+            example: any_string
+            default: ''
+        - name: kind
+          in: query
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 256
+            example: any_string
+        - name: link
+          in: query
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 256
+            example: any_string
+      responses:
+        '200':
+          description: Import_Filter
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Import_Filter'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Filter_v1_em_imports
+  /v1/em/imports/{ImportUuid}:
+    get:
+      summary: Get Import
+      tags:
+        - Import
+      parameters:
+        - name: ImportUuid
+          in: path
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+          required: true
+      responses:
+        '200':
+          description: Import_Get
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Import_Get'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Get_v1_em_imports_ImportUuid
   /v1/em/manifests/:
     get:
       summary: Get Manifests
@@ -25081,6 +25311,14 @@ paths:
               - MANUAL
             example: AUTO_HEX
             default: AUTO_HEX
+        - name: default_length
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 512
+            example: 256
+            default: 32
         - name: value
           in: query
           schema:
@@ -26379,7 +26617,7 @@ paths:
           $ref: '#/components/responses/Error'
       operationId: Select_value_v1_vs_variables_VariableUuid_actions_select_value_invoke
 servers:
-  - url: http://127.0.0.1:42579
+  - url: http://127.0.0.1:11010
     description: ''
     variables:
       version:
@@ -26401,11 +26639,11 @@ tags:
     description: ''
   - name: Domain
     description: ''
+  - name: Element
+    description: ''
   - name: Export
     description: ''
   - name: Import
-    description: ''
-  - name: Element
     description: ''
   - name: Manifest
     description: ''

@@ -345,7 +345,7 @@ paths:
           $ref: '#/components/responses/Error'
       operationId: Get_payload_v1_agents_UniversalAgentUuid_actions_get_payload
 servers:
-  - url: http://127.0.0.1:47869
+  - url: http://127.0.0.1:11011
     description: ''
     variables:
       version:

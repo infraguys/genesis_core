@@ -1346,7 +1346,7 @@ paths:
           $ref: '#/components/responses/Error'
       operationId: Refresh_secret_v1_nodes_NodeEncryptionKeyUuid_actions_refresh_secret_invoke
 servers:
-  - url: http://127.0.0.1:40937
+  - url: http://127.0.0.1:11013
     description: ''
     variables:
       version:
