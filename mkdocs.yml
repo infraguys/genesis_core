@@ -6,7 +6,7 @@ edit_uri: browse/docs/
 
 theme:
   name: material
-  language: ru
+  language: en
   features:
     - search.suggest
     - search.highlight

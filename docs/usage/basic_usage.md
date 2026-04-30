@@ -146,7 +146,7 @@ virsh pool-autostart rpool
 Add the machine as a hypervisor, replace `XXXX` with the token from the previous step.:
 
 ```bash
-curl --location --globoff 'http://10.20.0.2:11010/v1/hypervisors/' \
+curl --location --globoff 'http://10.20.0.2:11010/v1/compute/hypervisors/' \
 --header 'Content-Type: application/json' \
 --header 'Authorization: Bearer XXXX' \
 --data '{
