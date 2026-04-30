@@ -111,8 +111,17 @@ class TestEmUserApi:
         resources_data = response.json()
         assert isinstance(resources_data, list)
 
+        url = client.build_collection_uri(["em", "imports"])
+        response = client.get(url)
+        assert response.status_code == 200
         imports_data = response.json()
         assert isinstance(imports_data, list)
+
+        url = client.build_collection_uri(["em", "exports"])
+        response = client.get(url)
+        assert response.status_code == 200
+        exports_data = response.json()
+        assert isinstance(exports_data, list)
 
         # uninstall
         url = client.build_resource_uri(

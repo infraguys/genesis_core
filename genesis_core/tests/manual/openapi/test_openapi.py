@@ -49,6 +49,7 @@ class TestGetOpenApiSpecs:
 
         path = os.path.join(PROJECT_PATH, "docs", "openapi", "openapi_user.yaml")
         spec = response.json()
+        spec["servers"][0]["url"] = "http://127.0.0.1:11010"
         spec["info"]["version"] = "latest"
         with open(path, "w") as f:
             yaml.dump(spec, f)
@@ -61,6 +62,7 @@ class TestGetOpenApiSpecs:
         assert response.status_code == 200
         path = os.path.join(PROJECT_PATH, "docs", "openapi", "openapi_boot.yaml")
         spec = response.json()
+        spec["servers"][0]["url"] = "http://127.0.0.1:11013"
         spec["info"]["version"] = "latest"
         with open(path, "w") as f:
             yaml.dump(spec, f)
@@ -78,6 +80,7 @@ class TestGetOpenApiSpecs:
 
         path = os.path.join(PROJECT_PATH, "docs", "openapi", "openapi_orch.yaml")
         spec = response.json()
+        spec["servers"][0]["url"] = "http://127.0.0.1:11011"
         spec["info"]["version"] = "latest"
         with open(path, "w") as f:
             yaml.dump(spec, f)
@@ -95,6 +98,7 @@ class TestGetOpenApiSpecs:
 
         path = os.path.join(PROJECT_PATH, "docs", "openapi", "openapi_status.yaml")
         spec = response.json()
+        spec["servers"][0]["url"] = "http://127.0.0.1:11012"
         spec["info"]["version"] = "latest"
         with open(path, "w") as f:
             yaml.dump(spec, f)
