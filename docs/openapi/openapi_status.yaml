@@ -976,7 +976,7 @@ paths:
           $ref: '#/components/responses/Error'
       operationId: Delete_v1_kind_KindModelKind_resources_ResourceRes_uuid
 servers:
-  - url: http://127.0.0.1:11012
+  - url: http://127.0.0.1:55615
     description: ''
     variables:
       version:
