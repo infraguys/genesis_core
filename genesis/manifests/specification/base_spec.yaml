@@ -39,6 +39,9 @@ properties:
     type: object
     additionalProperties:
       $ref: '#/components/schemas/import'
+  openapi_spec:
+    type: string
+    nullable: true
 components:
   schemas:
     export:

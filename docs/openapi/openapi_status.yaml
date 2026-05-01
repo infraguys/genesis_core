@@ -355,7 +355,6 @@ components:
           format: uuid
       required:
         - kind
-        - res_uuid
     Resource_Create:
       type: object
       properties:
@@ -418,7 +417,6 @@ components:
           format: uuid
       required:
         - kind
-        - res_uuid
     Resource_Update:
       type: object
       properties:
@@ -481,7 +479,6 @@ components:
           format: uuid
       required:
         - kind
-        - res_uuid
   parameters:
     UniversalAgentUuid:
       name: UniversalAgentUuid

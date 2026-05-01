@@ -1,5 +1,92 @@
 components:
   schemas:
+    BackendPool_Create:
+      properties:
+        balance:
+          default: roundrobin
+          enum:
+          - roundrobin
+          example: roundrobin
+          type: string
+        created_at:
+          default: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        description:
+          default: ''
+          example: any_string
+          maxLength: 255
+          minLength: 0
+          type: string
+        endpoints:
+          example:
+          - key: value
+          items:
+            example:
+              key: value
+            oneOf:
+            - example:
+                key: value
+              properties:
+                host:
+                  example: any_string
+                  maxLength: 260
+                  minLength: 1
+                  type: string
+                kind:
+                  enum:
+                  - host
+                  type: string
+                port:
+                  default: 80
+                  example: 32807
+                  maximum: 65535
+                  minimum: 80
+                  type: integer
+                weight:
+                  default: 1
+                  example: 500
+                  maximum: 1000
+                  minimum: 0
+                  type: integer
+              type: object
+            type: object
+          type: array
+        name:
+          default: ''
+          example: any_string
+          maxLength: 255
+          minLength: 0
+          type: string
+        project_id:
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          type: string
+        status:
+          default: ACTIVE
+          enum:
+          - ACTIVE
+          - ERROR
+          - IN_PROGRESS
+          - NEW
+          example: NEW
+          type: string
+        updated_at:
+          default: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        uuid:
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          type: string
+      required:
+      - project_id
+      - endpoints
+      type: object
     Certificate_Create:
       properties:
         cert:
@@ -37,10 +124,10 @@ components:
           type: string
         domains:
           example:
-          - ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+          - '*.restalchemy.com'
           items:
-            example: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
-            pattern: ^(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30}$
+            example: '*.restalchemy.com'
+            pattern: ^(@|(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30})$
             type: string
           type: array
         email:
@@ -54,12 +141,6 @@ components:
           nullable: true
           type: string
           x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
-        expiration_threshold:
-          default: 14
-          example: 0
-          maximum: 9223372036854775807
-          minimum: 0
-          type: integer
         key:
           example: any_string
           maxLength: 10240
@@ -87,9 +168,6 @@ components:
           maxLength: 255
           minLength: 0
           type: string
-        overcome_threshold:
-          example: true
-          type: boolean
         project_id:
           example: 00000000-0000-0000-0000-000000000000
           format: uuid
@@ -115,8 +193,6 @@ components:
           type: string
       required:
       - project_id
-      - constructor
-      - method
       - domains
       type: object
     Config_Create:
@@ -302,11 +378,6 @@ components:
           format: date-time
           type: string
           x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
-        id:
-          example: 0
-          maximum: 9223372036854775807
-          minimum: -9223372036854775807
-          type: integer
         name:
           example: any_string
           maxLength: 9223372036854775807
@@ -316,6 +387,9 @@ components:
           example: 00000000-0000-0000-0000-000000000000
           format: uuid
           type: string
+        sync_to_ecosystem:
+          example: true
+          type: boolean
         updated_at:
           default: '2006-01-02T15:04:05.000576Z'
           example: '2006-01-02T15:04:05.000576Z'
@@ -362,6 +436,8 @@ components:
           maxLength: 9223372036854775807
           minLength: 0
           type: string
+        manifest:
+          type: string
         name:
           example: any_string
           maxLength: 255
@@ -369,6 +445,23 @@ components:
           type: string
         profile:
           type: string
+        project_id:
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          type: string
+        requirements:
+          additionalProperties:
+            oneOf:
+            - type: string
+            - type: integer
+            - type: boolean
+            - type: object
+            - items: {}
+              type: array
+          default: {}
+          example:
+            key: value
+          type: object
         status:
           default: NEW
           enum:
@@ -395,6 +488,46 @@ components:
       required:
       - name
       - version
+      type: object
+    Export_Create:
+      properties:
+        created_at:
+          default: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        element:
+          type: string
+        kind:
+          default: resource
+          enum:
+          - resource
+          example: resource
+          type: string
+        link:
+          example: any_string
+          maxLength: 255
+          minLength: 2
+          type: string
+        name:
+          example: any_string
+          maxLength: 255
+          minLength: 1
+          type: string
+        updated_at:
+          default: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        uuid:
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          type: string
+      required:
+      - element
+      - link
       type: object
     IamClient_Create:
       properties:
@@ -598,6 +731,51 @@ components:
       - iam_client
       - callback
       type: object
+    Import_Create:
+      properties:
+        created_at:
+          default: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        element:
+          type: string
+        from_element:
+          type: string
+        from_resource:
+          type: string
+        kind:
+          default: resource
+          enum:
+          - resource
+          example: resource
+          type: string
+        link:
+          example: any_string
+          maxLength: 256
+          minLength: 2
+          type: string
+        name:
+          example: any_string
+          maxLength: 255
+          minLength: 1
+          type: string
+        updated_at:
+          default: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        uuid:
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          type: string
+      required:
+      - element
+      - from_element
+      - from_resource
+      type: object
     LB_Create:
       properties:
         created_at:
@@ -704,7 +882,6 @@ components:
           type: string
       required:
       - project_id
-      - type
       type: object
     MachinePool_Create:
       properties:
@@ -928,6 +1105,12 @@ components:
           example: any_string
           maxLength: 255
           minLength: 0
+          type: string
+        openapi_spec:
+          example: any_string
+          maxLength: 9223372036854775807
+          minLength: 0
+          nullable: true
           type: string
         project_id:
           example: 00000000-0000-0000-0000-000000000000
@@ -1281,7 +1464,7 @@ components:
             type: object
           type: object
         hostname:
-          example: (?=^.{1,253}$)(^((?![-])[a-zA-Z0-9-]{1,63}(?<![-])\.){0,}((?!-)[a-zA-Z0-9-]{1,63}(?<!-))$)
+          example: example.com
           nullable: true
           pattern: (?=^.{1,253}$)(^((?![-])[a-zA-Z0-9-]{1,63}(?<![-])\.){0,}((?!-)[a-zA-Z0-9-]{1,63}(?<!-))$)
           type: string
@@ -1452,6 +1635,12 @@ components:
           format: date-time
           type: string
           x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        default_length:
+          default: 32
+          example: 256
+          maximum: 512
+          minimum: 1
+          type: integer
         description:
           default: ''
           example: any_string
@@ -1503,7 +1692,6 @@ components:
           type: string
       required:
       - project_id
-      - constructor
       type: object
     PermissionBinding_Create:
       properties:
@@ -1748,9 +1936,239 @@ components:
           type: string
       required:
       - project_id
-      - constructor
       - private_key
       - public_key
+      type: object
+    Record_Create:
+      properties:
+        created_at:
+          default: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        disabled:
+          example: true
+          type: boolean
+        domain:
+          type: string
+        name:
+          example: any_string
+          maxLength: 9223372036854775807
+          minLength: 0
+          type: string
+        prio:
+          default: null
+          example: 0
+          maximum: 9223372036854775807
+          minimum: -9223372036854775807
+          type: integer
+        project_id:
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          type: string
+        record:
+          example:
+            key: value
+          oneOf:
+          - example:
+              key: value
+            properties:
+              address:
+                anyOf:
+                - format: ipv4
+                - format: ipv6
+                example: 127.0.0.1
+                type: string
+              kind:
+                enum:
+                - A
+                type: string
+              name:
+                example: '*.restalchemy.com'
+                pattern: ^(@|(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30})$
+                type: string
+            type: object
+          - example:
+              key: value
+            properties:
+              expire:
+                default: 604800
+                example: 60
+                maximum: 9223372036854775807
+                minimum: 60
+                type: integer
+              kind:
+                enum:
+                - SOA
+                type: string
+              name:
+                example: '*.restalchemy.com'
+                pattern: ^(@|(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30})$
+                type: string
+              primary_dns:
+                default: a.misconfigured.dns.server.invalid
+                example: example.com
+                pattern: (?=^.{1,253}$)(^((?![-])[a-zA-Z0-9-]{1,63}(?<![-])\.){0,}((?!-)[a-zA-Z0-9-]{1,63}(?<!-))$)
+                type: string
+              refresh:
+                default: 10800
+                example: 60
+                maximum: 9223372036854775807
+                minimum: 60
+                type: integer
+              retry:
+                default: 3600
+                example: 60
+                maximum: 9223372036854775807
+                minimum: 60
+                type: integer
+              serial:
+                default: 0
+                example: 0
+                maximum: 9223372036854775807
+                minimum: 0
+                type: integer
+              ttl:
+                default: 3600
+                example: 60
+                maximum: 9223372036854775807
+                minimum: 60
+                type: integer
+            type: object
+          - example:
+              key: value
+            properties:
+              content:
+                example: ^([^\n]{1,8192})$
+                pattern: ^([^\n]{1,8192})$
+                type: string
+              kind:
+                enum:
+                - TXT
+                type: string
+              name:
+                example: '*.restalchemy.com'
+                pattern: ^(@|(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30})$
+                type: string
+            type: object
+          - example:
+              key: value
+            properties:
+              content:
+                example: example.com
+                pattern: (?=^.{2,254}$)(^((?!-)[a-zA-Z0-9-_]{1,63}(?<!-)\.){1,}$)
+                type: string
+              kind:
+                enum:
+                - NS
+                type: string
+              name:
+                example: '*.restalchemy.com'
+                pattern: ^(@|(\*\.){0,1}([a-zA-Z0-9-_]{1,61}\.{0,1}){0,30})$
+                type: string
+            type: object
+          type: object
+        ttl:
+          default: 3600
+          example: 0
+          maximum: 9223372036854775807
+          minimum: -9223372036854775807
+          type: integer
+        type:
+          enum:
+          - A
+          - NS
+          - SOA
+          - TXT
+          example: A
+          type: string
+        updated_at:
+          default: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        uuid:
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          type: string
+      required:
+      - project_id
+      - domain
+      - type
+      - record
+      type: object
+    Resource_Create:
+      properties:
+        created_at:
+          default: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        element:
+          type: string
+        full_hash:
+          default: ''
+          example: any_string
+          maxLength: 256
+          minLength: 0
+          type: string
+        kind:
+          example: any_string
+          maxLength: 256
+          minLength: 2
+          type: string
+        link:
+          example: any_string
+          maxLength: 256
+          minLength: 2
+          type: string
+        name:
+          example: any_string
+          maxLength: 255
+          minLength: 1
+          type: string
+        resource_link_prefix:
+          example: any_string
+          maxLength: 256
+          minLength: 1
+          type: string
+        status:
+          default: NEW
+          enum:
+          - ACTIVE
+          - IN_PROGRESS
+          - NEW
+          example: NEW
+          type: string
+        updated_at:
+          default: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        uuid:
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          type: string
+        value:
+          additionalProperties:
+            oneOf:
+            - type: string
+            - type: integer
+            - type: boolean
+            - type: object
+            - items: {}
+              type: array
+          example:
+            key: value
+          type: object
+      required:
+      - element
+      - resource_link_prefix
+      - value
       type: object
     RoleBinding_Create:
       properties:
@@ -1829,6 +2247,669 @@ components:
           type: string
       required:
       - name
+      type: object
+    Route_Create:
+      properties:
+        condition:
+          example:
+            key: value
+          oneOf:
+          - example:
+              key: value
+            properties:
+              actions:
+                example:
+                - key: value
+                items:
+                  example:
+                    key: value
+                  oneOf:
+                  - example:
+                      key: value
+                    properties:
+                      kind:
+                        enum:
+                        - backend
+                        type: string
+                      pool:
+                        type: string
+                      protocol:
+                        default:
+                          kind: http
+                        example:
+                          key: value
+                        oneOf:
+                        - example:
+                            key: value
+                          properties:
+                            kind:
+                              enum:
+                              - http
+                              type: string
+                          type: object
+                        - example:
+                            key: value
+                          properties:
+                            kind:
+                              enum:
+                              - https
+                              type: string
+                            verify:
+                              example: true
+                              type: boolean
+                          type: object
+                        type: object
+                    type: object
+                  - example:
+                      key: value
+                    properties:
+                      code:
+                        default: 301
+                        example: 349
+                        maximum: 399
+                        minimum: 300
+                        type: integer
+                      kind:
+                        enum:
+                        - redirect
+                        type: string
+                      url:
+                        example: http://example.com
+                        pattern: ^(?:http|ftp)s?://(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:/?|[/?]\S+)$
+                        type: string
+                    type: object
+                  - example:
+                      key: value
+                    properties:
+                      is_spa:
+                        example: true
+                        type: boolean
+                      kind:
+                        enum:
+                        - local_dir
+                        type: string
+                      path:
+                        example: ^(?!.*\/\.\.(?:\/.*|$))\/var\/www\/.*$
+                        pattern: ^(?!.*\/\.\.(?:\/.*|$))\/var\/www\/.*$
+                        type: string
+                    type: object
+                  - example:
+                      key: value
+                    properties:
+                      is_spa:
+                        example: true
+                        type: boolean
+                      kind:
+                        enum:
+                        - local_dir_download
+                        type: string
+                      url:
+                        example: http://example.com
+                        pattern: ^(?:http|ftp)s?://(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:/?|[/?]\S+)$
+                        type: string
+                    type: object
+                  type: object
+                type: array
+              allowed_ips:
+                default:
+                - 0.0.0.0/0
+                example:
+                - 10.0.0.1/32
+                items:
+                  anyOf:
+                  - format: ipv4
+                  - format: ipv6
+                  example: 10.0.0.1/32
+                  type: string
+                type: array
+              kind:
+                enum:
+                - prefix
+                type: string
+              modifiers:
+                default: []
+                example:
+                - key: value
+                items:
+                  example:
+                    key: value
+                  oneOf:
+                  - example:
+                      key: value
+                    properties:
+                      headers:
+                        default:
+                        - Host
+                        - X-Forwarded-For
+                        - X-Forwarded-Port
+                        - X-Forwarded-Proto
+                        - X-Forwarded-Prefix
+                        example:
+                        - Host
+                        items:
+                          enum:
+                          - Host
+                          - X-Forwarded-For
+                          - X-Forwarded-Port
+                          - X-Forwarded-Prefix
+                          - X-Forwarded-Proto
+                          example: Host
+                          type: string
+                        type: array
+                      kind:
+                        enum:
+                        - auto_header
+                        type: string
+                    type: object
+                  - example:
+                      key: value
+                    properties:
+                      kind:
+                        enum:
+                        - set_header
+                        type: string
+                      name:
+                        example: any_string
+                        maxLength: 100
+                        minLength: 1
+                        type: string
+                      value:
+                        example: any_string
+                        maxLength: 1000
+                        minLength: 0
+                        type: string
+                    type: object
+                  - example:
+                      key: value
+                    properties:
+                      kind:
+                        enum:
+                        - rewrite_url
+                        type: string
+                      regex:
+                        example: any_string
+                        maxLength: 10000
+                        minLength: 1
+                        type: string
+                      replacement:
+                        example: any_string
+                        maxLength: 10000
+                        minLength: 1
+                        type: string
+                    type: object
+                  type: object
+                type: array
+              value:
+                example: ^\/(.*)$
+                pattern: ^\/(.*)$
+                type: string
+            type: object
+          - example:
+              key: value
+            properties:
+              actions:
+                example:
+                - key: value
+                items:
+                  example:
+                    key: value
+                  oneOf:
+                  - example:
+                      key: value
+                    properties:
+                      kind:
+                        enum:
+                        - backend
+                        type: string
+                      pool:
+                        type: string
+                      protocol:
+                        default:
+                          kind: http
+                        example:
+                          key: value
+                        oneOf:
+                        - example:
+                            key: value
+                          properties:
+                            kind:
+                              enum:
+                              - http
+                              type: string
+                          type: object
+                        - example:
+                            key: value
+                          properties:
+                            kind:
+                              enum:
+                              - https
+                              type: string
+                            verify:
+                              example: true
+                              type: boolean
+                          type: object
+                        type: object
+                    type: object
+                  - example:
+                      key: value
+                    properties:
+                      code:
+                        default: 301
+                        example: 349
+                        maximum: 399
+                        minimum: 300
+                        type: integer
+                      kind:
+                        enum:
+                        - redirect
+                        type: string
+                      url:
+                        example: http://example.com
+                        pattern: ^(?:http|ftp)s?://(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:/?|[/?]\S+)$
+                        type: string
+                    type: object
+                  - example:
+                      key: value
+                    properties:
+                      is_spa:
+                        example: true
+                        type: boolean
+                      kind:
+                        enum:
+                        - local_dir
+                        type: string
+                      path:
+                        example: ^(?!.*\/\.\.(?:\/.*|$))\/var\/www\/.*$
+                        pattern: ^(?!.*\/\.\.(?:\/.*|$))\/var\/www\/.*$
+                        type: string
+                    type: object
+                  - example:
+                      key: value
+                    properties:
+                      is_spa:
+                        example: true
+                        type: boolean
+                      kind:
+                        enum:
+                        - local_dir_download
+                        type: string
+                      url:
+                        example: http://example.com
+                        pattern: ^(?:http|ftp)s?://(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:/?|[/?]\S+)$
+                        type: string
+                    type: object
+                  type: object
+                type: array
+              allowed_ips:
+                default:
+                - 0.0.0.0/0
+                example:
+                - 10.0.0.1/32
+                items:
+                  anyOf:
+                  - format: ipv4
+                  - format: ipv6
+                  example: 10.0.0.1/32
+                  type: string
+                type: array
+              kind:
+                enum:
+                - exact
+                type: string
+              modifiers:
+                default: []
+                example:
+                - key: value
+                items:
+                  example:
+                    key: value
+                  oneOf:
+                  - example:
+                      key: value
+                    properties:
+                      headers:
+                        default:
+                        - Host
+                        - X-Forwarded-For
+                        - X-Forwarded-Port
+                        - X-Forwarded-Proto
+                        - X-Forwarded-Prefix
+                        example:
+                        - Host
+                        items:
+                          enum:
+                          - Host
+                          - X-Forwarded-For
+                          - X-Forwarded-Port
+                          - X-Forwarded-Prefix
+                          - X-Forwarded-Proto
+                          example: Host
+                          type: string
+                        type: array
+                      kind:
+                        enum:
+                        - auto_header
+                        type: string
+                    type: object
+                  - example:
+                      key: value
+                    properties:
+                      kind:
+                        enum:
+                        - set_header
+                        type: string
+                      name:
+                        example: any_string
+                        maxLength: 100
+                        minLength: 1
+                        type: string
+                      value:
+                        example: any_string
+                        maxLength: 1000
+                        minLength: 0
+                        type: string
+                    type: object
+                  - example:
+                      key: value
+                    properties:
+                      kind:
+                        enum:
+                        - rewrite_url
+                        type: string
+                      regex:
+                        example: any_string
+                        maxLength: 10000
+                        minLength: 1
+                        type: string
+                      replacement:
+                        example: any_string
+                        maxLength: 10000
+                        minLength: 1
+                        type: string
+                    type: object
+                  type: object
+                type: array
+              value:
+                example: ^\/(.*)$
+                pattern: ^\/(.*)$
+                type: string
+            type: object
+          - example:
+              key: value
+            properties:
+              actions:
+                example:
+                - key: value
+                items:
+                  example:
+                    key: value
+                  oneOf:
+                  - example:
+                      key: value
+                    properties:
+                      kind:
+                        enum:
+                        - backend
+                        type: string
+                      pool:
+                        type: string
+                      protocol:
+                        default:
+                          kind: http
+                        example:
+                          key: value
+                        oneOf:
+                        - example:
+                            key: value
+                          properties:
+                            kind:
+                              enum:
+                              - http
+                              type: string
+                          type: object
+                        - example:
+                            key: value
+                          properties:
+                            kind:
+                              enum:
+                              - https
+                              type: string
+                            verify:
+                              example: true
+                              type: boolean
+                          type: object
+                        type: object
+                    type: object
+                  - example:
+                      key: value
+                    properties:
+                      code:
+                        default: 301
+                        example: 349
+                        maximum: 399
+                        minimum: 300
+                        type: integer
+                      kind:
+                        enum:
+                        - redirect
+                        type: string
+                      url:
+                        example: http://example.com
+                        pattern: ^(?:http|ftp)s?://(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:/?|[/?]\S+)$
+                        type: string
+                    type: object
+                  - example:
+                      key: value
+                    properties:
+                      is_spa:
+                        example: true
+                        type: boolean
+                      kind:
+                        enum:
+                        - local_dir
+                        type: string
+                      path:
+                        example: ^(?!.*\/\.\.(?:\/.*|$))\/var\/www\/.*$
+                        pattern: ^(?!.*\/\.\.(?:\/.*|$))\/var\/www\/.*$
+                        type: string
+                    type: object
+                  - example:
+                      key: value
+                    properties:
+                      is_spa:
+                        example: true
+                        type: boolean
+                      kind:
+                        enum:
+                        - local_dir_download
+                        type: string
+                      url:
+                        example: http://example.com
+                        pattern: ^(?:http|ftp)s?://(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:/?|[/?]\S+)$
+                        type: string
+                    type: object
+                  type: object
+                type: array
+              allowed_ips:
+                default:
+                - 0.0.0.0/0
+                example:
+                - 10.0.0.1/32
+                items:
+                  anyOf:
+                  - format: ipv4
+                  - format: ipv6
+                  example: 10.0.0.1/32
+                  type: string
+                type: array
+              kind:
+                enum:
+                - regex
+                type: string
+              modifiers:
+                default: []
+                example:
+                - key: value
+                items:
+                  example:
+                    key: value
+                  oneOf:
+                  - example:
+                      key: value
+                    properties:
+                      headers:
+                        default:
+                        - Host
+                        - X-Forwarded-For
+                        - X-Forwarded-Port
+                        - X-Forwarded-Proto
+                        example:
+                        - Host
+                        items:
+                          enum:
+                          - Host
+                          - X-Forwarded-For
+                          - X-Forwarded-Port
+                          - X-Forwarded-Proto
+                          example: Host
+                          type: string
+                        type: array
+                      kind:
+                        enum:
+                        - auto_header
+                        type: string
+                    type: object
+                  - example:
+                      key: value
+                    properties:
+                      kind:
+                        enum:
+                        - set_header
+                        type: string
+                      name:
+                        example: any_string
+                        maxLength: 100
+                        minLength: 1
+                        type: string
+                      value:
+                        example: any_string
+                        maxLength: 1000
+                        minLength: 0
+                        type: string
+                    type: object
+                  - example:
+                      key: value
+                    properties:
+                      kind:
+                        enum:
+                        - rewrite_url
+                        type: string
+                      regex:
+                        example: any_string
+                        maxLength: 10000
+                        minLength: 1
+                        type: string
+                      replacement:
+                        example: any_string
+                        maxLength: 10000
+                        minLength: 1
+                        type: string
+                    type: object
+                  type: object
+                type: array
+              value:
+                example: any_string
+                maxLength: 9223372036854775807
+                minLength: 0
+                type: string
+            type: object
+          - example:
+              key: value
+            properties:
+              actions:
+                example:
+                - key: value
+                items:
+                  example:
+                    key: value
+                  oneOf:
+                  - example:
+                      key: value
+                    properties:
+                      kind:
+                        enum:
+                        - backend
+                        type: string
+                      pool:
+                        type: string
+                    type: object
+                  type: object
+                type: array
+              allowed_ips:
+                default:
+                - 0.0.0.0/0
+                example:
+                - 10.0.0.1/32
+                items:
+                  anyOf:
+                  - format: ipv4
+                  - format: ipv6
+                  example: 10.0.0.1/32
+                  type: string
+                type: array
+              kind:
+                enum:
+                - raw
+                type: string
+            type: object
+          type: object
+        created_at:
+          default: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        description:
+          default: ''
+          example: any_string
+          maxLength: 255
+          minLength: 0
+          type: string
+        enabled:
+          example: true
+          type: boolean
+        name:
+          default: ''
+          example: any_string
+          maxLength: 255
+          minLength: 0
+          type: string
+        project_id:
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          type: string
+        status:
+          default: ACTIVE
+          enum:
+          - ACTIVE
+          - ERROR
+          - IN_PROGRESS
+          - NEW
+          example: NEW
+          type: string
+        updated_at:
+          default: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        uuid:
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          type: string
+      required:
+      - project_id
+      - condition
       type: object
     Rule_Create:
       properties:
@@ -2122,7 +3203,6 @@ components:
           type: string
       required:
       - project_id
-      - constructor
       - target
       type: object
     Service_Create:
@@ -2349,17 +3429,6 @@ components:
       type: object
     User_Create:
       properties:
-        confirmation_code:
-          example: 00000000-0000-0000-0000-000000000000
-          format: uuid
-          nullable: true
-          type: string
-        confirmation_code_made_at:
-          example: '2006-01-02T15:04:05.000576Z'
-          format: date-time
-          nullable: true
-          type: string
-          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
         created_at:
           default: '2006-01-02T15:04:05.000576Z'
           example: '2006-01-02T15:04:05.000576Z'
@@ -2456,12 +3525,6 @@ components:
         otp_enabled:
           example: true
           type: boolean
-        otp_secret:
-          default: ''
-          example: any_string
-          maxLength: 128
-          minLength: 0
-          type: string
         password:
           example: any_string
           maxLength: 128
@@ -2473,16 +3536,6 @@ components:
           maxLength: 15
           minLength: 0
           type: string
-        salt:
-          example: ssssssssssssssssssssssss
-          maxLength: 24
-          minLength: 24
-          type: string
-        secret_hash:
-          example: ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss
-          maxLength: 128
-          minLength: 128
-          type: string
         status:
           default: ACTIVE
           enum:
@@ -2493,6 +3546,14 @@ components:
           default: ''
           example: ^.*$
           pattern: ^.*$
+          type: string
+        type:
+          default: user
+          enum:
+          - anon
+          - service
+          - user
+          example: user
           type: string
         updated_at:
           default: '2006-01-02T15:04:05.000576Z'
@@ -2558,7 +3619,6 @@ components:
           type: string
       required:
       - username
-      - password
       - email
       type: object
     Value_Create:
@@ -2739,6 +3799,150 @@ components:
       - project_id
       - setter
       type: object
+    Vhost_Create:
+      properties:
+        cert:
+          example:
+            key: value
+          nullable: true
+          oneOf:
+          - example:
+              key: value
+            properties:
+              crt:
+                example: any_string
+                maxLength: 100000
+                minLength: 1
+                type: string
+              key:
+                example: any_string
+                maxLength: 100000
+                minLength: 1
+                type: string
+              kind:
+                enum:
+                - raw
+                type: string
+            type: object
+          type: object
+        created_at:
+          default: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        description:
+          default: ''
+          example: any_string
+          maxLength: 255
+          minLength: 0
+          type: string
+        domains:
+          example:
+          - any_string
+          items:
+            example: any_string
+            maxLength: 255
+            minLength: 1
+            type: string
+          nullable: true
+          type: array
+        enabled:
+          example: true
+          type: boolean
+        external_sources:
+          default: []
+          example:
+          - key: value
+          items:
+            example:
+              key: value
+            oneOf:
+            - example:
+                key: value
+              properties:
+                host:
+                  example: any_string
+                  maxLength: 260
+                  minLength: 1
+                  type: string
+                kind:
+                  enum:
+                  - ssh_forward
+                  type: string
+                port:
+                  default: 22
+                  example: 32768
+                  maximum: 65535
+                  minimum: 1
+                  type: integer
+                private_key:
+                  example: any_string
+                  maxLength: 32768
+                  minLength: 1
+                  type: string
+                user:
+                  example: any_string
+                  maxLength: 32
+                  minLength: 1
+                  type: string
+              type: object
+            type: object
+          type: array
+        name:
+          default: ''
+          example: any_string
+          maxLength: 255
+          minLength: 0
+          type: string
+        port:
+          default: 80
+          example: 32807
+          maximum: 65535
+          minimum: 80
+          type: integer
+        project_id:
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          type: string
+        protocol:
+          default: http
+          enum:
+          - http
+          - https
+          - tcp
+          - udp
+          example: http
+          type: string
+        proxy_protocol_from:
+          anyOf:
+          - format: ipv4
+          - format: ipv6
+          example: 10.0.0.1/32
+          nullable: true
+          type: string
+        status:
+          default: ACTIVE
+          enum:
+          - ACTIVE
+          - ERROR
+          - IN_PROGRESS
+          - NEW
+          example: NEW
+          type: string
+        updated_at:
+          default: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        uuid:
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          type: string
+      required:
+      - project_id
+      type: object
     Volume_Create:
       properties:
         boot:
@@ -2768,12 +3972,6 @@ components:
           minLength: 0
           nullable: true
           type: string
-        index:
-          default: 4096
-          example: 2048
-          maximum: 4096
-          minimum: 0
-          type: integer
         label:
           example: any_string
           maxLength: 127
@@ -2787,11 +3985,6 @@ components:
           minLength: 0
           type: string
         node:
-          type: string
-        pool:
-          example: 00000000-0000-0000-0000-000000000000
-          format: uuid
-          nullable: true
           type: string
         project_id:
           example: 00000000-0000-0000-0000-000000000000
@@ -2871,6 +4064,9 @@ properties:
   name:
     maxLength: 255
     type: string
+  openapi_spec:
+    nullable: true
+    type: string
   requirements:
     additionalProperties:
       $ref: '#/components/schemas/requirements'
@@ -2901,9 +4097,25 @@ properties:
         additionalProperties:
           $ref: '#/components/schemas/Domain_Create'
         type: object
+      $core.dns.domains.records:
+        additionalProperties:
+          $ref: '#/components/schemas/Record_Create'
+        type: object
       $core.em.elements:
         additionalProperties:
           $ref: '#/components/schemas/Element_Create'
+        type: object
+      $core.em.elements.exports:
+        additionalProperties:
+          $ref: '#/components/schemas/Export_Create'
+        type: object
+      $core.em.elements.imports:
+        additionalProperties:
+          $ref: '#/components/schemas/Import_Create'
+        type: object
+      $core.em.elements.resources:
+        additionalProperties:
+          $ref: '#/components/schemas/Resource_Create'
         type: object
       $core.em.manifests:
         additionalProperties:
@@ -2956,6 +4168,18 @@ properties:
       $core.network.lb:
         additionalProperties:
           $ref: '#/components/schemas/LB_Create'
+        type: object
+      $core.network.lb.backend_pools:
+        additionalProperties:
+          $ref: '#/components/schemas/BackendPool_Create'
+        type: object
+      $core.network.lb.vhosts:
+        additionalProperties:
+          $ref: '#/components/schemas/Vhost_Create'
+        type: object
+      $core.network.lb.vhosts.routes:
+        additionalProperties:
+          $ref: '#/components/schemas/Route_Create'
         type: object
       $core.secret.certificates:
         additionalProperties:
