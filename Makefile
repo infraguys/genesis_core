@@ -7,8 +7,8 @@ endif
 all: help
 
 help:
-	@echo "build_core       - build genesis core"
-	@echo "bootstrap        - bootstrap genesis core"
+	@echo "build_core       - build exordos core"
+	@echo "bootstrap        - bootstrap exordos core"
 
 build_core:
 	genesis build -i $(SSH_KEY) -f . --inventory --manifest-var repository=https://repository.genesis-core.tech

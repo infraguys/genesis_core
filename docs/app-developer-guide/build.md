@@ -4,7 +4,7 @@ title: genesis build
 
 ## Overview
 
-`genesis build` **compiles and packages** your Genesis element into distributable artifacts — images, manifests, and any other resources required for deployment.
+`genesis build` **compiles and packages** your Exordos element into distributable artifacts — images, manifests, and any other resources required for deployment.
 
 The command reads the **`genesis/genesis.yaml`** file — the main configuration file that transforms your application into a platform element. This file contains the `build` section describing:
 
@@ -100,7 +100,7 @@ genesis build --inventory .
 
 ## Build Process
 
-The build process creates **VM disk images** that run on the Genesis Core platform. Packer starts a virtual machine from a base OS image, copies all resolved dependencies into it, and executes the provisioning script specified in `genesis.yaml`. This script is typically a Bash script that installs packages, configures services, and prepares the image. Once provisioning completes, the VM shuts down and the resulting disk image is packaged for deployment. This process is configured through the `elements` section in `genesis.yaml` where you define the base profile, provisioning script, output format, and any build overrides.
+The build process creates **VM disk images** that run on the Exordos Core platform. Packer starts a virtual machine from a base OS image, copies all resolved dependencies into it, and executes the provisioning script specified in `genesis.yaml`. This script is typically a Bash script that installs packages, configures services, and prepares the image. Once provisioning completes, the VM shuts down and the resulting disk image is packaged for deployment. This process is configured through the `elements` section in `genesis.yaml` where you define the base profile, provisioning script, output format, and any build overrides.
 
 ---
 
@@ -114,9 +114,9 @@ Include another local project or directory into your build. The source path is r
 
 ```yaml
 deps:
-  - dst: /opt/genesis_core
+  - dst: /opt/exordos_core
     path:
-      src: ../../genesis_core
+      src: ../../exordos_core
     exclude:
       - .venv
       - .tox
@@ -124,7 +124,7 @@ deps:
       - output
 ```
 
-This copies the `genesis_core` project into `/opt/genesis_core` during the build, excluding development directories.
+This copies the `exordos_core` project into `/opt/exordos_core` during the build, excluding development directories.
 
 #### External Binary Artifacts
 
@@ -132,7 +132,7 @@ Fetch remote resources via HTTP/HTTPS. This is useful for kernel images, boot lo
 
 ```yaml
 deps:
-  - dst: /opt/genesis_core/artifacts/vmlinuz
+  - dst: /opt/exordos_core/artifacts/vmlinuz
     http:
       src: https://repository.genesis-core.tech/seed_os/1.1.0/vmlinuz
 ```
@@ -261,7 +261,7 @@ The exact contents depend on your project type and `genesis.yaml` configuration.
 After a successful build, your elements are ready for:
 
 - [`genesis push`](push.md) — publish to the ecosystem registry
-- [`genesis deploy`](deploy.md) — deploy to a Genesis installation
+- [`genesis deploy`](deploy.md) — deploy to a Exordos installation
 
 ---
 

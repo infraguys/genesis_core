@@ -9,7 +9,7 @@
             "type": "debugpy",
             "request": "launch",
             "program": ".tox/develop/bin/gc-user-api",
-            "args": ["--config-file", "etc/genesis_core/genesis_core.conf.local", "--config-dir", "etc/genesis_core/genesis_core.d/"],
+            "args": ["--config-file", "etc/exordos_core/exordos_core.conf.local", "--config-dir", "etc/exordos_core/exordos_core.d/"],
             "console": "integratedTerminal",
             "justMyCode": false,
             "subProcess": true
@@ -18,7 +18,7 @@
             "type": "debugpy",
             "request": "launch",
             "program": ".tox/develop/bin/gc-orch-api",
-            "args": ["--config-file", "etc/genesis_core/genesis_core.conf.local", "--config-dir", "etc/genesis_core/genesis_core.d/"],
+            "args": ["--config-file", "etc/exordos_core/exordos_core.conf.local", "--config-dir", "etc/exordos_core/exordos_core.d/"],
             "console": "integratedTerminal",
             "justMyCode": false
         }, {
@@ -26,7 +26,7 @@
             "type": "debugpy",
             "request": "launch",
             "program": ".tox/develop/bin/gc-gservice",
-            "args": ["--config-file", "etc/genesis_core/genesis_core.conf.local", "--config-dir", "etc/genesis_core/genesis_core.d/"],
+            "args": ["--config-file", "etc/exordos_core/exordos_core.conf.local", "--config-dir", "etc/exordos_core/exordos_core.d/"],
             "console": "integratedTerminal",
             "justMyCode": false
         }, {
@@ -35,8 +35,8 @@
             "request": "launch",
             "program": ".tox/develop/bin/gc-manifest-parser",
             "args": [
-                "--config-file", "etc/genesis_core/genesis_core.conf.local",
-                "--config-dir", "etc/genesis_core/genesis_core.d/",
+                "--config-file", "etc/exordos_core/exordos_core.conf.local",
+                "--config-dir", "etc/exordos_core/exordos_core.d/",
                 "--manifest-path", "genesis/manifests/core.element.yaml"
             ],
             "console": "integratedTerminal",
@@ -47,8 +47,8 @@
             "request": "launch",
             "program": ".tox/develop/bin/genesis-universal-agent",
             "args": [
-                "--config-file", "etc/genesis_core/genesis_core.conf.local",
-                "--config-dir", "etc/genesis_core/genesis_core.d/",
+                "--config-file", "etc/exordos_core/exordos_core.conf.local",
+                "--config-dir", "etc/exordos_core/exordos_core.d/",
             ],
             "console": "integratedTerminal",
             "justMyCode": false
@@ -58,8 +58,8 @@
             "request": "launch",
             "program": ".tox/develop/bin/ra-apply-migration",
             "args": [
-                "--config-file", "etc/genesis_core/genesis_core.conf.local",
-                "--config-dir", "etc/genesis_core/genesis_core.d/",
+                "--config-file", "etc/exordos_core/exordos_core.conf.local",
+                "--config-dir", "etc/exordos_core/exordos_core.d/",
                 "-p", "migrations"
             ],
             "console": "integratedTerminal",
@@ -70,8 +70,8 @@
             "request": "launch",
             "program": ".tox/develop/bin/ra-rollback-migration",
             "args": [
-                "--config-file", "etc/genesis_core/genesis_core.conf.local",
-                "--config-dir", "etc/genesis_core/genesis_core.d/",
+                "--config-file", "etc/exordos_core/exordos_core.conf.local",
+                "--config-dir", "etc/exordos_core/exordos_core.d/",
                 "-p", "migrations",
                 "-m", "root"
             ],

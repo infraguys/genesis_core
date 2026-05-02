@@ -1,11 +1,11 @@
 # Basic usage
 
-This guide describes how to install and use Genesis Core on existing infrastructure. The existing infrastructure can be a local machine or several servers.
+This guide describes how to install and use Exordos Core on existing infrastructure. The existing infrastructure can be a local machine or several servers.
 It's assumed Linux(Ubuntu) is used as the OS on your machines.
 
 ## Requirements
 
-Before you install and use genesis core you need to install several requirements:
+Before you install and use exordos core you need to install several requirements:
 
 ### Packages
 
@@ -54,16 +54,16 @@ sudo virsh pool-info default
 
 ## Installation
 
-The simplest way to install Genesis Core is to get a prebuilt virtual machine image with all necessary dependencies. Take the the [latest image here](http://repository.genesis-core.tech:8081/genesis-core/latest/genesis-core.qcow2).
+The simplest way to install Exordos Core is to get a prebuilt virtual machine image with all necessary dependencies. Take the the [latest image here](http://repository.genesis-core.tech:8081/exordos-core/latest/exordos-core.qcow2).
 
 ### Local machine / Development
 
-Install Genesis DevTools first. For more information about it, see [Genesis DevTools](https://github.com/infraguys/genesis_devtools). The devtools allows to build and run the genesis core locally. Since we already downloaded the latest image, we don't need to build it from scratch but if you need to build an image from source look at the [instructions here](https://github.com/infraguys/genesis_devtools?tab=readme-ov-file#build).
+Install Exordos DevTools first. For more information about it, see [Exordos DevTools](https://github.com/infraguys/genesis_devtools). The devtools allows to build and run the exordos core locally. Since we already downloaded the latest image, we don't need to build it from scratch but if you need to build an image from source look at the [instructions here](https://github.com/infraguys/genesis_devtools?tab=readme-ov-file#build).
 
-The devtools has `bootstrap` command that will start the Genesis Core locally.
+The devtools has `bootstrap` command that will start the Exordos Core locally.
 
 ```bash
-genesis bootstrap -i genesis-core.raw -m core
+genesis bootstrap -i exordos-core.raw -m core
 ```
 
 For more information about the `bootstrap` command, see [instructions here](https://github.com/infraguys/genesis_devtools?tab=readme-ov-file#bootstrap).
@@ -92,7 +92,7 @@ The return value is `json` object with the `access_token` field. Copy the token 
 
 ##### Libvirt via SSH (preffered)
 
-Create key in genesis core's VM for root user:
+Create key in exordos core's VM for root user:
 
 ```console
 # ssh-keygen
@@ -154,7 +154,7 @@ curl --location --globoff 'http://10.20.0.2:11010/v1/compute/hypervisors/' \
         "driver": "libvirt",
         "iface_mtu": 1500,
         "network_type": "network",
-        "network": "genesis-core-net",
+        "network": "exordos-core-net",
         "storage_pool": "default", // for qcow
         "storage_pool": "rpool", // for ZFS
         "connection_uri": "qemu+tcp://10.20.0.1/system", // for TCP connect
@@ -182,4 +182,4 @@ The production installation guide will be added soon.
 
 ## Usage
 
-Follow the [usage guide](https://github.com/infraguys/genesis_core/wiki/Usage) for more information.
+Follow the [usage guide](https://github.com/infraguys/exordos_core/wiki/Usage) for more information.

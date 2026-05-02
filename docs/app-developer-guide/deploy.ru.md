@@ -4,7 +4,7 @@ title: genesis elements install
 
 ## Обзор
 
-`genesis elements install` **устанавливает** элемент в realm платформы Genesis Core с необходимыми зависимостями.
+`genesis elements install` **устанавливает** элемент в realm платформы Exordos Core с необходимыми зависимостями.
 
 ```bash
 genesis elements install [OPTIONS] PATH_OR_NAME
@@ -17,7 +17,7 @@ genesis elements install [OPTIONS] PATH_OR_NAME
 | `-r, --repository TEXT` | Конечная точка репозитория, где хранится элемент [по умолчанию: `https://repository.genesis-core.tech/genesis-elements/`] |
 | `PATH_OR_NAME` | Путь к локальному файлу манифеста или имя элемента в репозитории |
 
-Вы можете устанавливать элементы на [публичную установку Genesis Core](public-installation.ru.md). Или вы можете развернуть [приватную установку Genesis Core](private-installation.ru.md) на своём оборудовании. Для разработки и тестирования вы можете использовать [установку на локальном ноутбуке](local-laptop-installation.ru.md).
+Вы можете устанавливать элементы на [публичную установку Exordos Core](public-installation.ru.md). Или вы можете развернуть [приватную установку Exordos Core](private-installation.ru.md) на своём оборудовании. Для разработки и тестирования вы можете использовать [установку на локальном ноутбуке](local-laptop-installation.ru.md).
 
 ---
 
@@ -55,7 +55,7 @@ genesis elements install -r https://my-repo.example.com/elements/ my-element
 
 ### Целевой realm
 
-Команда развёртывает в realm Genesis Core, который в данный момент настроен в вашем окружении. Убедитесь, что у вас есть:
+Команда развёртывает в realm Exordos Core, который в данный момент настроен в вашем окружении. Убедитесь, что у вас есть:
 
 - Валидные учётные данные для целевого realm
 - Сетевое подключение к конечной точке API realm
@@ -63,7 +63,7 @@ genesis elements install -r https://my-repo.example.com/elements/ my-element
 
 ### Выбор репозитория
 
-По умолчанию элементы получаются из публичного репозитория Genesis. Для приватных или внутренних элементов укажите URL пользовательского репозитория с опцией `-r`.
+По умолчанию элементы получаются из публичного репозитория Exordos. Для приватных или внутренних элементов укажите URL пользовательского репозитория с опцией `-r`.
 
 ---
 
@@ -71,7 +71,7 @@ genesis elements install -r https://my-repo.example.com/elements/ my-element
 
 После успешной установки:
 
-- Проверьте статус элемента в Genesis Core CLI
+- Проверьте статус элемента в Exordos Core CLI
 - [Настройте манифест](../misc/manifests.ru.md) для адаптации конфигурации элемента под ваши нужды
 - [Обновите элемент](../admin-guide/index.ru.md) когда доступна новая версия
 

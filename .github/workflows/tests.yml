@@ -45,10 +45,10 @@ jobs:
         image: postgres:latest
         # Provide the password for postgres
         env:
-          POSTGRES_DB: genesis_core
+          POSTGRES_DB: exordos_core
           POSTGRES_HOST_AUTH_METHOD: trust
-          POSTGRES_USER: genesis_core
-          POSTGRES_PASSWORD: genesis_core
+          POSTGRES_USER: exordos_core
+          POSTGRES_PASSWORD: exordos_core
           POSTGRES_INITDB_ARGS: "-c max_connections=100"
         # Set health checks to wait until postgres has started
         options: >-
@@ -76,7 +76,7 @@ jobs:
           tox -e ${{ matrix.python-version }}
       - name: Functional tests
         env:
-          DATABASE_URI: "postgresql://genesis_core:genesis_core@localhost:5432/genesis_core"
+          DATABASE_URI: "postgresql://exordos_core:exordos_core@localhost:5432/exordos_core"
         run: |
           tox -e ${{ matrix.python-version }}-functional
   Coverage:

@@ -20,11 +20,11 @@ set -eu
 set -x
 set -o pipefail
 
-GC_PATH="/opt/genesis_core"
-GC_CFG_DIR=/etc/genesis_core
+GC_PATH="/opt/exordos_core"
+GC_CFG_DIR=/etc/exordos_core
 VENV_PATH="$GC_PATH/.venv"
 
-# Disk auto-provisioning for Genesis data directory.
+# Disk auto-provisioning for Exordos data directory.
 #
 # Goal:
 # - Detect the "secondary" disk (any disk that is not the root disk)
@@ -36,7 +36,7 @@ VENV_PATH="$GC_PATH/.venv"
 # This block is intended to be idempotent and safe to run on every boot.
 
 log() {
-  echo "[genesis-bootstrap] $*"
+  echo "[exordos-bootstrap] $*"
 }
 
 host_mountpoint() {
@@ -50,8 +50,8 @@ host_mountpoint() {
 
 # Identify the block device that backs the root filesystem.
 # Example output:
-#   [genesis-bootstrap] root source: /dev/vda1
-#   [genesis-bootstrap] root disk: vda
+#   [exordos-bootstrap] root source: /dev/vda1
+#   [exordos-bootstrap] root disk: vda
 ROOT_SRC="$(findmnt -n -o SOURCE / || true)"
 ROOT_DISK=""
 if [[ -n "${ROOT_SRC}" ]]; then
@@ -62,7 +62,7 @@ log "root disk: ${ROOT_DISK:-<unknown>}"
 
 # Pick the first disk device that is not the root disk.
 # Example output:
-#   [genesis-bootstrap] secondary disk candidate: vdb
+#   [exordos-bootstrap] secondary disk candidate: vdb
 SECOND_DISK="$(lsblk -dn -o NAME,TYPE | awk -v root_disk="${ROOT_DISK}" '$2=="disk" && $1!=root_disk {print $1; exit}')"
 log "secondary disk candidate: ${SECOND_DISK:-<none>}"
 
@@ -71,13 +71,13 @@ if [[ -n "${SECOND_DISK}" ]]; then
 
   # Count partitions on the selected disk.
   # Example output:
-  #   [genesis-bootstrap] /dev/vdb partitions: 0
+  #   [exordos-bootstrap] /dev/vdb partitions: 0
   PART_COUNT="$(lsblk -nr -o TYPE "${DISK_DEV}" | awk '$1=="part" {c++} END {print c+0}')"
   log "${DISK_DEV} partitions: ${PART_COUNT}"
 
   # Create a single partition when there are no partitions yet.
   # Example output:
-  #   [genesis-bootstrap] creating GPT partition table and one partition on /dev/vdb
+  #   [exordos-bootstrap] creating GPT partition table and one partition on /dev/vdb
   if [[ "${PART_COUNT}" -eq 0 ]]; then
     log "creating GPT partition table and one partition on ${DISK_DEV}"
     sfdisk --label gpt "${DISK_DEV}" <<'EOF'
@@ -91,7 +91,7 @@ EOF
 
   # Pick the first partition on the disk.
   # Example output:
-  #   [genesis-bootstrap] selected partition: /dev/vdb1
+  #   [exordos-bootstrap] selected partition: /dev/vdb1
   PART_NAME="$(lsblk -nr -o NAME,TYPE "${DISK_DEV}" | awk '$2=="part" {print $1; exit}')"
   if [[ -n "${PART_NAME}" ]]; then
     PART_DEV="/dev/${PART_NAME}"
@@ -99,8 +99,8 @@ EOF
 
     # Detect filesystem type; create ext4 if unformatted.
     # Example output:
-    #   [genesis-bootstrap] filesystem on /dev/vdb1: <none>
-    #   [genesis-bootstrap] formatting /dev/vdb1 as ext4
+    #   [exordos-bootstrap] filesystem on /dev/vdb1: <none>
+    #   [exordos-bootstrap] formatting /dev/vdb1 as ext4
     FS_TYPE="$(blkid -o value -s TYPE "${PART_DEV}" 2>/dev/null || true)"
     log "filesystem on ${PART_DEV}: ${FS_TYPE:-<none>}"
     if [[ -z "${FS_TYPE}" ]]; then
@@ -117,14 +117,14 @@ EOF
 
       # Ensure mountpoint exists.
       # Example output:
-      #   [genesis-bootstrap] ensuring mountpoint exists: /var/lib/genesis/data
+      #   [exordos-bootstrap] ensuring mountpoint exists: /var/lib/genesis/data
       mkdir -p "${MOUNTPOINT}"
       log "ensuring mountpoint exists: ${MOUNTPOINT}"
 
       # Ensure /etc/fstab has the correct UUID-based entry.
       # Example output:
-      #   [genesis-bootstrap] partition UUID: 1234-...
-      #   [genesis-bootstrap] updating /etc/fstab entry for /var/lib/genesis/data
+      #   [exordos-bootstrap] partition UUID: 1234-...
+      #   [exordos-bootstrap] updating /etc/fstab entry for /var/lib/genesis/data
       UUID="$(blkid -o value -s UUID "${PART_DEV}" 2>/dev/null || true)"
       if [[ -n "${UUID}" ]]; then
         log "partition UUID: ${UUID}"
@@ -138,7 +138,7 @@ EOF
 
             # Reload systemd units generated from fstab so the mount can work on first run.
             # Example output:
-            #   [genesis-bootstrap] running: systemctl daemon-reload
+            #   [exordos-bootstrap] running: systemctl daemon-reload
             log "running: systemctl daemon-reload"
             systemctl daemon-reload || true
           else
@@ -150,7 +150,7 @@ EOF
 
           # Reload systemd units generated from fstab so the mount can work on first run.
           # Example output:
-          #   [genesis-bootstrap] running: systemctl daemon-reload
+          #   [exordos-bootstrap] running: systemctl daemon-reload
           log "running: systemctl daemon-reload"
           systemctl daemon-reload || true
         fi
@@ -160,7 +160,7 @@ EOF
 
       # Mount if not mounted yet.
       # Example output:
-      #   [genesis-bootstrap] mounting /var/lib/genesis/data
+      #   [exordos-bootstrap] mounting /var/lib/genesis/data
       if ! host_mountpoint "${MOUNTPOINT}"; then
         log "mounting ${MOUNTPOINT}"
         mount "${MOUNTPOINT}" || mount "${PART_DEV}" "${MOUNTPOINT}"
@@ -169,7 +169,7 @@ EOF
         # In that case, a mount performed here may not be visible from the host namespace.
         # If it is still not mounted, retry in PID 1 mount namespace.
         # Example output:
-        #   [genesis-bootstrap] mount not visible after mount; retrying in PID 1 mount namespace
+        #   [exordos-bootstrap] mount not visible after mount; retrying in PID 1 mount namespace
         if ! host_mountpoint "${MOUNTPOINT}"; then
           if command -v nsenter >/dev/null 2>&1; then
             log "mount not visible from host namespace; retrying in PID 1 mount namespace"
@@ -198,16 +198,16 @@ fi
 
 # Execution can continue only if the secondary disk was detected and is mounted at /var/lib/genesis/data.
 if [[ -z "${SECOND_DISK}" ]]; then
-  echo "[genesis-bootstrap] ERROR: secondary disk was not detected; refusing to continue" >&2
+  echo "[exordos-bootstrap] ERROR: secondary disk was not detected; refusing to continue" >&2
   exit 1
 fi
 
 if ! host_mountpoint "/var/lib/genesis/data"; then
-  echo "[genesis-bootstrap] ERROR: /var/lib/genesis/data is not mounted; refusing to continue" >&2
+  echo "[exordos-bootstrap] ERROR: /var/lib/genesis/data is not mounted; refusing to continue" >&2
   exit 1
 fi
 
-# PostgreSQL data relocation and genesis_core DB bootstrap.
+# PostgreSQL data relocation and exordos_core DB bootstrap.
 #
 # Goal:
 # - Keep PostgreSQL packages installation logic in install.sh
@@ -215,9 +215,9 @@ fi
 
 if host_mountpoint "/var/lib/genesis/data"; then
   if command -v psql >/dev/null 2>&1; then
-    GC_PG_USER="${GC_PG_USER:-genesis_core}"
-    GC_PG_PASS="${GC_PG_PASS:-genesis_core}"
-    GC_PG_DB="${GC_PG_DB:-genesis_core}"
+    GC_PG_USER="${GC_PG_USER:-exordos_core}"
+    GC_PG_PASS="${GC_PG_PASS:-exordos_core}"
+    GC_PG_DB="${GC_PG_DB:-exordos_core}"
 
     PG_VERSION_DIR=""
     if [[ -d /etc/postgresql ]]; then
@@ -331,7 +331,7 @@ source "$VENV_PATH/bin/activate"
 # from persistent configuration file.
 ra-apply-migration --config-dir "$GC_CFG_DIR/" --path "$GC_PATH/migrations"
 
-# Enable genesis core services
+# Enable exordos core services
 log "systemctl enable --now gc-services"
 sudo systemctl enable --now \
     gc-user-api \
@@ -345,7 +345,7 @@ sudo systemctl enable --now \
 
 # Perform the bootstrap of GC
 log "Perform the bootstrap of GC"
-gc-bootstrap --config-file /etc/genesis_core/genesis_core.conf
+gc-bootstrap --config-file /etc/exordos_core/exordos_core.conf
 
 
 # Configure NAT

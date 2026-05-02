@@ -614,103 +614,7 @@ wheels = [
 ]
 
 [[package]]
-name = "filelock"
-version = "3.24.2"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/02/a8/dae62680be63cbb3ff87cfa2f51cf766269514ea5488479d42fec5aa6f3a/filelock-3.24.2.tar.gz", hash = "sha256:c22803117490f156e59fafce621f0550a7a853e2bbf4f87f112b11d469b6c81b", size = 37601, upload-time = "2026-02-16T02:50:45.614Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/e7/04/a94ebfb4eaaa08db56725a40de2887e95de4e8641b9e902c311bfa00aa39/filelock-3.24.2-py3-none-any.whl", hash = "sha256:667d7dc0b7d1e1064dd5f8f8e80bdac157a6482e8d2e02cd16fd3b6b33bd6556", size = 24152, upload-time = "2026-02-16T02:50:44Z" },
-]
-
-[[package]]
-name = "firebase-admin"
-version = "6.9.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "cachecontrol" },
-    { name = "google-api-core", extra = ["grpc"], marker = "platform_python_implementation != 'PyPy'" },
-    { name = "google-api-python-client" },
-    { name = "google-cloud-firestore", marker = "platform_python_implementation != 'PyPy'" },
-    { name = "google-cloud-storage" },
-    { name = "httpx", extra = ["http2"] },
-    { name = "pyjwt", extra = ["crypto"] },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/1e/e9/18872c1032905f06d7dd0ae207085a83ca638d40b922accebf5e5bbf735e/firebase_admin-6.9.0.tar.gz", hash = "sha256:06496c3d1380a8f69e3817045b244ce8578d8ad19af3f85c510ac4d8fe0433ca", size = 117059, upload-time = "2025-06-05T19:03:39.916Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/8d/c2/74656081120255c79e613eade6059c43dd648dfad00798a4cec60fcaae34/firebase_admin-6.9.0-py3-none-any.whl", hash = "sha256:75c261c074dcf33a2bcc8366b94ad96255da3fe24079c30220186d489d553ad5", size = 139720, upload-time = "2025-06-05T19:03:37.835Z" },
-]
-
-[[package]]
-name = "gcl-certbot-plugin"
-version = "0.0.6"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "bazooka" },
-    { name = "certbot" },
-    { name = "cryptography" },
-    { name = "gcl-iam" },
-    { name = "gcl-sdk" },
-    { name = "pbr" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/15/b3/681f3823e3127eebafef5760099bb5c53e1dfea8447d79bdd530d40ed637/gcl_certbot_plugin-0.0.6.tar.gz", hash = "sha256:e06c69a62da4d9a149e7e3e3bcb986e1ce1193b22a20403ca05cd1adf63d71d7", size = 13566, upload-time = "2026-02-19T16:16:05.44Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/9f/88/15737bd644a35af3d60a40bb973169edeb1078cfa8a3f5be3f1819af8035/gcl_certbot_plugin-0.0.6-py3-none-any.whl", hash = "sha256:f7571c1ac4553c9f01a42111753cadd3358673b888e9974844caf3224a45cf77", size = 15310, upload-time = "2026-02-19T16:16:03.681Z" },
-]
-
-[[package]]
-name = "gcl-iam"
-version = "1.2.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "bazooka" },
-    { name = "cryptography" },
-    { name = "izulu" },
-    { name = "pyjwt" },
-    { name = "restalchemy" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/bf/2a/5691cc4e515ba3fd212283cc8759ed0aea4bcce4de5352937e9619391bc4/gcl_iam-1.2.0.tar.gz", hash = "sha256:382f586e9b4b9e43cbd7eef5d32936b4b0df94010dcc405b6015f9979294d37d", size = 202448, upload-time = "2026-04-08T12:49:51.639Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/0c/fe/204bd374caf8554e7dc65a52ea08eaf23889692be655d83a797f8e775e43/gcl_iam-1.2.0-py3-none-any.whl", hash = "sha256:584eb1c0bee042120b203a59646e511f50fca49fbb86b00b7cbc6a0118322bb2", size = 39182, upload-time = "2026-04-08T12:49:49.872Z" },
-]
-
-[[package]]
-name = "gcl-looper"
-version = "1.2.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "importlib-metadata" },
-    { name = "oslo-config" },
-    { name = "pbr" },
-    { name = "setuptools" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/d5/15/59571bac751fb862e4923613374b67d87df40bd89e619b2f85106a46314e/gcl_looper-1.2.0.tar.gz", hash = "sha256:2e56b3ec84e0a1824bc5e627f822cca28e3bee257ef618a52791801810d5ae99", size = 23371, upload-time = "2026-02-18T10:17:29.341Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/1b/4c/ea54047f59993908db686903747b3158d053048862e33284711a691ff0bf/gcl_looper-1.2.0-py3-none-any.whl", hash = "sha256:07252558395226716bbfa27368f762e1cacfe1878b5d42590a3cce1768c764ad", size = 30409, upload-time = "2026-02-18T10:17:28.235Z" },
-]
-
-[[package]]
-name = "gcl-sdk"
-version = "2.2.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "bjoern" },
-    { name = "gcl-iam" },
-    { name = "gcl-looper" },
-    { name = "importlib-metadata" },
-    { name = "izulu" },
-    { name = "orjson" },
-    { name = "oslo-config" },
-    { name = "renameat2", marker = "sys_platform == 'linux'" },
-    { name = "restalchemy" },
-    { name = "xxhash" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/63/d8/f8dc3e95d55614eac94ac0d96ee2f440eb683fae264ba81ea157f4d86a09/gcl_sdk-2.2.1.tar.gz", hash = "sha256:156623befe9b2fb09cdd7a118a1c0a55fa8ed0bcb0c7f558a09046599233419d", size = 273921, upload-time = "2026-04-23T10:11:13.733Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/b0/73/19b77476294c9da1846132b8646bb8822d77d26c9295ae4addc31eebe824/gcl_sdk-2.2.1-py3-none-any.whl", hash = "sha256:7e9c62ed869cb77c7506338f0c9631348c2cd4a31ad0e64e772205d67e66d614", size = 209744, upload-time = "2026-04-23T10:11:12.072Z" },
-]
-
-[[package]]
-name = "genesis-core"
+name = "exordos-core"
 source = { editable = "." }
 dependencies = [
     { name = "altcha" },
@@ -805,6 +709,102 @@ requires-dist = [
     { name = "tox-uv", marker = "extra == 'dev'" },
 ]
 provides-extras = ["dev", "test", "mypy", "ruff", "shellcheck", "docs"]
+
+[[package]]
+name = "filelock"
+version = "3.24.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/02/a8/dae62680be63cbb3ff87cfa2f51cf766269514ea5488479d42fec5aa6f3a/filelock-3.24.2.tar.gz", hash = "sha256:c22803117490f156e59fafce621f0550a7a853e2bbf4f87f112b11d469b6c81b", size = 37601, upload-time = "2026-02-16T02:50:45.614Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e7/04/a94ebfb4eaaa08db56725a40de2887e95de4e8641b9e902c311bfa00aa39/filelock-3.24.2-py3-none-any.whl", hash = "sha256:667d7dc0b7d1e1064dd5f8f8e80bdac157a6482e8d2e02cd16fd3b6b33bd6556", size = 24152, upload-time = "2026-02-16T02:50:44Z" },
+]
+
+[[package]]
+name = "firebase-admin"
+version = "6.9.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cachecontrol" },
+    { name = "google-api-core", extra = ["grpc"], marker = "platform_python_implementation != 'PyPy'" },
+    { name = "google-api-python-client" },
+    { name = "google-cloud-firestore", marker = "platform_python_implementation != 'PyPy'" },
+    { name = "google-cloud-storage" },
+    { name = "httpx", extra = ["http2"] },
+    { name = "pyjwt", extra = ["crypto"] },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1e/e9/18872c1032905f06d7dd0ae207085a83ca638d40b922accebf5e5bbf735e/firebase_admin-6.9.0.tar.gz", hash = "sha256:06496c3d1380a8f69e3817045b244ce8578d8ad19af3f85c510ac4d8fe0433ca", size = 117059, upload-time = "2025-06-05T19:03:39.916Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8d/c2/74656081120255c79e613eade6059c43dd648dfad00798a4cec60fcaae34/firebase_admin-6.9.0-py3-none-any.whl", hash = "sha256:75c261c074dcf33a2bcc8366b94ad96255da3fe24079c30220186d489d553ad5", size = 139720, upload-time = "2025-06-05T19:03:37.835Z" },
+]
+
+[[package]]
+name = "gcl-certbot-plugin"
+version = "0.0.6"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "bazooka" },
+    { name = "certbot" },
+    { name = "cryptography" },
+    { name = "gcl-iam" },
+    { name = "gcl-sdk" },
+    { name = "pbr" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/15/b3/681f3823e3127eebafef5760099bb5c53e1dfea8447d79bdd530d40ed637/gcl_certbot_plugin-0.0.6.tar.gz", hash = "sha256:e06c69a62da4d9a149e7e3e3bcb986e1ce1193b22a20403ca05cd1adf63d71d7", size = 13566, upload-time = "2026-02-19T16:16:05.44Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9f/88/15737bd644a35af3d60a40bb973169edeb1078cfa8a3f5be3f1819af8035/gcl_certbot_plugin-0.0.6-py3-none-any.whl", hash = "sha256:f7571c1ac4553c9f01a42111753cadd3358673b888e9974844caf3224a45cf77", size = 15310, upload-time = "2026-02-19T16:16:03.681Z" },
+]
+
+[[package]]
+name = "gcl-iam"
+version = "1.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "bazooka" },
+    { name = "cryptography" },
+    { name = "izulu" },
+    { name = "pyjwt" },
+    { name = "restalchemy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/bf/2a/5691cc4e515ba3fd212283cc8759ed0aea4bcce4de5352937e9619391bc4/gcl_iam-1.2.0.tar.gz", hash = "sha256:382f586e9b4b9e43cbd7eef5d32936b4b0df94010dcc405b6015f9979294d37d", size = 202448, upload-time = "2026-04-08T12:49:51.639Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0c/fe/204bd374caf8554e7dc65a52ea08eaf23889692be655d83a797f8e775e43/gcl_iam-1.2.0-py3-none-any.whl", hash = "sha256:584eb1c0bee042120b203a59646e511f50fca49fbb86b00b7cbc6a0118322bb2", size = 39182, upload-time = "2026-04-08T12:49:49.872Z" },
+]
+
+[[package]]
+name = "gcl-looper"
+version = "1.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "importlib-metadata" },
+    { name = "oslo-config" },
+    { name = "pbr" },
+    { name = "setuptools" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d5/15/59571bac751fb862e4923613374b67d87df40bd89e619b2f85106a46314e/gcl_looper-1.2.0.tar.gz", hash = "sha256:2e56b3ec84e0a1824bc5e627f822cca28e3bee257ef618a52791801810d5ae99", size = 23371, upload-time = "2026-02-18T10:17:29.341Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1b/4c/ea54047f59993908db686903747b3158d053048862e33284711a691ff0bf/gcl_looper-1.2.0-py3-none-any.whl", hash = "sha256:07252558395226716bbfa27368f762e1cacfe1878b5d42590a3cce1768c764ad", size = 30409, upload-time = "2026-02-18T10:17:28.235Z" },
+]
+
+[[package]]
+name = "gcl-sdk"
+version = "2.2.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "bjoern" },
+    { name = "gcl-iam" },
+    { name = "gcl-looper" },
+    { name = "importlib-metadata" },
+    { name = "izulu" },
+    { name = "orjson" },
+    { name = "oslo-config" },
+    { name = "renameat2", marker = "sys_platform == 'linux'" },
+    { name = "restalchemy" },
+    { name = "xxhash" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/63/d8/f8dc3e95d55614eac94ac0d96ee2f440eb683fae264ba81ea157f4d86a09/gcl_sdk-2.2.1.tar.gz", hash = "sha256:156623befe9b2fb09cdd7a118a1c0a55fa8ed0bcb0c7f558a09046599233419d", size = 273921, upload-time = "2026-04-23T10:11:13.733Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b0/73/19b77476294c9da1846132b8646bb8822d77d26c9295ae4addc31eebe824/gcl_sdk-2.2.1-py3-none-any.whl", hash = "sha256:7e9c62ed869cb77c7506338f0c9631348c2cd4a31ad0e64e772205d67e66d614", size = 209744, upload-time = "2026-04-23T10:11:12.072Z" },
+]
 
 [[package]]
 name = "ghp-import"

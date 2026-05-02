@@ -1,0 +1,22 @@
+[DEFAULT]
+verbose = True
+debug = True
+
+[db]
+connection_url = postgresql://postgres:1234@172.17.0.2:5432/exordos_core
+connection_pool_size = 2
+
+[metrics]
+enabled = False
+
+[logging]
+config = logging.yaml
+
+[user_api]
+bind_host = 0.0.0.0
+bind_port = 11010
+workers = 1
+
+[orch_api]
+bind_host = 0.0.0.0
+bind_port = 11011

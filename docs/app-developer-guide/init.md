@@ -4,7 +4,7 @@ title: genesis init
 
 ## Overview
 
-`genesis init` **platformizes** an existing project — it prepares everything the Genesis Core platform needs to build, publish, and deploy it as an element.
+`genesis init` **platformizes** an existing project — it prepares everything the Exordos Core platform needs to build, publish, and deploy it as an element.
 
 Running the command performs the following steps:
 

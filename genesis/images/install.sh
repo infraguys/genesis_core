@@ -20,16 +20,16 @@ set -eu
 set -x
 set -o pipefail
 
-GC_PATH="/opt/genesis_core"
-GC_CFG_DIR=/etc/genesis_core
+GC_PATH="/opt/exordos_core"
+GC_CFG_DIR=/etc/exordos_core
 GC_ART_DIR="$GC_PATH/artifacts"
 VENV_PATH="$GC_PATH/.venv"
 BOOTSTRAP_PATH="/var/lib/genesis/bootstrap/scripts"
 
 PG_VERSION="18"
-GC_PG_USER="genesis_core"
-GC_PG_PASS="genesis_core"
-GC_PG_DB="genesis_core"
+GC_PG_USER="exordos_core"
+GC_PG_PASS="exordos_core"
+GC_PG_DB="exordos_core"
 
 SYSTEMD_SERVICE_DIR=/etc/systemd/system/
 
@@ -116,7 +116,7 @@ sudo chown www-data:www-data /etc/nginx/ssl
 sudo mkdir -p /etc/nginx/genesis/
 
 # Cert to restrict default_server
-sudo openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -subj "/C=PE/ST=Genesis/L=Genesis/O=Genesis core dummy cert. /OU=IT Department/CN=genesis.core" -keyout /etc/nginx/ssl/nginx.key -out /etc/nginx/ssl/nginx.crt
+sudo openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -subj "/C=PE/ST=Exordos/L=Exordos/O=Exordos core dummy cert. /OU=IT Department/CN=exordos.core" -keyout /etc/nginx/ssl/nginx.key -out /etc/nginx/ssl/nginx.crt
 
 # Block any connections not explicitly set
 sudo rm -f /etc/nginx/sites-enabled/default
@@ -136,11 +136,11 @@ sudo cp "$GC_PATH/etc/nginx/sites-available/genesis.conf" /etc/nginx/sites-avail
 sudo ln -s /etc/nginx/sites-available/genesis.conf /etc/nginx/sites-enabled/genesis.conf
 sudo systemctl enable nginx
 
-# Install genesis core
+# Install exordos core
 sudo mkdir -p $GC_CFG_DIR
-sudo cp "$GC_PATH/etc/genesis_core/core_agent.conf" $GC_CFG_DIR/
-sudo cp "$GC_PATH/etc/genesis_core/logging.yaml" $GC_CFG_DIR/
-sudo cp "$GC_PATH/etc/genesis_core/event_type_mapping.yaml" $GC_CFG_DIR/
+sudo cp "$GC_PATH/etc/exordos_core/core_agent.conf" $GC_CFG_DIR/
+sudo cp "$GC_PATH/etc/exordos_core/logging.yaml" $GC_CFG_DIR/
+sudo cp "$GC_PATH/etc/exordos_core/event_type_mapping.yaml" $GC_CFG_DIR/
 sudo cp "$GC_PATH/genesis/images/bootstrap.sh" $BOOTSTRAP_PATH/0100-gc-bootstrap.sh
 
 cd "$GC_PATH"
@@ -165,7 +165,7 @@ sudo cp "$GC_PATH/etc/genesis_universal_agent/logging.yaml" /etc/genesis_univers
 # 1) The bootstrap script will transfer the data to the data disk
 # 2) It's speed up the first run since the migrations are already applied.
 # 3) It's allows to debug the migrations at build time.
-ra-apply-migration --config-dir "$GC_PATH/etc/genesis_core/" --path "$GC_PATH/migrations"
+ra-apply-migration --config-dir "$GC_PATH/etc/exordos_core/" --path "$GC_PATH/migrations"
 
 deactivate
 
@@ -191,7 +191,7 @@ sudo ln -sf "$VENV_PATH/bin/genesis-universal-scheduler" "/usr/bin/genesis-unive
 sudo ln -sf "$VENV_PATH/bin/genesis-ci" "/usr/bin/gctl"
 
 # Install Systemd service files
-# The genesis services are enabled in the bootstrap
+# The exordos services are enabled in the bootstrap
 # script only after database is ready
 sudo cp "$GC_PATH/etc/systemd/gc-user-api.service" $SYSTEMD_SERVICE_DIR
 sudo cp "$GC_PATH/etc/systemd/gc-boot-api.service" $SYSTEMD_SERVICE_DIR
@@ -209,7 +209,7 @@ sudo apt install pdns-backend-pgsql pdns-server dnsdist -y
 
 #pdns
 sudo rm /etc/powerdns/pdns.d/bind.conf
-sudo cp "$GC_PATH/etc/powerdns/genesis.conf" /etc/powerdns/pdns.d/genesis.conf
+sudo cp "$GC_PATH/etc/powerdns/exordos.conf" /etc/powerdns/pdns.d/exordos.conf
 sudo systemctl enable pdns
 
 #dnsdist
@@ -228,12 +228,12 @@ sudo systemctl enable dnsdist@private
 
 
 cat <<EOT | sudo tee /etc/motd
-▄▖        ▘    ▄▖
-▌ █▌▛▌█▌▛▘▌▛▘  ▌ ▛▌▛▘█▌
-▙▌▙▖▌▌▙▖▄▌▌▄▌  ▙▖▙▌▌ ▙▖
+▄▖       ▌      ▄▖
+▙▖▚▘▛▌▛▘▛▌▛▌▛▘  ▌ ▛▌▛▘█▌
+▙▖▞▖▙▌▌ ▙▌▙▌▄▌  ▙▖▙▌▌ ▙▖
 
 
-Welcome to Genesis Core virtual machine!
+Welcome to Exordos Core virtual machine!
 
 All materials can be found here:
 https://github.com/infraguys

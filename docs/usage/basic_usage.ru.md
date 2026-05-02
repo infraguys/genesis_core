@@ -1,11 +1,11 @@
 # Базовое использование
 
-Это руководство описывает, как установить и использовать Genesis Core на существующей инфраструктуре. Существующая инфраструктура может быть локальной машиной или несколькими серверами.
+Это руководство описывает, как установить и использовать Exordos Core на существующей инфраструктуре. Существующая инфраструктура может быть локальной машиной или несколькими серверами.
 Предполагается, что на ваших машинах используется Linux (Ubuntu).
 
 ## Требования
 
-Перед установкой и использованием Genesis Core необходимо установить несколько зависимостей:
+Перед установкой и использованием Exordos Core необходимо установить несколько зависимостей:
 
 ### Пакеты
 
@@ -54,16 +54,16 @@ sudo virsh pool-info default
 
 ## Установка
 
-Самый простой способ установки Genesis Core — получить готовый образ виртуальной машины со всеми необходимыми зависимостями. Возьмите [последний образ здесь](http://repository.genesis-core.tech:8081/genesis-core/latest/genesis-core.qcow2).
+Самый простой способ установки Exordos Core — получить готовый образ виртуальной машины со всеми необходимыми зависимостями. Возьмите [последний образ здесь](http://repository.genesis-core.tech:8081/exordos-core/latest/exordos-core.qcow2).
 
 ### Локальная машина / Разработка
 
-Сначала установите Genesis DevTools. Для получения дополнительной информации о нём см. [Genesis DevTools](https://github.com/infraguys/genesis_devtools). Этот инструмент позволяет собирать и запускать genesis core локально. Поскольку мы уже загрузили последний образ, нам не нужно собирать его с нуля, но если вам нужно собрать образ из исходников, смотрите [инструкции здесь](https://github.com/infraguys/genesis_devtools?tab=readme-ov-file#build).
+Сначала установите Exordos DevTools. Для получения дополнительной информации о нём см. [Exordos DevTools](https://github.com/infraguys/genesis_devtools). Этот инструмент позволяет собирать и запускать exordos core локально. Поскольку мы уже загрузили последний образ, нам не нужно собирать его с нуля, но если вам нужно собрать образ из исходников, смотрите [инструкции здесь](https://github.com/infraguys/genesis_devtools?tab=readme-ov-file#build).
 
-У инструмента devtools есть команда `bootstrap`, которая запустит Genesis Core локально.
+У инструмента devtools есть команда `bootstrap`, которая запустит Exordos Core локально.
 
 ```bash
-genesis bootstrap -i genesis-core.raw -m core
+genesis bootstrap -i exordos-core.raw -m core
 ```
 
 Для получения дополнительной информации о команде `bootstrap` см. [инструкции здесь](https://github.com/infraguys/genesis_devtools?tab=readme-ov-file#bootstrap).
@@ -92,7 +92,7 @@ curl --location 'http://10.20.0.2:11010/v1/iam/clients/00000000-0000-0000-0000-0
 
 ##### Libvirt через SSH (предпочтительно)
 
-Создайте ключ в виртуальной машине Genesis Core для пользователя root:
+Создайте ключ в виртуальной машине Exordos Core для пользователя root:
 
 ```console
 # ssh-keygen
@@ -154,7 +154,7 @@ curl --location --globoff 'http://10.20.0.2:11010/v1/compute/hypervisors/' \
         "driver": "libvirt",
         "iface_mtu": 1500,
         "network_type": "network",
-        "network": "genesis-core-net",
+        "network": "exordos-core-net",
         "storage_pool": "default", // для qcow
         "storage_pool": "rpool", // для ZFS
         "connection_uri": "qemu+tcp://10.20.0.1/system", // для TCP-соединения
@@ -182,4 +182,4 @@ curl --location --globoff 'http://10.20.0.2:11010/v1/compute/hypervisors/' \
 
 ## Использование
 
-Следуйте [руководству по использованию](https://github.com/infraguys/genesis_core/wiki/Usage) для получения дополнительной информации.
+Следуйте [руководству по использованию](https://github.com/infraguys/exordos_core/wiki/Usage) для получения дополнительной информации.

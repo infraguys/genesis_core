@@ -4,7 +4,7 @@ title: genesis elements install
 
 ## Overview
 
-`genesis elements install` **installs** an element to a Genesis Core platform realm with necessary dependencies.
+`genesis elements install` **installs** an element to a Exordos Core platform realm with necessary dependencies.
 
 ```bash
 genesis elements install [OPTIONS] PATH_OR_NAME
@@ -17,7 +17,7 @@ Key options:
 | `-r, --repository TEXT` | Repository endpoint where the element is stored [default: `https://repository.genesis-core.tech/genesis-elements/`] |
 | `PATH_OR_NAME` | Path to a local manifest file or the name of an element in the repository |
 
-You can install elements on a [public Genesis Core installation](public-installation.md). Or you can deploy a [private Genesis Core installation](private-installation.md) on your own hardware. For development and testing, you can use [local laptop installation](local-laptop-installation.md).
+You can install elements on a [public Exordos Core installation](public-installation.md). Or you can deploy a [private Exordos Core installation](private-installation.md) on your own hardware. For development and testing, you can use [local laptop installation](local-laptop-installation.md).
 
 ---
 
@@ -55,7 +55,7 @@ genesis elements install -r https://my-repo.example.com/elements/ my-element
 
 ### Target Realm
 
-The command deploys to the Genesis Core realm currently configured in your environment. Ensure you have:
+The command deploys to the Exordos Core realm currently configured in your environment. Ensure you have:
 
 - Valid credentials for the target realm
 - Network connectivity to the realm's API endpoint
@@ -63,7 +63,7 @@ The command deploys to the Genesis Core realm currently configured in your envir
 
 ### Repository Selection
 
-By default, elements are fetched from the public Genesis repository. For private or internal elements, specify a custom repository URL with the `-r` option.
+By default, elements are fetched from the public Exordos repository. For private or internal elements, specify a custom repository URL with the `-r` option.
 
 ---
 
@@ -71,7 +71,7 @@ By default, elements are fetched from the public Genesis repository. For private
 
 After a successful installation:
 
-- Verify the element status in the Genesis Core CLI
+- Verify the element status in the Exordos Core CLI
 - [Customize the manifest](../misc/manifests.md) to tailor the element configuration to your needs
 - [Update the element](../admin-guide/index.md) when a new version is available
 

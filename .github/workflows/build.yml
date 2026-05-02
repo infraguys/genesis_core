@@ -5,7 +5,7 @@ on:
 
 env:
   ARTIFACTS_PATH: artifacts
-  PROJECT_NAME: genesis_core
+  PROJECT_NAME: exordos_core
   REPO_ENDPOINT_PUT: http://10.20.0.1:8082
 
 jobs:
@@ -16,7 +16,7 @@ jobs:
       fail-fast: true
     steps:
       - uses: actions/checkout@v6
-      - name: Build Genesis Core
+      - name: Build Exordos Core
         env:
           PUSH_CFG: ${{ secrets.PUSH_CFG }}
         run: |
@@ -26,7 +26,7 @@ jobs:
           source ~/.profile
           VERSION="$(genesis get-version .)"
 
-          # Build Genesis Core
+          # Build Exordos Core
           genesis build $(pwd) --inventory
 
           # Decode and write the push configuration
@@ -34,8 +34,8 @@ jobs:
           genesis push -c genesis/genesis.push.yaml -t local -f --latest
 
           # Upload the VM image
-          gzip -k output/genesis-core.raw -c | \
-          curl -X PUT -T - "$REPO_ENDPOINT_PUT/${PROJECT_NAME}/${VERSION}/genesis-core.raw.gz"
+          gzip -k output/exordos-core.raw -c | \
+          curl -X PUT -T - "$REPO_ENDPOINT_PUT/${PROJECT_NAME}/${VERSION}/exordos-core.raw.gz"
 
           # Temporary upload step is done in the build script
           echo "${VERSION}" > "${ARTIFACTS_PATH}/version.txt"

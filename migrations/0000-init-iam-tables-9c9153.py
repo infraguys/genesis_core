@@ -360,7 +360,7 @@ class MigrationStep(migrations.AbstarctMigrationStep):
                 ) VALUES(
                     '00000000-0000-0000-0000-000000000000',
                     'GenesisCoreClient',
-                    'Genesis Core OIDC Client',
+                    'Exordos Core OIDC Client',
                     'GenesisCoreClientId',
                     '{default_client_secret}',
                     '{default_admin_salt}',

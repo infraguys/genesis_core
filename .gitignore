@@ -41,7 +41,7 @@ AUTHORS
 ChangeLog
 cover/
 version.txt
-etc/genesis_core/genesis_core.d/*.conf
+etc/exordos_core/exordos_core.d/*.conf
 etc/*/*.local
 
 # OS

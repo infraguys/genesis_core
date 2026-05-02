@@ -56,7 +56,7 @@ curl --location 'http://10.20.0.2:11010/v1/secret/certificates/' \
 
 ## Methods / Providers
 
-The Genesis Core supports the following methods / providers to issue and manage certificates:
+The Exordos Core supports the following methods / providers to issue and manage certificates:
 
 ### dns_core
 

@@ -1,5 +1,5 @@
 [Unit]
-Description=Genesis Universal Scheduler Service
+Description=Exordos Universal Scheduler Service
 After=network-online.target
 
 [Service]

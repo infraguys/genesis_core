@@ -19,10 +19,10 @@ from restalchemy.storage.sql import migrations
 
 # NOTE(efrolov): copy-pasted from constants. Migration should have the
 #                same values for autonomous working.
-# Genesis Core Organization and Project Information
-GENESIS_CORE_ORGANIZATION_ID = "11111111-1111-1111-1111-111111111111"
-GENESIS_CORE_ORGANIZATION_NAME = "Genesis Corporation"
-GENESIS_CORE_ORGANIZATION_DESCRIPTION = (
+# Exordos Core Organization and Project Information
+EXORDOS_CORE_ORGANIZATION_ID = "11111111-1111-1111-1111-111111111111"
+EXORDOS_CORE_ORGANIZATION_NAME = "Genesis Corporation"
+EXORDOS_CORE_ORGANIZATION_DESCRIPTION = (
     "The organization serves as the central platform for all services"
     " and elements developed by Genesis Corporation."
 )
@@ -45,9 +45,9 @@ class MigrationStep(migrations.AbstarctMigrationStep):
             INSERT INTO "iam_organizations" (
                 "uuid", "name", "description"
             ) VALUES (
-                '{GENESIS_CORE_ORGANIZATION_ID}',
-                '{GENESIS_CORE_ORGANIZATION_NAME}',
-                '{GENESIS_CORE_ORGANIZATION_DESCRIPTION}'
+                '{EXORDOS_CORE_ORGANIZATION_ID}',
+                '{EXORDOS_CORE_ORGANIZATION_NAME}',
+                '{EXORDOS_CORE_ORGANIZATION_DESCRIPTION}'
             );
         """
         session.execute(insert_query)
@@ -55,7 +55,7 @@ class MigrationStep(migrations.AbstarctMigrationStep):
     def downgrade(self, session):
         delete_query = f"""
             DELETE FROM "iam_organizations"
-            WHERE "uuid" = '{GENESIS_CORE_ORGANIZATION_ID}';
+            WHERE "uuid" = '{EXORDOS_CORE_ORGANIZATION_ID}';
         """
         session.execute(delete_query)
 

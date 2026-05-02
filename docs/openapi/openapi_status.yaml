@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
-  title: Genesis Core v1 Status API
+  title: Exordos Core v1 Status API
   version: latest
-  description: OpenAPI - Genesis Core v1
+  description: OpenAPI - Exordos Core v1
 components:
   responses:
     Error:
