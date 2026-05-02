@@ -1,31 +1,27 @@
-<!DOCTYPE html><html lang="ru" class="no-js"><head>
+<!DOCTYPE html><html lang="en" class="no-js"><head>
     
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
       
       
-        <link rel="canonical" href="https://github.com/infraguys/ru/openapi/openapi_boot/">
+        <link rel="canonical" href="https://github.com/infraguys/app-developer-guide/">
       
       
-        <link rel="prev" href="../../usage/basic_usage/">
       
-      
-        <link rel="next" href="../openapi_orch/">
-      
-      <link rel="icon" href="../../../assets/images/favicon.png">
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.1.0">
     
     
       
-        <title>Boot - genesis_core</title>
+        <title>Application Developer Guide - genesis_core</title>
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.402914a4.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.402914a4.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.a0c5b2b5.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.a0c5b2b5.min.css">
       
       
 
@@ -41,14 +37,14 @@
       
     
     
-    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
     
     
     
-  <link href="../../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+  <link href="../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
             html.glightbox-open { overflow: initial; height: 100%; }
             .gslide-title { margin-top: 0px; user-select: text; }
             .gslide-desc { color: #666; user-select: text; }
@@ -80,8 +76,8 @@
     <div data-md-component="skip">
       
         
-        <a href="#openapi-specification" class="md-skip">
-          Перейти к содержанию
+        <a href="#quick-start" class="md-skip">
+          Skip to content
         </a>
       
     </div>
@@ -95,8 +91,8 @@
   
 
 <header class="md-header md-header--shadow" data-md-component="header">
-  <nav class="md-header__inner md-grid" aria-label="Верхний колонтитул">
-    <a href="../../" title="genesis_core" class="md-header__button md-logo" aria-label="genesis_core" data-md-component="logo">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="genesis_core" class="md-header__button md-logo" aria-label="genesis_core" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
@@ -115,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Boot
+              Application Developer Guide
             
           </span>
         </div>
@@ -146,20 +142,20 @@
       <div class="md-header__option">
         <div class="md-select">
           
-          <button class="md-header__button md-icon" aria-label="Выберите язык">
+          <button class="md-header__button md-icon" aria-label="Select language">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.52 17.52 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04M18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12m-2.62 7 1.62-4.33L19.12 17h-3.24Z"></path></svg>
           </button>
           <div class="md-select__inner">
             <ul class="md-select__list">
               
                 <li class="md-select__item">
-                  <a href="../../../openapi/openapi_boot/" hreflang="en" class="md-select__link">
+                  <a href="./" hreflang="en" class="md-select__link">
                     English
                   </a>
                 </li>
               
                 <li class="md-select__item">
-                  <a href="./" hreflang="ru" class="md-select__link">
+                  <a href="../ru/app-developer-guide/" hreflang="ru" class="md-select__link">
                     Russian
                   </a>
                 </li>
@@ -177,14 +173,14 @@
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
-      <input type="text" class="md-search__input" name="query" aria-label="Поиск" placeholder="Поиск" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
       <label class="md-search__icon md-icon" for="__search">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
       </label>
-      <nav class="md-search__options" aria-label="Поиск">
+      <nav class="md-search__options" aria-label="Search">
         
-        <button type="reset" class="md-search__icon md-icon" title="Очистить" aria-label="Очистить" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
         </button>
       </nav>
@@ -196,7 +192,7 @@
       <div class="md-search__scrollwrap" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
-            Инициализация поиска
+            Initializing search
           </div>
           <ol class="md-search-result__list" role="presentation"></ol>
         </div>
@@ -207,7 +203,7 @@
     
     
       <div class="md-header__source">
-        <a href="https://github.com/infraguys/genesis_core" title="Перейти к репозиторию" class="md-source" data-md-component="source">
+        <a href="https://github.com/infraguys/genesis_core" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
@@ -242,9 +238,9 @@
 
   
 
-<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Навигация" data-md-level="0">
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../" title="genesis_core" class="md-nav__button md-logo" aria-label="genesis_core" data-md-component="logo">
+    <a href=".." title="genesis_core" class="md-nav__button md-logo" aria-label="genesis_core" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
@@ -254,7 +250,7 @@
   </label>
   
     <div class="md-nav__source">
-      <a href="https://github.com/infraguys/genesis_core" title="Перейти к репозиторию" class="md-source" data-md-component="source">
+      <a href="https://github.com/infraguys/genesis_core" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
@@ -275,7 +271,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../" class="md-nav__link">
+      <a href=".." class="md-nav__link">
         Software
       </a>
     </li>
@@ -290,7 +286,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../usage/basic_usage/" class="md-nav__link">
+      <a href="../usage/basic_usage/" class="md-nav__link">
         Usage
       </a>
     </li>
@@ -303,16 +299,14 @@
 
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
       
       
       
@@ -321,7 +315,7 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_3">
           <span class="md-nav__icon md-icon"></span>
           OpenAPI
@@ -332,21 +326,11 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../openapi/openapi_boot/" class="md-nav__link">
         Boot
       </a>
-      
     </li>
   
 
@@ -358,7 +342,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../openapi_orch/" class="md-nav__link">
+      <a href="../openapi/openapi_orch/" class="md-nav__link">
         Orch
       </a>
     </li>
@@ -372,7 +356,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../openapi_status/" class="md-nav__link">
+      <a href="../openapi/openapi_status/" class="md-nav__link">
         Status
       </a>
     </li>
@@ -386,7 +370,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../openapi_user/" class="md-nav__link">
+      <a href="../openapi/openapi_user/" class="md-nav__link">
         User
       </a>
     </li>
@@ -435,7 +419,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../em/manifest/" class="md-nav__link">
+      <a href="../em/manifest/" class="md-nav__link">
         Manifest
       </a>
     </li>
@@ -449,7 +433,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../em/service/" class="md-nav__link">
+      <a href="../em/service/" class="md-nav__link">
         Service as a Service API
       </a>
     </li>
@@ -463,7 +447,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../em/cli/" class="md-nav__link">
+      <a href="../em/cli/" class="md-nav__link">
         Example commands
       </a>
     </li>
@@ -512,7 +496,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../iam/permissions_overview/" class="md-nav__link">
+      <a href="../iam/permissions_overview/" class="md-nav__link">
         Permissions Overview
       </a>
     </li>
@@ -561,7 +545,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../network/load_balancer/" class="md-nav__link">
+      <a href="../network/load_balancer/" class="md-nav__link">
         Load Balancer as a Service API
       </a>
     </li>
@@ -610,7 +594,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../secret/certificates/" class="md-nav__link">
+      <a href="../secret/certificates/" class="md-nav__link">
         Certificates
       </a>
     </li>
@@ -642,18 +626,102 @@
   
 
 
-<h1 id="openapi-specification">OpenAPI Specification<a class="headerlink" href="#openapi-specification" title="Permanent link">#</a></h1>
-<p>You can view the OpenAPI specification for the Boot API here:</p>
-<p><link type="text/css" rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css"></p>
-<div id="swagger-ui-6">
-</div>
-<script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js" charset="UTF-8"></script>
-<script>
-    SwaggerUIBundle({
-      url: 'openapi_boot.yaml',
-      dom_id: '#swagger-ui-6',
-    })
-</script>
+  <h1>Application Developer Guide</h1>
+
+<p>This guide walks you through everything you need to build, publish, and deploy <strong>elements</strong> — the name Genesis Core gives to applications — on the platform.</p>
+<h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">#</a></h2>
+<h3 id="1-initialize-your-element">1. Initialize your element<a class="headerlink" href="#1-initialize-your-element" title="Permanent link">#</a></h3>
+<p>Set up an existing project as a Genesis Core element. The <code>genesis init</code> command launches an interactive wizard that generates all required configuration files — including manifests, and a <code>genesis.yaml</code> file that describes the build, publish, and deploy procedures.</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>init
+</code></pre></div>
+<p>After the wizard completes, your project will contain necessary configuration files — including manifests — that describe your element to the platform.</p>
+<p><a href="init/">Learn more →</a></p>
+<hr>
+<h3 id="2-build-your-element">2. Build your element<a class="headerlink" href="#2-build-your-element" title="Permanent link">#</a></h3>
+<p>Compile and package your element along with all its artifacts. Genesis Core uses the build configuration defined in <code>genesis.yaml</code> to produce a distributable artifact.</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build
+</code></pre></div>
+<p>On success, the build output (container image, binary, or other artifact type) is stored locally and tagged with the current element version.</p>
+<p><a href="build/">Learn more →</a></p>
+<hr>
+<h3 id="3-publish-your-element">3. Publish your element<a class="headerlink" href="#3-publish-your-element" title="Permanent link">#</a></h3>
+<p>Push the built element to the Genesis ecosystem registry so it becomes available to other platform users.</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>push
+</code></pre></div>
+<p>The element is versioned and pushed to the configured repository based on the metadata in <code>genesis.yaml</code>.</p>
+<p><a href="push/">Learn more →</a></p>
+<hr>
+<h3 id="4-deploy-your-element">4. Deploy your element<a class="headerlink" href="#4-deploy-your-element" title="Permanent link">#</a></h3>
+<p>Install and run your element on a Genesis Core platform installation.</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>&lt;element-name&gt;
+</code></pre></div>
+<p>The platform resolves dependencies, installs the target element, and starts it in the chosen realm.</p>
+<p><a href="deploy/">Learn more →</a></p>
+<hr>
+<h2 id="walkthrough-your-first-element">Walkthrough: Your First Element<a class="headerlink" href="#walkthrough-your-first-element" title="Permanent link">#</a></h2>
+<p>Let's walk through platformizing a real FastAPI project from <code>https://github.com/infraguys/todo_application</code>.</p>
+<p>This is a simple ToDo List API with PostgreSQL persistence. The goal here is not to explore the business logic, but to demonstrate how to take an existing application and platformize it using Genesis Core.</p>
+<h3 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">#</a></h3>
+<p>To follow this walkthrough, you need a running Genesis installation and the necessary tools.</p>
+<p><strong>Genesis</strong> — you can use either:</p>
+<ul>
+<li>A <strong>public Genesis installation</strong> — hosted at <a href="https://genesis-core.tech">genesis-core.tech</a>. No setup required; just create an account and start using the platform.</li>
+<li>A <strong>private Genesis installation</strong> — your own self-hosted instance. This document describes how to set one up: <a href="../admin-guide/index.md">Setting up a private installation</a>.</li>
+</ul>
+<p>Install the necessary tools below.</p>
+<p>Install Genesis CLI:</p>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://repository.genesis-core.tech/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>sh
+</code></pre></div>
+<p>The Packer <a href="https://hashicorp-releases.yandexcloud.net/packer/1.9.2/">version 1.9.2</a> or earlier due to licensing limitation. Download and place into <code>/usr/local/bin/</code> or any other directory in your <code>$PATH</code>.</p>
+<p>The Qemu:</p>
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>qemu-kvm<span class="w"> </span>mkisofs
+sudo<span class="w"> </span>adduser<span class="w"> </span><span class="nv">$USER</span><span class="w"> </span>kvm
+</code></pre></div>
+<p>You may need to relogin to apply the changes. Now you are ready to build your element.</p>
+<h3 id="initialize-the-project">Initialize the project<a class="headerlink" href="#initialize-the-project" title="Permanent link">#</a></h3>
+<p>Clone the project:</p>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/infraguys/todo_application.git<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>todo_application
+</code></pre></div>
+<p>The <code>genesis init</code> command allows you to initialize a new element interactively but you can also use it with flags. We will use the flags approach here to speed things up.</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>init<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--project-name<span class="w"> </span>todo_application<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--project-type<span class="w"> </span>python<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--project-systemd-services<span class="w"> </span><span class="s2">"todo-api"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--project-url<span class="w"> </span><span class="s2">"https://github.com/infraguys/todo_application"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--project-python-package-manager<span class="w"> </span><span class="s2">"pip"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--enable-pgsql<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--author-name<span class="w"> </span><span class="s2">"Developer"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--author-email<span class="w"> </span><span class="s2">"dev@example.com"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--manifest-description<span class="w"> </span><span class="s2">"A simple ToDo list element"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--repository<span class="w"> </span><span class="s2">"https://repository.genesis-core.tech/genesis-elements"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--pgsql-usage-mode<span class="w"> </span><span class="s2">"own_cluster"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--pgsql-database-name<span class="w"> </span><span class="s2">"todo_api"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--pgsql-username<span class="w"> </span><span class="s2">"todo_api"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--ci-cd<span class="w"> </span><span class="s2">"none"</span>
+</code></pre></div>
+<p>After executing this command, a summary will be displayed with the results of the initialization, showing the main configuration files. Study them to understand what was created.</p>
+<p>The project is ready to be built and pushed as a Genesis Core element.</p>
+<h3 id="build-the-element">Build the element<a class="headerlink" href="#build-the-element" title="Permanent link">#</a></h3>
+<p>To build the element, run:</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build
+</code></pre></div>
+<h3 id="push-to-repository">Push to repository<a class="headerlink" href="#push-to-repository" title="Permanent link">#</a></h3>
+<p>Use the repository of your genesis installation and push the element:</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>push<span class="w"> </span>-c<span class="w"> </span>genesis.push.yaml
+</code></pre></div>
+<h3 id="deploy-the-element">Deploy the element<a class="headerlink" href="#deploy-the-element" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>todo-api
+</code></pre></div>
+<p>The ToDo API is now available at the configured endpoint.</p>
+<hr>
+<h2 id="advanced-usage">Advanced Usage<a class="headerlink" href="#advanced-usage" title="Permanent link">#</a></h2>
+<p>Once you're comfortable with the basics, explore the more in-depth topics below.</p>
+<ul>
+<li><a href="../misc/manifests.md">Writing a manifest from scratch</a> — understand the full manifest specification and author one by hand without relying on the <code>genesis init</code> wizard.</li>
+<li><a href="../admin-guide/index.md">Setting up a private platform installation</a> — spin up your own Genesis Core instance to develop and test your elements end-to-end without connecting to a remote environment.</li>
+<li><a href="https://genesis-core.tech">Public Genesis installation</a> — use the hosted Genesis platform without managing your own infrastructure.</li>
+</ul>
 
 
 
@@ -691,10 +759,10 @@
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "../../..", "features": ["search.suggest", "search.highlight", "toc.integrate", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["search.suggest", "search.highlight", "toc.integrate", "content.code.copy"], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.ce72ebac.min.js"></script>
+      <script src="../assets/javascripts/bundle.ce72ebac.min.js"></script>
       
     
   

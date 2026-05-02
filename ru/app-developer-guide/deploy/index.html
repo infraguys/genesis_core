@@ -5,20 +5,16 @@
       
       
       
-        <link rel="canonical" href="https://github.com/infraguys/ru/openapi/openapi_boot/">
+        <link rel="canonical" href="https://github.com/infraguys/ru/app-developer-guide/deploy/">
       
       
-        <link rel="prev" href="../../usage/basic_usage/">
-      
-      
-        <link rel="next" href="../openapi_orch/">
       
       <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.1.0">
     
     
       
-        <title>Boot - genesis_core</title>
+        <title>genesis elements install - genesis_core</title>
       
     
     
@@ -80,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#openapi-specification" class="md-skip">
+        <a href="#обзор" class="md-skip">
           Перейти к содержанию
         </a>
       
@@ -115,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Boot
+              genesis elements install
             
           </span>
         </div>
@@ -153,7 +149,7 @@
             <ul class="md-select__list">
               
                 <li class="md-select__item">
-                  <a href="../../../openapi/openapi_boot/" hreflang="en" class="md-select__link">
+                  <a href="../../../app-developer-guide/deploy/" hreflang="en" class="md-select__link">
                     English
                   </a>
                 </li>
@@ -303,16 +299,14 @@
 
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
       
       
       
@@ -321,7 +315,7 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_3">
           <span class="md-nav__icon md-icon"></span>
           OpenAPI
@@ -332,21 +326,11 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../openapi/openapi_boot/" class="md-nav__link">
         Boot
       </a>
-      
     </li>
   
 
@@ -358,7 +342,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../openapi_orch/" class="md-nav__link">
+      <a href="../../openapi/openapi_orch/" class="md-nav__link">
         Orch
       </a>
     </li>
@@ -372,7 +356,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../openapi_status/" class="md-nav__link">
+      <a href="../../openapi/openapi_status/" class="md-nav__link">
         Status
       </a>
     </li>
@@ -386,7 +370,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../openapi_user/" class="md-nav__link">
+      <a href="../../openapi/openapi_user/" class="md-nav__link">
         User
       </a>
     </li>
@@ -642,18 +626,69 @@
   
 
 
-<h1 id="openapi-specification">OpenAPI Specification<a class="headerlink" href="#openapi-specification" title="Permanent link">#</a></h1>
-<p>You can view the OpenAPI specification for the Boot API here:</p>
-<p><link type="text/css" rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css"></p>
-<div id="swagger-ui-6">
-</div>
-<script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js" charset="UTF-8"></script>
-<script>
-    SwaggerUIBundle({
-      url: 'openapi_boot.yaml',
-      dom_id: '#swagger-ui-6',
-    })
-</script>
+  <h1>genesis elements install</h1>
+
+<h2 id="обзор">Обзор<a class="headerlink" href="#обзор" title="Permanent link">#</a></h2>
+<p><code>genesis elements install</code> <strong>устанавливает</strong> элемент в realm платформы Genesis Core с необходимыми зависимостями.</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>PATH_OR_NAME
+</code></pre></div>
+<p>Ключевые опции:</p>
+<table>
+<thead>
+<tr>
+<th>Опция</th>
+<th>Описание</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-r, --repository TEXT</code></td>
+<td>Конечная точка репозитория, где хранится элемент [по умолчанию: <code>https://repository.genesis-core.tech/genesis-elements/</code>]</td>
+</tr>
+<tr>
+<td><code>PATH_OR_NAME</code></td>
+<td>Путь к локальному файлу манифеста или имя элемента в репозитории</td>
+</tr>
+</tbody>
+</table>
+<p>Вы можете устанавливать элементы на <a href="public-installation.ru.md">публичную установку Genesis Core</a>. Или вы можете развернуть <a href="private-installation.ru.md">приватную установку Genesis Core</a> на своём оборудовании. Для разработки и тестирования вы можете использовать <a href="local-laptop-installation.ru.md">установку на локальном ноутбуке</a>.</p>
+<hr>
+<h2 id="начало-работы">Начало работы<a class="headerlink" href="#начало-работы" title="Permanent link">#</a></h2>
+<h3 id="установка-из-репозитория">Установка из репозитория<a class="headerlink" href="#установка-из-репозитория" title="Permanent link">#</a></h3>
+<p>Для установки элемента по имени из стандартного репозитория:</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>my-element
+</code></pre></div>
+<p>Команда получает манифест элемента из репозитория, разрешает зависимости и разворачивает элемент в текущем realm.</p>
+<h3 id="установка-из-локального-манифеста">Установка из локального манифеста<a class="headerlink" href="#установка-из-локального-манифеста" title="Permanent link">#</a></h3>
+<p>Для установки из локального файла манифеста:</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>./manifests/my-element.yaml
+</code></pre></div>
+<h3 id="установка-из-пользовательского-репозитория">Установка из пользовательского репозитория<a class="headerlink" href="#установка-из-пользовательского-репозитория" title="Permanent link">#</a></h3>
+<p>Для установки из другой конечной точки репозитория:</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>https://my-repo.example.com/elements/<span class="w"> </span>my-element
+</code></pre></div>
+<hr>
+<h2 id="конфигурация">Конфигурация<a class="headerlink" href="#конфигурация" title="Permanent link">#</a></h2>
+<h3 id="целевой-realm">Целевой realm<a class="headerlink" href="#целевой-realm" title="Permanent link">#</a></h3>
+<p>Команда развёртывает в realm Genesis Core, который в данный момент настроен в вашем окружении. Убедитесь, что у вас есть:</p>
+<ul>
+<li>Валидные учётные данные для целевого realm</li>
+<li>Сетевое подключение к конечной точке API realm</li>
+<li>Достаточные разрешения для установки элементов</li>
+</ul>
+<h3 id="выбор-репозитория">Выбор репозитория<a class="headerlink" href="#выбор-репозитория" title="Permanent link">#</a></h3>
+<p>По умолчанию элементы получаются из публичного репозитория Genesis. Для приватных или внутренних элементов укажите URL пользовательского репозитория с опцией <code>-r</code>.</p>
+<hr>
+<h2 id="следующие-шаги">Следующие шаги<a class="headerlink" href="#следующие-шаги" title="Permanent link">#</a></h2>
+<p>После успешной установки:</p>
+<ul>
+<li>Проверьте статус элемента в Genesis Core CLI</li>
+<li><a href="../misc/manifests.ru.md">Настройте манифест</a> для адаптации конфигурации элемента под ваши нужды</li>
+<li><a href="../admin-guide/index.ru.md">Обновите элемент</a> когда доступна новая версия</li>
+</ul>
+<hr>
+<h2 id="устранение-неполадок">Устранение неполадок<a class="headerlink" href="#устранение-неполадок" title="Permanent link">#</a></h2>
+<p>Если вы столкнулись с проблемами во время развёртывания — такими как ошибки установки элемента, ошибки разрешения зависимостей или проблемы подключения к realm — обратитесь к <a href="troubleshooting.ru.md">Руководству по устранению неполадок</a> для подробных решений и типичных исправлений.</p>
 
 
 

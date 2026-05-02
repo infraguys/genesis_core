@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#manifest" class="md-skip">
+        <a href="#манифест" class="md-skip">
           Перейти к содержанию
         </a>
       
@@ -459,8 +459,8 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#example-manifest" class="md-nav__link">
-    Example manifest
+  <a href="#пример-манифеста" class="md-nav__link">
+    Пример манифеста
   </a>
   
 </li>
@@ -736,15 +736,15 @@
   
 
 
-<h1 id="manifest">Manifest<a class="headerlink" href="#manifest" title="Permanent link">#</a></h1>
-<h2 id="example-manifest">Example manifest<a class="headerlink" href="#example-manifest" title="Permanent link">#</a></h2>
+<h1 id="манифест">Манифест<a class="headerlink" href="#манифест" title="Permanent link">#</a></h1>
+<h2 id="пример-манифеста">Пример манифеста<a class="headerlink" href="#пример-манифеста" title="Permanent link">#</a></h2>
 <div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"core_service_example"</span>
-<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">"Genesis</span><span class="nv"> </span><span class="s">Core</span><span class="nv"> </span><span class="s">Service</span><span class="nv"> </span><span class="s">Example"</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">"Пример</span><span class="nv"> </span><span class="s">сервиса</span><span class="nv"> </span><span class="s">Genesis</span><span class="nv"> </span><span class="s">Core"</span>
 <span class="nt">schema_version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
 <span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">"1.0.3"</span>
 <span class="nt">api_version</span><span class="p">:</span><span class="w"> </span><span class="s">"v1"</span>
 
-<span class="nt">requirements</span><span class="p">:</span><span class="w">  </span><span class="c1"># Requirements of the manifest</span>
+<span class="nt">requirements</span><span class="p">:</span><span class="w">  </span><span class="c1"># Требования манифеста</span>
 <span class="w">  </span><span class="nt">core</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">from_version</span><span class="p">:</span><span class="w"> </span><span class="s">"0.0.0"</span>
 <span class="w">    </span><span class="nt">to_version</span><span class="p">:</span><span class="w"> </span><span class="s">"1.0.0"</span>
@@ -753,7 +753,7 @@
 <span class="w">  </span><span class="nt">$core.compute.nodes</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">example_node</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"example-service-node"</span>
-<span class="w">      </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">"Example</span><span class="nv"> </span><span class="s">service</span><span class="nv"> </span><span class="s">node"</span>
+<span class="w">      </span><span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">"Узел</span><span class="nv"> </span><span class="s">примера</span><span class="nv"> </span><span class="s">сервиса"</span>
 <span class="w">      </span><span class="nt">cores</span><span class="p">:</span><span class="w"> </span><span class="s">"$core_service_example.imports.$var_default_cores:value"</span>
 <span class="w">      </span><span class="nt">ram</span><span class="p">:</span><span class="w"> </span><span class="s">"$core_service_example.imports.$var_default_ram:value"</span>
 <span class="w">      </span><span class="nt">project_id</span><span class="p">:</span><span class="w"> </span><span class="s">"12345678-c625-4fee-81d5-f691897b8142"</span>
@@ -795,35 +795,35 @@
 <span class="w">    </span><span class="nt">link</span><span class="p">:</span><span class="w"> </span><span class="s">"$core.vs.variables.$default_ram"</span>
 </code></pre></div>
 <h2 id="name">name<a class="headerlink" href="#name" title="Permanent link">#</a></h2>
-<p>The name of the manifest.</p>
+<p>Имя манифеста.</p>
 <h2 id="description">description<a class="headerlink" href="#description" title="Permanent link">#</a></h2>
-<p>The description of the manifest.</p>
+<p>Описание манифеста.</p>
 <h2 id="schema_version">schema_version<a class="headerlink" href="#schema_version" title="Permanent link">#</a></h2>
-<p>The schema version of the manifest, now <code>1</code>.</p>
+<p>Версия схемы манифеста, сейчас <code>1</code>.</p>
 <h2 id="version">version<a class="headerlink" href="#version" title="Permanent link">#</a></h2>
-<p>Version of the manifest, see docs in <a href="https://infraguys.github.io/genesis_devtools/">genesis_devtools</a></p>
+<p>Версия манифеста, см. документацию в <a href="https://infraguys.github.io/genesis_devtools/">genesis_devtools</a></p>
 <h2 id="api_version">api_version<a class="headerlink" href="#api_version" title="Permanent link">#</a></h2>
-<p>API version of the manifest, now <code>v1</code></p>
+<p>Версия API манифеста, сейчас <code>v1</code></p>
 <h2 id="requirements">requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
 <div class="highlight"><pre><span></span><code><span class="nt">core</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">from_version</span><span class="p">:</span><span class="w"> </span><span class="s">"0.0.0"</span>
 <span class="w">  </span><span class="nt">to_version</span><span class="p">:</span><span class="w"> </span><span class="s">"1.0.0"</span>
 </code></pre></div>
-<p>Requirements are used to specify the versions of the elements that are required to run the manifest.</p>
+<p>Требования используются для указания версий элементов, необходимых для запуска манифеста.</p>
 <h2 id="resources">Resources<a class="headerlink" href="#resources" title="Permanent link">#</a></h2>
-<p>Resources are used to specify the resources that are required to run the manifest.</p>
+<p>Ресурсы используются для указания ресурсов, необходимых для запуска манифеста.</p>
 <h2 id="exports">exports<a class="headerlink" href="#exports" title="Permanent link">#</a></h2>
 <div class="highlight"><pre><span></span><code><span class="nt">my_service</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">link</span><span class="p">:</span><span class="w"> </span><span class="s">"$core_service_example.em.services.$example_service"</span>
-<span class="w">  </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="s">"resource"</span><span class="w"> </span><span class="c1"># kind of the export, now only `resource` is supported, may be omitted</span>
+<span class="w">  </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="s">"resource"</span><span class="w"> </span><span class="c1"># вид экспорта, сейчас поддерживается только `resource`, может быть опущено</span>
 </code></pre></div>
 <h2 id="imports">imports<a class="headerlink" href="#imports" title="Permanent link">#</a></h2>
 <div class="highlight"><pre><span></span><code><span class="nt">var_default_cores</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">element</span><span class="p">:</span><span class="w"> </span><span class="s">"$core"</span><span class="w">  </span><span class="c1"># element, from that the import is made</span>
-<span class="w">  </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="s">"resource"</span><span class="w"> </span><span class="c1"># kind of the import, now only `resource` is supported, may be omitted</span>
-<span class="w">  </span><span class="nt">link</span><span class="p">:</span><span class="w"> </span><span class="s">"$core.vs.variables.$default_cores"</span><span class="w">   </span><span class="c1"># link to the resource (element, that the import is made, maybe be another)</span>
+<span class="w">  </span><span class="nt">element</span><span class="p">:</span><span class="w"> </span><span class="s">"$core"</span><span class="w">  </span><span class="c1"># элемент, из которого выполняется импорт</span>
+<span class="w">  </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="s">"resource"</span><span class="w"> </span><span class="c1"># вид импорта, сейчас поддерживается только `resource`, может быть опущено</span>
+<span class="w">  </span><span class="nt">link</span><span class="p">:</span><span class="w"> </span><span class="s">"$core.vs.variables.$default_cores"</span><span class="w">   </span><span class="c1"># ссылка на ресурс (элемент, из которого выполняется импорт, может быть другим)</span>
 </code></pre></div>
-<p>Imports are used to specify the resources that are imported by the manifest.</p>
+<p>Импорты используются для указания ресурсов, импортируемых манифестом.</p>
 
 
 

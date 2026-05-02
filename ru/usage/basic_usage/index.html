@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#basic-usage" class="md-skip">
+        <a href="#базовое-использование" class="md-skip">
           Перейти к содержанию
         </a>
       
@@ -324,19 +324,19 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#requirements" class="md-nav__link">
-    Requirements
+  <a href="#требования" class="md-nav__link">
+    Требования
   </a>
   
-    <nav class="md-nav" aria-label="Requirements">
+    <nav class="md-nav" aria-label="Требования">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#packages" class="md-nav__link">
-    Packages
+  <a href="#пакеты" class="md-nav__link">
+    Пакеты
   </a>
   
-    <nav class="md-nav" aria-label="Packages">
+    <nav class="md-nav" aria-label="Пакеты">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -364,60 +364,60 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
-    Installation
+  <a href="#установка" class="md-nav__link">
+    Установка
   </a>
   
-    <nav class="md-nav" aria-label="Installation">
+    <nav class="md-nav" aria-label="Установка">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#local-machine--development" class="md-nav__link">
-    Local machine / Development
+  <a href="#локальная-машина--разработка" class="md-nav__link">
+    Локальная машина / Разработка
   </a>
   
-    <nav class="md-nav" aria-label="Local machine / Development">
+    <nav class="md-nav" aria-label="Локальная машина / Разработка">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#get-admin-token" class="md-nav__link">
-    Get admin token
+  <a href="#получение-токена-администратора" class="md-nav__link">
+    Получение токена администратора
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#add-hypervisor" class="md-nav__link">
-    Add hypervisor
+  <a href="#добавление-гипервизора" class="md-nav__link">
+    Добавление гипервизора
   </a>
   
-    <nav class="md-nav" aria-label="Add hypervisor">
+    <nav class="md-nav" aria-label="Добавление гипервизора">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#libvirt-via-ssh-preffered" class="md-nav__link">
-    Libvirt via SSH (preffered)
+  <a href="#libvirt-через-ssh-предпочтительно" class="md-nav__link">
+    Libvirt через SSH (предпочтительно)
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#libvirt-via-tcp-connect" class="md-nav__link">
-    Libvirt via TCP connect
+  <a href="#libvirt-через-tcp-соединение" class="md-nav__link">
+    Libvirt через TCP соединение
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#configure-zfs-for-storage" class="md-nav__link">
-    Configure ZFS for storage
+  <a href="#настройка-zfs-для-хранения" class="md-nav__link">
+    Настройка ZFS для хранения
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#config-hypervisor-in-core" class="md-nav__link">
-    Config hypervisor in core
+  <a href="#конфигурация-гипервизора-в-core" class="md-nav__link">
+    Конфигурация гипервизора в core
   </a>
   
 </li>
@@ -445,8 +445,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#usage" class="md-nav__link">
-    Usage
+  <a href="#использование" class="md-nav__link">
+    Использование
   </a>
   
 </li>
@@ -792,92 +792,92 @@
   
 
 
-<h1 id="basic-usage">Basic usage<a class="headerlink" href="#basic-usage" title="Permanent link">#</a></h1>
-<p>This guide describes how to install and use Genesis Core on existing infrastructure. The existing infrastructure can be a local machine or several servers.
-It's assumed Linux(Ubuntu) is used as the OS on your machines.</p>
-<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
-<p>Before you install and use genesis core you need to install several requirements:</p>
-<h3 id="packages">Packages<a class="headerlink" href="#packages" title="Permanent link">#</a></h3>
-<p>Install necessary packages:</p>
+<h1 id="базовое-использование">Базовое использование<a class="headerlink" href="#базовое-использование" title="Permanent link">#</a></h1>
+<p>Это руководство описывает, как установить и использовать Genesis Core на существующей инфраструктуре. Существующая инфраструктура может быть локальной машиной или несколькими серверами.
+Предполагается, что на ваших машинах используется Linux (Ubuntu).</p>
+<h2 id="требования">Требования<a class="headerlink" href="#требования" title="Permanent link">#</a></h2>
+<p>Перед установкой и использованием Genesis Core необходимо установить несколько зависимостей:</p>
+<h3 id="пакеты">Пакеты<a class="headerlink" href="#пакеты" title="Permanent link">#</a></h3>
+<p>Установите необходимые пакеты:</p>
 <h4 id="ubuntu">Ubuntu<a class="headerlink" href="#ubuntu" title="Permanent link">#</a></h4>
-<p>Install packages</p>
+<p>Установка пакетов</p>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>update
 sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>qemu-kvm<span class="w"> </span>qemu-utils<span class="w"> </span>libvirt-daemon-system<span class="w"> </span>libvirt-dev<span class="w"> </span>mkisofs<span class="w"> </span>-y
 </code></pre></div>
-<p>Add user to group</p>
+<p>Добавьте пользователя в группы</p>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>adduser<span class="w"> </span><span class="nv">$USER</span><span class="w"> </span>libvirt
 sudo<span class="w"> </span>adduser<span class="w"> </span><span class="nv">$USER</span><span class="w"> </span>kvm
 </code></pre></div>
 <h3 id="libvirt">Libvirt<a class="headerlink" href="#libvirt" title="Permanent link">#</a></h3>
-<p>Create a libvirt storage pool or use <code>default</code> if it already exists.</p>
-<p>Check pools:</p>
+<p>Создайте пул хранения libvirt или используйте <code>default</code>, если он уже существует.</p>
+<p>Проверьте пулы:</p>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>virsh<span class="w"> </span>pool-list<span class="w"> </span>--all
 </code></pre></div>
-<p>Create a new pool if no one exists or you would like to use another one.</p>
+<p>Создайте новый пул, если ни один не существует, или если вы хотите использовать другой.</p>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>virsh<span class="w"> </span>pool-define-as<span class="w"> </span>default<span class="w"> </span>dir<span class="w"> </span>--target<span class="w"> </span><span class="s2">"/var/lib/libvirt/images/"</span>
 sudo<span class="w"> </span>virsh<span class="w"> </span>pool-build<span class="w"> </span>default
 sudo<span class="w"> </span>virsh<span class="w"> </span>pool-start<span class="w"> </span>default
 sudo<span class="w"> </span>virsh<span class="w"> </span>pool-autostart<span class="w"> </span>default
 </code></pre></div>
-<p>Check the status with virsh-info:</p>
+<p>Проверьте статус с помощью virsh-info:</p>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>virsh<span class="w"> </span>pool-info<span class="w"> </span>default
 </code></pre></div>
-<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">#</a></h2>
-<p>The simplest way to install Genesis Core is to get a prebuilt virtual machine image with all necessary dependencies. Take the the <a href="http://repository.genesis-core.tech:8081/genesis-core/latest/genesis-core.qcow2">latest image here</a>.</p>
-<h3 id="local-machine--development">Local machine / Development<a class="headerlink" href="#local-machine--development" title="Permanent link">#</a></h3>
-<p>Install Genesis DevTools first. For more information about it, see <a href="https://github.com/infraguys/genesis_devtools">Genesis DevTools</a>. The devtools allows to build and run the genesis core locally. Since we already downloaded the latest image, we don't need to build it from scratch but if you need to build an image from source look at the <a href="https://github.com/infraguys/genesis_devtools?tab=readme-ov-file#build">instructions here</a>.</p>
-<p>The devtools has <code>bootstrap</code> command that will start the Genesis Core locally.</p>
+<h2 id="установка">Установка<a class="headerlink" href="#установка" title="Permanent link">#</a></h2>
+<p>Самый простой способ установки Genesis Core — получить готовый образ виртуальной машины со всеми необходимыми зависимостями. Возьмите <a href="http://repository.genesis-core.tech:8081/genesis-core/latest/genesis-core.qcow2">последний образ здесь</a>.</p>
+<h3 id="локальная-машина--разработка">Локальная машина / Разработка<a class="headerlink" href="#локальная-машина--разработка" title="Permanent link">#</a></h3>
+<p>Сначала установите Genesis DevTools. Для получения дополнительной информации о нём см. <a href="https://github.com/infraguys/genesis_devtools">Genesis DevTools</a>. Этот инструмент позволяет собирать и запускать genesis core локально. Поскольку мы уже загрузили последний образ, нам не нужно собирать его с нуля, но если вам нужно собрать образ из исходников, смотрите <a href="https://github.com/infraguys/genesis_devtools?tab=readme-ov-file#build">инструкции здесь</a>.</p>
+<p>У инструмента devtools есть команда <code>bootstrap</code>, которая запустит Genesis Core локально.</p>
 <div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>bootstrap<span class="w"> </span>-i<span class="w"> </span>genesis-core.raw<span class="w"> </span>-m<span class="w"> </span>core
 </code></pre></div>
-<p>For more information about the <code>bootstrap</code> command, see <a href="https://github.com/infraguys/genesis_devtools?tab=readme-ov-file#bootstrap">instructions here</a>.</p>
-<p>The installation is ready at address <code>10.20.0.2</code> but at this time it's not very useful since it cannot run any workload. Let's add a local machine as a hypervisor to solve this problem.</p>
-<h4 id="get-admin-token">Get admin token<a class="headerlink" href="#get-admin-token" title="Permanent link">#</a></h4>
-<p>Before we can add a hypervisor, we need to get an admin token. The command to get the token is:</p>
+<p>Для получения дополнительной информации о команде <code>bootstrap</code> см. <a href="https://github.com/infraguys/genesis_devtools?tab=readme-ov-file#bootstrap">инструкции здесь</a>.</p>
+<p>Установка доступна по адресу <code>10.20.0.2</code>, но на данный момент она не очень полезна, так как не может запускать рабочие нагрузки. Давайте добавим локальную машину в качестве гипервизора, чтобы решить эту проблему.</p>
+<h4 id="получение-токена-администратора">Получение токена администратора<a class="headerlink" href="#получение-токена-администратора" title="Permanent link">#</a></h4>
+<p>Прежде чем мы сможем добавить гипервизор, нам нужно получить токен администратора. Команда для получения токена:</p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>--location<span class="w"> </span><span class="s1">'http://10.20.0.2:11010/v1/iam/clients/00000000-0000-0000-0000-000000000000/actions/get_token/invoke'</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--header<span class="w"> </span><span class="s1">'Content-Type: application/x-www-form-urlencoded'</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'grant_type=password'</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'username=&lt;YOUR_ADMIN_USERNAME&gt;'</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'password=&lt;YOUR_ADMIN_PASSWORD&gt;'</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'username=&lt;ВАШЕ_ADMIN_ИМЯ&gt;'</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'password=&lt;ВАШ_ADMIN_ПАРОЛЬ&gt;'</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'client_id=GenesisCoreClientId'</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'client_secret=GenesisCoreClientSecret'</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'scope='</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'ttl=86400'</span>
 </code></pre></div>
-<p>The return value is <code>json</code> object with the <code>access_token</code> field. Copy the token and use it in the next steps.</p>
-<h4 id="add-hypervisor">Add hypervisor<a class="headerlink" href="#add-hypervisor" title="Permanent link">#</a></h4>
-<h5 id="libvirt-via-ssh-preffered">Libvirt via SSH (preffered)<a class="headerlink" href="#libvirt-via-ssh-preffered" title="Permanent link">#</a></h5>
-<p>Create key in genesis core's VM for root user:</p>
+<p>Возвращаемое значение — это <code>json</code> объект с полем <code>access_token</code>. Скопируйте токен и используйте его на следующих шагах.</p>
+<h4 id="добавление-гипервизора">Добавление гипервизора<a class="headerlink" href="#добавление-гипервизора" title="Permanent link">#</a></h4>
+<h5 id="libvirt-через-ssh-предпочтительно">Libvirt через SSH (предпочтительно)<a class="headerlink" href="#libvirt-через-ssh-предпочтительно" title="Permanent link">#</a></h5>
+<p>Создайте ключ в виртуальной машине Genesis Core для пользователя root:</p>
 <div class="highlight"><pre><span></span><code><span class="gp"># </span>ssh-keygen
 </code></pre></div>
-<p>Copy public key to hypervisor (recommended user is <code>ubuntu</code>)</p>
-<h5 id="libvirt-via-tcp-connect">Libvirt via TCP connect<a class="headerlink" href="#libvirt-via-tcp-connect" title="Permanent link">#</a></h5>
-<p>We need to get access to libvirt via a tcp connection. By default the tcp connection is closed, so we need to enable it.</p>
-<p><strong>NOTE:</strong> For development purposes we can use raw tcp connection. Don't use it in production.</p>
-<p>Edit libvirt configuration file <code>/etc/libvirt/libvirtd.conf</code>, add these lines;</p>
+<p>Скопируйте публичный ключ на гипервизор (рекомендуемый пользователь — <code>ubuntu</code>)</p>
+<h5 id="libvirt-через-tcp-соединение">Libvirt через TCP соединение<a class="headerlink" href="#libvirt-через-tcp-соединение" title="Permanent link">#</a></h5>
+<p>Нам нужен доступ к libvirt через TCP-соединение. По умолчанию TCP-соединение закрыто, поэтому нам нужно его включить.</p>
+<p><strong>ПРИМЕЧАНИЕ:</strong> Для разработки мы можем использовать raw TCP-соединение. Не используйте его в production.</p>
+<p>Отредактируйте конфигурационный файл libvirt <code>/etc/libvirt/libvirtd.conf</code>, добавьте эти строки:</p>
 <div class="highlight"><pre><span></span><code><span class="nv">listen_tcp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span>
 <span class="nv">listen_addr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"0.0.0.0"</span>
 <span class="nv">auth_tcp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"none"</span>
 </code></pre></div>
-<p>Run commands to enable libvirt tcp connection:</p>
+<p>Выполните команды для включения TCP-соединения libvirt:</p>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>systemctl<span class="w"> </span>stop<span class="w"> </span>libvirtd
 sudo<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>--now<span class="w"> </span>libvirtd-tcp.socket
 sudo<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w"> </span>libvirtd
 </code></pre></div>
-<p>Check the libvirt is listening the tcp socket:</p>
+<p>Проверьте, что libvirt слушает TCP-сокет:</p>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>libvirtd.service
 sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>libvirtd.service<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">"libvirtd-tcp.socket"</span>
 </code></pre></div>
-<h5 id="configure-zfs-for-storage">Configure ZFS for storage<a class="headerlink" href="#configure-zfs-for-storage" title="Permanent link">#</a></h5>
-<p>It's recommended to create distinct dataset for zvols:</p>
-<div class="highlight"><pre><span></span><code>zpool<span class="w"> </span>create<span class="w"> </span>rpool<span class="w"> </span>...<span class="w"> </span><span class="c1"># create pool itself</span>
+<h5 id="настройка-zfs-для-хранения">Настройка ZFS для хранения<a class="headerlink" href="#настройка-zfs-для-хранения" title="Permanent link">#</a></h5>
+<p>Рекомендуется создать отдельный датасет для zvols:</p>
+<div class="highlight"><pre><span></span><code>zpool<span class="w"> </span>create<span class="w"> </span>rpool<span class="w"> </span>...<span class="w"> </span><span class="c1"># создаём сам пул</span>
 zfs<span class="w"> </span>create<span class="w"> </span>-o<span class="w"> </span><span class="nv">volmode</span><span class="o">=</span>dev<span class="w"> </span>rpool/disks
 virsh<span class="w"> </span>pool-define-as<span class="w"> </span>--name<span class="w"> </span>rpool<span class="w"> </span>--source-name<span class="w"> </span>rpool/disks<span class="w"> </span>--type<span class="w"> </span>zfs
 virsh<span class="w"> </span>pool-start<span class="w"> </span>rpool
 virsh<span class="w"> </span>pool-autostart<span class="w"> </span>rpool
 </code></pre></div>
-<h5 id="config-hypervisor-in-core">Config hypervisor in core<a class="headerlink" href="#config-hypervisor-in-core" title="Permanent link">#</a></h5>
-<p>Add the machine as a hypervisor, replace <code>XXXX</code> with the token from the previous step.:</p>
-<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>--location<span class="w"> </span>--globoff<span class="w"> </span><span class="s1">'http://10.20.0.2:11010/v1/hypervisors/'</span><span class="w"> </span><span class="se">\</span>
+<h5 id="конфигурация-гипервизора-в-core">Конфигурация гипервизора в core<a class="headerlink" href="#конфигурация-гипервизора-в-core" title="Permanent link">#</a></h5>
+<p>Добавьте машину в качестве гипервизора, замените XXXX на токен из предыдущего шага:</p>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>--location<span class="w"> </span>--globoff<span class="w"> </span><span class="s1">'http://10.20.0.2:11010/v1/compute/hypervisors/'</span><span class="w"> </span><span class="se">\</span>
 --header<span class="w"> </span><span class="s1">'Content-Type: application/json'</span><span class="w"> </span><span class="se">\</span>
 --header<span class="w"> </span><span class="s1">'Authorization: Bearer XXXX'</span><span class="w"> </span><span class="se">\</span>
 --data<span class="w"> </span><span class="s1">'{</span>
@@ -886,10 +886,10 @@ virsh<span class="w"> </span>pool-autostart<span class="w"> </span>rpool
 <span class="s1">        "iface_mtu": 1500,</span>
 <span class="s1">        "network_type": "network",</span>
 <span class="s1">        "network": "genesis-core-net",</span>
-<span class="s1">        "storage_pool": "default", // for qcow</span>
-<span class="s1">        "storage_pool": "rpool", // for ZFS</span>
-<span class="s1">        "connection_uri": "qemu+tcp://10.20.0.1/system", // for TCP connect</span>
-<span class="s1">        "connection_uri": "qemu+ssh://ubuntu@10.20.0.1:22/system?no_verify=1", // for SSH connect</span>
+<span class="s1">        "storage_pool": "default", // для qcow</span>
+<span class="s1">        "storage_pool": "rpool", // для ZFS</span>
+<span class="s1">        "connection_uri": "qemu+tcp://10.20.0.1/system", // для TCP-соединения</span>
+<span class="s1">        "connection_uri": "qemu+ssh://ubuntu@10.20.0.1:22/system?no_verify=1", // для SSH-соединения</span>
 <span class="s1">        "machine_prefix": "dev-"</span>
 <span class="s1">    },</span>
 <span class="s1">    "avail_cores": 4,</span>
@@ -900,17 +900,17 @@ virsh<span class="w"> </span>pool-autostart<span class="w"> </span>rpool
 <span class="s1">}'</span>
 </code></pre></div>
 <ul>
-<li>storage_pool - name of the libvirt storage pool to use.</li>
-<li>connection_uri - libvirt connection uri. If you need to add another machine use different ip address.</li>
-<li>all_cores - total number of cores you would like to allocate to the hypervisor.</li>
-<li>all_ram - total amount of ram you would like to allocate to the hypervisor.</li>
-<li>avail_cores - use the same value as <code>all_cores</code>.</li>
-<li>avail_ram - use the same value as <code>all_ram</code>.</li>
+<li>storage_pool — имя пула хранения libvirt для использования.</li>
+<li>connection_uri — URI подключения libvirt. Если вам нужно добавить другую машину, используйте другой IP-адрес.</li>
+<li>all_cores — общее количество ядер, которые вы хотите выделить гипервизору.</li>
+<li>all_ram — общий объём RAM, который вы хотите выделить гипервизору.</li>
+<li>avail_cores — используйте то же значение, что и <code>all_cores</code>.</li>
+<li>avail_ram — используйте то же значение, что и <code>all_ram</code>.</li>
 </ul>
 <h3 id="production">Production<a class="headerlink" href="#production" title="Permanent link">#</a></h3>
-<p>The production installation guide will be added soon.</p>
-<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">#</a></h2>
-<p>Follow the <a href="https://github.com/infraguys/genesis_core/wiki/Usage">usage guide</a> for more information.</p>
+<p>Руководство по установке в production будет добавлено позже.</p>
+<h2 id="использование">Использование<a class="headerlink" href="#использование" title="Permanent link">#</a></h2>
+<p>Следуйте <a href="https://github.com/infraguys/genesis_core/wiki/Usage">руководству по использованию</a> для получения дополнительной информации.</p>
 
 
 

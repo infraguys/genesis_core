@@ -5,20 +5,16 @@
       
       
       
-        <link rel="canonical" href="https://github.com/infraguys/usage/basic_usage/">
+        <link rel="canonical" href="https://github.com/infraguys/app-developer-guide/build/">
       
       
-        <link rel="prev" href="../..">
-      
-      
-        <link rel="next" href="../../openapi/openapi_boot/">
       
       <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.1.0">
     
     
       
-        <title>Usage - genesis_core</title>
+        <title>genesis build - genesis_core</title>
       
     
     
@@ -80,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#basic-usage" class="md-skip">
+        <a href="#overview" class="md-skip">
           Skip to content
         </a>
       
@@ -115,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Usage
+              genesis build
             
           </span>
         </div>
@@ -159,7 +155,7 @@
                 </li>
               
                 <li class="md-select__item">
-                  <a href="../../ru/usage/basic_usage/" hreflang="ru" class="md-select__link">
+                  <a href="../../ru/app-developer-guide/build/" hreflang="ru" class="md-select__link">
                     Russian
                   </a>
                 </li>
@@ -288,173 +284,11 @@
 
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Usage
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../usage/basic_usage/" class="md-nav__link">
         Usage
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#requirements" class="md-nav__link">
-    Requirements
-  </a>
-  
-    <nav class="md-nav" aria-label="Requirements">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#packages" class="md-nav__link">
-    Packages
-  </a>
-  
-    <nav class="md-nav" aria-label="Packages">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#ubuntu" class="md-nav__link">
-    Ubuntu
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#libvirt" class="md-nav__link">
-    Libvirt
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
-    Installation
-  </a>
-  
-    <nav class="md-nav" aria-label="Installation">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#local-machine--development" class="md-nav__link">
-    Local machine / Development
-  </a>
-  
-    <nav class="md-nav" aria-label="Local machine / Development">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#get-admin-token" class="md-nav__link">
-    Get admin token
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#add-hypervisor" class="md-nav__link">
-    Add hypervisor
-  </a>
-  
-    <nav class="md-nav" aria-label="Add hypervisor">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#libvirt-via-ssh-preffered" class="md-nav__link">
-    Libvirt via SSH (preffered)
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#libvirt-via-tcp-connect" class="md-nav__link">
-    Libvirt via TCP connect
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#configure-zfs-for-storage" class="md-nav__link">
-    Configure ZFS for storage
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#config-hypervisor-in-core" class="md-nav__link">
-    Config hypervisor in core
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#production" class="md-nav__link">
-    Production
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#usage" class="md-nav__link">
-    Usage
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -792,125 +626,293 @@
   
 
 
-<h1 id="basic-usage">Basic usage<a class="headerlink" href="#basic-usage" title="Permanent link">#</a></h1>
-<p>This guide describes how to install and use Genesis Core on existing infrastructure. The existing infrastructure can be a local machine or several servers.
-It's assumed Linux(Ubuntu) is used as the OS on your machines.</p>
+  <h1>genesis build</h1>
+
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
+<p><code>genesis build</code> <strong>compiles and packages</strong> your Genesis element into distributable artifacts — images, manifests, and any other resources required for deployment.</p>
+<p>The command reads the <strong><code>genesis/genesis.yaml</code></strong> file — the main configuration file that transforms your application into a platform element. This file contains the <code>build</code> section describing:</p>
+<ul>
+<li><strong>Dependencies</strong> — files, directories or external binary artifacts required for the build</li>
+<li><strong>Elements</strong> — a single project can produce multiple elements on output (e.g., separate API and worker services)</li>
+<li><strong>Artifacts</strong> — images, binaries, or other build outputs</li>
+</ul>
+<p>Running the command performs the following steps:</p>
+<ol>
+<li><strong>Resolve dependencies</strong> — fetches dependencies specified in <code>genesis.yaml</code>.</li>
+<li><strong>Process manifests</strong> — renders manifest files (supporting raw YAML or Jinja2 templates with built-in variables).</li>
+<li><strong>Build artifacts</strong> — creates images and other build outputs based on the <code>build</code> section in <code>genesis.yaml</code>.</li>
+</ol>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>PROJECT_DIR
+</code></pre></div>
+<p>Key options:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-c, --genesis-cfg-file TEXT</code></td>
+<td>Name of the project configuration file (default: <code>genesis.yaml</code>)</td>
+</tr>
+<tr>
+<td><code>--build-dir TEXT</code></td>
+<td>Directory for temporary build artifacts</td>
+</tr>
+<tr>
+<td><code>--output-dir TEXT</code></td>
+<td>Directory where final artifacts are stored</td>
+</tr>
+<tr>
+<td><code>--deps-dir TEXT</code></td>
+<td>Directory where dependencies are fetched</td>
+</tr>
+<tr>
+<td><code>-i, --developer-key-path TEXT</code></td>
+<td>Path to developer's public key. The key is embedded into the built images for signing and authentication</td>
+</tr>
+<tr>
+<td><code>-f, --force</code></td>
+<td>Rebuild even if output already exists</td>
+</tr>
+<tr>
+<td><code>--inventory</code></td>
+<td>Build using the inventory format</td>
+</tr>
+</tbody>
+</table>
+<hr>
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
-<p>Before you install and use genesis core you need to install several requirements:</p>
-<h3 id="packages">Packages<a class="headerlink" href="#packages" title="Permanent link">#</a></h3>
-<p>Install necessary packages:</p>
-<h4 id="ubuntu">Ubuntu<a class="headerlink" href="#ubuntu" title="Permanent link">#</a></h4>
+<p>Before building, ensure you have the following tools installed:</p>
+<ul>
+<li><a href="https://www.packer.io/">packer</a></li>
+<li><a href="https://www.qemu.org/">qemu</a></li>
+</ul>
+<p>Use the Packer <a href="https://hashicorp-releases.yandexcloud.net/packer/1.9.2/">version 1.9.2</a> or earlier due to licensing limitation.</p>
+<h3 id="linux-ubuntu">Linux (Ubuntu)<a class="headerlink" href="#linux-ubuntu" title="Permanent link">#</a></h3>
 <p>Install packages</p>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>update
-sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>qemu-kvm<span class="w"> </span>qemu-utils<span class="w"> </span>libvirt-daemon-system<span class="w"> </span>libvirt-dev<span class="w"> </span>mkisofs<span class="w"> </span>-y
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>qemu-kvm<span class="w"> </span>mkisofs
 </code></pre></div>
 <p>Add user to group</p>
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>adduser<span class="w"> </span><span class="nv">$USER</span><span class="w"> </span>libvirt
-sudo<span class="w"> </span>adduser<span class="w"> </span><span class="nv">$USER</span><span class="w"> </span>kvm
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>adduser<span class="w"> </span><span class="nv">$USER</span><span class="w"> </span>kvm
 </code></pre></div>
-<h3 id="libvirt">Libvirt<a class="headerlink" href="#libvirt" title="Permanent link">#</a></h3>
-<p>Create a libvirt storage pool or use <code>default</code> if it already exists.</p>
-<p>Check pools:</p>
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>virsh<span class="w"> </span>pool-list<span class="w"> </span>--all
+<p>You may need to relogin to apply the changes. Now you are ready to build your element.</p>
+<h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">#</a></h2>
+<h3 id="basic-build">Basic Build<a class="headerlink" href="#basic-build" title="Permanent link">#</a></h3>
+<p>From your project directory:</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build<span class="w"> </span>.
 </code></pre></div>
-<p>Create a new pool if no one exists or you would like to use another one.</p>
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>virsh<span class="w"> </span>pool-define-as<span class="w"> </span>default<span class="w"> </span>dir<span class="w"> </span>--target<span class="w"> </span><span class="s2">"/var/lib/libvirt/images/"</span>
-sudo<span class="w"> </span>virsh<span class="w"> </span>pool-build<span class="w"> </span>default
-sudo<span class="w"> </span>virsh<span class="w"> </span>pool-start<span class="w"> </span>default
-sudo<span class="w"> </span>virsh<span class="w"> </span>pool-autostart<span class="w"> </span>default
+<h3 id="rebuild-with-force">Rebuild with Force<a class="headerlink" href="#rebuild-with-force" title="Permanent link">#</a></h3>
+<p>If you need to rebuild even when artifacts already exist:</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build<span class="w"> </span>--force<span class="w"> </span>.
 </code></pre></div>
-<p>Check the status with virsh-info:</p>
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>virsh<span class="w"> </span>pool-info<span class="w"> </span>default
+<h3 id="build-with-custom-variables">Build with Custom Variables<a class="headerlink" href="#build-with-custom-variables" title="Permanent link">#</a></h3>
+<p>Pass additional variables to manifest templates:</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build<span class="w"> </span>--manifest-var<span class="w"> </span><span class="nv">commit_hash</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>rev-parse<span class="w"> </span>--short<span class="w"> </span>HEAD<span class="k">)</span><span class="w"> </span>.
 </code></pre></div>
-<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">#</a></h2>
-<p>The simplest way to install Genesis Core is to get a prebuilt virtual machine image with all necessary dependencies. Take the the <a href="http://repository.genesis-core.tech:8081/genesis-core/latest/genesis-core.qcow2">latest image here</a>.</p>
-<h3 id="local-machine--development">Local machine / Development<a class="headerlink" href="#local-machine--development" title="Permanent link">#</a></h3>
-<p>Install Genesis DevTools first. For more information about it, see <a href="https://github.com/infraguys/genesis_devtools">Genesis DevTools</a>. The devtools allows to build and run the genesis core locally. Since we already downloaded the latest image, we don't need to build it from scratch but if you need to build an image from source look at the <a href="https://github.com/infraguys/genesis_devtools?tab=readme-ov-file#build">instructions here</a>.</p>
-<p>The devtools has <code>bootstrap</code> command that will start the Genesis Core locally.</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>bootstrap<span class="w"> </span>-i<span class="w"> </span>genesis-core.raw<span class="w"> </span>-m<span class="w"> </span>core
+<h3 id="inventory-build">Inventory Build<a class="headerlink" href="#inventory-build" title="Permanent link">#</a></h3>
+<p>For advanced deployments, build using the inventory format:</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build<span class="w"> </span>--inventory<span class="w"> </span>.
 </code></pre></div>
-<p>For more information about the <code>bootstrap</code> command, see <a href="https://github.com/infraguys/genesis_devtools?tab=readme-ov-file#bootstrap">instructions here</a>.</p>
-<p>The installation is ready at address <code>10.20.0.2</code> but at this time it's not very useful since it cannot run any workload. Let's add a local machine as a hypervisor to solve this problem.</p>
-<h4 id="get-admin-token">Get admin token<a class="headerlink" href="#get-admin-token" title="Permanent link">#</a></h4>
-<p>Before we can add a hypervisor, we need to get an admin token. The command to get the token is:</p>
-<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>--location<span class="w"> </span><span class="s1">'http://10.20.0.2:11010/v1/iam/clients/00000000-0000-0000-0000-000000000000/actions/get_token/invoke'</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--header<span class="w"> </span><span class="s1">'Content-Type: application/x-www-form-urlencoded'</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'grant_type=password'</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'username=&lt;YOUR_ADMIN_USERNAME&gt;'</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'password=&lt;YOUR_ADMIN_PASSWORD&gt;'</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'client_id=GenesisCoreClientId'</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'client_secret=GenesisCoreClientSecret'</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'scope='</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'ttl=86400'</span>
+<hr>
+<h2 id="build-process">Build Process<a class="headerlink" href="#build-process" title="Permanent link">#</a></h2>
+<p>The build process creates <strong>VM disk images</strong> that run on the Genesis Core platform. Packer starts a virtual machine from a base OS image, copies all resolved dependencies into it, and executes the provisioning script specified in <code>genesis.yaml</code>. This script is typically a Bash script that installs packages, configures services, and prepares the image. Once provisioning completes, the VM shuts down and the resulting disk image is packaged for deployment. This process is configured through the <code>elements</code> section in <code>genesis.yaml</code> where you define the base profile, provisioning script, output format, and any build overrides.</p>
+<hr>
+<h3 id="dependencies-resolution">Dependencies Resolution<a class="headerlink" href="#dependencies-resolution" title="Permanent link">#</a></h3>
+<p>Before building, <code>genesis build</code> resolves all dependencies declared in the <code>build.deps</code> section of <code>genesis.yaml</code>. Each dependency specifies a destination path (<code>dst</code>) and a source. Dependencies can be local directories, remote artifacts, or optional development resources.</p>
+<h4 id="local-project-directory">Local Project Directory<a class="headerlink" href="#local-project-directory" title="Permanent link">#</a></h4>
+<p>Include another local project or directory into your build. The source path is relative to the <code>genesis.yaml</code> file location.</p>
+<div class="highlight"><pre><span></span><code><span class="nt">deps</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">dst</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/genesis_core</span>
+<span class="w">    </span><span class="nt">path</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">src</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">../../genesis_core</span>
+<span class="w">    </span><span class="nt">exclude</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.venv</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.tox</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">build</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">output</span>
 </code></pre></div>
-<p>The return value is <code>json</code> object with the <code>access_token</code> field. Copy the token and use it in the next steps.</p>
-<h4 id="add-hypervisor">Add hypervisor<a class="headerlink" href="#add-hypervisor" title="Permanent link">#</a></h4>
-<h5 id="libvirt-via-ssh-preffered">Libvirt via SSH (preffered)<a class="headerlink" href="#libvirt-via-ssh-preffered" title="Permanent link">#</a></h5>
-<p>Create key in genesis core's VM for root user:</p>
-<div class="highlight"><pre><span></span><code><span class="gp"># </span>ssh-keygen
+<p>This copies the <code>genesis_core</code> project into <code>/opt/genesis_core</code> during the build, excluding development directories.</p>
+<h4 id="external-binary-artifacts">External Binary Artifacts<a class="headerlink" href="#external-binary-artifacts" title="Permanent link">#</a></h4>
+<p>Fetch remote resources via HTTP/HTTPS. This is useful for kernel images, boot loaders, or pre-compiled binaries.</p>
+<div class="highlight"><pre><span></span><code><span class="nt">deps</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">dst</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/genesis_core/artifacts/vmlinuz</span>
+<span class="w">    </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">src</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://repository.genesis-core.tech/seed_os/1.1.0/vmlinuz</span>
 </code></pre></div>
-<p>Copy public key to hypervisor (recommended user is <code>ubuntu</code>)</p>
-<h5 id="libvirt-via-tcp-connect">Libvirt via TCP connect<a class="headerlink" href="#libvirt-via-tcp-connect" title="Permanent link">#</a></h5>
-<p>We need to get access to libvirt via a tcp connection. By default the tcp connection is closed, so we need to enable it.</p>
-<p><strong>NOTE:</strong> For development purposes we can use raw tcp connection. Don't use it in production.</p>
-<p>Edit libvirt configuration file <code>/etc/libvirt/libvirtd.conf</code>, add these lines;</p>
-<div class="highlight"><pre><span></span><code><span class="nv">listen_tcp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span>
-<span class="nv">listen_addr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"0.0.0.0"</span>
-<span class="nv">auth_tcp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"none"</span>
+<p>The <code>vmlinuz</code> kernel image is downloaded and placed at the specified destination path before the build continues.</p>
+<h4 id="optional-dependencies">Optional Dependencies<a class="headerlink" href="#optional-dependencies" title="Permanent link">#</a></h4>
+<p>Mark dependencies as optional to allow builds to proceed even when the source is unavailable. This is useful for development-only resources.</p>
+<div class="highlight"><pre><span></span><code><span class="nt">deps</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">dst</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/gcl_sdk</span>
+<span class="w">    </span><span class="nt">optional</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">path</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">env</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">LOCAL_GENESIS_SDK_PATH</span>
 </code></pre></div>
-<p>Run commands to enable libvirt tcp connection:</p>
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>systemctl<span class="w"> </span>stop<span class="w"> </span>libvirtd
-sudo<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>--now<span class="w"> </span>libvirtd-tcp.socket
-sudo<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w"> </span>libvirtd
+<p>Here, the SDK is only included if the <code>LOCAL_GENESIS_SDK_PATH</code> environment variable is set. If not present, the build continues without this dependency.</p>
+<hr>
+<h3 id="vm-image-build-configuration">VM Image Build Configuration<a class="headerlink" href="#vm-image-build-configuration" title="Permanent link">#</a></h3>
+<p>Each element in the <code>elements</code> list of <code>genesis.yaml</code> defines how its VM images are built. An element can produce multiple images (for example, different formats or variants). The following parameters control the image creation process:</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>The name of the output image. Used to identify the image in the build output and registry.</td>
+</tr>
+<tr>
+<td><code>format</code></td>
+<td>Disk image format. Supported formats: <code>raw</code>, <code>qcow2</code>, <code>gz</code>. The <code>gz</code> format is a compressed <code>raw</code> image. Can also reference an environment variable like <code>GEN_IMG_FORMAT_CORE=qcow2</code>.</td>
+</tr>
+<tr>
+<td><code>profile</code></td>
+<td>Base OS image profile to use as the starting point (e.g., <code>genesis_base</code>). This determines the initial operating system and pre-installed packages.</td>
+</tr>
+<tr>
+<td><code>script</code></td>
+<td>Path to the provisioning script executed inside the VM. This script performs all application-specific setup: installing dependencies, copying files, configuring services.</td>
+</tr>
+<tr>
+<td><code>override</code></td>
+<td>Build-time parameter overrides passed to the underlying tool (e.g., Packer). Common uses include increasing <code>disk_size</code>, <code>cpus</code>, or <code>memory</code> for the build VM. When using the <code>genesis_custom</code> profile, specify <code>base_image_url</code> and <code>base_image_checksum</code> here to use any custom image as the base.</td>
+</tr>
+<tr>
+<td><code>envs</code></td>
+<td>List of environment variables to pass into the build process. These become available to the provisioning script and build tools.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="using-environment-variables">Using Environment Variables<a class="headerlink" href="#using-environment-variables" title="Permanent link">#</a></h4>
+<p>Define variables in <code>genesis.yaml</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">elements</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">manifest</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">manifests/core.yaml.j2</span>
+<span class="w">    </span><span class="nt">images</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-app</span>
+<span class="w">        </span><span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">qcow2</span>
+<span class="w">        </span><span class="nt">profile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">genesis_base</span>
+<span class="w">        </span><span class="nt">script</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">install.sh</span>
+<span class="w">        </span><span class="nt">envs</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">APP_PORT=8080</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">LOG_LEVEL=info</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DATABASE_URL</span>
 </code></pre></div>
-<p>Check the libvirt is listening the tcp socket:</p>
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>libvirtd.service
-sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>libvirtd.service<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">"libvirtd-tcp.socket"</span>
+<p>Use them in your provisioning script:</p>
+<div class="highlight"><pre><span></span><code><span class="ch">#!/bin/bash</span>
+<span class="c1"># install.sh</span>
+
+<span class="nb">echo</span><span class="w"> </span><span class="s2">"Starting application on port </span><span class="nv">$APP_PORT</span><span class="s2">"</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">"Log level set to: </span><span class="nv">$LOG_LEVEL</span><span class="s2">"</span>
+
+<span class="c1"># DATABASE_URL will be passed if set in the environment</span>
+<span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">"</span><span class="nv">$DATABASE_URL</span><span class="s2">"</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"Database configured: </span><span class="nv">$DATABASE_URL</span><span class="s2">"</span>
+<span class="k">fi</span>
 </code></pre></div>
-<h5 id="configure-zfs-for-storage">Configure ZFS for storage<a class="headerlink" href="#configure-zfs-for-storage" title="Permanent link">#</a></h5>
-<p>It's recommended to create distinct dataset for zvols:</p>
-<div class="highlight"><pre><span></span><code>zpool<span class="w"> </span>create<span class="w"> </span>rpool<span class="w"> </span>...<span class="w"> </span><span class="c1"># create pool itself</span>
-zfs<span class="w"> </span>create<span class="w"> </span>-o<span class="w"> </span><span class="nv">volmode</span><span class="o">=</span>dev<span class="w"> </span>rpool/disks
-virsh<span class="w"> </span>pool-define-as<span class="w"> </span>--name<span class="w"> </span>rpool<span class="w"> </span>--source-name<span class="w"> </span>rpool/disks<span class="w"> </span>--type<span class="w"> </span>zfs
-virsh<span class="w"> </span>pool-start<span class="w"> </span>rpool
-virsh<span class="w"> </span>pool-autostart<span class="w"> </span>rpool
-</code></pre></div>
-<h5 id="config-hypervisor-in-core">Config hypervisor in core<a class="headerlink" href="#config-hypervisor-in-core" title="Permanent link">#</a></h5>
-<p>Add the machine as a hypervisor, replace <code>XXXX</code> with the token from the previous step.:</p>
-<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>--location<span class="w"> </span>--globoff<span class="w"> </span><span class="s1">'http://10.20.0.2:11010/v1/compute/hypervisors/'</span><span class="w"> </span><span class="se">\</span>
---header<span class="w"> </span><span class="s1">'Content-Type: application/json'</span><span class="w"> </span><span class="se">\</span>
---header<span class="w"> </span><span class="s1">'Authorization: Bearer XXXX'</span><span class="w"> </span><span class="se">\</span>
---data<span class="w"> </span><span class="s1">'{</span>
-<span class="s1">    "driver_spec": {</span>
-<span class="s1">        "driver": "libvirt",</span>
-<span class="s1">        "iface_mtu": 1500,</span>
-<span class="s1">        "network_type": "network",</span>
-<span class="s1">        "network": "genesis-core-net",</span>
-<span class="s1">        "storage_pool": "default", // for qcow</span>
-<span class="s1">        "storage_pool": "rpool", // for ZFS</span>
-<span class="s1">        "connection_uri": "qemu+tcp://10.20.0.1/system", // for TCP connect</span>
-<span class="s1">        "connection_uri": "qemu+ssh://ubuntu@10.20.0.1:22/system?no_verify=1", // for SSH connect</span>
-<span class="s1">        "machine_prefix": "dev-"</span>
-<span class="s1">    },</span>
-<span class="s1">    "avail_cores": 4,</span>
-<span class="s1">    "avail_ram": 4096,</span>
-<span class="s1">    "all_cores": 4,</span>
-<span class="s1">    "all_ram": 4096,</span>
-<span class="s1">    "status": "ACTIVE"</span>
-<span class="s1">}'</span>
-</code></pre></div>
+<h3 id="manifest-processing">Manifest Processing<a class="headerlink" href="#manifest-processing" title="Permanent link">#</a></h3>
+<p>The manifest in your project can be either:</p>
 <ul>
-<li>storage_pool - name of the libvirt storage pool to use.</li>
-<li>connection_uri - libvirt connection uri. If you need to add another machine use different ip address.</li>
-<li>all_cores - total number of cores you would like to allocate to the hypervisor.</li>
-<li>all_ram - total amount of ram you would like to allocate to the hypervisor.</li>
-<li>avail_cores - use the same value as <code>all_cores</code>.</li>
-<li>avail_ram - use the same value as <code>all_ram</code>.</li>
+<li><strong>Raw YAML</strong> — used as-is during the build</li>
+<li><strong>Jinja2 template</strong> — dynamically rendered with built-in variables</li>
 </ul>
-<h3 id="production">Production<a class="headerlink" href="#production" title="Permanent link">#</a></h3>
-<p>The production installation guide will be added soon.</p>
-<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">#</a></h2>
-<p>Follow the <a href="https://github.com/infraguys/genesis_core/wiki/Usage">usage guide</a> for more information.</p>
+<p>For Jinja2 templates, the following variables are available by default:</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{{ version }}</code></td>
+<td>Version of the element being built</td>
+</tr>
+<tr>
+<td><code>{{ name }}</code></td>
+<td>Name of the element</td>
+</tr>
+<tr>
+<td><code>{{ images }}</code></td>
+<td>List of images built for this element</td>
+</tr>
+<tr>
+<td><code>{{ manifests }}</code></td>
+<td>List of manifest files</td>
+</tr>
+</tbody>
+</table>
+<p>Additional variables can be passed using <code>--manifest-var key=value</code>:</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build<span class="w"> </span>--manifest-var<span class="w"> </span><span class="nv">environment</span><span class="o">=</span>production<span class="w"> </span>--manifest-var<span class="w"> </span><span class="nv">region</span><span class="o">=</span>europe-east<span class="w"> </span>.
+</code></pre></div>
+<p><a href="../misc/manifests.md">Full manifest reference →</a></p>
+<hr>
+<h3 id="output-artifacts">Output Artifacts<a class="headerlink" href="#output-artifacts" title="Permanent link">#</a></h3>
+<p>After a successful build with <code>--inventory</code>, the following artifacts are created in the <code>--output-dir</code> (default: project <code>output/</code>):</p>
+<div class="highlight"><pre><span></span><code>output/
+├── inventory.json          # Build manifest listing all produced artifacts
+├── images/                 # Built VM disk images
+│   └── &lt;element-name&gt;.&lt;format&gt;
+└── manifests/              # Compiled manifests for each element
+    └── &lt;element-name&gt;.yaml
+</code></pre></div>
+<p>The <code>inventory.json</code> file provides a complete index of the build output, mapping each element to its artifacts:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>Element name</td>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td>Full version string with timestamp and git hash</td>
+</tr>
+<tr>
+<td><code>images</code></td>
+<td>List of built VM disk image paths</td>
+</tr>
+<tr>
+<td><code>manifests</code></td>
+<td>List of compiled manifest paths</td>
+</tr>
+<tr>
+<td><code>artifacts</code></td>
+<td>Additional build artifacts (if any)</td>
+</tr>
+<tr>
+<td><code>configs</code></td>
+<td>Configuration files (if any)</td>
+</tr>
+<tr>
+<td><code>templates</code></td>
+<td>Template files used during build (if any)</td>
+</tr>
+</tbody>
+</table>
+<p>The exact contents depend on your project type and <code>genesis.yaml</code> configuration.</p>
+<hr>
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">#</a></h2>
+<p>After a successful build, your elements are ready for:</p>
+<ul>
+<li><a href="../push/"><code>genesis push</code></a> — publish to the ecosystem registry</li>
+<li><a href="../deploy/"><code>genesis deploy</code></a> — deploy to a Genesis installation</li>
+</ul>
+<hr>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
+<p>If you encounter issues during the build process — such as dependency resolution failures, VM image build errors, or manifest processing problems — refer to the <a href="troubleshooting.md">Troubleshooting Guide</a> for detailed solutions and common fixes.</p>
 
 
 

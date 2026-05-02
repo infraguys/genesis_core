@@ -5,27 +5,23 @@
       
       
       
-        <link rel="canonical" href="https://github.com/infraguys/ru/em/cli/">
+        <link rel="canonical" href="https://github.com/infraguys/ru/app-developer-guide/">
       
       
-        <link rel="prev" href="../service/">
       
-      
-        <link rel="next" href="../../iam/permissions_overview/">
-      
-      <link rel="icon" href="../../../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.1.0">
     
     
       
-        <title>Example commands - genesis_core</title>
+        <title>Руководство для разработчиков приложений - genesis_core</title>
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.402914a4.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.402914a4.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.a0c5b2b5.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.a0c5b2b5.min.css">
       
       
 
@@ -41,14 +37,14 @@
       
     
     
-    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
     
     
     
-  <link href="../../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+  <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
             html.glightbox-open { overflow: initial; height: 100%; }
             .gslide-title { margin-top: 0px; user-select: text; }
             .gslide-desc { color: #666; user-select: text; }
@@ -80,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#примеры" class="md-skip">
+        <a href="#быстрый-старт" class="md-skip">
           Перейти к содержанию
         </a>
       
@@ -96,7 +92,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Верхний колонтитул">
-    <a href="../../" title="genesis_core" class="md-header__button md-logo" aria-label="genesis_core" data-md-component="logo">
+    <a href="../" title="genesis_core" class="md-header__button md-logo" aria-label="genesis_core" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
@@ -115,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Example commands
+              Руководство для разработчиков приложений
             
           </span>
         </div>
@@ -153,7 +149,7 @@
             <ul class="md-select__list">
               
                 <li class="md-select__item">
-                  <a href="../../../em/cli/" hreflang="en" class="md-select__link">
+                  <a href="../../app-developer-guide/" hreflang="en" class="md-select__link">
                     English
                   </a>
                 </li>
@@ -244,7 +240,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Навигация" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../" title="genesis_core" class="md-nav__button md-logo" aria-label="genesis_core" data-md-component="logo">
+    <a href="../" title="genesis_core" class="md-nav__button md-logo" aria-label="genesis_core" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
@@ -275,7 +271,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../" class="md-nav__link">
+      <a href="../" class="md-nav__link">
         Software
       </a>
     </li>
@@ -290,7 +286,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../usage/basic_usage/" class="md-nav__link">
+      <a href="../usage/basic_usage/" class="md-nav__link">
         Usage
       </a>
     </li>
@@ -332,7 +328,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../openapi/openapi_boot/" class="md-nav__link">
+      <a href="../openapi/openapi_boot/" class="md-nav__link">
         Boot
       </a>
     </li>
@@ -346,7 +342,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../openapi/openapi_orch/" class="md-nav__link">
+      <a href="../openapi/openapi_orch/" class="md-nav__link">
         Orch
       </a>
     </li>
@@ -360,7 +356,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../openapi/openapi_status/" class="md-nav__link">
+      <a href="../openapi/openapi_status/" class="md-nav__link">
         Status
       </a>
     </li>
@@ -374,7 +370,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../openapi/openapi_user/" class="md-nav__link">
+      <a href="../openapi/openapi_user/" class="md-nav__link">
         User
       </a>
     </li>
@@ -394,16 +390,14 @@
 
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4">
       
       
       
@@ -412,7 +406,7 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_4">
           <span class="md-nav__icon md-icon"></span>
           Element
@@ -425,7 +419,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../manifest/" class="md-nav__link">
+      <a href="../em/manifest/" class="md-nav__link">
         Manifest
       </a>
     </li>
@@ -439,7 +433,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../service/" class="md-nav__link">
+      <a href="../em/service/" class="md-nav__link">
         Service as a Service API
       </a>
     </li>
@@ -451,59 +445,11 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Example commands
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../em/cli/" class="md-nav__link">
         Example commands
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Содержание раздела">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Содержание раздела
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#сборка-элемента-из-репозитория" class="md-nav__link">
-    Сборка элемента из репозитория
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#установка-элемента-из-репозитория" class="md-nav__link">
-    Установка элемента из репозитория
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -550,7 +496,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../iam/permissions_overview/" class="md-nav__link">
+      <a href="../iam/permissions_overview/" class="md-nav__link">
         Permissions Overview
       </a>
     </li>
@@ -599,7 +545,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../network/load_balancer/" class="md-nav__link">
+      <a href="../network/load_balancer/" class="md-nav__link">
         Load Balancer as a Service API
       </a>
     </li>
@@ -648,7 +594,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../secret/certificates/" class="md-nav__link">
+      <a href="../secret/certificates/" class="md-nav__link">
         Certificates
       </a>
     </li>
@@ -680,21 +626,102 @@
   
 
 
-<h1 id="примеры">Примеры<a class="headerlink" href="#примеры" title="Permanent link">#</a></h1>
-<h2 id="сборка-элемента-из-репозитория">Сборка элемента из репозитория<a class="headerlink" href="#сборка-элемента-из-репозитория" title="Permanent link">#</a></h2>
-<p>Сборка элемента Genesis. Команда собирает все образы, манифесты и другие артефакты, необходимые для элемента. Манифест в проекте может быть raw YAML файлом или шаблоном, использующим Jinja2. Для шаблонов Jinja2 по умолчанию доступны следующие переменные:</p>
+  <h1>Руководство для разработчиков приложений</h1>
+
+<p>Это руководство проведёт вас через всё, что нужно для сборки, публикации и развёртывания <strong>элементов</strong> — так Genesis Core называет приложения — на платформе.</p>
+<h2 id="быстрый-старт">Быстрый старт<a class="headerlink" href="#быстрый-старт" title="Permanent link">#</a></h2>
+<h3 id="1-инициализация-вашего-элемента">1. Инициализация вашего элемента<a class="headerlink" href="#1-инициализация-вашего-элемента" title="Permanent link">#</a></h3>
+<p>Настройте существующий проект как элемент Genesis Core. Команда <code>genesis init</code> запускает интерактивный мастер, который генерирует все необходимые конфигурационные файлы — включая манифесты и файл <code>genesis.yaml</code>, который описывает процедуры сборки, публикации и развёртывания.</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>init
+</code></pre></div>
+<p>После завершения работы мастера ваш проект будет содержать необходимые конфигурационные файлы — включая манифесты — которые описывают ваш элемент для платформы.</p>
+<p><a href="init/">Подробнее →</a></p>
+<hr>
+<h3 id="2-сборка-вашего-элемента">2. Сборка вашего элемента<a class="headerlink" href="#2-сборка-вашего-элемента" title="Permanent link">#</a></h3>
+<p>Скомпилируйте и упакуйте ваш элемент со всеми его артефактами. Genesis Core использует конфигурацию сборки, определённую в <code>genesis.yaml</code>, для создания распространяемого артефакта.</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build
+</code></pre></div>
+<p>При успехе результат сборки (образ контейнера, бинарный файл или другой тип артефакта) сохраняется локально и помечается текущей версией элемента.</p>
+<p><a href="build/">Подробнее →</a></p>
+<hr>
+<h3 id="3-публикация-вашего-элемента">3. Публикация вашего элемента<a class="headerlink" href="#3-публикация-вашего-элемента" title="Permanent link">#</a></h3>
+<p>Отправьте собранный элемент в реестр экосистемы Genesis, чтобы он стал доступен другим пользователям платформы.</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>push
+</code></pre></div>
+<p>Элемент версионируется и отправляется в настроенный репозиторий на основе метаданных в <code>genesis.yaml</code>.</p>
+<p><a href="push/">Подробнее →</a></p>
+<hr>
+<h3 id="4-развёртывание-вашего-элемента">4. Развёртывание вашего элемента<a class="headerlink" href="#4-развёртывание-вашего-элемента" title="Permanent link">#</a></h3>
+<p>Установите и запустите ваш элемент на установке Genesis Core.</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>&lt;element-name&gt;
+</code></pre></div>
+<p>Платформа разрешает зависимости, устанавливает целевой элемент и запускает его в выбранном окружении.</p>
+<p><a href="deploy/">Подробнее →</a></p>
+<hr>
+<h2 id="пошаговое-руководство-ваш-первый-элемент">Пошаговое руководство: Ваш первый элемент<a class="headerlink" href="#пошаговое-руководство-ваш-первый-элемент" title="Permanent link">#</a></h2>
+<p>Давайте рассмотрим платформенизацию реального проекта FastAPI из <code>https://github.com/infraguys/todo_application</code>.</p>
+<p>Это простое ToDo List API с сохранением в PostgreSQL. Цель здесь не в изучении бизнес-логики, а в демонстрации того, как взять существующее приложение и платформенизировать его с помощью Genesis Core.</p>
+<h3 id="предварительные-требования">Предварительные требования<a class="headerlink" href="#предварительные-требования" title="Permanent link">#</a></h3>
+<p>Для следования этому руководству вам нужна работающая установка Genesis и необходимые инструменты.</p>
+<p><strong>Genesis</strong> — вы можете использовать:</p>
 <ul>
-<li>{{ version }}: версия элемента</li>
-<li>{{ name }}: имя элемента</li>
-<li>{{ images }}: список образов</li>
-<li>{{ manifests }}: список манифестов</li>
+<li><strong>Публичную установку Genesis</strong> — размещённую на <a href="https://genesis-core.tech">genesis-core.tech</a>. Не требуется настройка; просто создайте аккаунт и начните использовать платформу.</li>
+<li><strong>Приватную установку Genesis</strong> — ваш собственный self-hosted экземпляр. Этот документ описывает, как его настроить: <a href="../admin-guide/index.ru.md">Настройка приватной установки</a>.</li>
 </ul>
-<p>Перейдите в директорию проекта и выполните следующую команду:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build<span class="w"> </span>.
+<p>Установите необходимые инструменты ниже.</p>
+<p>Установка Genesis CLI:</p>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://repository.genesis-core.tech/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>sh
 </code></pre></div>
-<h2 id="установка-элемента-из-репозитория">Установка элемента из репозитория<a class="headerlink" href="#установка-элемента-из-репозитория" title="Permanent link">#</a></h2>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>&lt;element_name&gt;
+<p>Packer <a href="https://hashicorp-releases.yandexcloud.net/packer/1.9.2/">версии 1.9.2</a> или ранее из-за ограничений лицензирования. Скачайте и поместите в <code>/usr/local/bin/</code> или любую другую директорию из вашего <code>$PATH</code>.</p>
+<p>Qemu:</p>
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>qemu-kvm<span class="w"> </span>mkisofs
+sudo<span class="w"> </span>adduser<span class="w"> </span><span class="nv">$USER</span><span class="w"> </span>kvm
 </code></pre></div>
+<p>Возможно, вам потребуется перелогиниться для применения изменений. Теперь вы готовы собирать ваш элемент.</p>
+<h3 id="инициализация-проекта">Инициализация проекта<a class="headerlink" href="#инициализация-проекта" title="Permanent link">#</a></h3>
+<p>Клонируйте проект:</p>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/infraguys/todo_application.git<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>todo_application
+</code></pre></div>
+<p>Команда <code>genesis init</code> позволяет вам интерактивно инициализировать новый элемент, но вы также можете использовать её с флагами. Мы будем использовать подход с флагами для ускорения.</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>init<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--project-name<span class="w"> </span>todo_application<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--project-type<span class="w"> </span>python<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--project-systemd-services<span class="w"> </span><span class="s2">"todo-api"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--project-url<span class="w"> </span><span class="s2">"https://github.com/infraguys/todo_application"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--project-python-package-manager<span class="w"> </span><span class="s2">"pip"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--enable-pgsql<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--author-name<span class="w"> </span><span class="s2">"Developer"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--author-email<span class="w"> </span><span class="s2">"dev@example.com"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--manifest-description<span class="w"> </span><span class="s2">"Простой ToDo list элемент"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--repository<span class="w"> </span><span class="s2">"https://repository.genesis-core.tech/genesis-elements"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--pgsql-usage-mode<span class="w"> </span><span class="s2">"own_cluster"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--pgsql-database-name<span class="w"> </span><span class="s2">"todo_api"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--pgsql-username<span class="w"> </span><span class="s2">"todo_api"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--ci-cd<span class="w"> </span><span class="s2">"none"</span>
+</code></pre></div>
+<p>После выполнения этой команды будет отображено резюме с результатами инициализации, показывающее основные конфигурационные файлы. Изучите их, чтобы понять, что было создано.</p>
+<p>Проект готов к сборке и отправке как элемент Genesis Core.</p>
+<h3 id="сборка-элемента">Сборка элемента<a class="headerlink" href="#сборка-элемента" title="Permanent link">#</a></h3>
+<p>Для сборки элемента выполните:</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build
+</code></pre></div>
+<h3 id="отправка-в-репозиторий">Отправка в репозиторий<a class="headerlink" href="#отправка-в-репозиторий" title="Permanent link">#</a></h3>
+<p>Используйте репозиторий вашей genesis-установки и отправьте элемент:</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>push<span class="w"> </span>-c<span class="w"> </span>genesis.push.yaml
+</code></pre></div>
+<h3 id="развёртывание-элемента">Развёртывание элемента<a class="headerlink" href="#развёртывание-элемента" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>todo-api
+</code></pre></div>
+<p>ToDo API теперь доступен по настроенной конечной точке.</p>
+<hr>
+<h2 id="расширенное-использование">Расширенное использование<a class="headerlink" href="#расширенное-использование" title="Permanent link">#</a></h2>
+<p>Когда вы освоитесь с основами, изучите более углублённые темы ниже.</p>
+<ul>
+<li><a href="../misc/manifests.ru.md">Написание манифеста с нуля</a> — изучите полную спецификацию манифеста и создайте его вручную без помощи мастера <code>genesis init</code>.</li>
+<li><a href="../admin-guide/index.ru.md">Настройка приватной установки платформы</a> — разверните собственный экземпляр Genesis Core для разработки и тестирования ваших элементов end-to-end без подключения к удалённому окружению.</li>
+<li><a href="https://genesis-core.tech">Публичная установка Genesis</a> — используйте размещённую Genesis-платформу без управления собственной инфраструктурой.</li>
+</ul>
 
 
 
@@ -732,10 +759,10 @@
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "../../..", "features": ["search.suggest", "search.highlight", "toc.integrate", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["search.suggest", "search.highlight", "toc.integrate", "content.code.copy"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.ce72ebac.min.js"></script>
+      <script src="../../assets/javascripts/bundle.ce72ebac.min.js"></script>
       
     
   

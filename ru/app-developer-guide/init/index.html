@@ -5,20 +5,16 @@
       
       
       
-        <link rel="canonical" href="https://github.com/infraguys/ru/openapi/openapi_boot/">
+        <link rel="canonical" href="https://github.com/infraguys/ru/app-developer-guide/init/">
       
       
-        <link rel="prev" href="../../usage/basic_usage/">
-      
-      
-        <link rel="next" href="../openapi_orch/">
       
       <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.1.0">
     
     
       
-        <title>Boot - genesis_core</title>
+        <title>genesis init - genesis_core</title>
       
     
     
@@ -80,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#openapi-specification" class="md-skip">
+        <a href="#обзор" class="md-skip">
           Перейти к содержанию
         </a>
       
@@ -115,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Boot
+              genesis init
             
           </span>
         </div>
@@ -153,7 +149,7 @@
             <ul class="md-select__list">
               
                 <li class="md-select__item">
-                  <a href="../../../openapi/openapi_boot/" hreflang="en" class="md-select__link">
+                  <a href="../../../app-developer-guide/init/" hreflang="en" class="md-select__link">
                     English
                   </a>
                 </li>
@@ -303,16 +299,14 @@
 
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
       
       
       
@@ -321,7 +315,7 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_3">
           <span class="md-nav__icon md-icon"></span>
           OpenAPI
@@ -332,21 +326,11 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../openapi/openapi_boot/" class="md-nav__link">
         Boot
       </a>
-      
     </li>
   
 
@@ -358,7 +342,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../openapi_orch/" class="md-nav__link">
+      <a href="../../openapi/openapi_orch/" class="md-nav__link">
         Orch
       </a>
     </li>
@@ -372,7 +356,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../openapi_status/" class="md-nav__link">
+      <a href="../../openapi/openapi_status/" class="md-nav__link">
         Status
       </a>
     </li>
@@ -386,7 +370,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../openapi_user/" class="md-nav__link">
+      <a href="../../openapi/openapi_user/" class="md-nav__link">
         User
       </a>
     </li>
@@ -642,18 +626,94 @@
   
 
 
-<h1 id="openapi-specification">OpenAPI Specification<a class="headerlink" href="#openapi-specification" title="Permanent link">#</a></h1>
-<p>You can view the OpenAPI specification for the Boot API here:</p>
-<p><link type="text/css" rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css"></p>
-<div id="swagger-ui-6">
-</div>
-<script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js" charset="UTF-8"></script>
-<script>
-    SwaggerUIBundle({
-      url: 'openapi_boot.yaml',
-      dom_id: '#swagger-ui-6',
-    })
-</script>
+  <h1>genesis init</h1>
+
+<h2 id="обзор">Обзор<a class="headerlink" href="#обзор" title="Permanent link">#</a></h2>
+<p><code>genesis init</code> <strong>платформенизирует</strong> существующий проект — он подготавливает всё, что нужно платформе Genesis Core для сборки, публикации и развёртывания его как элемента.</p>
+<p>Выполнение команды выполняет следующие шаги:</p>
+<ol>
+<li><strong>Определение типа проекта</strong> — идентифицирует runtime и фреймворк (Python, Node.js, generic и т.д.) или просит вас выбрать один.</li>
+<li><strong>Настройка манифеста</strong> — собирает метаданные и требования к инфраструктуре (базы данных, сервисы и т.д.) для создания файла манифеста.</li>
+<li><strong>Настройка CI/CD</strong> — генерирует конфигурацию конвейера для вашей CI/CD системы, чтобы сборки и развёртывания были автоматизированы с первого дня.</li>
+<li><strong>Вывод резюме</strong> — сообщает обо всём, что было создано или изменено, чтобы вы точно знали, что изменилось.</li>
+</ol>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>init<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+</code></pre></div>
+<p>Ключевые опции:</p>
+<table>
+<thead>
+<tr>
+<th>Опция</th>
+<th>Описание</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--project-dir PATH</code></td>
+<td>Целевая директория (по умолчанию: текущая директория)</td>
+</tr>
+<tr>
+<td><code>--force</code></td>
+<td>Перезаписать ранее сгенерированные файлы</td>
+</tr>
+</tbody>
+</table>
+<p>Все остальные параметры собираются интерактивно через мастер.</p>
+<hr>
+<h2 id="интерактивный-режим">Интерактивный режим<a class="headerlink" href="#интерактивный-режим" title="Permanent link">#</a></h2>
+<p><code>genesis init</code> работает как <strong>интерактивный мастер</strong> — он проводит вас через серию вопросов и принимает решения на основе ваших ответов. Вам не нужно знать опции заранее; мастер адаптирует свои вопросы в зависимости от выбранного типа проекта.</p>
+<p><a href="wizard.ru.md">Подробнее о мастере →</a></p>
+<hr>
+<h2 id="начало-работы">Начало работы<a class="headerlink" href="#начало-работы" title="Permanent link">#</a></h2>
+<h3 id="поддерживаемые-типы-проектов">Поддерживаемые типы проектов<a class="headerlink" href="#поддерживаемые-типы-проектов" title="Permanent link">#</a></h3>
+<p>Когда мастер спрашивает <strong>"Выберите тип проекта"</strong>, выберите тот, который соответствует вашему стеку:</p>
+<table>
+<thead>
+<tr>
+<th>Тип</th>
+<th>Описание</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Python</strong></td>
+<td>Python-приложение. Поддерживает менеджеры пакетов <code>pip</code> и <code>uv</code>. Опционально устанавливает PostgreSQL, Redis и сервисы systemd.</td>
+</tr>
+<tr>
+<td><strong>Node.js</strong></td>
+<td>Node.js-приложение. Опционально устанавливает Nginx, PM2 и Redis.</td>
+</tr>
+<tr>
+<td><strong>Generic</strong></td>
+<td>Любой другой runtime или язык. Используйте это, когда ни один из вышеперечисленных не подходит — вы настроите шаги сборки и развёртывания вручную.</td>
+</tr>
+</tbody>
+</table>
+<p>Если вы не уверены, выберите <strong>Generic</strong> и уточните конфигурацию позже.</p>
+<hr>
+<h3 id="манифест">Манифест<a class="headerlink" href="#манифест" title="Permanent link">#</a></h3>
+<p>Во время инициализации мастер генерирует <strong>манифест</strong> — YAML-файл, который сообщает платформе, что нужно вашему элементу: его зависимости, ресурсы инфраструктуры (базы данных, очереди и т.д.) и конфигурацию runtime.</p>
+<p>Вас попросят предоставить:</p>
+<ul>
+<li>Краткое описание элемента (<code>--manifest-description</code>).</li>
+<li>Тип конструктора манифеста — шаблон, используемый для генерации манифеста (<code>--manifest-constructor</code>).</li>
+<li>Настройки PostgreSQL, если ваш проект использует базу данных (<code>--enable-pgsql</code>, <code>--pgsql-*</code>).</li>
+</ul>
+<p>Сгенерированный манифест — это отправная точка. Вы можете отредактировать его вручную в любое время.</p>
+<p><a href="../misc/manifests.ru.md">Полный справочник по манифестам →</a></p>
+<hr>
+<h3 id="cicd">CI/CD<a class="headerlink" href="#cicd" title="Permanent link">#</a></h3>
+<p><code>genesis init</code> может генерировать готовую конфигурацию конвейера CI/CD (<code>--ci-cd</code>). В настоящее время поддерживаются:</p>
+<ul>
+<li><strong>GitLab CI</strong> — создаёт <code>.gitlab-ci.yml</code>, который запускает <code>genesis build</code>, <code>genesis push</code> и <code>genesis deploy</code> на каждом релевантном событии.</li>
+<li><strong>GitHub Actions</strong> — создаёт директорию <code>.github/workflows/</code> с workflow для сборки, публикации и развёртывания.</li>
+</ul>
+<hr>
+<h3 id="резюме">Резюме<a class="headerlink" href="#резюме" title="Permanent link">#</a></h3>
+<p>После завершения работы мастера <code>genesis init</code> выводит <strong>резюме</strong> всего, что было создано или изменено — файлы манифеста, конфигурацию CI/CD и любые другие сгенерированные артефакты. Просмотрите его, чтобы убедиться, что настройка соответствует вашим ожиданиям, прежде чем переходить к <code>genesis build</code>.</p>
+<hr>
+<h2 id="устранение-неполадок">Устранение неполадок<a class="headerlink" href="#устранение-неполадок" title="Permanent link">#</a></h2>
+<p>Если вы столкнулись с проблемами во время инициализации — такими как ошибки определения типа проекта, ошибки генерации манифеста или проблемы конфигурации CI/CD — обратитесь к <a href="troubleshooting.ru.md">Руководству по устранению неполадок</a> для подробных решений и типичных исправлений.</p>
 
 
 

@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#load-balancer-as-a-service-api" class="md-skip">
+        <a href="#api-load-balancer-as-a-service" class="md-skip">
           Перейти к содержанию
         </a>
       
@@ -585,18 +585,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
-    Overview
+  <a href="#обзор" class="md-nav__link">
+    Обзор
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#core-components" class="md-nav__link">
-    Core Components
+  <a href="#основные-компоненты" class="md-nav__link">
+    Основные компоненты
   </a>
   
-    <nav class="md-nav" aria-label="Core Components">
+    <nav class="md-nav" aria-label="Основные компоненты">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -633,42 +633,34 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#api-structure" class="md-nav__link">
-    API Structure
+  <a href="#структура-api" class="md-nav__link">
+    Структура API
   </a>
   
-    <nav class="md-nav" aria-label="API Structure">
+    <nav class="md-nav" aria-label="Структура API">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#creating-a-load-balancer" class="md-nav__link">
-    Creating a Load Balancer
+  <a href="#создание-балансировщика-нагрузки" class="md-nav__link">
+    Создание балансировщика нагрузки
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#creating-a-virtual-host" class="md-nav__link">
-    Creating a Virtual Host
+  <a href="#создание-виртуального-хоста" class="md-nav__link">
+    Создание виртуального хоста
   </a>
   
-    <nav class="md-nav" aria-label="Creating a Virtual Host">
+    <nav class="md-nav" aria-label="Создание виртуального хоста">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#external-sources" class="md-nav__link">
-    External sources
+  <a href="#требования-к-внешним-источникам" class="md-nav__link">
+    Требования к внешним источникам
   </a>
   
-    <nav class="md-nav" aria-label="External sources">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#requirements" class="md-nav__link">
-    Requirements
-  </a>
-  
-    <nav class="md-nav" aria-label="Requirements">
+    <nav class="md-nav" aria-label="Требования к внешним источникам">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -688,36 +680,31 @@
   
 </li>
         
-      </ul>
-    </nav>
-  
-</li>
-        
           <li class="md-nav__item">
-  <a href="#creating-a-backend-pool" class="md-nav__link">
-    Creating a Backend Pool
+  <a href="#создание-пула-бэкендов" class="md-nav__link">
+    Создание пула бэкендов
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#creating-routes" class="md-nav__link">
-    Creating Routes
+  <a href="#создание-маршрутов" class="md-nav__link">
+    Создание маршрутов
   </a>
   
-    <nav class="md-nav" aria-label="Creating Routes">
+    <nav class="md-nav" aria-label="Создание маршрутов">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#prefix-based-route" class="md-nav__link">
-    Prefix-based Route
+  <a href="#маршрут-на-основе-префикса" class="md-nav__link">
+    Маршрут на основе префикса
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#exact-match-route" class="md-nav__link">
-    Exact Match Route
+  <a href="#маршрут-с-точным-совпадением" class="md-nav__link">
+    Маршрут с точным совпадением
   </a>
   
 </li>
@@ -733,23 +720,23 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#validation-rules" class="md-nav__link">
-    Validation Rules
+  <a href="#правила-валидации" class="md-nav__link">
+    Правила валидации
   </a>
   
-    <nav class="md-nav" aria-label="Validation Rules">
+    <nav class="md-nav" aria-label="Правила валидации">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#vhost-validation" class="md-nav__link">
-    Vhost Validation
+  <a href="#валидация-vhost" class="md-nav__link">
+    Валидация Vhost
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#route-validation" class="md-nav__link">
-    Route Validation
+  <a href="#валидация-маршрутов" class="md-nav__link">
+    Валидация маршрутов
   </a>
   
 </li>
@@ -760,8 +747,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#element-manifest-example" class="md-nav__link">
-    Element manifest example
+  <a href="#пример-манифеста-элемента" class="md-nav__link">
+    Пример манифеста элемента
   </a>
   
 </li>
@@ -848,93 +835,93 @@
   
 
 
-<h1 id="load-balancer-as-a-service-api">Load Balancer as a Service API<a class="headerlink" href="#load-balancer-as-a-service-api" title="Permanent link">#</a></h1>
+<h1 id="api-load-balancer-as-a-service">API Load Balancer as a Service<a class="headerlink" href="#api-load-balancer-as-a-service" title="Permanent link">#</a></h1>
 <pre class="mermaid"><code>graph TD
-    %% Main Load Balancer entity
+    %% Основная сущность Load Balancer
     LB[Load Balancer]
 
-    %% Vhost components
+    %% Компоненты Vhost
     V1[Vhost]
     V2[Vhost]
 
-    %% Route components
+    %% Компоненты Route
     R1[Route]
     R2[Route]
     R3[Route]
 
-    %% Backend Pool components
+    %% Компоненты Backend Pool
     BP1[Backend Pool]
     BP2[Backend Pool]
 
-    %% Relationships showing the complete structure
-    LB --&gt;|contains| V1
-    LB --&gt;|contains| V2
-    V1 --&gt;|defines| R1
-    V1 --&gt;|defines| R2
-    V2 --&gt;|defines| R3
-    R1 --&gt;|uses| BP1
-    R2 --&gt;|uses| BP2
-    R3 --&gt;|uses| BP1
+    %% Отношения, показывающие полную структуру
+    LB --&gt;|содержит| V1
+    LB --&gt;|содержит| V2
+    V1 --&gt;|определяет| R1
+    V1 --&gt;|определяет| R2
+    V2 --&gt;|определяет| R3
+    R1 --&gt;|использует| BP1
+    R2 --&gt;|использует| BP2
+    R3 --&gt;|использует| BP1
 
-    %% Legend
+    %% Легенда
     class LB main
     class V1,V2 component
     class R1,R2,R3 route
     class BP1,BP2 backend</code></pre>
-<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
-<p>The Load Balancer service provides a REST-based API for creating and managing load balancer configurations. It supports both Layer 4 (L4) and Layer 7 (L7) protocols with various routing capabilities.</p>
-<h2 id="core-components">Core Components<a class="headerlink" href="#core-components" title="Permanent link">#</a></h2>
+<h2 id="обзор">Обзор<a class="headerlink" href="#обзор" title="Permanent link">#</a></h2>
+<p>Сервис Load Balancer предоставляет REST API для создания и управления конфигурациями балансировщиков нагрузки. Он поддерживает протоколы Layer 4 (L4) и Layer 7 (L7) с различными возможностями маршрутизации.</p>
+<h2 id="основные-компоненты">Основные компоненты<a class="headerlink" href="#основные-компоненты" title="Permanent link">#</a></h2>
 <ul>
-<li><code>Load balancer</code>: an LB logical instance</li>
-<li><code>Vhost</code>: how to listen ingress</li>
-<li><code>Route</code>: how to enrich requests and where to route them (for example - on which backend)</li>
-<li><code>Backend pools</code>: addresses where we may send requests to</li>
+<li><code>Load balancer</code>: логический экземпляр LB</li>
+<li><code>Vhost</code>: как принимать входящий трафик</li>
+<li><code>Route</code>: как обогащать запросы и куда их направлять (например, на какой backend)</li>
+<li><code>Backend pools</code>: адреса, куда мы можем отправлять запросы</li>
 </ul>
 <h3 id="load-balancer-lb">Load Balancer (LB)<a class="headerlink" href="#load-balancer-lb" title="Permanent link">#</a></h3>
-<p>The main load balancer entity that manages:</p>
+<p>Основная сущность балансировщика нагрузки, управляющая:</p>
 <ul>
-<li>Status (NEW, IN_PROGRESS, ACTIVE, ERROR)</li>
-<li>IP addresses</li>
-<li>Type configuration:<ul>
-<li><code>core</code> - VM-based LB</li>
-<li><code>core_agent</code> - LB will be run on genesis_core instance itself</li>
+<li>Статусом (NEW, IN_PROGRESS, ACTIVE, ERROR)</li>
+<li>IP-адресами</li>
+<li>Конфигурацией типа:<ul>
+<li><code>core</code> — VM-based LB</li>
+<li><code>core_agent</code> — LB будет запущен на самом экземпляре genesis_core</li>
 </ul>
 </li>
 </ul>
 <h3 id="vhost">Vhost<a class="headerlink" href="#vhost" title="Permanent link">#</a></h3>
-<p>Virtual host configuration that defines:</p>
+<p>Конфигурация виртуального хоста, определяющая:</p>
 <ul>
-<li>Protocol (http, https, tcp, udp)</li>
-<li>Port</li>
-<li>Domains (for L7 protocols)</li>
-<li>Certificate (for HTTPS)</li>
-<li>External sources (SSH forwarding)</li>
+<li>Протокол (http, https, tcp, udp)</li>
+<li>Порт</li>
+<li>Домены (для L7 протоколов)</li>
+<li>Сертификат (для HTTPS)</li>
+<li>Внешние источники (SSH forwarding)</li>
 </ul>
 <h3 id="backend-pool">Backend Pool<a class="headerlink" href="#backend-pool" title="Permanent link">#</a></h3>
-<p>Backend pool that manages:</p>
+<p>Пул бэкендов, управляющий:</p>
 <ul>
-<li>List of backend endpoints</li>
-<li>Load balancing algorithm (roundrobin)</li>
+<li>Список конечных точек бэкендов</li>
+<li>Алгоритм балансировки нагрузки (roundrobin)</li>
 </ul>
 <h3 id="route">Route<a class="headerlink" href="#route" title="Permanent link">#</a></h3>
-<p>Routing rules that define how traffic is handled:</p>
+<p>Правила маршрутизации, определяющие, как обрабатывается трафик:</p>
 <ul>
-<li>Condition types<ul>
-<li><code>prefix</code> - nginx-like regex prefixes</li>
-<li><code>exact</code> - plain equal rule</li>
-<li><code>regex</code> - nginx-like regex</li>
-<li><code>raw</code> - used to set backend pools for L4</li>
+<li>Типы условий<ul>
+<li><code>prefix</code> — nginx-подобные regex префиксы</li>
+<li><code>exact</code> — простое точное совпадение</li>
+<li><code>regex</code> — nginx-подобный regex</li>
+<li><code>raw</code> — используется для установки пулов бэкендов для L4</li>
 </ul>
 </li>
-<li>Actions<ul>
-<li><code>backend</code> - send to backend</li>
-<li><code>redirect</code> - return http redirect</li>
-<li><code>local_dir</code> - serve static from local dir on LB</li>
-<li><code>local_dir_download</code> - download tar.gz/zstd on LB itself, unpack it and serve data from local dir</li>
+<li>Действия<ul>
+<li><code>backend</code> — отправить на бэкенд</li>
+<li><code>redirect</code> — вернуть http-редирект</li>
+<li><code>local_dir</code> — отдавать статические файлы из локальной директории на LB</li>
+<li><code>local_dir_download</code> — скачать tar.gz/zstd на сам LB, распаковать и отдавать данные из локальной директории</li>
 </ul>
 </li>
-<li>Modifiers (headers, rewrite rules)<ul>
-<li><code>headers</code> - modify headers<ul>
+<li>Модификаторы (заголовки, правила rewrite)<ul>
+<li><code>headers</code> — модифицировать заголовки<ul>
 <li><code>auto_header</code>:<ul>
 <li>X-Forwarded-For</li>
 <li>X-Forwarded-Port</li>
@@ -942,14 +929,14 @@
 <li>X-Forwarded-Prefix</li>
 </ul>
 </li>
-<li><code>set_header</code>: set static header</li>
+<li><code>set_header</code>: установить статический заголовок</li>
 </ul>
 </li>
 </ul>
 </li>
 </ul>
-<h2 id="api-structure">API Structure<a class="headerlink" href="#api-structure" title="Permanent link">#</a></h2>
-<h3 id="creating-a-load-balancer">Creating a Load Balancer<a class="headerlink" href="#creating-a-load-balancer" title="Permanent link">#</a></h3>
+<h2 id="структура-api">Структура API<a class="headerlink" href="#структура-api" title="Permanent link">#</a></h2>
+<h3 id="создание-балансировщика-нагрузки">Создание балансировщика нагрузки<a class="headerlink" href="#создание-балансировщика-нагрузки" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"my-load-balancer"</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Production load balancer"</span><span class="p">,</span>
@@ -962,24 +949,13 @@
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
-<h3 id="creating-a-virtual-host">Creating a Virtual Host<a class="headerlink" href="#creating-a-virtual-host" title="Permanent link">#</a></h3>
+<h3 id="создание-виртуального-хоста">Создание виртуального хоста<a class="headerlink" href="#создание-виртуального-хоста" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"web-vhost"</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Web server vhost"</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"protocol"</span><span class="p">:</span><span class="w"> </span><span class="s2">"http"</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"port"</span><span class="p">:</span><span class="w"> </span><span class="mi">80</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"domains"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"example.com"</span><span class="p">,</span><span class="w"> </span><span class="s2">"www.example.com"</span><span class="p">],</span>
-<span class="p">}</span>
-</code></pre></div>
-<h4 id="external-sources">External sources<a class="headerlink" href="#external-sources" title="Permanent link">#</a></h4>
-<p>You may use external sources to forward traffic from LB to remote systems (use proxy_protocol_from to enable the PROXY protocol and pass the real client IP to the backend; Nginx will be started on the remote system):</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"web-vhost"</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Web server vhost"</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"protocol"</span><span class="p">:</span><span class="w"> </span><span class="s2">"http"</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"port"</span><span class="p">:</span><span class="w"> </span><span class="mi">80</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"domains"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"example.com"</span><span class="p">,</span><span class="w"> </span><span class="s2">"www.example.com"</span><span class="p">],</span>
-<span class="w">  </span><span class="nt">"proxy_protocol_from"</span><span class="p">:</span><span class="w"> </span><span class="s2">"127.0.0.1/32"</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"external_sources"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">    </span><span class="p">{</span>
 <span class="w">      </span><span class="nt">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ssh_forward"</span><span class="p">,</span>
@@ -991,17 +967,17 @@
 <span class="w">  </span><span class="p">]</span>
 <span class="p">}</span>
 </code></pre></div>
-<h5 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h5>
-<h6 id="ssh">SSH<a class="headerlink" href="#ssh" title="Permanent link">#</a></h6>
-<p>Tested on Ubuntu 24, prepare remote system:</p>
-<div class="highlight"><pre><span></span><code><span class="gp"># </span>We<span class="w"> </span>may<span class="w"> </span>use<span class="w"> </span>nginx<span class="w"> </span>with<span class="w"> </span>proxy_protocol<span class="w"> </span>and<span class="w"> </span>socat<span class="w"> </span><span class="k">for</span><span class="w"> </span>udp
+<h4 id="требования-к-внешним-источникам">Требования к внешним источникам<a class="headerlink" href="#требования-к-внешним-источникам" title="Permanent link">#</a></h4>
+<h5 id="ssh">SSH<a class="headerlink" href="#ssh" title="Permanent link">#</a></h5>
+<p>Проверено на Ubuntu 24, подготовьте удалённую систему:</p>
+<div class="highlight"><pre><span></span><code><span class="gp"># </span>Можем<span class="w"> </span>использовать<span class="w"> </span>nginx<span class="w"> </span>с<span class="w"> </span>proxy_protocol<span class="w"> </span>и<span class="w"> </span>socat<span class="w"> </span>для<span class="w"> </span>udp
 <span class="go">apt install nginx-full socat</span>
 
-<span class="gp"># </span>Apply<span class="w"> </span>binding<span class="w"> </span>to<span class="w"> </span>privileged<span class="w"> </span>ports
+<span class="gp"># </span>Применить<span class="w"> </span>привязку<span class="w"> </span>к<span class="w"> </span>привилегированным<span class="w"> </span>портам
 <span class="go">echo 'net.ipv4.ip_unprivileged_port_start=0' &gt; /etc/sysctl.d/50-unprivileged-ports.conf</span>
 <span class="go">sysctl --system</span>
 </code></pre></div>
-<h3 id="creating-a-backend-pool">Creating a Backend Pool<a class="headerlink" href="#creating-a-backend-pool" title="Permanent link">#</a></h3>
+<h3 id="создание-пула-бэкендов">Создание пула бэкендов<a class="headerlink" href="#создание-пула-бэкендов" title="Permanent link">#</a></h3>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"web-backend-pool"</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"endpoints"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
@@ -1021,8 +997,8 @@
 <span class="w">  </span><span class="nt">"balance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"roundrobin"</span>
 <span class="p">}</span>
 </code></pre></div>
-<h3 id="creating-routes">Creating Routes<a class="headerlink" href="#creating-routes" title="Permanent link">#</a></h3>
-<h4 id="prefix-based-route">Prefix-based Route<a class="headerlink" href="#prefix-based-route" title="Permanent link">#</a></h4>
+<h3 id="создание-маршрутов">Создание маршрутов<a class="headerlink" href="#создание-маршрутов" title="Permanent link">#</a></h3>
+<h4 id="маршрут-на-основе-префикса">Маршрут на основе префикса<a class="headerlink" href="#маршрут-на-основе-префикса" title="Permanent link">#</a></h4>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"api-prefix-route"</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"condition"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1037,7 +1013,7 @@
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
-<h4 id="exact-match-route">Exact Match Route<a class="headerlink" href="#exact-match-route" title="Permanent link">#</a></h4>
+<h4 id="маршрут-с-точным-совпадением">Маршрут с точным совпадением<a class="headerlink" href="#маршрут-с-точным-совпадением" title="Permanent link">#</a></h4>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"exact-route"</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"condition"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -1053,26 +1029,26 @@
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
-<h2 id="validation-rules">Validation Rules<a class="headerlink" href="#validation-rules" title="Permanent link">#</a></h2>
-<h3 id="vhost-validation">Vhost Validation<a class="headerlink" href="#vhost-validation" title="Permanent link">#</a></h3>
+<h2 id="правила-валидации">Правила валидации<a class="headerlink" href="#правила-валидации" title="Permanent link">#</a></h2>
+<h3 id="валидация-vhost">Валидация Vhost<a class="headerlink" href="#валидация-vhost" title="Permanent link">#</a></h3>
 <ul>
-<li>L7 protocols (http, https) must have at least one domain</li>
-<li>HTTPS protocol requires a certificate</li>
-<li>L4 protocols don't support domains or certificates</li>
-<li>Protocol+port combinations must be unique</li>
+<li>L7 протоколы (http, https) должны иметь хотя бы один домен</li>
+<li>HTTPS протокол требует сертификат</li>
+<li>L4 протоколы не поддерживают домены или сертификаты</li>
+<li>Комбинации protocol+port должны быть уникальными</li>
 </ul>
-<h3 id="route-validation">Route Validation<a class="headerlink" href="#route-validation" title="Permanent link">#</a></h3>
+<h3 id="валидация-маршрутов">Валидация маршрутов<a class="headerlink" href="#валидация-маршрутов" title="Permanent link">#</a></h3>
 <ul>
-<li>L7 protocols can't have raw routes</li>
-<li>L4 protocols can only have raw routes</li>
-<li>Routes must be validated against parent vhost constraints</li>
+<li>L7 протоколы не могут иметь raw маршруты</li>
+<li>L4 протоколы могут иметь только raw маршруты</li>
+<li>Маршруты должны проходить валидацию относительно ограничений родительского vhost</li>
 </ul>
-<h2 id="element-manifest-example">Element manifest example<a class="headerlink" href="#element-manifest-example" title="Permanent link">#</a></h2>
-<p>Examples:</p>
+<h2 id="пример-манифеста-элемента">Пример манифеста элемента<a class="headerlink" href="#пример-манифеста-элемента" title="Permanent link">#</a></h2>
+<p>Примеры:</p>
 <ul>
 <li><a href="https://github.com/infraguys/genesis_basic/blob/master/genesis/manifests/basic.yaml.j2">Jitsi element</a></li>
 </ul>
-<p>Basic manifest for https site (let's imagine that some nodes are already exist):</p>
+<p>Базовый манифест для https-сайта (предположим, что некоторые узлы уже существуют):</p>
 <div class="highlight"><pre><span></span><code><span class="nn">...</span>
 <span class="nt">requirements</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">core</span><span class="p">:</span>
@@ -1153,7 +1129,7 @@
 <span class="w">    </span><span class="nt">basic_cert</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">basic_cert</span>
 <span class="w">      </span><span class="nt">project_id</span><span class="p">:</span><span class="w"> </span><span class="s">"12345678-c625-4fee-81d5-f691897b8142"</span>
-<span class="w">      </span><span class="nt">email</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user@geneis-core.tech</span>
+<span class="w">      </span><span class="nt">email</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user@genesis-core.tech</span>
 <span class="w">      </span><span class="nt">domains</span><span class="p">:</span>
 <span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">f"example.{$basic.imports.$core_public_domain:name}"</span>
 <span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">f"*.example.{$basic.imports.$core_public_domain:name}"</span>

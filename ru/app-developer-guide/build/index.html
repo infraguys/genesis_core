@@ -1,0 +1,962 @@
+<!DOCTYPE html><html lang="ru" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://github.com/infraguys/ru/app-developer-guide/build/">
+      
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.1.0">
+    
+    
+      
+        <title>genesis build - genesis_core</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.402914a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.a0c5b2b5.min.css">
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  <link href="../../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="" data-md-color-accent="">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#обзор" class="md-skip">
+          Перейти к содержанию
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Верхний колонтитул">
+    <a href="../../" title="genesis_core" class="md-header__button md-logo" aria-label="genesis_core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            genesis_core
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              genesis build
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      <form class="md-header__option" data-md-component="palette">
+        
+          
+          <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="" data-md-color-accent="" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_1">
+          
+            <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7M9 21v-1h6v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1m3-17a5 5 0 0 0-5 5c0 2.05 1.23 3.81 3 4.58V16h4v-2.42c1.77-.77 3-2.53 3-4.58a5 5 0 0 0-5-5Z"></path></svg>
+            </label>
+          
+        
+          
+          <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="" data-md-color-accent="" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_2">
+          
+            <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7M9 21a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1H9v1Z"></path></svg>
+            </label>
+          
+        
+      </form>
+    
+    
+      <div class="md-header__option">
+        <div class="md-select">
+          
+          <button class="md-header__button md-icon" aria-label="Выберите язык">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.52 17.52 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04M18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12m-2.62 7 1.62-4.33L19.12 17h-3.24Z"></path></svg>
+          </button>
+          <div class="md-select__inner">
+            <ul class="md-select__list">
+              
+                <li class="md-select__item">
+                  <a href="../../../app-developer-guide/build/" hreflang="en" class="md-select__link">
+                    English
+                  </a>
+                </li>
+              
+                <li class="md-select__item">
+                  <a href="./" hreflang="ru" class="md-select__link">
+                    Russian
+                  </a>
+                </li>
+              
+            </ul>
+          </div>
+        </div>
+      </div>
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Поиск" placeholder="Поиск" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"></path></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Поиск">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Очистить" aria-label="Очистить" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"></path></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Инициализация поиска
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/infraguys/genesis_core" title="Перейти к репозиторию" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    genesis_core
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Навигация" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../" title="genesis_core" class="md-nav__button md-logo" aria-label="genesis_core" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"></path></svg>
+
+    </a>
+    genesis_core
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/infraguys/genesis_core" title="Перейти к репозиторию" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    genesis_core
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        Software
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../usage/basic_usage/" class="md-nav__link">
+        Usage
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          OpenAPI
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          OpenAPI
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../openapi/openapi_boot/" class="md-nav__link">
+        Boot
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../openapi/openapi_orch/" class="md-nav__link">
+        Orch
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../openapi/openapi_status/" class="md-nav__link">
+        Status
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../openapi/openapi_user/" class="md-nav__link">
+        User
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4">
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          Element
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Element
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../em/manifest/" class="md-nav__link">
+        Manifest
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../em/service/" class="md-nav__link">
+        Service as a Service API
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../em/cli/" class="md-nav__link">
+        Example commands
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5">
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          IAM
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          IAM
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../iam/permissions_overview/" class="md-nav__link">
+        Permissions Overview
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6">
+      
+      
+      
+        <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          Network
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          Network
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../network/load_balancer/" class="md-nav__link">
+        Load Balancer as a Service API
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7">
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+          Secrets
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          Secrets
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../secret/certificates/" class="md-nav__link">
+        Certificates
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+  <h1>genesis build</h1>
+
+<h2 id="обзор">Обзор<a class="headerlink" href="#обзор" title="Permanent link">#</a></h2>
+<p><code>genesis build</code> <strong>компилирует и упаковывает</strong> ваш Genesis элемент в распространяемые артефакты — образы, манифесты и любые другие ресурсы, необходимые для развёртывания.</p>
+<p>Команда читает файл <strong><code>genesis/genesis.yaml</code></strong> — основной конфигурационный файл, который превращает ваше приложение в элемент платформы. Этот файл содержит секцию <code>build</code>, описывающую:</p>
+<ul>
+<li><strong>Зависимости</strong> — файлы, директории или внешние бинарные артефакты, необходимые для сборки</li>
+<li><strong>Элементы</strong> — один проект может производить несколько элементов на выходе (например, отдельные сервисы API и worker)</li>
+<li><strong>Артефакты</strong> — образы, бинарные файлы или другие результаты сборки</li>
+</ul>
+<p>Выполнение команды выполняет следующие шаги:</p>
+<ol>
+<li><strong>Разрешение зависимостей</strong> — загружает зависимости, указанные в <code>genesis.yaml</code>.</li>
+<li><strong>Обработка манифестов</strong> — рендерит файлы манифестов (поддерживаются raw YAML или шаблоны Jinja2 со встроенными переменными).</li>
+<li><strong>Сборка артефактов</strong> — создаёт образы и другие результаты сборки на основе секции <code>build</code> в <code>genesis.yaml</code>.</li>
+</ol>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>PROJECT_DIR
+</code></pre></div>
+<p>Ключевые опции:</p>
+<table>
+<thead>
+<tr>
+<th>Опция</th>
+<th>Описание</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-c, --genesis-cfg-file TEXT</code></td>
+<td>Имя файла конфигурации проекта (по умолчанию: <code>genesis.yaml</code>)</td>
+</tr>
+<tr>
+<td><code>--build-dir TEXT</code></td>
+<td>Директория для временных артефактов сборки</td>
+</tr>
+<tr>
+<td><code>--output-dir TEXT</code></td>
+<td>Директория, где хранятся финальные артефакты</td>
+</tr>
+<tr>
+<td><code>--deps-dir TEXT</code></td>
+<td>Директория, куда загружаются зависимости</td>
+</tr>
+<tr>
+<td><code>-i, --developer-key-path TEXT</code></td>
+<td>Путь к публичному ключу разработчика. Ключ встраивается в собранные образы для подписи и аутентификации</td>
+</tr>
+<tr>
+<td><code>-f, --force</code></td>
+<td>Пересобрать, даже если результат уже существует</td>
+</tr>
+<tr>
+<td><code>--inventory</code></td>
+<td>Собрать в формате inventory</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="требования">Требования<a class="headerlink" href="#требования" title="Permanent link">#</a></h2>
+<p>Перед сборкой убедитесь, что у вас установлены следующие инструменты:</p>
+<ul>
+<li><a href="https://www.packer.io/">packer</a></li>
+<li><a href="https://www.qemu.org/">qemu</a></li>
+</ul>
+<p>Используйте Packer <a href="https://hashicorp-releases.yandexcloud.net/packer/1.9.2/">версии 1.9.2</a> или ранее из-за ограничений лицензирования.</p>
+<h3 id="linux-ubuntu">Linux (Ubuntu)<a class="headerlink" href="#linux-ubuntu" title="Permanent link">#</a></h3>
+<p>Установка пакетов</p>
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>qemu-kvm<span class="w"> </span>mkisofs
+</code></pre></div>
+<p>Добавление пользователя в группу</p>
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>adduser<span class="w"> </span><span class="nv">$USER</span><span class="w"> </span>kvm
+</code></pre></div>
+<p>Возможно, вам потребуется перелогиниться для применения изменений. Теперь вы готовы собирать ваш элемент.</p>
+<h2 id="начало-работы">Начало работы<a class="headerlink" href="#начало-работы" title="Permanent link">#</a></h2>
+<h3 id="базовая-сборка">Базовая сборка<a class="headerlink" href="#базовая-сборка" title="Permanent link">#</a></h3>
+<p>Из директории вашего проекта:</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build<span class="w"> </span>.
+</code></pre></div>
+<h3 id="пересборка-с-force">Пересборка с force<a class="headerlink" href="#пересборка-с-force" title="Permanent link">#</a></h3>
+<p>Если вам нужно пересобрать, даже когда артефакты уже существуют:</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build<span class="w"> </span>--force<span class="w"> </span>.
+</code></pre></div>
+<h3 id="сборка-с-пользовательскими-переменными">Сборка с пользовательскими переменными<a class="headerlink" href="#сборка-с-пользовательскими-переменными" title="Permanent link">#</a></h3>
+<p>Передайте дополнительные переменные в шаблоны манифестов:</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build<span class="w"> </span>--manifest-var<span class="w"> </span><span class="nv">commit_hash</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>rev-parse<span class="w"> </span>--short<span class="w"> </span>HEAD<span class="k">)</span><span class="w"> </span>.
+</code></pre></div>
+<h3 id="сборка-inventory">Сборка inventory<a class="headerlink" href="#сборка-inventory" title="Permanent link">#</a></h3>
+<p>Для продвинутых развёртываний, соберите в формате inventory:</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build<span class="w"> </span>--inventory<span class="w"> </span>.
+</code></pre></div>
+<hr>
+<h2 id="процесс-сборки">Процесс сборки<a class="headerlink" href="#процесс-сборки" title="Permanent link">#</a></h2>
+<p>Процесс сборки создаёт <strong>образы VM дисков</strong>, которые запускаются на платформе Genesis Core. Packer запускает виртуальную машину из базового образа ОС, копирует все разрешённые зависимости в неё и выполняет скрипт подготовки, указанный в <code>genesis.yaml</code>. Этот скрипт обычно является Bash-скриптом, который устанавливает пакеты, настраивает сервисы и подготавливает образ. После завершения подготовки VM выключается, и полученный образ диска упаковывается для развёртывания. Этот процесс настраивается через секцию <code>elements</code> в <code>genesis.yaml</code>, где вы определяете базовый профиль, скрипт подготовки, формат вывода и любые переопределения сборки.</p>
+<hr>
+<h3 id="разрешение-зависимостей">Разрешение зависимостей<a class="headerlink" href="#разрешение-зависимостей" title="Permanent link">#</a></h3>
+<p>Перед сборкой <code>genesis build</code> разрешает все зависимости, объявленные в секции <code>build.deps</code> файла <code>genesis.yaml</code>. Каждая зависимость указывает путь назначения (<code>dst</code>) и источник. Зависимости могут быть локальными директориями, удалёнными артефактами или опциональными ресурсами для разработки.</p>
+<h4 id="локальная-директория-проекта">Локальная директория проекта<a class="headerlink" href="#локальная-директория-проекта" title="Permanent link">#</a></h4>
+<p>Включите другой локальный проект или директорию в вашу сборку. Путь источника относителен к расположению файла <code>genesis.yaml</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="nt">deps</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">dst</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/genesis_core</span>
+<span class="w">    </span><span class="nt">path</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">src</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">../../genesis_core</span>
+<span class="w">    </span><span class="nt">exclude</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.venv</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.tox</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">build</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">output</span>
+</code></pre></div>
+<p>Это копирует проект <code>genesis_core</code> в <code>/opt/genesis_core</code> во время сборки, исключая директории разработки.</p>
+<h4 id="внешние-бинарные-артефакты">Внешние бинарные артефакты<a class="headerlink" href="#внешние-бинарные-артефакты" title="Permanent link">#</a></h4>
+<p>Получите удалённые ресурсы через HTTP/HTTPS. Это полезно для образов ядра, загрузчиков или предварительно скомпилированных бинарных файлов.</p>
+<div class="highlight"><pre><span></span><code><span class="nt">deps</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">dst</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/genesis_core/artifacts/vmlinuz</span>
+<span class="w">    </span><span class="nt">http</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">src</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://repository.genesis-core.tech/seed_os/1.1.0/vmlinuz</span>
+</code></pre></div>
+<p>Образ ядра <code>vmlinuz</code> загружается и помещается по указанному пути назначения перед продолжением сборки.</p>
+<h4 id="опциональные-зависимости">Опциональные зависимости<a class="headerlink" href="#опциональные-зависимости" title="Permanent link">#</a></h4>
+<p>Помечайте зависимости как опциональные, чтобы позволить сборке продолжаться, даже если источник недоступен. Это полезно для ресурсов только для разработки.</p>
+<div class="highlight"><pre><span></span><code><span class="nt">deps</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">dst</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/gcl_sdk</span>
+<span class="w">    </span><span class="nt">optional</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">path</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">env</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">LOCAL_GENESIS_SDK_PATH</span>
+</code></pre></div>
+<p>Здесь SDK включается только если установлена переменная окружения <code>LOCAL_GENESIS_SDK_PATH</code>. Если она не задана, сборка продолжается без этой зависимости.</p>
+<hr>
+<h3 id="конфигурация-сборки-образов-vm">Конфигурация сборки образов VM<a class="headerlink" href="#конфигурация-сборки-образов-vm" title="Permanent link">#</a></h3>
+<p>Каждый элемент в списке <code>elements</code> файла <code>genesis.yaml</code> определяет, как собираются его образы VM. Элемент может производить несколько образов (например, разные форматы или варианты). Следующие параметры управляют процессом создания образа:</p>
+<table>
+<thead>
+<tr>
+<th>Параметр</th>
+<th>Описание</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>Имя выходного образа. Используется для идентификации образа в результатах сборки и реестре.</td>
+</tr>
+<tr>
+<td><code>format</code></td>
+<td>Формат образа диска. Поддерживаемые форматы: <code>raw</code>, <code>qcow2</code>, <code>gz</code>. Формат <code>gz</code> — это сжатый <code>raw</code> образ. Также может ссылаться на переменную окружения, например <code>GEN_IMG_FORMAT_CORE=qcow2</code>.</td>
+</tr>
+<tr>
+<td><code>profile</code></td>
+<td>Профиль базового образа ОС, используемый как отправная точка (например, <code>genesis_base</code>). Определяет начальную операционную систему и предустановленные пакеты.</td>
+</tr>
+<tr>
+<td><code>script</code></td>
+<td>Путь к скрипту подготовки, выполняемому внутри VM. Этот скрипт выполняет всю специфичную для приложения настройку: установку зависимостей, копирование файлов, настройку сервисов.</td>
+</tr>
+<tr>
+<td><code>override</code></td>
+<td>Переопределения параметров сборки, передаваемые в базовый инструмент (например, Packer). Типичные использования включают увеличение <code>disk_size</code>, <code>cpus</code> или <code>memory</code> для VM сборки. При использовании профиля <code>genesis_custom</code> укажите здесь <code>base_image_url</code> и <code>base_image_checksum</code> для использования любого произвольного образа как базового.</td>
+</tr>
+<tr>
+<td><code>envs</code></td>
+<td>Список переменных окружения для передачи в процесс сборки. Они становятся доступными для скрипта подготовки и инструментов сборки.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="использование-переменных-окружения">Использование переменных окружения<a class="headerlink" href="#использование-переменных-окружения" title="Permanent link">#</a></h4>
+<p>Определите переменные в <code>genesis.yaml</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">elements</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">manifest</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">manifests/core.yaml.j2</span>
+<span class="w">    </span><span class="nt">images</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-app</span>
+<span class="w">        </span><span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">qcow2</span>
+<span class="w">        </span><span class="nt">profile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">genesis_base</span>
+<span class="w">        </span><span class="nt">script</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">install.sh</span>
+<span class="w">        </span><span class="nt">envs</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">APP_PORT=8080</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">LOG_LEVEL=info</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DATABASE_URL</span>
+</code></pre></div>
+<p>Используйте их в вашем скрипте подготовки:</p>
+<div class="highlight"><pre><span></span><code><span class="ch">#!/bin/bash</span>
+<span class="c1"># install.sh</span>
+
+<span class="nb">echo</span><span class="w"> </span><span class="s2">"Starting application on port </span><span class="nv">$APP_PORT</span><span class="s2">"</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">"Log level set to: </span><span class="nv">$LOG_LEVEL</span><span class="s2">"</span>
+
+<span class="c1"># DATABASE_URL будет передана, если установлена в окружении</span>
+<span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">"</span><span class="nv">$DATABASE_URL</span><span class="s2">"</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"Database configured: </span><span class="nv">$DATABASE_URL</span><span class="s2">"</span>
+<span class="k">fi</span>
+</code></pre></div>
+<h3 id="обработка-манифестов">Обработка манифестов<a class="headerlink" href="#обработка-манифестов" title="Permanent link">#</a></h3>
+<p>Манифест в вашем проекте может быть:</p>
+<ul>
+<li><strong>Raw YAML</strong> — используется как есть во время сборки</li>
+<li><strong>Шаблон Jinja2</strong> — динамически рендерится со встроенными переменными</li>
+</ul>
+<p>Для шаблонов Jinja2 по умолчанию доступны следующие переменные:</p>
+<table>
+<thead>
+<tr>
+<th>Переменная</th>
+<th>Описание</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{{ version }}</code></td>
+<td>Версия собираемого элемента</td>
+</tr>
+<tr>
+<td><code>{{ name }}</code></td>
+<td>Имя элемента</td>
+</tr>
+<tr>
+<td><code>{{ images }}</code></td>
+<td>Список собранных образов для этого элемента</td>
+</tr>
+<tr>
+<td><code>{{ manifests }}</code></td>
+<td>Список файлов манифестов</td>
+</tr>
+</tbody>
+</table>
+<p>Дополнительные переменные можно передать с помощью <code>--manifest-var key=value</code>:</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build<span class="w"> </span>--manifest-var<span class="w"> </span><span class="nv">environment</span><span class="o">=</span>production<span class="w"> </span>--manifest-var<span class="w"> </span><span class="nv">region</span><span class="o">=</span>europe-east<span class="w"> </span>.
+</code></pre></div>
+<p><a href="../misc/manifests.ru.md">Полный справочник по манифестам →</a></p>
+<hr>
+<h3 id="выходные-артефакты">Выходные артефакты<a class="headerlink" href="#выходные-артефакты" title="Permanent link">#</a></h3>
+<p>После успешной сборки с <code>--inventory</code> в <code>--output-dir</code> (по умолчанию: <code>output/</code> проекта) создаются следующие артефакты:</p>
+<div class="highlight"><pre><span></span><code>output/
+├── inventory.json          # Манифест сборки, перечисляющий все созданные артефакты
+├── images/                 # Собранные образы VM дисков
+│   └── &lt;element-name&gt;.&lt;format&gt;
+└── manifests/              # Скомпилированные манифесты для каждого элемента
+    └── &lt;element-name&gt;.yaml
+</code></pre></div>
+<p>Файл <code>inventory.json</code> предоставляет полный индекс результатов сборки, отображая каждый элемент на его артефакты:</p>
+<table>
+<thead>
+<tr>
+<th>Поле</th>
+<th>Описание</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>Имя элемента</td>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td>Полная строка версии с меткой времени и git хешем</td>
+</tr>
+<tr>
+<td><code>images</code></td>
+<td>Список путей к собранным образам VM дисков</td>
+</tr>
+<tr>
+<td><code>manifests</code></td>
+<td>Список путей к скомпилированным манифестам</td>
+</tr>
+<tr>
+<td><code>artifacts</code></td>
+<td>Дополнительные артефакты сборки (если есть)</td>
+</tr>
+<tr>
+<td><code>configs</code></td>
+<td>Конфигурационные файлы (если есть)</td>
+</tr>
+<tr>
+<td><code>templates</code></td>
+<td>Файлы шаблонов, использованные при сборке (если есть)</td>
+</tr>
+</tbody>
+</table>
+<p>Точное содержимое зависит от типа вашего проекта и конфигурации <code>genesis.yaml</code>.</p>
+<hr>
+<h2 id="следующие-шаги">Следующие шаги<a class="headerlink" href="#следующие-шаги" title="Permanent link">#</a></h2>
+<p>После успешной сборки ваши элементы готовы для:</p>
+<ul>
+<li><a href="../push/"><code>genesis push</code></a> — публикация в реестр экосистемы</li>
+<li><a href="../deploy/"><code>genesis deploy</code></a> — развёртывание в установку Genesis</li>
+</ul>
+<hr>
+<h2 id="устранение-неполадок">Устранение неполадок<a class="headerlink" href="#устранение-неполадок" title="Permanent link">#</a></h2>
+<p>Если вы столкнулись с проблемами в процессе сборки — такими как ошибки разрешения зависимостей, ошибки сборки образов VM или проблемы обработки манифестов — обратитесь к <a href="troubleshooting.ru.md">Руководству по устранению неполадок</a> для подробных решений и типичных исправлений.</p>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../../..", "features": ["search.suggest", "search.highlight", "toc.integrate", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.ce72ebac.min.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>

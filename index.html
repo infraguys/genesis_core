@@ -307,53 +307,52 @@
     📦 Installation
   </a>
   
+    <nav class="md-nav" aria-label="📦 Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#linux" class="md-nav__link">
+    Linux
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
-  <a href="#try-it-out" class="md-nav__link">
-    Try it out
+  <a href="#-application-developer-guide" class="md-nav__link">
+    🚀 Application Developer Guide
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#basic-usage" class="md-nav__link">
-    Basic usage
+  <a href="#-core-developer-guide" class="md-nav__link">
+    🔧 Core Developer Guide
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#-development" class="md-nav__link">
-    🚀 Development
+  <a href="#-admin-guide" class="md-nav__link">
+    🛠️ Admin Guide
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#-tests" class="md-nav__link">
-    ⚙️ Tests
+  <a href="#-security-guide" class="md-nav__link">
+    🔒 Security Guide
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#functional-tests-environment" class="md-nav__link">
-    Functional tests environment
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#-related-projects" class="md-nav__link">
-    🔗 Related projects
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#-contributing" class="md-nav__link">
-    💡 Contributing
+  <a href="#-miscellaneous" class="md-nav__link">
+    📎 Miscellaneous
   </a>
   
 </li>
@@ -717,59 +716,35 @@
   <h1>Software</h1>
 
 <p>Welcome to Genesis Core!</p>
-<p>The Genesis Core is an open source software that offers a one turnkey solution to deal with infrastructure at all levels - from bare metal and virtual machines to applications and services.</p>
+<p><strong>Genesis</strong> is an open-source NoOps platform for managing infrastructure at every level, along with the ecosystem built on top of it.</p>
 <h2 id="-installation">📦 Installation<a class="headerlink" href="#-installation" title="Permanent link">#</a></h2>
-<p>There are several ways to install Genesis Core and depend on your purpose you can choose one of them.</p>
-<h2 id="try-it-out">Try it out<a class="headerlink" href="#try-it-out" title="Permanent link">#</a></h2>
-<p>If you want to try Genesis Core in a few minutes, download the <code>all-in-one</code> <a href="https://github.com/infraguys/gci_dev_all_in_one">stand</a>. It's a ready-to-go virtual machine image with preinstalled Genesis Core and ability to get full functionality such as creating inner(nested) virtual machines, installation elements and many others.
-This stand may be used for development purposes as well if you are focusing on a new element development.</p>
-<h2 id="basic-usage">Basic usage<a class="headerlink" href="#basic-usage" title="Permanent link">#</a></h2>
-<p>In a case you would like to run Genesis Core on your own infrastructure, you can use the <a href="usage/basic_usage/">basic guide</a> for more details.</p>
-<h2 id="-development">🚀 Development<a class="headerlink" href="#-development" title="Permanent link">#</a></h2>
-<p><strong>Ubuntu:</strong></p>
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>build-essential<span class="w"> </span>python3.12-dev<span class="w"> </span>python3.12-venv<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>libev-dev<span class="w"> </span>libvirt-dev
-curl<span class="w"> </span>-LsSf<span class="w"> </span>https://astral.sh/uv/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
-<span class="nb">source</span><span class="w"> </span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">"</span>/.local/bin/env<span class="w">    </span>
+<h3 id="linux">Linux<a class="headerlink" href="#linux" title="Permanent link">#</a></h3>
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://repository.genesis-core.tech/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>sh
 </code></pre></div>
-<p><strong>Fedora:</strong></p>
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>gcc<span class="w"> </span>libev-devel<span class="w"> </span>libvirt-devel
-curl<span class="w"> </span>-LsSf<span class="w"> </span>https://astral.sh/uv/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
-<span class="nb">source</span><span class="w"> </span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">"</span>/.local/bin/env<span class="w">    </span>
-</code></pre></div>
-<p>Initialize virtual environment:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>sync
-<span class="nb">source</span><span class="w"> </span>.tox/develop/bin/activate
-</code></pre></div>
-<p>Follow the development guide <a href="https://github.com/infraguys/genesis_core/wiki/DevelopmentGuide">here</a> for more details.</p>
-<h2 id="-tests">⚙️ Tests<a class="headerlink" href="#-tests" title="Permanent link">#</a></h2>
-<p><strong>NOTE:</strong> Python version 3.12 is supposed to be used, but you can use other versions</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Unit tests</span>
-tox<span class="w"> </span>-e<span class="w"> </span>py312
-
-<span class="c1"># Functional tests</span>
-tox<span class="w"> </span>-e<span class="w"> </span>py312-functional
-</code></pre></div>
-<h2 id="functional-tests-environment">Functional tests environment<a class="headerlink" href="#functional-tests-environment" title="Permanent link">#</a></h2>
-<p>To run functional tests, export the following environment variables:</p>
-<div class="highlight"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">DATABASE_URI</span><span class="o">=</span><span class="s2">"postgresql://genesis_core:genesis_core@127.0.0.1:5432/genesis_core"</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">ADMIN_PASSWORD</span><span class="o">=</span><span class="s2">"admin"</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">DEFAULT_CLIENT_SECRET</span><span class="o">=</span><span class="s2">"GenesisCoreSecret"</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">GLOBAL_SALT</span><span class="o">=</span><span class="s2">"FOy/2kwwdn0ig1QOq7cestqe"</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">HS256_KEY</span><span class="o">=</span><span class="s2">"secret"</span>
-</code></pre></div>
-<h2 id="-related-projects">🔗 Related projects<a class="headerlink" href="#-related-projects" title="Permanent link">#</a></h2>
+<h2 id="-application-developer-guide">🚀 Application Developer Guide<a class="headerlink" href="#-application-developer-guide" title="Permanent link">#</a></h2>
+<p>Everything you need to develop and deploy applications on the Genesis Core platform. In platform terminology, applications are called <strong>elements</strong>. The guide covers all stages of the element lifecycle:</p>
 <ul>
-<li>Genesis SDK is a set of tools for developing Genesis elements. You can find it <a href="https://github.com/infraguys/gcl_sdk">here</a>.</li>
-<li>Genesis DevTools it's a set of tools to manager life cycle of genesis projects. You can find it <a href="https://github.com/infraguys/genesis_devtools">here</a>.</li>
+<li><strong>Writing a manifest</strong> — defining the element structure, its dependencies and configuration.</li>
+<li><strong>Building</strong> — packaging the element and its artifacts.</li>
+<li><strong>Publishing</strong> — releasing the element to the ecosystem registry.</li>
+<li><strong>Deploying</strong> — installing and running the element on the platform.</li>
 </ul>
-<h2 id="-contributing">💡 Contributing<a class="headerlink" href="#-contributing" title="Permanent link">#</a></h2>
-<p>Contributing to the project is highly appreciated! However, some rules should be followed for successful inclusion of new changes in the project:</p>
+<p><a href="app-developer-guide/">Go to the guide →</a></p>
+<h2 id="-core-developer-guide">🔧 Core Developer Guide<a class="headerlink" href="#-core-developer-guide" title="Permanent link">#</a></h2>
+<p>A guide for developers of the platform core and ecosystem elements — for example, a new PaaS service that other developers will use going forward.</p>
+<p><a href="core-developer-guide/index.md">Go to the guide →</a></p>
+<h2 id="-admin-guide">🛠️ Admin Guide<a class="headerlink" href="#-admin-guide" title="Permanent link">#</a></h2>
+<p>Platform administrator documentation: managing the installation, configuring components, monitoring and maintaining the deployment.</p>
+<p><a href="admin-guide/index.md">Go to the guide →</a></p>
+<h2 id="-security-guide">🔒 Security Guide<a class="headerlink" href="#-security-guide" title="Permanent link">#</a></h2>
+<p>Documentation for security engineers. Special focus on IAM and user management, system auditing, access policies, and other information security aspects of the platform.</p>
+<p><a href="security-guide/index.md">Go to the guide →</a></p>
+<h2 id="-miscellaneous">📎 Miscellaneous<a class="headerlink" href="#-miscellaneous" title="Permanent link">#</a></h2>
+<p>Additional reference materials for the platform.</p>
 <ul>
-<li>All changes should be done in a separate branch.</li>
-<li>Changes should include not only new functionality or bug fixes, but also tests for the new code.</li>
-<li>After the changes are completed and <strong>tested</strong>, a Pull Request should be created with a clear description of the new functionality. Add one of the project maintainers as a reviewer.</li>
-<li>Changes can be merged only after receiving an approve from one of the project maintainers.</li>
+<li><a href="misc/manifests.md">Manifests</a> — manifest format specification and examples.</li>
+<li><a href="misc/api-reference.md">API Reference</a> — full HTTP API reference for platform services.</li>
+<li><a href="misc/cli-reference.md">CLI Reference</a> — complete reference for the Genesis CLI tool.</li>
 </ul>
 
 
