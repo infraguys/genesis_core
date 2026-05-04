@@ -29,7 +29,7 @@ NETWORK_UUID = "1d4f64db-817a-4862-a588-c9e950823cc1"
 DEFAULT_DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
 DEFAULT_SQL_LIMIT = 100
 
-WORK_DIR = "/var/lib/genesis"
+WORK_DIR = "/var/lib/exordos"
 DATA_DIR = os.path.join(WORK_DIR, "data")
 NODE_UUID_PATH = os.path.join(WORK_DIR, "node-id")
 

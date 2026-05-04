@@ -1,5 +1,5 @@
 [Unit]
-Description=Exordos Core Boot API
+Description=Exordos Core Orch API
 After=network-online.target
 
 [Service]
@@ -8,7 +8,7 @@ Restart=on-failure
 RestartSec=5s
 KillSignal=SIGINT
 ExecStartPre=/bin/sleep 2
-ExecStart=gc-boot-api --config-file /etc/exordos_core/exordos_core.conf
+ExecStart=ec-orch-api --config-file /etc/exordos_core/exordos_core.conf
 
 [Install]
 WantedBy=multi-user.target

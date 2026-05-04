@@ -132,8 +132,8 @@ sudo rm -fr /var/www/html
 sudo tar -xf "$GC_ART_DIR/html.tgz" -C /var/www/
 sudo chown -R www-data:www-data /var/www/html
 
-sudo cp "$GC_PATH/etc/nginx/sites-available/genesis.conf" /etc/nginx/sites-available/genesis.conf
-sudo ln -s /etc/nginx/sites-available/genesis.conf /etc/nginx/sites-enabled/genesis.conf
+sudo cp "$GC_PATH/etc/nginx/sites-available/exordos.conf" /etc/nginx/sites-available/exordos.conf
+sudo ln -s /etc/nginx/sites-available/exordos.conf /etc/nginx/sites-enabled/exordos.conf
 sudo systemctl enable nginx
 
 # Install exordos core
@@ -141,7 +141,7 @@ sudo mkdir -p $GC_CFG_DIR
 sudo cp "$GC_PATH/etc/exordos_core/core_agent.conf" $GC_CFG_DIR/
 sudo cp "$GC_PATH/etc/exordos_core/logging.yaml" $GC_CFG_DIR/
 sudo cp "$GC_PATH/etc/exordos_core/event_type_mapping.yaml" $GC_CFG_DIR/
-sudo cp "$GC_PATH/genesis/images/bootstrap.sh" $BOOTSTRAP_PATH/0100-gc-bootstrap.sh
+sudo cp "$GC_PATH/genesis/images/bootstrap.sh" $BOOTSTRAP_PATH/0100-ec-bootstrap.sh
 
 cd "$GC_PATH"
 uv sync
@@ -174,17 +174,17 @@ curl -fsSL https://repository.genesis-core.tech/install.sh | sudo sh
 
 # Misc config
 # Disable DHCP for the main interface, it will be configured in the bootstrap script
-sudo cp "$GC_PATH/etc/90-genesis-dummy-config.yaml" /etc/netplan/90-genesis-net-base-config.yaml
+sudo cp "$GC_PATH/etc/90-exordos-dummy-config.yaml" /etc/netplan/90-exordos-net-base-config.yaml
 
 
 # Create links to venv
-sudo ln -sf "$VENV_PATH/bin/gc-user-api" "/usr/bin/gc-user-api"
-sudo ln -sf "$VENV_PATH/bin/gc-boot-api" "/usr/bin/gc-boot-api"
-sudo ln -sf "$VENV_PATH/bin/gc-orch-api" "/usr/bin/gc-orch-api"
-sudo ln -sf "$VENV_PATH/bin/gc-status-api" "/usr/bin/gc-status-api"
-sudo ln -sf "$VENV_PATH/bin/gc-gservice" "/usr/bin/gc-gservice"
-sudo ln -sf "$VENV_PATH/bin/gc-bootstrap" "/usr/bin/gc-bootstrap"
-sudo ln -sf "$VENV_PATH/bin/gc-bootstrap-templates" "/usr/bin/gc-bootstrap-templates"
+sudo ln -sf "$VENV_PATH/bin/ec-user-api" "/usr/bin/ec-user-api"
+sudo ln -sf "$VENV_PATH/bin/ec-boot-api" "/usr/bin/ec-boot-api"
+sudo ln -sf "$VENV_PATH/bin/ec-orch-api" "/usr/bin/ec-orch-api"
+sudo ln -sf "$VENV_PATH/bin/ec-status-api" "/usr/bin/ec-status-api"
+sudo ln -sf "$VENV_PATH/bin/ec-gservice" "/usr/bin/ec-gservice"
+sudo ln -sf "$VENV_PATH/bin/ec-bootstrap" "/usr/bin/ec-bootstrap"
+sudo ln -sf "$VENV_PATH/bin/ec-bootstrap-templates" "/usr/bin/ec-bootstrap-templates"
 sudo ln -sf "$VENV_PATH/bin/genesis-universal-agent" "/usr/bin/genesis-universal-agent"
 sudo ln -sf "$VENV_PATH/bin/genesis-universal-agent-db-back" "/usr/bin/genesis-universal-agent-db-back"
 sudo ln -sf "$VENV_PATH/bin/genesis-universal-scheduler" "/usr/bin/genesis-universal-scheduler"
@@ -193,12 +193,12 @@ sudo ln -sf "$VENV_PATH/bin/genesis-ci" "/usr/bin/gctl"
 # Install Systemd service files
 # The exordos services are enabled in the bootstrap
 # script only after database is ready
-sudo cp "$GC_PATH/etc/systemd/gc-user-api.service" $SYSTEMD_SERVICE_DIR
-sudo cp "$GC_PATH/etc/systemd/gc-boot-api.service" $SYSTEMD_SERVICE_DIR
-sudo cp "$GC_PATH/etc/systemd/gc-orch-api.service" $SYSTEMD_SERVICE_DIR
-sudo cp "$GC_PATH/etc/systemd/gc-status-api.service" $SYSTEMD_SERVICE_DIR
-sudo cp "$GC_PATH/etc/systemd/gc-gservice.service" $SYSTEMD_SERVICE_DIR
-sudo cp "$GC_PATH/etc/systemd/gc-core-agent.service" $SYSTEMD_SERVICE_DIR
+sudo cp "$GC_PATH/etc/systemd/ec-user-api.service" $SYSTEMD_SERVICE_DIR
+sudo cp "$GC_PATH/etc/systemd/ec-boot-api.service" $SYSTEMD_SERVICE_DIR
+sudo cp "$GC_PATH/etc/systemd/ec-orch-api.service" $SYSTEMD_SERVICE_DIR
+sudo cp "$GC_PATH/etc/systemd/ec-status-api.service" $SYSTEMD_SERVICE_DIR
+sudo cp "$GC_PATH/etc/systemd/ec-gservice.service" $SYSTEMD_SERVICE_DIR
+sudo cp "$GC_PATH/etc/systemd/ec-core-agent.service" $SYSTEMD_SERVICE_DIR
 sudo cp "$GC_PATH/etc/systemd/genesis-universal-agent.service" $SYSTEMD_SERVICE_DIR
 sudo cp "$GC_PATH/etc/systemd/genesis-universal-scheduler.service" $SYSTEMD_SERVICE_DIR
 

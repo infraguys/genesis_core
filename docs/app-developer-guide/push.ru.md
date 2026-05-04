@@ -74,7 +74,7 @@ genesis push --latest
 push:
   local:
     driver: fs
-    path: /var/lib/genesis-pools/http
+    path: /var/lib/exordos-pools/http
   remote:
     driver: nginx
     url: https://repository.genesis-core.tech
@@ -100,7 +100,7 @@ push:
 push:
   staging:
     driver: fs
-    path: /var/lib/genesis-pools/staging
+    path: /var/lib/exordos-pools/staging
   production:
     driver: nginx
     url: https://repo.genesis-core.tech/production

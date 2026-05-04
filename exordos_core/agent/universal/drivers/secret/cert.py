@@ -28,7 +28,7 @@ from exordos_core.agent.universal.drivers.secret.backend import (
 
 LOG = logging.getLogger(__name__)
 
-CERT_TARGET_FIELDS_STORAGE = "/var/lib/genesis/exordos_core/cert_target_fields.json"
+CERT_TARGET_FIELDS_STORAGE = "/var/lib/exordos/exordos_core/cert_target_fields.json"
 
 
 class CoreDNSCertificateCapabilityDriver(direct.DirectAgentDriver):

@@ -142,14 +142,14 @@ line-ending = "auto"
 where = ["."]
 
 [project.scripts]
-gc-user-api = "exordos_core.cmd.user_api:main"
-gc-orch-api = "exordos_core.cmd.orch_api:main"
-gc-boot-api = "exordos_core.cmd.boot_api:main"
-gc-status-api = "exordos_core.cmd.status_api:main"
-gc-gservice = "exordos_core.cmd.gservice:main"
-gc-core-agent = "exordos_core.cmd.core_agent:main"
-gc-bootstrap = "exordos_core.cmd.bootstrap:main"
-gc-bootstrap-templates = "exordos_core.cmd.bootstrap_templates:main"
+ec-user-api = "exordos_core.cmd.user_api:main"
+ec-orch-api = "exordos_core.cmd.orch_api:main"
+ec-boot-api = "exordos_core.cmd.boot_api:main"
+ec-status-api = "exordos_core.cmd.status_api:main"
+ec-gservice = "exordos_core.cmd.gservice:main"
+ec-core-agent = "exordos_core.cmd.core_agent:main"
+ec-bootstrap = "exordos_core.cmd.bootstrap:main"
+ec-bootstrap-templates = "exordos_core.cmd.bootstrap_templates:main"
 
 [project.entry-points."gcn_machine_pool_driver"]
 DummyPoolDriver = "exordos_core.compute.pool.drivers.base:DummyPoolDriver"

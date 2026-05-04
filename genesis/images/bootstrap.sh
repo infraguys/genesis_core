@@ -30,7 +30,7 @@ VENV_PATH="$GC_PATH/.venv"
 # - Detect the "secondary" disk (any disk that is not the root disk)
 # - If it has no partitions: create a single GPT partition
 # - If the partition has no filesystem: format it as ext4
-# - Ensure it is mounted at /var/lib/genesis/data
+# - Ensure it is mounted at /var/lib/exordos/data
 # - Ensure a persistent /etc/fstab entry using UUID
 #
 # This block is intended to be idempotent and safe to run on every boot.
@@ -113,18 +113,18 @@ EOF
 
     # Mount and persist only if it is ext4.
     if [[ "${FS_TYPE}" == "ext4" ]]; then
-      MOUNTPOINT="/var/lib/genesis/data"
+      MOUNTPOINT="/var/lib/exordos/data"
 
       # Ensure mountpoint exists.
       # Example output:
-      #   [exordos-bootstrap] ensuring mountpoint exists: /var/lib/genesis/data
+      #   [exordos-bootstrap] ensuring mountpoint exists: /var/lib/exordos/data
       mkdir -p "${MOUNTPOINT}"
       log "ensuring mountpoint exists: ${MOUNTPOINT}"
 
       # Ensure /etc/fstab has the correct UUID-based entry.
       # Example output:
       #   [exordos-bootstrap] partition UUID: 1234-...
-      #   [exordos-bootstrap] updating /etc/fstab entry for /var/lib/genesis/data
+      #   [exordos-bootstrap] updating /etc/fstab entry for /var/lib/exordos/data
       UUID="$(blkid -o value -s UUID "${PART_DEV}" 2>/dev/null || true)"
       if [[ -n "${UUID}" ]]; then
         log "partition UUID: ${UUID}"
@@ -160,7 +160,7 @@ EOF
 
       # Mount if not mounted yet.
       # Example output:
-      #   [exordos-bootstrap] mounting /var/lib/genesis/data
+      #   [exordos-bootstrap] mounting /var/lib/exordos/data
       if ! host_mountpoint "${MOUNTPOINT}"; then
         log "mounting ${MOUNTPOINT}"
         mount "${MOUNTPOINT}" || mount "${PART_DEV}" "${MOUNTPOINT}"
@@ -196,14 +196,14 @@ else
 fi
 
 
-# Execution can continue only if the secondary disk was detected and is mounted at /var/lib/genesis/data.
+# Execution can continue only if the secondary disk was detected and is mounted at /var/lib/exordos/data.
 if [[ -z "${SECOND_DISK}" ]]; then
   echo "[exordos-bootstrap] ERROR: secondary disk was not detected; refusing to continue" >&2
   exit 1
 fi
 
-if ! host_mountpoint "/var/lib/genesis/data"; then
-  echo "[exordos-bootstrap] ERROR: /var/lib/genesis/data is not mounted; refusing to continue" >&2
+if ! host_mountpoint "/var/lib/exordos/data"; then
+  echo "[exordos-bootstrap] ERROR: /var/lib/exordos/data is not mounted; refusing to continue" >&2
   exit 1
 fi
 
@@ -211,9 +211,9 @@ fi
 #
 # Goal:
 # - Keep PostgreSQL packages installation logic in install.sh
-# - Ensure PostgreSQL data files live under /var/lib/genesis/data so the disk can be moved
+# - Ensure PostgreSQL data files live under /var/lib/exordos/data so the disk can be moved
 
-if host_mountpoint "/var/lib/genesis/data"; then
+if host_mountpoint "/var/lib/exordos/data"; then
   if command -v psql >/dev/null 2>&1; then
     GC_PG_USER="${GC_PG_USER:-exordos_core}"
     GC_PG_PASS="${GC_PG_PASS:-exordos_core}"
@@ -228,7 +228,7 @@ if host_mountpoint "/var/lib/genesis/data"; then
       PG_CONF_DIR="/etc/postgresql/${PG_VERSION_DIR}/main"
       PG_CONF_FILE="${PG_CONF_DIR}/postgresql.conf"
       OLD_PGDATA="/var/lib/postgresql/${PG_VERSION_DIR}/main"
-      NEW_PGDATA="/var/lib/genesis/data/postgresql/${PG_VERSION_DIR}/main"
+      NEW_PGDATA="/var/lib/exordos/data/postgresql/${PG_VERSION_DIR}/main"
 
       log "postgresql version detected: ${PG_VERSION_DIR}"
       log "postgresql old data dir: ${OLD_PGDATA}"
@@ -240,7 +240,7 @@ if host_mountpoint "/var/lib/genesis/data"; then
 
           systemctl stop postgresql || true
           mkdir -p "${NEW_PGDATA}"
-          chown -R postgres:postgres "/var/lib/genesis/data/postgresql" || true
+          chown -R postgres:postgres "/var/lib/exordos/data/postgresql" || true
 
           if [[ -d "${OLD_PGDATA}" && ! -f "${NEW_PGDATA}/PG_VERSION" ]]; then
             log "copying PostgreSQL data directory to ${NEW_PGDATA}"
@@ -289,7 +289,7 @@ if host_mountpoint "/var/lib/genesis/data"; then
     log "psql is not available; skipping PostgreSQL relocation"
   fi
 else
-  log "/var/lib/genesis/data is not mounted; skipping PostgreSQL relocation"
+  log "/var/lib/exordos/data is not mounted; skipping PostgreSQL relocation"
 fi
 
 # Additional PostgreSQL configuration
@@ -315,8 +315,8 @@ else
 fi
 
 # Prepare templated configuration files and apply them
-log "gc-bootstrap-templates"
-sudo gc-bootstrap-templates
+log "ec-bootstrap-templates"
+sudo ec-bootstrap-templates
 log "netplan apply"
 sudo netplan apply
 log "systemctl restart systemd-resolved.service dnsdist@private.service"
@@ -332,20 +332,20 @@ source "$VENV_PATH/bin/activate"
 ra-apply-migration --config-dir "$GC_CFG_DIR/" --path "$GC_PATH/migrations"
 
 # Enable exordos core services
-log "systemctl enable --now gc-services"
+log "systemctl enable --now ec-services"
 sudo systemctl enable --now \
-    gc-user-api \
-    gc-orch-api \
-    gc-status-api \
-    gc-boot-api \
-    gc-gservice \
-    gc-core-agent \
+    ec-user-api \
+    ec-orch-api \
+    ec-status-api \
+    ec-boot-api \
+    ec-gservice \
+    ec-core-agent \
     genesis-universal-agent \
     genesis-universal-scheduler
 
 # Perform the bootstrap of GC
 log "Perform the bootstrap of GC"
-gc-bootstrap --config-file /etc/exordos_core/exordos_core.conf
+ec-bootstrap --config-file /etc/exordos_core/exordos_core.conf
 
 
 # Configure NAT

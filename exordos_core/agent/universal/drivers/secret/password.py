@@ -25,7 +25,7 @@ from exordos_core.agent.universal.drivers.secret.backend import db as db_back
 LOG = logging.getLogger(__name__)
 
 PASSWORD_TARGET_FIELDS_STORAGE = (
-    "/var/lib/genesis/exordos_core/password_target_fields.json"
+    "/var/lib/exordos/exordos_core/password_target_fields.json"
 )
 
 

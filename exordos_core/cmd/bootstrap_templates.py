@@ -38,12 +38,12 @@ SPEC_PATH = "/mnt/cdrom/spec.json"
 cli_opts = [
     cfg.StrOpt(
         "netplat_template_src",
-        default="/opt/exordos_core/etc/90-genesis-net-config.yaml.j2",
+        default="/opt/exordos_core/etc/90-exordos-net-config.yaml.j2",
         help="Path to the netplat source template file",
     ),
     cfg.StrOpt(
         "netplat_template_dst",
-        default="/etc/netplan/90-genesis-net-base-config.yaml",
+        default="/etc/netplan/90-exordos-net-base-config.yaml",
         help="Path to the netplat destination file",
     ),
     cfg.StrOpt(

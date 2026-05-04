@@ -56,9 +56,9 @@ from exordos_core.dns_sync import service as dns_sync_service
 from exordos_core.telemetry import service as telemetry_service
 
 LOG = logging.getLogger(__name__)
-NODE_SET_TF_STORAGE = "/var/lib/genesis/exordos_core/node_set/target_fields.json"
+NODE_SET_TF_STORAGE = "/var/lib/exordos/exordos_core/node_set/target_fields.json"
 NODE_SET_TARGET_TF_STORAGE = (
-    "/var/lib/genesis/exordos_core/target_node_set/target_fields.json"
+    "/var/lib/exordos/exordos_core/target_node_set/target_fields.json"
 )
 
 
@@ -99,7 +99,7 @@ class GeneralService(basic.BasicService):
             iter_min_period=iter_min_period
         )
         pool_driver = ua_pool_drivers.PoolAgentDriver(
-            meta_file="/var/lib/genesis/exordos_core/pool_agent_meta.json"
+            meta_file="/var/lib/exordos/exordos_core/pool_agent_meta.json"
         )
         agent_uuid = sys_uuid.uuid5(ua_utils.system_uuid(), "machine_pool_agent")
         machine_pool_agent = ua_agent_service.UniversalAgentService(
