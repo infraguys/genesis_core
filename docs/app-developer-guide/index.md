@@ -2,13 +2,13 @@
 title: Application Developer Guide
 ---
 
-This guide walks you through everything you need to build, publish, and deploy **elements** — the name Genesis Core gives to applications — on the platform.
+This guide walks you through everything you need to build, publish, and deploy **elements** — the name Exordos Core gives to applications — on the platform.
 
 ## Quick Start
 
 ### 1. Initialize your element
 
-Set up an existing project as a Genesis Core element. The `genesis init` command launches an interactive wizard that generates all required configuration files — including manifests, and a `genesis.yaml` file that describes the build, publish, and deploy procedures.
+Set up an existing project as a Exordos Core element. The `genesis init` command launches an interactive wizard that generates all required configuration files — including manifests, and a `genesis.yaml` file that describes the build, publish, and deploy procedures.
 
 ```bash
 genesis init
@@ -22,7 +22,7 @@ After the wizard completes, your project will contain necessary configuration fi
 
 ### 2. Build your element
 
-Compile and package your element along with all its artifacts. Genesis Core uses the build configuration defined in `genesis.yaml` to produce a distributable artifact.
+Compile and package your element along with all its artifacts. Exordos Core uses the build configuration defined in `genesis.yaml` to produce a distributable artifact.
 
 ```bash
 genesis build
@@ -36,7 +36,7 @@ On success, the build output (container image, binary, or other artifact type) i
 
 ### 3. Publish your element
 
-Push the built element to the Genesis ecosystem registry so it becomes available to other platform users.
+Push the built element to the Exordos ecosystem registry so it becomes available to other platform users.
 
 ```bash
 genesis push
@@ -50,7 +50,7 @@ The element is versioned and pushed to the configured repository based on the me
 
 ### 4. Deploy your element
 
-Install and run your element on a Genesis Core platform installation.
+Install and run your element on a Exordos Core platform installation.
 
 ```bash
 genesis elements install <element-name>
@@ -66,20 +66,20 @@ The platform resolves dependencies, installs the target element, and starts it i
 
 Let's walk through platformizing a real FastAPI project from `https://github.com/infraguys/todo_application`.
 
-This is a simple ToDo List API with PostgreSQL persistence. The goal here is not to explore the business logic, but to demonstrate how to take an existing application and platformize it using Genesis Core.
+This is a simple ToDo List API with PostgreSQL persistence. The goal here is not to explore the business logic, but to demonstrate how to take an existing application and platformize it using Exordos Core.
 
 ### Prerequisites
 
-To follow this walkthrough, you need a running Genesis installation and the necessary tools.
+To follow this walkthrough, you need a running Exordos installation and the necessary tools.
 
-**Genesis** — you can use either:
+**Exordos** — you can use either:
 
-- A **public Genesis installation** — hosted at [genesis-core.tech](https://genesis-core.tech). No setup required; just create an account and start using the platform.
-- A **private Genesis installation** — your own self-hosted instance. This document describes how to set one up: [Setting up a private installation](../admin-guide/index.md).
+- A **public Exordos installation** — hosted at [genesis-core.tech](https://genesis-core.tech). No setup required; just create an account and start using the platform.
+- A **private Exordos installation** — your own self-hosted instance. This document describes how to set one up: [Setting up a private installation](../admin-guide/index.md).
 
 Install the necessary tools below.
 
-Install Genesis CLI:
+Install Exordos CLI:
 
 ```bash
 curl -fsSL https://repository.genesis-core.tech/install.sh | sudo sh
@@ -127,7 +127,7 @@ genesis init \
 
 After executing this command, a summary will be displayed with the results of the initialization, showing the main configuration files. Study them to understand what was created.
 
-The project is ready to be built and pushed as a Genesis Core element.
+The project is ready to be built and pushed as a Exordos Core element.
 
 ### Build the element
 
@@ -160,5 +160,5 @@ The ToDo API is now available at the configured endpoint.
 Once you're comfortable with the basics, explore the more in-depth topics below.
 
 - [Writing a manifest from scratch](../misc/manifests.md) — understand the full manifest specification and author one by hand without relying on the `genesis init` wizard.
-- [Setting up a private platform installation](../admin-guide/index.md) — spin up your own Genesis Core instance to develop and test your elements end-to-end without connecting to a remote environment.
-- [Public Genesis installation](https://genesis-core.tech) — use the hosted Genesis platform without managing your own infrastructure.
+- [Setting up a private platform installation](../admin-guide/index.md) — spin up your own Exordos Core instance to develop and test your elements end-to-end without connecting to a remote environment.
+- [Public Exordos installation](https://genesis-core.tech) — use the hosted Exordos platform without managing your own infrastructure.

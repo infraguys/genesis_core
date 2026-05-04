@@ -1,5 +1,5 @@
 name: "core"
-description: "Genesis Core element"
+description: "Exordos Core element"
 schema_version: 1
 version: "0.0.1"
 api_version: "v1"
@@ -108,7 +108,7 @@ resources:
         kind: "disks"
         disks:
           - size: 10
-            image: "https://repository.genesis-core.tech/genesis_core/0.0.1/genesis_core.raw.gz"
+            image: "https://repository.genesis-core.tech/exordos_core/0.0.1/exordos_core.raw.gz"
           - size: 10
             label: data
 

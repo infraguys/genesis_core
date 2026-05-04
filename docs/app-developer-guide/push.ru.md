@@ -4,7 +4,7 @@ title: genesis push
 
 ## Обзор
 
-`genesis push` **публикует** ваши собранные элементы в репозиторий Genesis, делая их доступными для развёртывания и для использования другими пользователями платформы.
+`genesis push` **публикует** ваши собранные элементы в репозиторий Exordos, делая их доступными для развёртывания и для использования другими пользователями платформы.
 
 Команда читает файл **`genesis/genesis.yaml`** для определения, куда отправлять элементы. Секция `push` определяет один или несколько целевых репозиториев — директории локальной файловой системы или удалённые HTTP конечные точки.
 
@@ -22,7 +22,7 @@ genesis push [OPTIONS] [PROJECT_DIR]
 | `-f, --force` | Принудительная отправка, даже если элемент уже существует |
 | `-l, --latest` | Также отправить элемент как версию `latest` (для стабильных версий) |
 
-Вы можете отправлять элементы в [публичный репозиторий Genesis Core](public-installation.ru.md). Или вы можете развернуть [приватную установку Genesis Core](private-installation.ru.md) на своём оборудовании. Для разработки и тестирования вы можете использовать [установку на локальном ноутбуке](local-laptop-installation.ru.md).
+Вы можете отправлять элементы в [публичный репозиторий Exordos Core](public-installation.ru.md). Или вы можете развернуть [приватную установку Exordos Core](private-installation.ru.md) на своём оборудовании. Для разработки и тестирования вы можете использовать [установку на локальном ноутбуке](local-laptop-installation.ru.md).
 
 ---
 
@@ -74,7 +74,7 @@ genesis push --latest
 push:
   local:
     driver: fs
-    path: /var/lib/genesis-pools/http
+    path: /var/lib/exordos-pools/http
   remote:
     driver: nginx
     url: https://repository.genesis-core.tech
@@ -100,7 +100,7 @@ push:
 push:
   staging:
     driver: fs
-    path: /var/lib/genesis-pools/staging
+    path: /var/lib/exordos-pools/staging
   production:
     driver: nginx
     url: https://repo.genesis-core.tech/production
@@ -118,7 +118,7 @@ genesis push -c genesis.push.yaml
 
 После успешной отправки ваш элемент доступен в реестре и готов для:
 
-- [`genesis deploy`](deploy.ru.md) — развёртывание элемента в установку Genesis
+- [`genesis deploy`](deploy.ru.md) — развёртывание элемента в установку Exordos
 - Совместного использования с другими разработчиками в вашей организации
 
 ---

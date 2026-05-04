@@ -4,7 +4,7 @@
 
 ```yaml
 name: "core_service_example"
-description: "Genesis Core Service Example"
+description: "Exordos Core Service Example"
 schema_version: 1
 version: "1.0.3"
 api_version: "v1"

@@ -272,7 +272,7 @@ The generated systemd service file follows this template:
 
 ```ini
 [Unit]
-Description=Genesis Core: dynamic service {name}
+Description=Exordos Core: dynamic service {name}
 After=network.target
 
 [Service]

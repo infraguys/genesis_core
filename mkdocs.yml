@@ -1,7 +1,7 @@
-site_name: genesis_core
+site_name: exordos_core
 site_url: https://github.com/infraguys/
-repo_name: genesis_core
-repo_url: https://github.com/infraguys/genesis_core
+repo_name: exordos_core
+repo_url: https://github.com/infraguys/exordos_core
 edit_uri: browse/docs/
 
 theme:

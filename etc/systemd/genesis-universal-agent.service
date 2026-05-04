@@ -1,5 +1,5 @@
 [Unit]
-Description=Genesis Universal Agent Service
+Description=Exordos Universal Agent Service
 After=network-online.target
 
 [Service]

@@ -1,0 +1,14 @@
+[Unit]
+Description=Exordos Core User API
+After=network-online.target
+
+[Service]
+TimeoutStopSec=5
+Restart=on-failure
+RestartSec=5s
+KillSignal=SIGINT
+ExecStartPre=/bin/sleep 2
+ExecStart=ec-user-api --config-file /etc/exordos_core/exordos_core.conf
+
+[Install]
+WantedBy=multi-user.target

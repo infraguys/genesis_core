@@ -1,10 +1,10 @@
 ---
-title: Genesis Core
+title: Exordos Core
 ---
 
-Welcome to Genesis Core!
+Welcome to Exordos Core!
 
-**Genesis** is an open-source NoOps platform for managing infrastructure at every level, along with the ecosystem built on top of it.
+**Exordos** is an open-source NoOps platform for managing infrastructure at every level, along with the ecosystem built on top of it.
 
 ## 📦 Installation
 
@@ -16,7 +16,7 @@ curl -fsSL https://repository.genesis-core.tech/install.sh | sudo sh
 
 ## 🚀 Application Developer Guide
 
-Everything you need to develop and deploy applications on the Genesis Core platform. In platform terminology, applications are called **elements**. The guide covers all stages of the element lifecycle:
+Everything you need to develop and deploy applications on the Exordos Core platform. In platform terminology, applications are called **elements**. The guide covers all stages of the element lifecycle:
 
 - **Writing a manifest** — defining the element structure, its dependencies and configuration.
 - **Building** — packaging the element and its artifacts.
@@ -45,8 +45,8 @@ Documentation for security engineers. Special focus on IAM and user management, 
 
 ## 📎 Miscellaneous
 
-Additional reference materials for the platform.
+Additional reference materials for the platform:
 
 - [Manifests](misc/manifests.md) — manifest format specification and examples.
 - [API Reference](misc/api-reference.md) — full HTTP API reference for platform services.
-- [CLI Reference](misc/cli-reference.md) — complete reference for the Genesis CLI tool.
+- [CLI Reference](misc/cli-reference.md) — complete reference for the Exordos CLI tool.

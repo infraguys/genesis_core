@@ -4,7 +4,7 @@ title: genesis push
 
 ## Overview
 
-`genesis push` **publishes** your built elements to a Genesis repository, making them available for deployment and for other platform users to consume.
+`genesis push` **publishes** your built elements to a Exordos repository, making them available for deployment and for other platform users to consume.
 
 The command reads the **`genesis/genesis.yaml`** file to identify where to push the elements. The `push` section defines one or more target repositories — local filesystem directories or remote HTTP endpoints.
 
@@ -22,7 +22,7 @@ Key options:
 | `-f, --force` | Force push even if the element already exists |
 | `-l, --latest` | Also push the element as the `latest` version (for stable versions) |
 
-You can push elements to the [public Genesis Core repository](public-installation.md). Or you can deploy a [private Genesis Core installation](private-installation.md) on your own hardware. For development and testing, you can use [local laptop installation](local-laptop-installation.md).
+You can push elements to the [public Exordos Core repository](public-installation.md). Or you can deploy a [private Exordos Core installation](private-installation.md) on your own hardware. For development and testing, you can use [local laptop installation](local-laptop-installation.md).
 
 ---
 
@@ -74,7 +74,7 @@ The `push` section in `genesis.yaml` defines where elements are published. You c
 push:
   local:
     driver: fs
-    path: /var/lib/genesis-pools/http
+    path: /var/lib/exordos-pools/http
   remote:
     driver: nginx
     url: https://repository.genesis-core.tech
@@ -100,7 +100,7 @@ Push configuration can also be stored in a separate file, for example `genesis.p
 push:
   staging:
     driver: fs
-    path: /var/lib/genesis-pools/staging
+    path: /var/lib/exordos-pools/staging
   production:
     driver: nginx
     url: https://repo.genesis-core.tech/production
@@ -118,7 +118,7 @@ genesis push -c genesis.push.yaml
 
 After a successful push, your element is available in the registry and ready for:
 
-- [`genesis deploy`](deploy.md) — deploy the element to a Genesis installation
+- [`genesis deploy`](deploy.md) — deploy the element to a Exordos installation
 - Sharing with other developers in your organization
 
 ---

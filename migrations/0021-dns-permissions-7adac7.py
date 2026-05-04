@@ -18,7 +18,7 @@ import uuid as sys_uuid
 from restalchemy.storage.sql import migrations
 
 NS_UUID = sys_uuid.UUID("dfd0c604-607f-4260-981f-374f88435ea0")
-GENESIS_CORE_ORG_UUID = "11111111-1111-1111-1111-111111111111"
+EXORDOS_CORE_ORG_UUID = "11111111-1111-1111-1111-111111111111"
 OWNER_ROLE_UUID = "726f6c65-0000-0000-0000-000000000002"
 
 DNS_NODE_DEF_PERMISSIONS = (
@@ -73,7 +73,7 @@ class MigrationStep(migrations.AbstarctMigrationStep):
                 '{DNS_PROJECT_UUID}',
                 'dns-core',
                 'Dns Core Project',
-                '{GENESIS_CORE_ORG_UUID}'
+                '{EXORDOS_CORE_ORG_UUID}'
             )
             ON CONFLICT (uuid) DO NOTHING;
         """)

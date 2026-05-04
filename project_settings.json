@@ -1,7 +1,7 @@
 {
     "project": {
-        "name": "genesis_core",
-        "package_name": "genesis_core",
+        "name": "exordos_core",
+        "package_name": "exordos_core",
         "description": "My project description",
         "summary": "My project summary"
     },

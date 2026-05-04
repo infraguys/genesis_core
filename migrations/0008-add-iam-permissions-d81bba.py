@@ -50,7 +50,7 @@ PERMISSION_UUIDS = {
     ORG_DELETE_ALL: generate_uuid(ORG_DELETE_ALL),
 }
 
-GENESIS_CORE_ORG_UUID = "11111111-1111-1111-1111-111111111111"
+EXORDOS_CORE_ORG_UUID = "11111111-1111-1111-1111-111111111111"
 NEWCOMER_ROLE_UUID = "726f6c65-0000-0000-0000-000000000001"
 
 IAM_PROJECT_UUID = generate_uuid("GenesisCore-IAM-Project")
@@ -113,7 +113,7 @@ class MigrationStep(migrations.AbstarctMigrationStep):
                 '{IAM_PROJECT_UUID}',
                 'iam-core',
                 'Identity and Access Management Core Project',
-                '{GENESIS_CORE_ORG_UUID}'
+                '{EXORDOS_CORE_ORG_UUID}'
             )
             ON CONFLICT (uuid) DO NOTHING;
         """)

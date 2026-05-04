@@ -54,7 +54,7 @@ graph TD
 - IP-адресами
 - Конфигурацией типа:
     - `core` — VM-based LB
-    - `core_agent` — LB будет запущен на самом экземпляре genesis_core
+    - `core_agent` — LB будет запущен на самом экземпляре exordos_core
 
 ### Vhost
 

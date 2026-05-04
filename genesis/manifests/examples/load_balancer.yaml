@@ -1,6 +1,6 @@
 name: "node_with_lb_example"
 uuid: "f02b4cd9-91b9-4bc1-b3b8-3fe40124aaaa"
-description: "Genesis element with LB example"
+description: "Exordos element with LB example"
 schema_version: 1
 version: "0.0.1"
 api_version: "v1"

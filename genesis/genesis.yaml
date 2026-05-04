@@ -3,11 +3,11 @@ build:
 
   # Dependencies of the project
   deps:
-    # Genesis project
-    - dst: /opt/genesis_core
+    # Exordos project
+    - dst: /opt/exordos_core
       # Local path
       path:
-        src: ../../genesis_core
+        src: ../../exordos_core
       exclude:
         - .venv
         - .tox
@@ -18,19 +18,19 @@ build:
         - output
 
     # Binary artifacts. Kernel, initrd, boot loaders.
-    - dst: /opt/genesis_core/artifacts/undionly.kpxe
+    - dst: /opt/exordos_core/artifacts/undionly.kpxe
       # Local path
       http:
         src: https://repository.genesis-core.tech/seed_os/1.1.0/undionly.kpxe
-    - dst: /opt/genesis_core/artifacts/initrd.img
+    - dst: /opt/exordos_core/artifacts/initrd.img
       # Local path
       http:
         src: https://repository.genesis-core.tech/seed_os/1.1.0/initrd.img
-    - dst: /opt/genesis_core/artifacts/vmlinuz
+    - dst: /opt/exordos_core/artifacts/vmlinuz
       # Local path
       http:
         src: https://repository.genesis-core.tech/seed_os/1.1.0/vmlinuz
-    - dst: /opt/genesis_core/artifacts/html.tgz
+    - dst: /opt/exordos_core/artifacts/html.tgz
       # Local path
       http:
         src: https://repository.genesis-core.tech/genesis_ui/0.1.1/html.tgz
@@ -48,7 +48,7 @@ build:
       artifacts:
         - path: ../docs/openapi/openapi_user.yaml
       images:
-      - name: genesis-core
+      - name: exordos-core
         format: GEN_IMG_FORMAT_CORE=qcow2
 
         # OS profile for the image

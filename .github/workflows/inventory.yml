@@ -18,4 +18,4 @@ jobs:
         with:
           fetch-depth: 30
       - name: Build elements inventory
-        run: python3 genesis_core/cmd/elements_inventory.py
+        run: python3 exordos_core/cmd/elements_inventory.py

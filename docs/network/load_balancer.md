@@ -54,7 +54,7 @@ The main load balancer entity that manages:
 - IP addresses
 - Type configuration:
     - `core` - VM-based LB
-    - `core_agent` - LB will be run on genesis_core instance itself
+    - `core_agent` - LB will be run on exordos_core instance itself
 
 ### Vhost
 
