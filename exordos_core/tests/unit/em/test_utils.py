@@ -14,15 +14,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import pytest
 import uuid as sys_uuid
 
-from exordos_core.elements.dm.utils import (
-    get_element_uuid,
-    get_project_id,
-    parse_variable,
-    Parsed,
-)
+import pytest
+
+from exordos_core.elements.dm.utils import Parsed
+from exordos_core.elements.dm.utils import get_element_uuid
+from exordos_core.elements.dm.utils import get_project_id
+from exordos_core.elements.dm.utils import parse_variable
 
 
 def test_get_element_uuid():

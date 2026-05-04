@@ -16,9 +16,9 @@
 
 import json
 import os
+from pathlib import Path
 import sys
 import time
-from pathlib import Path
 
 REPOSITORY_DIR = "/var/lib/repository"
 ELEMENTS_DIR = "genesis-elements"

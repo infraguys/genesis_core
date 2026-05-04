@@ -17,8 +17,8 @@
 from restalchemy.api import routes
 
 from exordos_core.user_api.api import controllers
-from exordos_core.user_api.config.api import routes as config_routes
 from exordos_core.user_api.compute.api import routes as compute_routes
+from exordos_core.user_api.config.api import routes as config_routes
 from exordos_core.user_api.dns.api import routes as dns_routes
 from exordos_core.user_api.em.api import routes as em_routes
 from exordos_core.user_api.iam.api import routes as iam_routes

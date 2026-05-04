@@ -18,8 +18,8 @@ from gcl_iam.api import controllers as iam_controllers
 from restalchemy.api import controllers
 from restalchemy.api import resources
 
-from exordos_core.config.dm import models as conf_models
 from exordos_core.config import constants as cc
+from exordos_core.config.dm import models as conf_models
 
 
 class ConfigController(controllers.RoutesListController):

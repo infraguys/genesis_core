@@ -16,8 +16,8 @@
 
 import typing as tp
 
-import netaddr
 from gcl_iam import contexts as iam_contexts
+import netaddr
 from restalchemy.api import packers
 
 from exordos_core.user_api.iam.dm import models

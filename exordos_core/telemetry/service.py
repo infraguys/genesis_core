@@ -14,14 +14,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import logging
 from concurrent import futures
+import logging
 
 import bazooka
 from bazooka import exceptions as bazooka_exc
-from requests import auth as requests_auth
-
 from gcl_looper.services import basic
+from requests import auth as requests_auth
 from restalchemy.common import contexts
 from restalchemy.dm import filters as dm_filters
 

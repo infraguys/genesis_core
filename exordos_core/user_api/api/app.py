@@ -19,8 +19,8 @@ from restalchemy.api import applications
 from restalchemy.api import middlewares
 from restalchemy.api import routes
 from restalchemy.api.middlewares import logging as logging_mw
-from restalchemy.openapi import structures as openapi_structures
 from restalchemy.openapi import engines as openapi_engines
+from restalchemy.openapi import structures as openapi_structures
 
 from exordos_core import version
 from exordos_core.common import contexts as common_contexts

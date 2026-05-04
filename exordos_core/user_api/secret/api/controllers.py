@@ -15,13 +15,13 @@
 #    under the License.
 
 from gcl_iam.api import controllers as iam_controllers
-from restalchemy.api import controllers
 from restalchemy.api import constants as ra_c
+from restalchemy.api import controllers
 from restalchemy.api import field_permissions as field_p
 from restalchemy.api import resources
 
-from exordos_core.secret.dm import models
 from exordos_core.secret import constants as sc
+from exordos_core.secret.dm import models
 
 
 class SecretController(controllers.RoutesListController):

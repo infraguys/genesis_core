@@ -15,14 +15,14 @@
 #    under the License.
 
 import logging
-import uuid as sys_uuid
 import typing as tp
+import uuid as sys_uuid
 
-from gcl_sdk.paas.services import builder
 from gcl_sdk.agents.universal.dm import models as ua_models
+from gcl_sdk.paas.services import builder
 
-from exordos_core.elements.dm import res_models
 from exordos_core.elements import constants as cc
+from exordos_core.elements.dm import res_models
 
 LOG = logging.getLogger(__name__)
 

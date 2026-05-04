@@ -14,9 +14,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import pytest
 from bazooka import exceptions as bazooka_exc
 from gcl_iam.tests.functional import clients as iam_clients
+import pytest
 
 from exordos_core.tests.functional.restapi.iam import base
 from exordos_core.user_api.iam import constants as iam_c

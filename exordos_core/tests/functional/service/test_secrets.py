@@ -20,9 +20,9 @@ import uuid as sys_uuid
 from gcl_iam.tests.functional import clients as iam_clients
 from gcl_sdk.agents.universal.dm import models as ua_models
 
-from exordos_core.tests.functional import stubs
 from exordos_core.secret import service
 from exordos_core.secret.dm import models
+from exordos_core.tests.functional import stubs
 
 
 class TestSecretsServiceBuilder:

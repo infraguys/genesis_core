@@ -15,19 +15,19 @@
 #    under the License.
 
 import typing as tp
-import uuid as sys_uuid
 from unittest import mock
+import uuid as sys_uuid
 
-import pytest
-import netaddr
-from restalchemy.dm import filters as dm_filters
 from gcl_sdk.infra.dm import models as sdk_models
+import netaddr
+import pytest
+from restalchemy.dm import filters as dm_filters
 
-from exordos_core.network.driver import base as driver_base
-from exordos_core.network import service
-from exordos_core.compute.dm import models
 from exordos_core.common import constants as c
 from exordos_core.compute import constants as nc
+from exordos_core.compute.dm import models
+from exordos_core.network import service
+from exordos_core.network.driver import base as driver_base
 
 
 def fake_load_driver(

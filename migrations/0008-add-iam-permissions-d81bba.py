@@ -15,6 +15,7 @@
 #    under the License.
 
 import uuid
+
 from restalchemy.storage.sql import migrations
 
 USER_LIST = "iam.user.list"

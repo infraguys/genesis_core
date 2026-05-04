@@ -17,9 +17,9 @@
 import typing as tp
 import uuid as sys_uuid
 
+from gcl_sdk.agents.universal.clients.backend import rest
 from gcl_sdk.agents.universal.dm import models
 from gcl_sdk.clients.http import base as http
-from gcl_sdk.agents.universal.clients.backend import rest
 
 from exordos_core.agent.universal.clients import exceptions
 

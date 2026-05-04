@@ -15,6 +15,7 @@
 #    under the License.
 
 import uuid as sys_uuid
+
 from restalchemy.storage.sql import migrations
 
 NS_UUID = sys_uuid.UUID("dfd0c604-607f-4260-981f-374f88435ea0")

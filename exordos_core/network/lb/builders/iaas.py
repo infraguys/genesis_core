@@ -15,14 +15,14 @@
 #    under the License.
 
 import logging
-import uuid as sys_uuid
 import typing as tp
+import uuid as sys_uuid
 
-from oslo_config import cfg
-from gcl_sdk.infra import constants as sdk_c
-from gcl_sdk.infra.services import builder
-from gcl_sdk.infra.dm import models as sdk_models
 from gcl_sdk.agents.universal.dm import models as ua_models
+from gcl_sdk.infra import constants as sdk_c
+from gcl_sdk.infra.dm import models as sdk_models
+from gcl_sdk.infra.services import builder
+from oslo_config import cfg
 
 from exordos_core.network.lb.dm import models
 

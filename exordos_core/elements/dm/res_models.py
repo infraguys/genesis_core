@@ -14,8 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import typing as tp
 import logging
+import typing as tp
 
 from gcl_sdk.agents.universal.dm import models as ua_models
 from gcl_sdk.paas.dm import services as srv_models

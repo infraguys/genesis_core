@@ -17,11 +17,11 @@
 import typing as tp
 import uuid as sys_uuid
 
+from restalchemy.dm import filters as dm_filters
 from restalchemy.dm import models
 from restalchemy.dm import properties
 from restalchemy.dm import types
 from restalchemy.dm import types_dynamic
-from restalchemy.dm import filters as dm_filters
 
 from exordos_core.compute.dm import models as nm
 

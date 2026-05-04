@@ -14,19 +14,21 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import dataclasses
 import logging
 import os
-import yaml
-import dataclasses
-import typing as tp
 import re
+import typing as tp
 import uuid as sys_uuid
 
 from jsonschema.exceptions import ValidationError
 import openapi_schema_validator
+import yaml
 
 from exordos_core.common import exceptions
-from exordos_core.common.utils import PROJECT_PATH, validate_url, get_api_client
+from exordos_core.common.utils import PROJECT_PATH
+from exordos_core.common.utils import get_api_client
+from exordos_core.common.utils import validate_url
 
 LOG = logging.getLogger(__name__)
 ELEMENT_NAMESPACE = sys_uuid.UUID("f277e88a-cd58-4c33-a0c3-23a1086a53b7")
@@ -49,7 +51,12 @@ class Parsed:
     is_resource_type: bool = False
 
 
-def clear_parameters(resource_link):
+def clear_parameters(resource_link: str) -> str:
+    """
+    Example:
+        input_string: "resource.type.name:parameter"
+        output_string: "resource.type.name"
+    """
     parts = resource_link.split(".")
     return ".".join(parts[:-1] + [parts[-1].split(":")[0]])
 
@@ -269,7 +276,13 @@ def build_full_schema(
                     "schema"
                 ]
                 model_name = schema_ref["$ref"].split("/")[-1]
-                api_parts = ".".join([path_part for path_part in path_parts[2:] if path_part and not path_part.startswith("{")])
+                api_parts = ".".join(
+                    [
+                        path_part
+                        for path_part in path_parts[2:]
+                        if path_part and not path_part.startswith("{")
+                    ]
+                )
                 model = user_api_spec["components"]["schemas"].get(model_name)
                 if not model:
                     continue
@@ -324,17 +337,17 @@ def search_parameter_example(
 
 
 def remove_middle_parts(input_string):
-    parts = input_string.split('.')
+    parts = input_string.split(".")
 
     if len(parts) <= 2:
         return input_string
 
     result_parts = []
     for i, part in enumerate(parts):
-        if  i > 0 and part.startswith('$'):
+        if i > 0 and part.startswith("$"):
             continue
         result_parts.append(part)
-    return '.'.join(result_parts)
+    return ".".join(result_parts)
 
 
 def mutate_resource_types(manifest: dict) -> dict:
@@ -344,8 +357,11 @@ def mutate_resource_types(manifest: dict) -> dict:
         if resource_type != mutated_resource_type:
             mutated_map[mutated_resource_type] = resource_type
     for mutated_resource_type, resource_type in mutated_map.items():
-        manifest["resources"][mutated_resource_type] = manifest["resources"].pop(resource_type)
+        manifest["resources"][mutated_resource_type] = manifest["resources"].pop(
+            resource_type
+        )
     return manifest
+
 
 def mutate_manifest(manifest: dict, scheme: dict) -> dict:
     manifest = mutate_resource_types(manifest)

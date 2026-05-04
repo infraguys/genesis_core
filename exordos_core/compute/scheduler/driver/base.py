@@ -17,7 +17,6 @@
 import abc
 import typing as tp
 
-
 from exordos_core.compute.dm import models
 
 

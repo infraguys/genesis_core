@@ -17,9 +17,9 @@
 import typing as tp
 import uuid as sys_uuid
 
-import pytest
 from bazooka import exceptions as bazooka_exc
 from gcl_iam.tests.functional import clients as iam_clients
+import pytest
 
 from exordos_core.compute import constants as nc
 

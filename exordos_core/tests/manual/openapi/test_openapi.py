@@ -16,9 +16,9 @@
 
 import os
 
-import ruamel.yaml
 from gcl_iam.tests.functional import clients as iam_clients
 from gcl_sdk.agents.universal.api.packers import GENESIS_NODE_UUID_HEADER
+import ruamel.yaml
 
 from exordos_core.common.utils import PROJECT_PATH
 

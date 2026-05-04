@@ -13,14 +13,14 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-import secrets
-import logging
 import base64
 import hashlib
+import logging
+import secrets
 
 from cryptography import exceptions
-from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
 
 LOG = logging.getLogger(__name__)
 

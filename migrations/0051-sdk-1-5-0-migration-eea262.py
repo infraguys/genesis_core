@@ -19,7 +19,6 @@ import os
 
 from gcl_sdk import migrations as sdk_migrations
 from gcl_sdk.common import utils as sdk_utils
-
 from restalchemy.storage.sql import migrations
 
 SDK_MIGRATION_FILE_NAME = "0005-ua-api-encryption-keys-2f8d3a"

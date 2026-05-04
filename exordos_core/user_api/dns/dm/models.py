@@ -17,6 +17,7 @@
 import re
 import uuid as sys_uuid
 
+from gcl_sdk.agents.universal.dm import models as ua_models
 from oslo_config import cfg
 from restalchemy.common import exceptions
 from restalchemy.dm import filters
@@ -27,7 +28,6 @@ from restalchemy.dm import types
 from restalchemy.dm import types_dynamic
 from restalchemy.dm import types_network
 from restalchemy.storage.sql import orm
-from gcl_sdk.agents.universal.dm import models as ua_models
 
 from exordos_core.common import utils as u
 

@@ -14,12 +14,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from cryptography import x509
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
 import enum
 import re
 
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+from gcl_sdk.agents.universal.dm import models as ua_models
 from restalchemy.dm import filters as dm_filters
 from restalchemy.dm import models
 from restalchemy.dm import properties
@@ -28,7 +29,6 @@ from restalchemy.dm import types
 from restalchemy.dm import types_dynamic
 from restalchemy.dm import types_network
 from restalchemy.storage.sql import orm
-from gcl_sdk.agents.universal.dm import models as ua_models
 
 from exordos_core.common import utils as u
 from exordos_core.secret import utils as su

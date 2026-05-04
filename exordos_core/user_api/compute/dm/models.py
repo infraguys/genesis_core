@@ -16,8 +16,8 @@
 
 from restalchemy.dm import relationships
 
-from exordos_core.compute.dm import models
 from exordos_core.common.dm import models as common_models
+from exordos_core.compute.dm import models
 
 
 class Node(models.Node):

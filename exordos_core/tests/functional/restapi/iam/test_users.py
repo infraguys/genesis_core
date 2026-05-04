@@ -16,16 +16,16 @@
 import contextlib
 import datetime
 
-import pytest
-import jwt
 from bazooka import exceptions as bazooka_exc
 from gcl_iam.tests.functional import clients as iam_clients
+import jwt
+import pytest
 
 from exordos_core.common import constants as common_c
 from exordos_core.tests.functional.restapi.iam import base
 from exordos_core.user_api.iam import constants as iam_c
-from exordos_core.user_api.iam.dm import models as iam_models
 from exordos_core.user_api.iam import exceptions as iam_exceptions
+from exordos_core.user_api.iam.dm import models as iam_models
 
 
 class TestUsers(base.BaseIamResourceTest):

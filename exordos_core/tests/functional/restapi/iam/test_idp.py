@@ -14,8 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import pytest
 from bazooka import exceptions as bazooka_exc
+import pytest
 
 from exordos_core.common import constants as common_c
 from exordos_core.tests.functional.restapi.iam import base

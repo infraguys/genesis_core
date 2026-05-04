@@ -14,19 +14,19 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import logging
-import netaddr
 import collections
+import logging
 import typing as tp
 
+from gcl_looper.services import basic
+import netaddr
 from restalchemy.common import contexts
 from restalchemy.dm import filters as dm_filters
-from gcl_looper.services import basic
 
 from exordos_core.compute.dm import models
+from exordos_core.network import ipam as net_ipam
 from exordos_core.network.dm import models as net_models
 from exordos_core.network.driver import base as net_base
-from exordos_core.network import ipam as net_ipam
 
 LOG = logging.getLogger(__name__)
 TARGET_IP_KEY = "target_ipv4"

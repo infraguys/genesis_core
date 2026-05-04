@@ -14,12 +14,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import uuid as sys_uuid
 import typing as tp
+import uuid as sys_uuid
 
-import pytest
 from bazooka import exceptions as bazooka_exc
 from gcl_iam.tests.functional import clients as iam_clients
+import pytest
 
 from exordos_core.config.dm import models
 

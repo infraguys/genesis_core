@@ -15,15 +15,15 @@
 #    under the License.
 
 import logging
-import uuid as sys_uuid
 import typing as tp
+import uuid as sys_uuid
 
 from gcl_sdk.infra.services import builder
 from restalchemy.dm import filters as dm_filters
 
+from exordos_core.compute import constants as nc
 from exordos_core.compute.dm import models as compute_models
 from exordos_core.compute.node_set.dm import models
-from exordos_core.compute import constants as nc
 
 LOG = logging.getLogger(__name__)
 

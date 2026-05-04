@@ -15,11 +15,11 @@
 #    under the License.
 
 import enum
+from functools import partial
 import logging
 import re
 import typing as tp
 import uuid as sys_uuid
-from functools import partial
 
 from gcl_sdk.agents.universal import utils as sdk_utils
 from gcl_sdk.agents.universal.dm import models as sdk_models
@@ -43,10 +43,6 @@ from exordos_core.elements.dm import utils
 from exordos_core.vs.dm import models as vs_models
 
 LOG = logging.getLogger(__name__)
-
-
-class NamespaceNotFound(exceptions.GCException):
-    __template__ = "Namespace with name '{name}' was not found."
 
 
 class Status(str, enum.Enum):
@@ -232,7 +228,7 @@ class Manifest(
             import_from_element = element_engine.get_element(
                 link=import_data["element"],
             )
-            from_resource = element_engine.get_export_resource(
+            from_resource = element_engine.get_resource_by_export_link(
                 manifest=self,
                 from_element=import_from_element,
                 link=import_data["link"],
@@ -261,7 +257,7 @@ class Manifest(
                 resource = ImportedResource(
                     element=import_model.element,
                     resource=import_model.from_resource,
-                    name=import_model.name,
+                    import_name=import_model.name,
                 )
                 element_engine.add_resource(resource)
 
@@ -269,7 +265,7 @@ class Manifest(
             resource = ImportedResource(
                 element=imp.element,
                 resource=imp.from_resource,
-                name=imp.name,
+                import_name=imp.name,
             )
             element_engine.delete_resource(resource)
             imp.delete()
@@ -302,10 +298,10 @@ class Manifest(
                 )
 
                 export_model.insert()
-                element_engine.add_resource_export(export_model)
+                element_engine.add_resource_by_export(export_model)
 
         for exp in existing_exports.values():
-            element_engine.delete_resource_export(exp)
+            element_engine.delete_resource_by_export(exp)
             exp.delete()
 
     def apply_resources(self, element: "Element"):
@@ -753,7 +749,7 @@ class Resource(
         return res
 
     @property
-    def link(self):
+    def link(self) -> str:
         return f"{self.resource_link_prefix}.${self.name}"
 
     def get_provider_element(self):
@@ -934,11 +930,11 @@ class Import(
 
 
 class ImportedResource:
-    def __init__(self, element, resource, name):
+    def __init__(self, element, resource, import_name):
         super().__init__()
         self._element = element
         self._resource = resource
-        self._name = name
+        self._import_name = import_name
 
     def __getattr__(self, name):
         return getattr(self._resource, name)
@@ -952,10 +948,10 @@ class ImportedResource:
 
     @property
     def name(self):
-        return self._name
+        return self._import_name
 
     @property
-    def link(self):
+    def link(self) -> str:
         return f"{self.element.link}.imports.${self.name}"
 
 
@@ -1010,7 +1006,7 @@ class Namespace:
     def element(self):
         return self._element
 
-    def add_resource(self, resource: "Resource") -> None:
+    def add_resource(self, resource: Resource | ImportedResource) -> None:
         if resource.link in self._namespace_resources:
             raise ValueError(
                 f"Resource with link string '{resource.link}' in element '{resource.element.name}' already exists."
@@ -1020,7 +1016,7 @@ class Namespace:
     def get_resources(self):
         return list(self._namespace_resources.values())
 
-    def delete_resource(self, resource: "Resource") -> None:
+    def delete_resource(self, resource: Resource | ImportedResource) -> None:
         if resource.link not in self._namespace_resources:
             raise ValueError(
                 f"Resource with link string '{resource.link}' in element '{resource.element.name}' does not exist."
@@ -1054,7 +1050,7 @@ class ElementEngine:
         try:
             return self._namespaces[name]
         except KeyError:
-            raise NamespaceNotFound(name=name)
+            raise exceptions.NamespaceNotFound(name=name)
 
     def load_from_database(self) -> None:
         self._namespaces = {}
@@ -1067,7 +1063,7 @@ class ElementEngine:
                 resource = ImportedResource(
                     element=import_.element,
                     resource=import_.from_resource,
-                    name=import_.name,
+                    import_name=import_.name,
                 )
                 self.add_resource(resource)
             else:
@@ -1082,7 +1078,7 @@ class ElementEngine:
 
         for export in Export.objects.get_all():
             if export.kind == ExportEnum.RESOURCE.value:
-                self.add_resource_export(export)
+                self.add_resource_by_export(export)
             else:
                 raise ValueError(
                     f"Unsupported export type '{export.kind}' for export "
@@ -1090,7 +1086,7 @@ class ElementEngine:
                     f"exports are currently supported."
                 )
 
-    def add_resource(self, resource: "Resource") -> None:
+    def add_resource(self, resource: Resource | ImportedResource) -> None:
         element = resource.element
         if element.link not in self._namespaces:
             ValueError(
@@ -1100,7 +1096,7 @@ class ElementEngine:
         namespace = self._namespaces[resource.element.link]
         namespace.add_resource(resource)
 
-    def delete_resource(self, resource: "Resource") -> None:
+    def delete_resource(self, resource: Resource | ImportedResource) -> None:
         namespace = self._namespaces[resource.element.link]
         namespace.delete_resource(resource)
 
@@ -1137,29 +1133,29 @@ class ElementEngine:
 
         del self._namespaces[element.link]
 
-    def add_resource_export(self, export_resource: "Resource") -> None:
-        element = export_resource.element
+    def add_resource_by_export(self, export: "Export") -> None:
+        element = export.element
         resource = self.get_resource_by_link(
             element=element,
-            link=export_resource.link,
+            link=export.link,
         )
 
-        if export_resource.link in self._resource_exports:
+        if export.link in self._resource_exports:
             raise ValueError(
-                f"Resource export with link '{export_resource.link}' already exists."
+                f"Resource export with link '{export.link}' already exists."
             )
-        self._resource_exports[export_resource.link] = resource
+        self._resource_exports[export.link] = resource
 
-    def delete_resource_export(self, export_resource: "Resource") -> None:
-        del self._resource_exports[export_resource.link]
+    def delete_resource_by_export(self, export: "Export") -> None:
+        del self._resource_exports[export.link]
 
-    def get_export_resource(
+    def get_resource_by_export_link(
         self, manifest: "Manifest", from_element: "Element", link: str
     ) -> "Resource":
         # Implement check element here for export resources
         if link not in self._resource_exports:
             raise ValueError(
-                f"Resource {link} in manifest {manifest.name} {manifest.version} is not in export list "
+                f"Resource {link} in manifest {manifest.name} ({manifest.version}) is not in export list "
                 f"in element {from_element.name}"
             )
         return self._resource_exports[link]

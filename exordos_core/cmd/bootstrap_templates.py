@@ -15,8 +15,8 @@
 #    under the License.
 from __future__ import annotations
 
-import json
 import ipaddress
+import json
 import logging
 import os
 import sys
@@ -25,10 +25,9 @@ import typing as tp
 import jinja2
 from oslo_config import cfg
 
-from exordos_core.common import constants as c
 from exordos_core.common import config
+from exordos_core.common import constants as c
 from exordos_core.secret import utils as secret_utils
-
 
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)

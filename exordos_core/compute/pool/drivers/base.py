@@ -15,8 +15,8 @@
 #    under the License.
 
 import abc
-import uuid as sys_uuid
 import typing as tp
+import uuid as sys_uuid
 
 from exordos_core.compute.dm import models
 

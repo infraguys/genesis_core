@@ -16,20 +16,21 @@
 
 import logging
 import sys
-from gcl_looper.services import hub
+
 from gcl_looper.services import bjoern_service
+from gcl_looper.services import hub
+from gcl_sdk import migrations as sdk_migrations
 from gcl_sdk.events import clients as sdk_clients
 from gcl_sdk.events import opts as sdk_opts
-from gcl_sdk import migrations as sdk_migrations
 from oslo_config import cfg
 from restalchemy.common import config_opts as ra_config_opts
 from restalchemy.storage.sql import engines
 
-from exordos_core.user_api.api import app
 from exordos_core.common import config
 from exordos_core.common import constants as c
 from exordos_core.common import log as infra_log
 from exordos_core.common import utils
+from exordos_core.user_api.api import app
 from exordos_core.user_api.iam import drivers as iam_drivers
 
 api_cli_opts = [

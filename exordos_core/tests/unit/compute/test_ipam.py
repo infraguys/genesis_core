@@ -15,7 +15,6 @@
 #    under the License.
 
 import netaddr
-
 import pytest
 
 from exordos_core.network import ipam

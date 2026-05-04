@@ -14,12 +14,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import uuid as sys_uuid
 import typing as tp
+import uuid as sys_uuid
 
 import dns.resolver
-import pytest
 from gcl_iam.tests.functional import clients as iam_clients
+import pytest
 
 from exordos_core.common import constants as c
 
