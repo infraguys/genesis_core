@@ -248,10 +248,9 @@ class XMLLibvirtVolume(XMLLibvirtMixin):
     def xml_from_base_template(
         cls, pool: libvirt.virStoragePool, name: str, size: int
     ) -> str:
-        pool_type = (
-            minidom.parseString(pool.XMLDesc()).firstChild.attributes["type"].value
-        )
-        if pool_type == "zfs":
+        pool_xml = ET.fromstring(pool.XMLDesc())
+        pool_type = StoragePoolType(pool_xml.get("type"))
+        if pool_type.value == "zfs":
             return volume_template.format(name=name, size=size)
 
         return volume_template_with_format.format(
@@ -887,6 +886,16 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
 
         # If no error the volume is ready
         volume.status = nc.VolumeStatus.ACTIVE.value
+
+        # Workaround until https://gitlab.com/libvirt/libvirt/-/commit/29f3c67837cc10dca3023f0bfd50414244c1bbc3
+        pool_xml = ET.fromstring(storage_pool.XMLDesc())
+        pool_type = StoragePoolType(pool_xml.get("type"))
+        if pool_type.value == "zfs":
+            if storage_pool.isActive():
+                storage_pool.refresh()
+                LOG.warning(
+                    "Due to libvirt<12.4 bug, ZFS storage pool was explicitly refreshed."
+                )
 
         LOG.debug("The volume %s has been created", volume.uuid)
         return volume
