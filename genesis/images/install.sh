@@ -226,6 +226,18 @@ sudo systemctl enable dnsdist@private
 # echo "DNS=${LOCAL_IP}" | sudo tee -a /etc/systemd/resolved.conf > /dev/null
 # sudo sed -i 's/setLocal("10.20.0.2:53")/setLocal("'"${LOCAL_IP}"':53")/' /etc/dnsdist/dnsdist-private.conf
 
+# Configure Grub to include autonomous mode for the update procedure
+cat <<EOF | sudo tee -a /etc/grub.d/40_custom
+menuentry "Autonomous update mode" {
+    search --no-floppy --set=root --file /srv/tftp/bios/vmlinuz
+
+    linux /srv/tftp/bios/vmlinuz showopts ip=none net.ifnames=0 biosdevname=0 autonomous=1 console=ttyS0,115200
+
+    initrd /srv/tftp/bios/initrd.img
+}
+EOF
+echo "GRUB_TIMEOUT_STYLE=menu" | sudo tee -a /etc/default/grub.d/50-cloudimg-settings.cfg
+sudo update-grub
 
 cat <<EOT | sudo tee /etc/motd
 ▄▖       ▌      ▄▖
