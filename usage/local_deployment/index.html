@@ -5,20 +5,16 @@
       
       
       
-        <link rel="canonical" href="https://github.com/infraguys/usage/basic_usage/">
+        <link rel="canonical" href="https://github.com/infraguys/usage/local_deployment/">
       
       
-        <link rel="prev" href="../..">
-      
-      
-        <link rel="next" href="../../openapi/openapi_boot/">
       
       <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.1.0">
     
     
       
-        <title>Usage - exordos_core</title>
+        <title>Local Deployment - exordos_core</title>
       
     
     
@@ -80,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#basic-usage" class="md-skip">
+        <a href="#local-deployment" class="md-skip">
           Skip to content
         </a>
       
@@ -115,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Usage
+              Local Deployment
             
           </span>
         </div>
@@ -159,7 +155,7 @@
                 </li>
               
                 <li class="md-select__item">
-                  <a href="../../ru/usage/basic_usage/" hreflang="ru" class="md-select__link">
+                  <a href="../../ru/usage/local_deployment/" hreflang="ru" class="md-select__link">
                     Russian
                   </a>
                 </li>
@@ -288,173 +284,11 @@
 
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Usage
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../basic_usage.md" class="md-nav__link">
         Usage
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#requirements" class="md-nav__link">
-    Requirements
-  </a>
-  
-    <nav class="md-nav" aria-label="Requirements">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#packages" class="md-nav__link">
-    Packages
-  </a>
-  
-    <nav class="md-nav" aria-label="Packages">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#ubuntu" class="md-nav__link">
-    Ubuntu
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#libvirt" class="md-nav__link">
-    Libvirt
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
-    Installation
-  </a>
-  
-    <nav class="md-nav" aria-label="Installation">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#local-machine--development" class="md-nav__link">
-    Local machine / Development
-  </a>
-  
-    <nav class="md-nav" aria-label="Local machine / Development">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#get-admin-token" class="md-nav__link">
-    Get admin token
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#add-hypervisor" class="md-nav__link">
-    Add hypervisor
-  </a>
-  
-    <nav class="md-nav" aria-label="Add hypervisor">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#libvirt-via-ssh-preffered" class="md-nav__link">
-    Libvirt via SSH (preffered)
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#libvirt-via-tcp-connect" class="md-nav__link">
-    Libvirt via TCP connect
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#configure-zfs-for-storage" class="md-nav__link">
-    Configure ZFS for storage
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#config-hypervisor-in-core" class="md-nav__link">
-    Config hypervisor in core
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#production" class="md-nav__link">
-    Production
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#usage" class="md-nav__link">
-    Usage
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -792,125 +626,140 @@
   
 
 
-<h1 id="basic-usage">Basic usage<a class="headerlink" href="#basic-usage" title="Permanent link">#</a></h1>
-<p>This guide describes how to install and use Exordos Core on existing infrastructure. The existing infrastructure can be a local machine or several servers.
-It's assumed Linux(Ubuntu) is used as the OS on your machines.</p>
-<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">#</a></h2>
-<p>Before you install and use exordos core you need to install several requirements:</p>
+<h1 id="local-deployment">Local Deployment<a class="headerlink" href="#local-deployment" title="Permanent link">#</a></h1>
+<p>This guide describes how to deploy a local installation of the Exordos platform on a single host machine.</p>
+<h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">#</a></h2>
+<p>It's assumed Linux (Ubuntu) is used as the OS on your machine.</p>
 <h3 id="packages">Packages<a class="headerlink" href="#packages" title="Permanent link">#</a></h3>
 <p>Install necessary packages:</p>
-<h4 id="ubuntu">Ubuntu<a class="headerlink" href="#ubuntu" title="Permanent link">#</a></h4>
-<p>Install packages</p>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>update
 sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>qemu-kvm<span class="w"> </span>qemu-utils<span class="w"> </span>libvirt-daemon-system<span class="w"> </span>libvirt-dev<span class="w"> </span>mkisofs<span class="w"> </span>-y
 </code></pre></div>
-<p>Add user to group</p>
+<p>Add the current user to the required groups:</p>
 <div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>adduser<span class="w"> </span><span class="nv">$USER</span><span class="w"> </span>libvirt
 sudo<span class="w"> </span>adduser<span class="w"> </span><span class="nv">$USER</span><span class="w"> </span>kvm
 </code></pre></div>
-<h3 id="libvirt">Libvirt<a class="headerlink" href="#libvirt" title="Permanent link">#</a></h3>
-<p>Create a libvirt storage pool or use <code>default</code> if it already exists.</p>
-<p>Check pools:</p>
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>virsh<span class="w"> </span>pool-list<span class="w"> </span>--all
+<h2 id="local-machine-as-a-hypervisor">Local machine as a hypervisor<a class="headerlink" href="#local-machine-as-a-hypervisor" title="Permanent link">#</a></h2>
+<p>The local host must be configured as a hypervisor so that the platform can schedule and run virtual machine workloads on it.</p>
+<p>Initialize the current host as a hypervisor:</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>compute<span class="w"> </span>hypervisors<span class="w"> </span>init
 </code></pre></div>
-<p>Create a new pool if no one exists or you would like to use another one.</p>
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>virsh<span class="w"> </span>pool-define-as<span class="w"> </span>default<span class="w"> </span>dir<span class="w"> </span>--target<span class="w"> </span><span class="s2">"/var/lib/libvirt/images/"</span>
-sudo<span class="w"> </span>virsh<span class="w"> </span>pool-build<span class="w"> </span>default
-sudo<span class="w"> </span>virsh<span class="w"> </span>pool-start<span class="w"> </span>default
-sudo<span class="w"> </span>virsh<span class="w"> </span>pool-autostart<span class="w"> </span>default
+<h3 id="key-parameters">Key parameters<a class="headerlink" href="#key-parameters" title="Permanent link">#</a></h3>
+<p>Run <code>genesis compute hypervisors init --help</code> to see all available options. The most important ones are:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--pool_name TEXT</code></td>
+<td>Name of the libvirt storage pool to use for VM disk images. Defaults to <code>default</code>.</td>
+</tr>
+<tr>
+<td><code>--packer</code> / <code>-p</code></td>
+<td>Install HashiCorp Packer alongside the hypervisor setup.</td>
+</tr>
+<tr>
+<td><code>--romfile_version TEXT</code></td>
+<td>Version of the network interface ROM file to install.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="bootstrap">Bootstrap<a class="headerlink" href="#bootstrap" title="Permanent link">#</a></h2>
+<p>Once the local machine is configured as a hypervisor, run the bootstrap procedure to deploy the platform:</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>bootstrap<span class="w"> </span>-i<span class="w"> </span>&lt;version&gt;<span class="w"> </span>-f<span class="w"> </span>-m<span class="w"> </span>core<span class="w"> </span>--ssh-public-key<span class="w"> </span>/path/to/public/key
 </code></pre></div>
-<p>Check the status with virsh-info:</p>
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>virsh<span class="w"> </span>pool-info<span class="w"> </span>default
+<p>where <code>&lt;version&gt;</code> is the version of the platform to deploy (e.g., <code>0.0.6</code>).</p>
+<p>The platform can be started either from a <strong>local build</strong> (a locally built image) or from a <strong>remote repository</strong> (a prebuilt image fetched from the official repository).</p>
+<p><strong>Local build example:</strong></p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>bootstrap<span class="w"> </span>-i<span class="w"> </span>/path/to/exordos-core.raw<span class="w"> </span>-m<span class="w"> </span>core
 </code></pre></div>
-<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">#</a></h2>
-<p>The simplest way to install Exordos Core is to get a prebuilt virtual machine image with all necessary dependencies. Take the the <a href="http://repository.genesis-core.tech:8081/exordos-core/latest/exordos-core.qcow2">latest image here</a>.</p>
-<h3 id="local-machine--development">Local machine / Development<a class="headerlink" href="#local-machine--development" title="Permanent link">#</a></h3>
-<p>Install Exordos DevTools first. For more information about it, see <a href="https://github.com/infraguys/genesis_devtools">Exordos DevTools</a>. The devtools allows to build and run the exordos core locally. Since we already downloaded the latest image, we don't need to build it from scratch but if you need to build an image from source look at the <a href="https://github.com/infraguys/genesis_devtools?tab=readme-ov-file#build">instructions here</a>.</p>
-<p>The devtools has <code>bootstrap</code> command that will start the Exordos Core locally.</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>bootstrap<span class="w"> </span>-i<span class="w"> </span>exordos-core.raw<span class="w"> </span>-m<span class="w"> </span>core
+<p><strong>Remote repository example (default):</strong></p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>bootstrap<span class="w"> </span>-i<span class="w"> </span>https://repository.genesis-core.tech/genesis-elements/core/0.0.6/<span class="w"> </span>-m<span class="w"> </span>core
 </code></pre></div>
-<p>For more information about the <code>bootstrap</code> command, see <a href="https://github.com/infraguys/genesis_devtools?tab=readme-ov-file#bootstrap">instructions here</a>.</p>
-<p>The installation is ready at address <code>10.20.0.2</code> but at this time it's not very useful since it cannot run any workload. Let's add a local machine as a hypervisor to solve this problem.</p>
-<h4 id="get-admin-token">Get admin token<a class="headerlink" href="#get-admin-token" title="Permanent link">#</a></h4>
-<p>Before we can add a hypervisor, we need to get an admin token. The command to get the token is:</p>
+<h3 id="key-parameters_1">Key parameters<a class="headerlink" href="#key-parameters_1" title="Permanent link">#</a></h3>
+<p>Run <code>genesis bootstrap --help</code> to see all available options. The most important ones are:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--profile</code></td>
+<td>Installation profile: <code>develop</code>, <code>small</code>, <code>medium</code>, <code>large</code>, or <code>legacy</code>. Defaults to <code>small</code>.</td>
+</tr>
+<tr>
+<td><code>--cidr IPV4NETWORK</code></td>
+<td>Main network CIDR for the platform. Defaults to <code>10.20.0.0/22</code>.</td>
+</tr>
+<tr>
+<td><code>--core-ip IPV4ADDRESS</code></td>
+<td>IP address for the core VM. If not set, the second address from <code>--cidr</code> is used.</td>
+</tr>
+<tr>
+<td><code>--admin-password TEXT</code></td>
+<td>Password for the admin user. If not provided, a password is generated automatically.</td>
+</tr>
+<tr>
+<td><code>--save-admin-password-file TEXT</code></td>
+<td>Save the admin password to a file instead of printing it to the console.</td>
+</tr>
+<tr>
+<td><code>--ssh-public-key PATH</code></td>
+<td>Path to a public SSH key to inject into the VM. Can be specified multiple times.</td>
+</tr>
+<tr>
+<td><code>--hyper-connection-uri TEXT</code></td>
+<td>Connection URI for the hypervisor, e.g. <code>qemu+tcp://10.0.0.1/system</code> or <code>qemu+ssh://user@10.0.0.1/system</code>.</td>
+</tr>
+<tr>
+<td><code>--hyper-storage-pool TEXT</code></td>
+<td>Libvirt storage pool to use for VM disks. Defaults to <code>default</code>.</td>
+</tr>
+<tr>
+<td><code>--force</code> / <code>-f</code></td>
+<td>Force rebuild if the output already exists.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">#</a></h2>
+<p>After <code>genesis bootstrap</code> completes, the platform is up and running. The command prints the credentials for the admin user to the console (or saves them to a file if <code>--save-admin-password-file</code> was specified).</p>
+<h3 id="ssh-access">SSH access<a class="headerlink" href="#ssh-access" title="Permanent link">#</a></h3>
+<p>If a public SSH key was provided during bootstrap via <code>--ssh-public-key</code>, you can connect directly to the core VM:</p>
+<div class="highlight"><pre><span></span><code>ssh<span class="w"> </span>ubuntu@10.20.0.2
+</code></pre></div>
+<h3 id="api-access">API access<a class="headerlink" href="#api-access" title="Permanent link">#</a></h3>
+<p>Use the admin credentials to obtain an access token from the IAM service:</p>
 <div class="highlight"><pre><span></span><code>curl<span class="w"> </span>--location<span class="w"> </span><span class="s1">'http://10.20.0.2:11010/v1/iam/clients/00000000-0000-0000-0000-000000000000/actions/get_token/invoke'</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--header<span class="w"> </span><span class="s1">'Content-Type: application/x-www-form-urlencoded'</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'grant_type=password'</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'username=&lt;YOUR_ADMIN_USERNAME&gt;'</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'password=&lt;YOUR_ADMIN_PASSWORD&gt;'</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'username=&lt;ADMIN_USERNAME&gt;'</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'password=&lt;ADMIN_PASSWORD&gt;'</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'client_id=GenesisCoreClientId'</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'client_secret=GenesisCoreClientSecret'</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'client_secret=GenesisCoreSecret'</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'scope='</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'ttl=86400'</span>
 </code></pre></div>
-<p>The return value is <code>json</code> object with the <code>access_token</code> field. Copy the token and use it in the next steps.</p>
-<h4 id="add-hypervisor">Add hypervisor<a class="headerlink" href="#add-hypervisor" title="Permanent link">#</a></h4>
-<h5 id="libvirt-via-ssh-preffered">Libvirt via SSH (preffered)<a class="headerlink" href="#libvirt-via-ssh-preffered" title="Permanent link">#</a></h5>
-<p>Create key in exordos core's VM for root user:</p>
-<div class="highlight"><pre><span></span><code><span class="gp"># </span>ssh-keygen
-</code></pre></div>
-<p>Copy public key to hypervisor (recommended user is <code>ubuntu</code>)</p>
-<h5 id="libvirt-via-tcp-connect">Libvirt via TCP connect<a class="headerlink" href="#libvirt-via-tcp-connect" title="Permanent link">#</a></h5>
-<p>We need to get access to libvirt via a tcp connection. By default the tcp connection is closed, so we need to enable it.</p>
-<p><strong>NOTE:</strong> For development purposes we can use raw tcp connection. Don't use it in production.</p>
-<p>Edit libvirt configuration file <code>/etc/libvirt/libvirtd.conf</code>, add these lines;</p>
-<div class="highlight"><pre><span></span><code><span class="nv">listen_tcp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span>
-<span class="nv">listen_addr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"0.0.0.0"</span>
-<span class="nv">auth_tcp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"none"</span>
-</code></pre></div>
-<p>Run commands to enable libvirt tcp connection:</p>
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>systemctl<span class="w"> </span>stop<span class="w"> </span>libvirtd
-sudo<span class="w"> </span>systemctl<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>--now<span class="w"> </span>libvirtd-tcp.socket
-sudo<span class="w"> </span>systemctl<span class="w"> </span>start<span class="w"> </span>libvirtd
-</code></pre></div>
-<p>Check the libvirt is listening the tcp socket:</p>
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>libvirtd.service
-sudo<span class="w"> </span>systemctl<span class="w"> </span>status<span class="w"> </span>libvirtd.service<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">"libvirtd-tcp.socket"</span>
-</code></pre></div>
-<h5 id="configure-zfs-for-storage">Configure ZFS for storage<a class="headerlink" href="#configure-zfs-for-storage" title="Permanent link">#</a></h5>
-<p>It's recommended to create distinct dataset for zvols:</p>
-<div class="highlight"><pre><span></span><code>zpool<span class="w"> </span>create<span class="w"> </span>rpool<span class="w"> </span>...<span class="w"> </span><span class="c1"># create pool itself</span>
-zfs<span class="w"> </span>create<span class="w"> </span>-o<span class="w"> </span><span class="nv">volmode</span><span class="o">=</span>dev<span class="w"> </span>rpool/disks
-virsh<span class="w"> </span>pool-define-as<span class="w"> </span>--name<span class="w"> </span>rpool<span class="w"> </span>--source-name<span class="w"> </span>rpool/disks<span class="w"> </span>--type<span class="w"> </span>zfs
-virsh<span class="w"> </span>pool-start<span class="w"> </span>rpool
-virsh<span class="w"> </span>pool-autostart<span class="w"> </span>rpool
-</code></pre></div>
-<h5 id="config-hypervisor-in-core">Config hypervisor in core<a class="headerlink" href="#config-hypervisor-in-core" title="Permanent link">#</a></h5>
-<p>Add the machine as a hypervisor, replace <code>XXXX</code> with the token from the previous step.:</p>
-<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>--location<span class="w"> </span>--globoff<span class="w"> </span><span class="s1">'http://10.20.0.2:11010/v1/compute/hypervisors/'</span><span class="w"> </span><span class="se">\</span>
---header<span class="w"> </span><span class="s1">'Content-Type: application/json'</span><span class="w"> </span><span class="se">\</span>
---header<span class="w"> </span><span class="s1">'Authorization: Bearer XXXX'</span><span class="w"> </span><span class="se">\</span>
---data<span class="w"> </span><span class="s1">'{</span>
-<span class="s1">    "driver_spec": {</span>
-<span class="s1">        "driver": "libvirt",</span>
-<span class="s1">        "iface_mtu": 1500,</span>
-<span class="s1">        "network_type": "network",</span>
-<span class="s1">        "network": "exordos-core-net",</span>
-<span class="s1">        "storage_pool": "default", // for qcow</span>
-<span class="s1">        "storage_pool": "rpool", // for ZFS</span>
-<span class="s1">        "connection_uri": "qemu+tcp://10.20.0.1/system", // for TCP connect</span>
-<span class="s1">        "connection_uri": "qemu+ssh://ubuntu@10.20.0.1:22/system?no_verify=1", // for SSH connect</span>
-<span class="s1">        "machine_prefix": "dev-"</span>
-<span class="s1">    },</span>
-<span class="s1">    "avail_cores": 4,</span>
-<span class="s1">    "avail_ram": 4096,</span>
-<span class="s1">    "all_cores": 4,</span>
-<span class="s1">    "all_ram": 4096,</span>
-<span class="s1">    "status": "ACTIVE"</span>
-<span class="s1">}'</span>
+<p>The response contains an <code>access_token</code> field. Use this token as a <code>Bearer</code> token in all subsequent API requests.</p>
+<h3 id="cli-access">CLI access<a class="headerlink" href="#cli-access" title="Permanent link">#</a></h3>
+<p>Configure the <code>genesis</code> CLI by registering a realm and a context with the admin credentials:</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>settings<span class="w"> </span>set-realm<span class="w"> </span><span class="nb">local</span><span class="w"> </span>--endpoint<span class="w"> </span>http://10.20.0.2:11010<span class="w"> </span>--current
+genesis<span class="w"> </span>settings<span class="w"> </span>set-context<span class="w"> </span><span class="nb">local</span><span class="w"> </span>--name<span class="w"> </span>admin<span class="w"> </span>-u<span class="w"> </span>&lt;ADMIN_USERNAME&gt;<span class="w"> </span>-p<span class="w"> </span>&lt;ADMIN_PASSWORD&gt;<span class="w"> </span>--current
 </code></pre></div>
 <ul>
-<li>storage_pool - name of the libvirt storage pool to use.</li>
-<li>connection_uri - libvirt connection uri. If you need to add another machine use different ip address.</li>
-<li>all_cores - total number of cores you would like to allocate to the hypervisor.</li>
-<li>all_ram - total amount of ram you would like to allocate to the hypervisor.</li>
-<li>avail_cores - use the same value as <code>all_cores</code>.</li>
-<li>avail_ram - use the same value as <code>all_ram</code>.</li>
+<li><code>set-realm</code> registers the platform endpoint under the name <code>local</code> and marks it as the active realm.</li>
+<li><code>set-context</code> creates a named context with the admin credentials and marks it as the active context.</li>
 </ul>
-<h3 id="production">Production<a class="headerlink" href="#production" title="Permanent link">#</a></h3>
-<p>The production installation guide will be added soon.</p>
-<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">#</a></h2>
-<p>Follow the <a href="https://github.com/infraguys/exordos_core/wiki/Usage">usage guide</a> for more information.</p>
+<p>After configuration, you can manage the platform using <code>genesis</code> commands, for example:</p>
+<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>compute<span class="w"> </span>hypervisors<span class="w"> </span>list
+genesis<span class="w"> </span>elements<span class="w"> </span>list
+</code></pre></div>
 
 
 
