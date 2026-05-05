@@ -43,10 +43,13 @@ curl -fsSL https://repository.genesis-core.tech/install.sh | sudo sh
 
 [Перейти к руководству →](security-guide/index.ru.md)
 
+## 🌐 Экосистема
+
 ## 📎 Прочее
 
 Дополнительные справочные материалы по платформе.
 
+- [Локальное развёртывание](usage/local_deployment.ru.md) — развёртывание локальной инсталляции платформы на одной хост-машине.
 - [Манифесты](misc/manifests.ru.md) — спецификация формата манифеста и примеры.
 - [Справочник по API](misc/api-reference.ru.md) — полный справочник по HTTP API сервисов платформы.
 - [Справочник по CLI](misc/cli-reference.ru.md) — полный справочник по инструменту Exordos CLI.
