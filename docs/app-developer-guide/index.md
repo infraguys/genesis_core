@@ -75,7 +75,7 @@ To follow this walkthrough, you need a running Exordos installation and the nece
 **Exordos** — you can use either:
 
 - A **public Exordos installation** — hosted at [genesis-core.tech](https://genesis-core.tech). No setup required; just create an account and start using the platform.
-- A **private Exordos installation** — your own self-hosted instance. This document describes how to set one up: [Setting up a private installation](../admin-guide/index.md).
+- A **private Exordos installation** — your own self-hosted instance. This document describes how to set one up: [Local Deployment](../usage/local_deployment.md).
 
 Install the necessary tools below.
 
@@ -160,5 +160,5 @@ The ToDo API is now available at the configured endpoint.
 Once you're comfortable with the basics, explore the more in-depth topics below.
 
 - [Writing a manifest from scratch](../misc/manifests.md) — understand the full manifest specification and author one by hand without relying on the `genesis init` wizard.
-- [Setting up a private platform installation](../admin-guide/index.md) — spin up your own Exordos Core instance to develop and test your elements end-to-end without connecting to a remote environment.
+- [Setting up a private platform installation](../usage/local_deployment.md) — spin up your own Exordos Core instance to develop and test your elements end-to-end without connecting to a remote environment.
 - [Public Exordos installation](https://genesis-core.tech) — use the hosted Exordos platform without managing your own infrastructure.
