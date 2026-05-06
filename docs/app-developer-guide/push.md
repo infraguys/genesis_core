@@ -1,22 +1,22 @@
 ---
-title: genesis push
+title: exordos push
 ---
 
 ## Overview
 
-`genesis push` **publishes** your built elements to a Exordos repository, making them available for deployment and for other platform users to consume.
+`exordos push` **publishes** your built elements to a Exordos repository, making them available for deployment and for other platform users to consume.
 
-The command reads the **`genesis/genesis.yaml`** file to identify where to push the elements. The `push` section defines one or more target repositories — local filesystem directories or remote HTTP endpoints.
+The command reads the **`exordos/exordos.yaml`** file to identify where to push the elements. The `push` section defines one or more target repositories — local filesystem directories or remote HTTP endpoints.
 
 ```bash
-genesis push [OPTIONS] [PROJECT_DIR]
+exordos push [OPTIONS] [PROJECT_DIR]
 ```
 
 Key options:
 
 | Option | Description |
 |---|---|
-| `-c, --genesis-cfg-file TEXT` | Name of the project configuration file (default: `genesis.yaml`) |
+| `-c, --exordos-cfg-file TEXT` | Name of the project configuration file (default: `exordos.yaml`) |
 | `-t, --target TEXT` | Target repository to push to (if multiple are defined) |
 | `-e, --element-dir PATH` | Directory where element artifacts are stored (default: `output/`) |
 | `-f, --force` | Force push even if the element already exists |
@@ -33,17 +33,17 @@ You can push elements to the [public Exordos Core repository](public-installatio
 From your project directory after a successful build:
 
 ```bash
-genesis push
+exordos push
 ```
 
-The command reads `genesis.yaml`, finds the push configuration, and uploads the element artifacts from the `output/` directory to the configured repositories.
+The command reads `exordos.yaml`, finds the push configuration, and uploads the element artifacts from the `output/` directory to the configured repositories.
 
 ### Push to Specific Target
 
-If your `genesis.yaml` defines multiple repositories, specify which one to push to:
+If your `exordos.yaml` defines multiple repositories, specify which one to push to:
 
 ```bash
-genesis push --target local
+exordos push --target local
 ```
 
 ### Force Push
@@ -51,7 +51,7 @@ genesis push --target local
 Overwrite an existing element version:
 
 ```bash
-genesis push --force
+exordos push --force
 ```
 
 ### Push as Latest
@@ -59,16 +59,16 @@ genesis push --force
 For stable releases, also tag the element as `latest`:
 
 ```bash
-genesis push --latest
+exordos push --latest
 ```
 
 ---
 
 ## Push Configuration
 
-### Configuration in genesis.yaml
+### Configuration in exordos.yaml
 
-The `push` section in `genesis.yaml` defines where elements are published. You can configure multiple repositories:
+The `push` section in `exordos.yaml` defines where elements are published. You can configure multiple repositories:
 
 ```yaml
 push:
@@ -77,7 +77,7 @@ push:
     path: /var/lib/exordos-pools/http
   remote:
     driver: nginx
-    url: https://repository.genesis-core.tech
+    url: https://repository.exordos.com
 ```
 
 | Repository Type | Description |
@@ -94,7 +94,7 @@ push:
 
 ### Separate Configuration File
 
-Push configuration can also be stored in a separate file, for example `genesis.push.yaml`:
+Push configuration can also be stored in a separate file, for example `exordos.push.yaml`:
 
 ```yaml
 push:
@@ -103,13 +103,13 @@ push:
     path: /var/lib/exordos-pools/staging
   production:
     driver: nginx
-    url: https://repo.genesis-core.tech/production
+    url: https://repo.exordos.com/production
 ```
 
 To use a separate configuration file, specify it with the `-c` option:
 
 ```bash
-genesis push -c genesis.push.yaml
+exordos push -c exordos.push.yaml
 ```
 
 ---
@@ -118,7 +118,7 @@ genesis push -c genesis.push.yaml
 
 After a successful push, your element is available in the registry and ready for:
 
-- [`genesis deploy`](deploy.md) — deploy the element to a Exordos installation
+- [`exordos deploy`](deploy.md) — deploy the element to a Exordos installation
 - Sharing with other developers in your organization
 
 ---

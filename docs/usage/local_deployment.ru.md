@@ -29,12 +29,12 @@ sudo adduser $USER kvm
 Инициализируйте текущую машину как гипервизор:
 
 ```bash
-genesis compute hypervisors init
+exordos compute hypervisors init
 ```
 
 ### Основные параметры
 
-Выполните `genesis compute hypervisors init --help`, чтобы просмотреть все доступные параметры. Наиболее важные из них:
+Выполните `exordos compute hypervisors init --help`, чтобы просмотреть все доступные параметры. Наиболее важные из них:
 
 | Параметр | Описание |
 |---|---|
@@ -47,7 +47,7 @@ genesis compute hypervisors init
 После настройки локальной машины как гипервизора выполните процедуру bootstrap для развёртывания платформы:
 
 ```bash
-genesis bootstrap -i <version> -f -m core --ssh-public-key /path/to/public/key
+exordos bootstrap -i <version> -f -m core --ssh-public-key /path/to/public/key
 ```
 
 где `<version>` — версия платформы для развёртывания (например, `0.0.6`).
@@ -57,18 +57,18 @@ genesis bootstrap -i <version> -f -m core --ssh-public-key /path/to/public/key
 **Пример с локальной сборкой:**
 
 ```bash
-genesis bootstrap -i /path/to/exordos-core.raw -m core
+exordos bootstrap -i /path/to/exordos-core.raw -m core
 ```
 
 **Пример с удалённым репозиторием (по умолчанию):**
 
 ```bash
-genesis bootstrap -i https://repository.genesis-core.tech/genesis-elements/core/0.0.6/ -m core
+exordos bootstrap -i https://repository.exordos.com/exordos-elements/core/0.0.6/ -m core
 ```
 
 ### Основные параметры
 
-Выполните `genesis bootstrap --help`, чтобы просмотреть все доступные параметры. Наиболее важные из них:
+Выполните `exordos bootstrap --help`, чтобы просмотреть все доступные параметры. Наиболее важные из них:
 
 | Параметр | Описание |
 |---|---|
@@ -84,7 +84,7 @@ genesis bootstrap -i https://repository.genesis-core.tech/genesis-elements/core/
 
 ## Использование
 
-После завершения `genesis bootstrap` платформа запущена и готова к работе. Команда выводит учётные данные администратора в консоль (либо сохраняет их в файл, если был указан `--save-admin-password-file`).
+После завершения `exordos bootstrap` платформа запущена и готова к работе. Команда выводит учётные данные администратора в консоль (либо сохраняет их в файл, если был указан `--save-admin-password-file`).
 
 ### Доступ по SSH
 
@@ -104,8 +104,8 @@ curl --location 'http://10.20.0.2:11010/v1/iam/clients/00000000-0000-0000-0000-0
     --data-urlencode 'grant_type=password' \
     --data-urlencode 'username=<ADMIN_USERNAME>' \
     --data-urlencode 'password=<ADMIN_PASSWORD>' \
-    --data-urlencode 'client_id=GenesisCoreClientId' \
-    --data-urlencode 'client_secret=GenesisCoreSecret' \
+    --data-urlencode 'client_id=ExordosCoreClientId' \
+    --data-urlencode 'client_secret=ExordosCoreSecret' \
     --data-urlencode 'scope=' \
     --data-urlencode 'ttl=86400'
 ```
@@ -114,19 +114,19 @@ curl --location 'http://10.20.0.2:11010/v1/iam/clients/00000000-0000-0000-0000-0
 
 ### Доступ через CLI
 
-Настройте CLI `genesis`, зарегистрировав realm и контекст с учётными данными администратора:
+Настройте CLI `exordos`, зарегистрировав realm и контекст с учётными данными администратора:
 
 ```bash
-genesis settings set-realm local --endpoint http://10.20.0.2:11010 --current
-genesis settings set-context local --name admin -u <ADMIN_USERNAME> -p <ADMIN_PASSWORD> --current
+exordos settings set-realm local --endpoint http://10.20.0.2:11010 --current
+exordos settings set-context local --name admin -u <ADMIN_USERNAME> -p <ADMIN_PASSWORD> --current
 ```
 
 - `set-realm` — регистрирует endpoint платформы под именем `local` и устанавливает его как активный realm.
 - `set-context` — создаёт именованный контекст с учётными данными администратора и устанавливает его как активный.
 
-После настройки можно управлять платформой с помощью команд `genesis`, например:
+После настройки можно управлять платформой с помощью команд `exordos`, например:
 
 ```bash
-genesis compute hypervisors list
-genesis elements list
+exordos compute hypervisors list
+exordos elements list
 ```

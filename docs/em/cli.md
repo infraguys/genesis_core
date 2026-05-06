@@ -13,11 +13,11 @@
 Go to project directory and run the following command:
 
 ```bash
-genesis build <element_name>
+exordos build <element_name>
 ```
 
 ## Install element from repository
 
 ```bash
-genesis e install <element_name>
+exordos elements install <element_name>
 ```

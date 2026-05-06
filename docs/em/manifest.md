@@ -25,7 +25,7 @@ resources:
       disk_spec:
         kind: "root_disk"
         size: 10
-        image: "{{ base_image_url | default('https://repository.genesis-core.tech/genesis-base/0.4.1/genesis-base.raw.gz') }}"
+        image: "{{ base_image_url | default('https://repository.exordos.com/exordos-base/0.4.1/exordos-base.raw.gz') }}"
   
   $core.em.services:
     example_service:
@@ -74,7 +74,7 @@ The schema version of the manifest, now `1`.
 
 ## version
 
-Version of the manifest, see docs in [genesis_devtools](https://infraguys.github.io/genesis_devtools/)
+Version of the manifest, see docs in [exordos_devtools](https://infraguys.github.io/exordos_devtools/)
 
 ## api_version
 

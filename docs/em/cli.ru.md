@@ -12,11 +12,11 @@
 Перейдите в директорию проекта и выполните следующую команду:
 
 ```bash
-genesis build .
+exordos build .
 ```
 
 ## Установка элемента из репозитория
 
 ```bash
-genesis elements install <element_name>
+exordos elements install <element_name>
 ```

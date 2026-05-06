@@ -231,7 +231,7 @@ sysctl --system
 
 Примеры:
 
-- [Jitsi element](https://github.com/infraguys/genesis_basic/blob/master/genesis/manifests/basic.yaml.j2)
+- [Jitsi element](https://github.com/infraguys/exordos_basic/blob/master/exordos/manifests/basic.yaml.j2)
 
 Базовый манифест для https-сайта (предположим, что некоторые узлы уже существуют):
 
@@ -260,7 +260,7 @@ imports:
       parent: $core.network.lb.$basic_lb:uuid
       endpoints:
         - kind: host
-          host: $core.compute.nodes.$genesis_basic:default_network:ipv4
+          host: $core.compute.nodes.$exordos_basic:default_network:ipv4
           port: 80
   $core.network.lb.$basic_lb.vhosts:
     basic_http:
@@ -316,7 +316,7 @@ imports:
     basic_cert:
       name: basic_cert
       project_id: "12345678-c625-4fee-81d5-f691897b8142"
-      email: user@genesis-core.tech
+      email: user@exordos.com
       domains:
         f"example.{$basic.imports.$core_public_domain:name}"
         f"*.example.{$basic.imports.$core_public_domain:name}"

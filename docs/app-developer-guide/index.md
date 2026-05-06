@@ -8,10 +8,10 @@ This guide walks you through everything you need to build, publish, and deploy *
 
 ### 1. Initialize your element
 
-Set up an existing project as a Exordos Core element. The `genesis init` command launches an interactive wizard that generates all required configuration files — including manifests, and a `genesis.yaml` file that describes the build, publish, and deploy procedures.
+Set up an existing project as a Exordos Core element. The `exordos init` command launches an interactive wizard that generates all required configuration files — including manifests, and a `exordos.yaml` file that describes the build, publish, and deploy procedures.
 
 ```bash
-genesis init
+exordos init
 ```
 
 After the wizard completes, your project will contain necessary configuration files — including manifests — that describe your element to the platform.
@@ -22,10 +22,10 @@ After the wizard completes, your project will contain necessary configuration fi
 
 ### 2. Build your element
 
-Compile and package your element along with all its artifacts. Exordos Core uses the build configuration defined in `genesis.yaml` to produce a distributable artifact.
+Compile and package your element along with all its artifacts. Exordos Core uses the build configuration defined in `exordos.yaml` to produce a distributable artifact.
 
 ```bash
-genesis build
+exordos build
 ```
 
 On success, the build output (container image, binary, or other artifact type) is stored locally and tagged with the current element version.
@@ -39,10 +39,10 @@ On success, the build output (container image, binary, or other artifact type) i
 Push the built element to the Exordos ecosystem registry so it becomes available to other platform users.
 
 ```bash
-genesis push
+exordos push
 ```
 
-The element is versioned and pushed to the configured repository based on the metadata in `genesis.yaml`.
+The element is versioned and pushed to the configured repository based on the metadata in `exordos.yaml`.
 
 [Learn more →](push.md)
 
@@ -53,7 +53,7 @@ The element is versioned and pushed to the configured repository based on the me
 Install and run your element on a Exordos Core platform installation.
 
 ```bash
-genesis elements install <element-name>
+exordos elements install <element-name>
 ```
 
 The platform resolves dependencies, installs the target element, and starts it in the chosen realm.
@@ -74,7 +74,7 @@ To follow this walkthrough, you need a running Exordos installation and the nece
 
 **Exordos** — you can use either:
 
-- A **public Exordos installation** — hosted at [genesis-core.tech](https://genesis-core.tech). No setup required; just create an account and start using the platform.
+- A **public Exordos installation** — hosted at [exordos.com](https://exordos.com). No setup required; just create an account and start using the platform.
 - A **private Exordos installation** — your own self-hosted instance. This document describes how to set one up: [Local Deployment](../usage/local_deployment.md).
 
 Install the necessary tools below.
@@ -82,7 +82,7 @@ Install the necessary tools below.
 Install Exordos CLI:
 
 ```bash
-curl -fsSL https://repository.genesis-core.tech/install.sh | sudo sh
+curl -fsSL https://repository.exordos.com/install.sh | sudo sh
 ```
 
 The Packer [version 1.9.2](https://hashicorp-releases.yandexcloud.net/packer/1.9.2/) or earlier due to licensing limitation. Download and place into `/usr/local/bin/` or any other directory in your `$PATH`.
@@ -105,10 +105,10 @@ Clone the project:
 git clone https://github.com/infraguys/todo_application.git && cd todo_application
 ```
 
-The `genesis init` command allows you to initialize a new element interactively but you can also use it with flags. We will use the flags approach here to speed things up.
+The `exordos init` command allows you to initialize a new element interactively but you can also use it with flags. We will use the flags approach here to speed things up.
 
 ```bash
-genesis init \
+exordos init \
   --project-name todo_application \
   --project-type python \
   --project-systemd-services "todo-api" \
@@ -118,7 +118,7 @@ genesis init \
   --author-name "Developer" \
   --author-email "dev@example.com" \
   --manifest-description "A simple ToDo list element" \
-  --repository "https://repository.genesis-core.tech/genesis-elements" \
+  --repository "https://repository.exordos.com/exordos-elements" \
   --pgsql-usage-mode "own_cluster" \
   --pgsql-database-name "todo_api" \
   --pgsql-username "todo_api" \
@@ -134,21 +134,21 @@ The project is ready to be built and pushed as a Exordos Core element.
 To build the element, run:
 
 ```bash
-genesis build
+exordos build
 ```
 
 ### Push to repository
 
-Use the repository of your genesis installation and push the element:
+Use the repository of your exordos installation and push the element:
 
 ```bash
-genesis push -c genesis.push.yaml
+exordos push -c exordos.push.yaml
 ```
 
 ### Deploy the element
 
 ```bash
-genesis elements install todo-api
+exordos elements install todo-api
 ```
 
 The ToDo API is now available at the configured endpoint.
@@ -159,6 +159,6 @@ The ToDo API is now available at the configured endpoint.
 
 Once you're comfortable with the basics, explore the more in-depth topics below.
 
-- [Writing a manifest from scratch](../misc/manifests.md) — understand the full manifest specification and author one by hand without relying on the `genesis init` wizard.
+- [Writing a manifest from scratch](../misc/manifests.md) — understand the full manifest specification and author one by hand without relying on the `exordos init` wizard.
 - [Setting up a private platform installation](../usage/local_deployment.md) — spin up your own Exordos Core instance to develop and test your elements end-to-end without connecting to a remote environment.
-- [Public Exordos installation](https://genesis-core.tech) — use the hosted Exordos platform without managing your own infrastructure.
+- [Public Exordos installation](https://exordos.com) — use the hosted Exordos platform without managing your own infrastructure.

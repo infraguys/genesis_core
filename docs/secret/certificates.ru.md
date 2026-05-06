@@ -19,8 +19,8 @@ curl --location 'http://10.20.0.2:11010/v1/secret/certificates/' \
     "constructor": {
         "kind": "plain"
     },
-    "email": "user@genesis-core.tech",
-    "domains": ["test0.cdns.genesis-core.tech"]
+    "email": "user@exordos.com",
+    "domains": ["test0.cdns.exordos.com"]
 }'
 ```
 
@@ -48,8 +48,8 @@ curl --location 'http://10.20.0.2:11010/v1/secret/certificates/' \
     "constructor": {
         "kind": "plain"
     },
-    "email": "user@genesis-core.tech",
-    "domains": ["*.test1.cdns.genesis-core.tech", "test1.cdns.genesis-core.tech"]
+    "email": "user@exordos.com",
+    "domains": ["*.test1.cdns.exordos.com", "test1.cdns.exordos.com"]
 }'
 ```
 

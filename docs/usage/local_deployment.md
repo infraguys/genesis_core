@@ -29,12 +29,12 @@ The local host must be configured as a hypervisor so that the platform can sched
 Initialize the current host as a hypervisor:
 
 ```bash
-genesis compute hypervisors init
+exordos compute hypervisors init
 ```
 
 ### Key parameters
 
-Run `genesis compute hypervisors init --help` to see all available options. The most important ones are:
+Run `exordos compute hypervisors init --help` to see all available options. The most important ones are:
 
 | Option | Description |
 |---|---|
@@ -47,7 +47,7 @@ Run `genesis compute hypervisors init --help` to see all available options. The 
 Once the local machine is configured as a hypervisor, run the bootstrap procedure to deploy the platform:
 
 ```bash
-genesis bootstrap -i <version> -f -m core --ssh-public-key /path/to/public/key
+exordos bootstrap -i <version> -f -m core --ssh-public-key /path/to/public/key
 ```
 
 where `<version>` is the version of the platform to deploy (e.g., `0.0.6`).
@@ -57,18 +57,18 @@ The platform can be started either from a **local build** (a locally built image
 **Local build example:**
 
 ```bash
-genesis bootstrap -i /path/to/exordos-core.raw -m core
+exordos bootstrap -i /path/to/exordos-core.raw -m core
 ```
 
 **Remote repository example (default):**
 
 ```bash
-genesis bootstrap -i https://repository.genesis-core.tech/genesis-elements/core/0.0.6/ -m core
+exordos bootstrap -i https://repository.exordos.com/exordos-elements/core/0.0.6/ -m core
 ```
 
 ### Key parameters
 
-Run `genesis bootstrap --help` to see all available options. The most important ones are:
+Run `exordos bootstrap --help` to see all available options. The most important ones are:
 
 | Option | Description |
 |---|---|
@@ -84,7 +84,7 @@ Run `genesis bootstrap --help` to see all available options. The most important 
 
 ## Usage
 
-After `genesis bootstrap` completes, the platform is up and running. The command prints the credentials for the admin user to the console (or saves them to a file if `--save-admin-password-file` was specified).
+After `exordos bootstrap` completes, the platform is up and running. The command prints the credentials for the admin user to the console (or saves them to a file if `--save-admin-password-file` was specified).
 
 ### SSH access
 
@@ -104,8 +104,8 @@ curl --location 'http://10.20.0.2:11010/v1/iam/clients/00000000-0000-0000-0000-0
     --data-urlencode 'grant_type=password' \
     --data-urlencode 'username=<ADMIN_USERNAME>' \
     --data-urlencode 'password=<ADMIN_PASSWORD>' \
-    --data-urlencode 'client_id=GenesisCoreClientId' \
-    --data-urlencode 'client_secret=GenesisCoreSecret' \
+    --data-urlencode 'client_id=ExordosCoreClientId' \
+    --data-urlencode 'client_secret=ExordosCoreSecret' \
     --data-urlencode 'scope=' \
     --data-urlencode 'ttl=86400'
 ```
@@ -114,19 +114,19 @@ The response contains an `access_token` field. Use this token as a `Bearer` toke
 
 ### CLI access
 
-Configure the `genesis` CLI by registering a realm and a context with the admin credentials:
+Configure the `exordos` CLI by registering a realm and a context with the admin credentials:
 
 ```bash
-genesis settings set-realm local --endpoint http://10.20.0.2:11010 --current
-genesis settings set-context local --name admin -u <ADMIN_USERNAME> -p <ADMIN_PASSWORD> --current
+exordos settings set-realm local --endpoint http://10.20.0.2:11010 --current
+exordos settings set-context local --name admin -u <ADMIN_USERNAME> -p <ADMIN_PASSWORD> --current
 ```
 
 - `set-realm` registers the platform endpoint under the name `local` and marks it as the active realm.
 - `set-context` creates a named context with the admin credentials and marks it as the active context.
 
-After configuration, you can manage the platform using `genesis` commands, for example:
+After configuration, you can manage the platform using `exordos` commands, for example:
 
 ```bash
-genesis compute hypervisors list
-genesis elements list
+exordos compute hypervisors list
+exordos elements list
 ```
