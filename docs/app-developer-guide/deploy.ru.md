@@ -1,20 +1,20 @@
 ---
-title: genesis elements install
+title: exordos elements install
 ---
 
 ## Обзор
 
-`genesis elements install` **устанавливает** элемент в realm платформы Exordos Core с необходимыми зависимостями.
+`exordos elements install` **устанавливает** элемент в realm платформы Exordos Core с необходимыми зависимостями.
 
 ```bash
-genesis elements install [OPTIONS] PATH_OR_NAME
+exordos elements install [OPTIONS] PATH_OR_NAME
 ```
 
 Ключевые опции:
 
 | Опция | Описание |
 |---|---|
-| `-r, --repository TEXT` | Конечная точка репозитория, где хранится элемент [по умолчанию: `https://repository.genesis-core.tech/genesis-elements/`] |
+| `-r, --repository TEXT` | Конечная точка репозитория, где хранится элемент [по умолчанию: `https://repository.exordos.com/exordos-elements/`] |
 | `PATH_OR_NAME` | Путь к локальному файлу манифеста или имя элемента в репозитории |
 
 Вы можете устанавливать элементы на [публичную установку Exordos Core](public-installation.ru.md). Или вы можете развернуть [приватную установку Exordos Core](private-installation.ru.md) на своём оборудовании. Для разработки и тестирования вы можете использовать [установку на локальном ноутбуке](local-laptop-installation.ru.md).
@@ -28,7 +28,7 @@ genesis elements install [OPTIONS] PATH_OR_NAME
 Для установки элемента по имени из стандартного репозитория:
 
 ```bash
-genesis elements install my-element
+exordos elements install my-element
 ```
 
 Команда получает манифест элемента из репозитория, разрешает зависимости и разворачивает элемент в текущем realm.
@@ -38,7 +38,7 @@ genesis elements install my-element
 Для установки из локального файла манифеста:
 
 ```bash
-genesis elements install ./manifests/my-element.yaml
+exordos elements install ./manifests/my-element.yaml
 ```
 
 ### Установка из пользовательского репозитория
@@ -46,7 +46,7 @@ genesis elements install ./manifests/my-element.yaml
 Для установки из другой конечной точки репозитория:
 
 ```bash
-genesis elements install -r https://my-repo.example.com/elements/ my-element
+exordos elements install -r https://my-repo.example.com/elements/ my-element
 ```
 
 ---

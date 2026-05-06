@@ -1,10 +1,10 @@
 ---
-title: genesis init
+title: exordos init
 ---
 
 ## Overview
 
-`genesis init` **platformizes** an existing project — it prepares everything the Exordos Core platform needs to build, publish, and deploy it as an element.
+`exordos init` **platformizes** an existing project — it prepares everything the Exordos Core platform needs to build, publish, and deploy it as an element.
 
 Running the command performs the following steps:
 
@@ -14,7 +14,7 @@ Running the command performs the following steps:
 4. **Print a summary** — reports everything that was created or modified so you know exactly what changed.
 
 ```bash
-genesis init [OPTIONS]
+exordos init [OPTIONS]
 ```
 
 Key options:
@@ -30,7 +30,7 @@ All other parameters are collected interactively via the wizard.
 
 ## Interactive Mode
 
-`genesis init` runs as an **interactive wizard** — it guides you through a series of questions and makes decisions based on your answers. You don't need to know the options upfront; the wizard adapts its questions depending on the project type you select.
+`exordos init` runs as an **interactive wizard** — it guides you through a series of questions and makes decisions based on your answers. You don't need to know the options upfront; the wizard adapts its questions depending on the project type you select.
 
 [Learn more about the wizard →](wizard.md)
 
@@ -70,16 +70,16 @@ The generated manifest is a starting point. You can edit it by hand at any time.
 
 ### CI/CD
 
-`genesis init` can generate a ready-to-use CI/CD pipeline configuration (`--ci-cd`). Currently supported:
+`exordos init` can generate a ready-to-use CI/CD pipeline configuration (`--ci-cd`). Currently supported:
 
-- **GitLab CI** — produces a `.gitlab-ci.yml` that runs `genesis build`, `genesis push`, and `genesis deploy` on every relevant event.
+- **GitLab CI** — produces a `.gitlab-ci.yml` that runs `exordos build`, `exordos push`, and `exordos deploy` on every relevant event.
 - **GitHub Actions** — produces a `.github/workflows/` directory with workflows for build, push, and deploy.
 
 ---
 
 ### Summary
 
-After the wizard finishes, `genesis init` prints a **summary** of everything it created or modified — manifest files, CI/CD configuration, and any other generated artifacts. Review it to confirm the setup matches your expectations before moving on to `genesis build`.
+After the wizard finishes, `exordos init` prints a **summary** of everything it created or modified — manifest files, CI/CD configuration, and any other generated artifacts. Review it to confirm the setup matches your expectations before moving on to `exordos build`.
 
 ---
 

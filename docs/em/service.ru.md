@@ -261,7 +261,7 @@ graph TD
 
 При создании сервиса система:
 
-1. Создаёт файл сервиса systemd по пути `/etc/systemd/system/genesis_srv_<name>_<uuid>.service`
+1. Создаёт файл сервиса systemd по пути `/etc/systemd/system/ec_<name>_<uuid>.service`
 2. Запускает `systemctl daemon-reload`
 3. Включает и запускает сервис, если `target_status` равен `enabled`
 4. Отключает сервис, если `target_status` равен `disabled`

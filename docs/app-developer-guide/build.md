@@ -1,12 +1,12 @@
 ---
-title: genesis build
+title: exordos build
 ---
 
 ## Overview
 
-`genesis build` **compiles and packages** your Exordos element into distributable artifacts — images, manifests, and any other resources required for deployment.
+`exordos build` **compiles and packages** your Exordos element into distributable artifacts — images, manifests, and any other resources required for deployment.
 
-The command reads the **`genesis/genesis.yaml`** file — the main configuration file that transforms your application into a platform element. This file contains the `build` section describing:
+The command reads the **`exordos/exordos.yaml`** file — the main configuration file that transforms your application into a platform element. This file contains the `build` section describing:
 
 - **Dependencies** — files, directories or external binary artifacts required for the build
 - **Elements** — a single project can produce multiple elements on output (e.g., separate API and worker services)
@@ -14,19 +14,19 @@ The command reads the **`genesis/genesis.yaml`** file — the main configuration
 
 Running the command performs the following steps:
 
-1. **Resolve dependencies** — fetches dependencies specified in `genesis.yaml`.
+1. **Resolve dependencies** — fetches dependencies specified in `exordos.yaml`.
 2. **Process manifests** — renders manifest files (supporting raw YAML or Jinja2 templates with built-in variables).
-3. **Build artifacts** — creates images and other build outputs based on the `build` section in `genesis.yaml`.
+3. **Build artifacts** — creates images and other build outputs based on the `build` section in `exordos.yaml`.
 
 ```bash
-genesis build [OPTIONS] PROJECT_DIR
+exordos build [OPTIONS] PROJECT_DIR
 ```
 
 Key options:
 
 | Option | Description |
 |---|---|
-| `-c, --genesis-cfg-file TEXT` | Name of the project configuration file (default: `genesis.yaml`) |
+| `-c, --exordos-cfg-file TEXT` | Name of the project configuration file (default: `exordos.yaml`) |
 | `--build-dir TEXT` | Directory for temporary build artifacts |
 | `--output-dir TEXT` | Directory where final artifacts are stored |
 | `--deps-dir TEXT` | Directory where dependencies are fetched |
@@ -69,7 +69,7 @@ You may need to relogin to apply the changes. Now you are ready to build your el
 From your project directory:
 
 ```bash
-genesis build .
+exordos build .
 ```
 
 ### Rebuild with Force
@@ -77,7 +77,7 @@ genesis build .
 If you need to rebuild even when artifacts already exist:
 
 ```bash
-genesis build --force .
+exordos build --force .
 ```
 
 ### Build with Custom Variables
@@ -85,7 +85,7 @@ genesis build --force .
 Pass additional variables to manifest templates:
 
 ```bash
-genesis build --manifest-var commit_hash=$(git rev-parse --short HEAD) .
+exordos build --manifest-var commit_hash=$(git rev-parse --short HEAD) .
 ```
 
 ### Inventory Build
@@ -93,24 +93,24 @@ genesis build --manifest-var commit_hash=$(git rev-parse --short HEAD) .
 For advanced deployments, build using the inventory format:
 
 ```bash
-genesis build --inventory .
+exordos build --inventory .
 ```
 
 ---
 
 ## Build Process
 
-The build process creates **VM disk images** that run on the Exordos Core platform. Packer starts a virtual machine from a base OS image, copies all resolved dependencies into it, and executes the provisioning script specified in `genesis.yaml`. This script is typically a Bash script that installs packages, configures services, and prepares the image. Once provisioning completes, the VM shuts down and the resulting disk image is packaged for deployment. This process is configured through the `elements` section in `genesis.yaml` where you define the base profile, provisioning script, output format, and any build overrides.
+The build process creates **VM disk images** that run on the Exordos Core platform. Packer starts a virtual machine from a base OS image, copies all resolved dependencies into it, and executes the provisioning script specified in `exordos.yaml`. This script is typically a Bash script that installs packages, configures services, and prepares the image. Once provisioning completes, the VM shuts down and the resulting disk image is packaged for deployment. This process is configured through the `elements` section in `exordos.yaml` where you define the base profile, provisioning script, output format, and any build overrides.
 
 ---
 
 ### Dependencies Resolution
 
-Before building, `genesis build` resolves all dependencies declared in the `build.deps` section of `genesis.yaml`. Each dependency specifies a destination path (`dst`) and a source. Dependencies can be local directories, remote artifacts, or optional development resources.
+Before building, `exordos build` resolves all dependencies declared in the `build.deps` section of `exordos.yaml`. Each dependency specifies a destination path (`dst`) and a source. Dependencies can be local directories, remote artifacts, or optional development resources.
 
 #### Local Project Directory
 
-Include another local project or directory into your build. The source path is relative to the `genesis.yaml` file location.
+Include another local project or directory into your build. The source path is relative to the `exordos.yaml` file location.
 
 ```yaml
 deps:
@@ -134,7 +134,7 @@ Fetch remote resources via HTTP/HTTPS. This is useful for kernel images, boot lo
 deps:
   - dst: /opt/exordos_core/artifacts/vmlinuz
     http:
-      src: https://repository.genesis-core.tech/seed_os/1.1.0/vmlinuz
+      src: https://repository.exordos.com/seed_os/1.1.0/vmlinuz
 ```
 
 The `vmlinuz` kernel image is downloaded and placed at the specified destination path before the build continues.
@@ -157,20 +157,20 @@ Here, the SDK is only included if the `LOCAL_GENESIS_SDK_PATH` environment varia
 
 ### VM Image Build Configuration
 
-Each element in the `elements` list of `genesis.yaml` defines how its VM images are built. An element can produce multiple images (for example, different formats or variants). The following parameters control the image creation process:
+Each element in the `elements` list of `exordos.yaml` defines how its VM images are built. An element can produce multiple images (for example, different formats or variants). The following parameters control the image creation process:
 
 | Parameter | Description |
 |---|---|
 | `name` | The name of the output image. Used to identify the image in the build output and registry. |
 | `format` | Disk image format. Supported formats: `raw`, `qcow2`, `gz`. The `gz` format is a compressed `raw` image. Can also reference an environment variable like `GEN_IMG_FORMAT_CORE=qcow2`. |
-| `profile` | Base OS image profile to use as the starting point (e.g., `genesis_base`). This determines the initial operating system and pre-installed packages. |
+| `profile` | Base OS image profile to use as the starting point (e.g., `exordos_base`). This determines the initial operating system and pre-installed packages. |
 | `script` | Path to the provisioning script executed inside the VM. This script performs all application-specific setup: installing dependencies, copying files, configuring services. |
-| `override` | Build-time parameter overrides passed to the underlying tool (e.g., Packer). Common uses include increasing `disk_size`, `cpus`, or `memory` for the build VM. When using the `genesis_custom` profile, specify `base_image_url` and `base_image_checksum` here to use any custom image as the base. |
+| `override` | Build-time parameter overrides passed to the underlying tool (e.g., Packer). Common uses include increasing `disk_size`, `cpus`, or `memory` for the build VM. When using the `exordos_custom` profile, specify `base_image_url` and `base_image_checksum` here to use any custom image as the base. |
 | `envs` | List of environment variables to pass into the build process. These become available to the provisioning script and build tools. |
 
 #### Using Environment Variables
 
-Define variables in `genesis.yaml`:
+Define variables in `exordos.yaml`:
 
 ```yaml
 elements:
@@ -178,7 +178,7 @@ elements:
     images:
       - name: my-app
         format: qcow2
-        profile: genesis_base
+        profile: exordos_base
         script: install.sh
         envs:
           - APP_PORT=8080
@@ -220,7 +220,7 @@ For Jinja2 templates, the following variables are available by default:
 Additional variables can be passed using `--manifest-var key=value`:
 
 ```bash
-genesis build --manifest-var environment=production --manifest-var region=europe-east .
+exordos build --manifest-var environment=production --manifest-var region=europe-east .
 ```
 
 [Full manifest reference →](../misc/manifests.md)
@@ -252,7 +252,7 @@ The `inventory.json` file provides a complete index of the build output, mapping
 | `configs` | Configuration files (if any) |
 | `templates` | Template files used during build (if any) |
 
-The exact contents depend on your project type and `genesis.yaml` configuration.
+The exact contents depend on your project type and `exordos.yaml` configuration.
 
 ---
 
@@ -260,8 +260,8 @@ The exact contents depend on your project type and `genesis.yaml` configuration.
 
 After a successful build, your elements are ready for:
 
-- [`genesis push`](push.md) — publish to the ecosystem registry
-- [`genesis deploy`](deploy.md) — deploy to a Exordos installation
+- [`exordos push`](push.md) — publish to the ecosystem registry
+- [`exordos deploy`](deploy.md) — deploy to a Exordos installation
 
 ---
 

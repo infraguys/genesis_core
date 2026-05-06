@@ -1,22 +1,22 @@
 ---
-title: genesis push
+title: exordos push
 ---
 
 ## Обзор
 
-`genesis push` **публикует** ваши собранные элементы в репозиторий Exordos, делая их доступными для развёртывания и для использования другими пользователями платформы.
+`exordos push` **публикует** ваши собранные элементы в репозиторий Exordos, делая их доступными для развёртывания и для использования другими пользователями платформы.
 
-Команда читает файл **`genesis/genesis.yaml`** для определения, куда отправлять элементы. Секция `push` определяет один или несколько целевых репозиториев — директории локальной файловой системы или удалённые HTTP конечные точки.
+Команда читает файл **`exordos/exordos.yaml`** для определения, куда отправлять элементы. Секция `push` определяет один или несколько целевых репозиториев — директории локальной файловой системы или удалённые HTTP конечные точки.
 
 ```bash
-genesis push [OPTIONS] [PROJECT_DIR]
+exordos push [OPTIONS] [PROJECT_DIR]
 ```
 
 Ключевые опции:
 
 | Опция | Описание |
 |---|---|
-| `-c, --genesis-cfg-file TEXT` | Имя файла конфигурации проекта (по умолчанию: `genesis.yaml`) |
+| `-c, --exordos-cfg-file TEXT` | Имя файла конфигурации проекта (по умолчанию: `exordos.yaml`) |
 | `-t, --target TEXT` | Целевой репозиторий для отправки (если определено несколько) |
 | `-e, --element-dir PATH` | Директория, где хранятся артефакты элементов (по умолчанию: `output/`) |
 | `-f, --force` | Принудительная отправка, даже если элемент уже существует |
@@ -33,17 +33,17 @@ genesis push [OPTIONS] [PROJECT_DIR]
 Из директории вашего проекта после успешной сборки:
 
 ```bash
-genesis push
+exordos push
 ```
 
-Команда читает `genesis.yaml`, находит конфигурацию push и загружает артефакты элементов из директории `output/` в настроенные репозитории.
+Команда читает `exordos.yaml`, находит конфигурацию push и загружает артефакты элементов из директории `output/` в настроенные репозитории.
 
 ### Отправка в конкретный target
 
-Если ваш `genesis.yaml` определяет несколько репозиториев, укажите, в какой отправлять:
+Если ваш `exordos.yaml` определяет несколько репозиториев, укажите, в какой отправлять:
 
 ```bash
-genesis push --target local
+exordos push --target local
 ```
 
 ### Принудительная отправка
@@ -51,7 +51,7 @@ genesis push --target local
 Перезапишите существующую версию элемента:
 
 ```bash
-genesis push --force
+exordos push --force
 ```
 
 ### Отправка как latest
@@ -59,16 +59,16 @@ genesis push --force
 Для стабильных релизов также пометьте элемент как `latest`:
 
 ```bash
-genesis push --latest
+exordos push --latest
 ```
 
 ---
 
 ## Конфигурация push
 
-### Конфигурация в genesis.yaml
+### Конфигурация в exordos.yaml
 
-Секция `push` в `genesis.yaml` определяет, где публикуются элементы. Вы можете настроить несколько репозиториев:
+Секция `push` в `exordos.yaml` определяет, где публикуются элементы. Вы можете настроить несколько репозиториев:
 
 ```yaml
 push:
@@ -77,7 +77,7 @@ push:
     path: /var/lib/exordos-pools/http
   remote:
     driver: nginx
-    url: https://repository.genesis-core.tech
+    url: https://repository.exordos.com
 ```
 
 | Тип репозитория | Описание |
@@ -94,7 +94,7 @@ push:
 
 ### Отдельный конфигурационный файл
 
-Конфигурация push может также храниться в отдельном файле, например `genesis.push.yaml`:
+Конфигурация push может также храниться в отдельном файле, например `exordos.push.yaml`:
 
 ```yaml
 push:
@@ -103,13 +103,13 @@ push:
     path: /var/lib/exordos-pools/staging
   production:
     driver: nginx
-    url: https://repo.genesis-core.tech/production
+    url: https://repo.exordos.com/production
 ```
 
 Для использования отдельного конфигурационного файла укажите его с опцией `-c`:
 
 ```bash
-genesis push -c genesis.push.yaml
+exordos push -c exordos.push.yaml
 ```
 
 ---
@@ -118,7 +118,7 @@ genesis push -c genesis.push.yaml
 
 После успешной отправки ваш элемент доступен в реестре и готов для:
 
-- [`genesis deploy`](deploy.ru.md) — развёртывание элемента в установку Exordos
+- [`exordos deploy`](deploy.ru.md) — развёртывание элемента в установку Exordos
 - Совместного использования с другими разработчиками в вашей организации
 
 ---
