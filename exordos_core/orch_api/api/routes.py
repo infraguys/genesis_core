@@ -14,9 +14,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from gcl_sdk.agents.universal.orch_api import routes as orch_routes
 from restalchemy.api import routes
 
-from gcl_sdk.agents.universal.orch_api import routes as orch_routes
 from exordos_core.orch_api.api import controllers
 
 

@@ -14,15 +14,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from contextlib import closing
 import logging
 import os
 import socket
 import subprocess
-from contextlib import closing
 from urllib.parse import urlparse
 
 import pytest
-
 from restalchemy.tests.functional import consts as ra_c
 
 LOG = logging.getLogger(__name__)

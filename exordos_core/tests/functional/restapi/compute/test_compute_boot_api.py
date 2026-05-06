@@ -15,19 +15,19 @@
 #    under the License.
 
 import typing as tp
-import uuid as sys_uuid
 from urllib.parse import urljoin
+import uuid as sys_uuid
 
+from oslo_config import cfg
 import pytest
 import requests
-from oslo_config import cfg
 
-from exordos_core.compute.dm import models
-from exordos_core.common import constants as c
-from exordos_core.tests.functional import utils as test_utils
-from exordos_core.tests.functional import conftest
 from exordos_core.boot_api.api import app as orch_app
 from exordos_core.cmd import boot_api as boot_api_cmd
+from exordos_core.common import constants as c
+from exordos_core.compute.dm import models
+from exordos_core.tests.functional import conftest
+from exordos_core.tests.functional import utils as test_utils
 
 CONF = cfg.CONF
 

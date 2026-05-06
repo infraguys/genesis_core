@@ -19,8 +19,8 @@ import typing as tp
 
 from oslo_config import cfg
 
-from exordos_core.common import constants
 from exordos_core import version
+from exordos_core.common import constants
 
 GLOBAL_SERVICE_NAME = constants.GLOBAL_SERVICE_NAME
 _CONFIG_NOT_FOUND_MESSAGE = (

@@ -26,12 +26,12 @@ import time
 import typing as tp
 import uuid as sys_uuid
 
-import yaml
 from oslo_config import cfg
 from restalchemy.common import config_opts as ra_config_opts
 from restalchemy.dm import filters as dm_filters
 from restalchemy.storage import exceptions as ra_exceptions
 from restalchemy.storage.sql import engines
+import yaml
 
 from exordos_core.bootstrap import defaults as bootstrap_defaults
 from exordos_core.common import config

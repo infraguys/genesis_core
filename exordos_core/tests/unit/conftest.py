@@ -14,14 +14,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import netaddr
 import uuid as sys_uuid
 
+import netaddr
 import pytest
 
-from exordos_core.network import ipam
-from exordos_core.compute.dm import models
 from exordos_core.common import constants as c
+from exordos_core.compute.dm import models
+from exordos_core.network import ipam
 
 
 @pytest.fixture

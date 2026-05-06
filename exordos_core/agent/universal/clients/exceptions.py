@@ -14,8 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from gcl_sdk.agents.universal.dm import models
 from gcl_sdk.agents.universal.clients.backend import exceptions
+from gcl_sdk.agents.universal.dm import models
 
 
 class ResourceProjectMismatch(exceptions.BackendClientException):

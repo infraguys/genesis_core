@@ -138,6 +138,14 @@ skip-magic-trailing-comma = false
 # Like Black, automatically detect the appropriate line ending.
 line-ending = "auto"
 
+[tool.ruff.lint.isort]
+known-first-party = ["exordos_core"]
+combine-as-imports = false
+force-sort-within-sections = true
+order-by-type = true
+split-on-trailing-comma = true
+force-single-line = true
+
 [tool.setuptools.packages.find]
 where = ["."]
 
@@ -224,7 +232,6 @@ ignore_errors = true
 
 [tool.coverage.html]
 directory = "cover"
-
 
 [tool.coverage.xml]
 output = "cover/coverage.xml"

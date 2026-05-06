@@ -16,9 +16,9 @@
 
 import typing as tp
 
-import pytest
 from bazooka import exceptions as bazooka_exc
 from gcl_iam.tests.functional import clients as iam_clients
+import pytest
 
 from exordos_core.secret.dm import models as secret_models
 

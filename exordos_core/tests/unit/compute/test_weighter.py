@@ -15,6 +15,7 @@
 #    under the License.
 
 import pytest
+
 from exordos_core.compute.dm import models
 from exordos_core.compute.scheduler.driver import base
 from exordos_core.compute.scheduler.driver.weighter import relative

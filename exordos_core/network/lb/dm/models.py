@@ -17,8 +17,8 @@
 from collections import defaultdict
 import typing as tp
 
-from gcl_sdk.infra.dm import models as sdk_models
 from gcl_sdk.agents.universal.dm import models as ua_models
+from gcl_sdk.infra.dm import models as sdk_models
 from restalchemy.dm import filters as dm_filters
 from restalchemy.dm import models as ra_models
 from restalchemy.dm import properties

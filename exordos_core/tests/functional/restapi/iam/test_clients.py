@@ -17,13 +17,13 @@
 import uuid as sys_uuid
 
 from bazooka import exceptions as bazooka_exc
+from gcl_iam.tests.functional import clients as iam_clients
 import pytest
 
 from exordos_core.common import constants as common_c
 from exordos_core.tests.functional.restapi.iam import base
 from exordos_core.user_api.iam import constants as iam_c
 from exordos_core.user_api.iam.dm import models as iam_models
-from gcl_iam.tests.functional import clients as iam_clients
 
 TEST_PROJECT_ID = str(sys_uuid.uuid4())
 

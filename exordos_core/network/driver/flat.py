@@ -14,20 +14,20 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import os
-import json
-import logging
-import subprocess
 import collections
 import dataclasses
+import json
+import logging
+import os
+import subprocess
 import typing as tp
 import uuid as sys_uuid
 
-from exordos_core.network.driver import base
+from exordos_core.compute import constants as nc
 from exordos_core.compute.dm import models
 from exordos_core.network import exceptions
 from exordos_core.network.dhcp import isc
-from exordos_core.compute import constants as nc
+from exordos_core.network.driver import base
 
 DHCP_CTX_FILE = "gc_ctx_dhcpd.json"
 

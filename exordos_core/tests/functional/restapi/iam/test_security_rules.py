@@ -16,9 +16,9 @@
 
 import uuid as sys_uuid
 
-import pytest
 from bazooka import exceptions as bazooka_exc
 from gcl_iam.tests.functional import clients as iam_clients
+import pytest
 
 from exordos_core.user_api.security.dm import models as security_models
 

@@ -17,14 +17,12 @@
 import logging
 import typing as tp
 
+from gcl_certbot_plugin import clients as dns_clients
 from gcl_sdk.agents.universal.drivers import direct
 from gcl_sdk.agents.universal.storage import fs
 from gcl_sdk.clients.http import base as core_client_base
-from gcl_certbot_plugin import clients as dns_clients
 
-from exordos_core.agent.universal.drivers.secret.backend import (
-    cert as cert_back,
-)
+from exordos_core.agent.universal.drivers.secret.backend import cert as cert_back
 
 LOG = logging.getLogger(__name__)
 

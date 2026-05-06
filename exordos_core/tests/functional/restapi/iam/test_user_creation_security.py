@@ -3,9 +3,9 @@ import sys
 from unittest import mock
 from urllib.parse import urljoin
 
+from gcl_iam.tests.functional import clients as iam_clients
 import pytest
 import requests
-from gcl_iam.tests.functional import clients as iam_clients
 
 from exordos_core.tests.functional.restapi.iam import base
 from exordos_core.user_api.security.dm import models as security_models

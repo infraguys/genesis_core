@@ -16,16 +16,16 @@
 
 import os
 import typing as tp
-import uuid as sys_uuid
 from urllib.parse import urlparse
+import uuid as sys_uuid
 
-import netaddr
-import pytest
 from gcl_iam import tokens
 from gcl_iam.tests.functional import clients as iam_clients
 from gcl_sdk.agents.universal.dm import models as sdk_ua_models
 from gcl_sdk.events import clients as sdk_clients
 from gcl_sdk.infra.dm import models as sdk_infra_models
+import netaddr
+import pytest
 from restalchemy.dm import filters as dm_filters
 from restalchemy.storage.sql import engines
 

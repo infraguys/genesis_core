@@ -14,11 +14,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from importlib.metadata import entry_points
 import os
 import typing as tp
-import uuid as sys_uuid
-from importlib.metadata import entry_points
 from urllib.parse import urlparse
+import uuid as sys_uuid
 
 import bazooka
 from gcl_sdk.agents.universal import utils as sdk_utils

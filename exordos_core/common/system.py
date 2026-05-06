@@ -15,10 +15,11 @@
 #    under the License.
 
 import os
-import netaddr
 import subprocess
 import typing as tp
 import uuid as sys_uuid
+
+import netaddr
 
 
 def system_uuid() -> sys_uuid.UUID:

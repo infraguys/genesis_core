@@ -17,11 +17,11 @@
 import datetime
 import typing as tp
 
-from restalchemy.dm import properties
+from gcl_sdk.agents.universal.dm import models as ua_models
 from restalchemy.dm import models
+from restalchemy.dm import properties
 from restalchemy.dm import types
 from restalchemy.storage.sql import orm
-from gcl_sdk.agents.universal.dm import models as ua_models
 
 from exordos_core.common import constants as c
 from exordos_core.secret import constants as sc

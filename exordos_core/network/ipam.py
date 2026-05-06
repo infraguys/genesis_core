@@ -15,12 +15,13 @@
 #    under the License.
 
 import logging
-import netaddr
-import uuid as sys_uuid
 import typing as tp
+import uuid as sys_uuid
 
-from exordos_core.network.dm import models as net_models
+import netaddr
+
 from exordos_core.network import exceptions as net_exceptions
+from exordos_core.network.dm import models as net_models
 
 LOG = logging.getLogger(__name__)
 

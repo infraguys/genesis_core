@@ -14,14 +14,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import typing as tp
 import collections
+import typing as tp
 import uuid as sys_uuid
 
 from gcl_iam.tests.functional import clients as iam_clients
 
-from exordos_core.compute.scheduler import service
 from exordos_core.compute.dm import models
+from exordos_core.compute.scheduler import service
 from exordos_core.compute.scheduler.driver.filters import available
 from exordos_core.compute.scheduler.driver.weighter import relative
 

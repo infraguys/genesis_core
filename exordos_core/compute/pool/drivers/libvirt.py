@@ -16,10 +16,10 @@
 
 import enum
 import logging
+import operator
 import time
 import typing as tp
 import uuid as sys_uuid
-import operator
 from xml.dom import minidom
 
 # It's more efficient to use ElementTree than minidom
@@ -27,9 +27,9 @@ from xml.etree import ElementTree as ET
 
 import libvirt
 
-from exordos_core.compute.dm import models
 from exordos_core.common import constants as c
 from exordos_core.compute import constants as nc
+from exordos_core.compute.dm import models
 from exordos_core.compute.pool.drivers import base
 from exordos_core.compute.pool.drivers import exceptions as pool_exc
 

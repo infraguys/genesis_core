@@ -16,8 +16,8 @@
 
 from restalchemy.api import packers
 
-from exordos_core.compute import constants as nc
 from exordos_core.boot_api.dm import models
+from exordos_core.compute import constants as nc
 
 _from_net_template = """#!ipxe
 :kernel

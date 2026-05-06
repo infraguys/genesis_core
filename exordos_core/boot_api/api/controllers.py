@@ -19,10 +19,10 @@ from restalchemy.api import controllers
 from restalchemy.api import resources
 from restalchemy.storage import exceptions as ra_storage_exceptions
 
+from exordos_core.boot_api.api import packers
+from exordos_core.boot_api.dm import models
 from exordos_core.common import constants as c
 from exordos_core.compute import constants as nc
-from exordos_core.boot_api.dm import models
-from exordos_core.boot_api.api import packers
 
 DOMAIN = "boot_api"
 CONF = cfg.CONF

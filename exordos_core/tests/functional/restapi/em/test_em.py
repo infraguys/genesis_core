@@ -15,10 +15,10 @@
 #    under the License.
 
 import os
-import pytest
-import yaml
 
 from gcl_iam.tests.functional import clients as iam_clients
+import pytest
+import yaml
 
 from exordos_core.common.utils import PROJECT_PATH
 

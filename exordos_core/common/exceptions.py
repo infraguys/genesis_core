@@ -38,3 +38,11 @@ class OpenApiValidateException(CommonValueErrorException):
     __template__ = "OpenApiValidateException: {err}"
 
     err: str
+
+
+class NamespaceNotFound(GCException):
+    __template__ = "Namespace with name '{name}' was not found."
+
+    @property
+    def code(self) -> int:
+        return 1000
