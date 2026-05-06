@@ -1,87 +1,45 @@
 ![Tests workflow](https://github.com/infraguys/exordos_core/actions/workflows/tests.yml/badge.svg)
 ![Build workflow](https://github.com/infraguys/exordos_core/actions/workflows/build.yml/badge.svg)
+![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)
 
 <p align="center">
-<img height="256" src="logo.svg" alt="exordos core svg logo">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="logo_black.svg">
+    <source media="(prefers-color-scheme: light)" srcset="logo_white.svg">
+    <img height="256" src="logo_white.svg" alt="exordos core svg logo">
+  </picture>
 </p>
 
-Welcome to Exordos Core!
+# Exordos Core
 
-The Exordos Core is an open source software that offers a one turnkey solution to deal with infrastructure at all levels - from bare metal and virtual machines to applications and services.
+**📚 Documentation:** [exordos.github.io/exordos_core](https://exordos.github.io/exordos_core/)
 
-Refer to the [wiki](https://github.com/infraguys/exordos_core/wiki) for more detailed information.
+Exordos Core is an open-source NoOps platform for managing corporate infrastructure and software ecosystems. It provides a unified platform layer — from bare metal and virtual machines all the way to applications and services — designed to be operated by both humans and AI agents.
 
-# 📦 Installation
+## What Exordos Core does
 
-There are several ways to install Exordos Core and depend on your purpose you can choose one of them.
+Exordos Core is the next step beyond classic DevOps. Instead of a collection of disconnected tools requiring constant manual coordination, it gives your organization a single declarative platform layer where infrastructure, policies, and service lifecycle are managed as one coherent system.
 
-## Try it out
+Key capabilities:
 
-If you want to try Exordos Core in a few minutes, download the `all-in-one` [stand](https://github.com/infraguys/gci_dev_all_in_one). It's a ready-to-go virtual machine image with preinstalled Exordos Core and ability to get full functionality such as creating inner(nested) virtual machines, installation elements and many others.
-This stand may be used for development purposes as well if you are focusing on a new element development.
+- **Declarative management** — describe the desired state; the platform reconciles reality to match it automatically (self-healing). No more configuration drift or manual correction after every change.
+- **Image-based provisioning** — fast, repeatable, and predictable delivery of environments and services. Rollouts and recovery become straightforward operations, not fire-fighting exercises.
+- **AI-ready architecture** — the platform is designed from the ground up to be controlled by an AI agent, reducing manual toil and letting teams operate at the level of intent rather than low-level steps.
+- **Unified lifecycle management** — infrastructure, internal services, and application lifecycle all managed through a single control plane. One system instead of a zoo of tools.
+- **Sovereign deployment** — run entirely within your own on-prem or private cloud perimeter with no dependency on external services. Full control over data, access, and the operational boundary.
+- **Element ecosystem** — install and manage ready-to-use software elements (databases, messengers, internal services, and more) directly from the platform marketplace, just like an app store for enterprise software.
 
-## Basic usage
+> **For a full overview of architecture, configuration, and advanced usage, visit the [documentation](https://exordos.github.io/exordos_core/).**
 
-In a case you would like to run Exordos Core on your own infrastructure, you can use the [basic guide](https://github.com/infraguys/exordos_core/wiki/BasicUsage) for more details.
+# 🚀 To start using Exordos
 
-# 🚀 Development
-
-**Ubuntu:**
-
-```bash
-sudo apt-get install build-essential python3.12-dev python3.12-venv \
-    libev-dev libvirt-dev curl
-curl -LsSf https://astral.sh/uv/install.sh | sh
-source "$HOME"/.local/bin/env
-uv tool install tox --with tox-uv
-```
-
-**Fedora:**
+Install the CLI tools with a single command:
 
 ```bash
-sudo dnf install gcc libev-devel libvirt-devel curl
-curl -LsSf https://astral.sh/uv/install.sh | sh
-source "$HOME"/.local/bin/env
-uv tool install tox --with tox-uv 
+curl -fsSL https://repository.genesis-core.tech/install.sh | sudo sh
 ```
 
-Initialize virtual environment:
-
-```bash
-tox -e develop
-source .tox/develop/bin/activate
-```
-
-Follow the development guide [here](https://github.com/infraguys/exordos_core/wiki/DevelopmentGuide) for more details.
-
-# ⚙️ Tests
-
-**NOTE:** Python version 3.12 is supposed to be used, but you can use other versions
-
-```bash
-# Unit tests
-tox -e py312
-
-# Functional tests
-tox -e py312-functional
-```
-
-## Functional tests environment
-
-To run functional tests, export the following environment variables:
-
-```bash
-export DATABASE_URI="postgresql://exordos_core:exordos_core@127.0.0.1:5432/exordos_core"
-export ADMIN_PASSWORD="admin"
-export DEFAULT_CLIENT_SECRET="GenesisCoreSecret"
-export GLOBAL_SALT="FOy/2kwwdn0ig1QOq7cestqe"
-export HS256_KEY="secret"
-```
-
-# 🔗 Related projects
-
-- Exordos SDK is a set of tools for developing Exordos elements. You can find it [here](https://github.com/infraguys/gcl_sdk).
-- Exordos DevTools it's a set oftools to manager life cycle of genesis projects. You can find it [here](https://github.com/infraguys/genesis_devtools).
+Then follow the instructions in the terminal, or refer to the [documentation](https://exordos.github.io/exordos_core/) for a full setup guide.
 
 # 💡 Contributing
 
