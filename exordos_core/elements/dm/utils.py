@@ -26,7 +26,7 @@ from jsonschema.exceptions import ValidationError
 import openapi_schema_validator
 
 from exordos_core.common import exceptions
-from exordos_core.common.utils import PROJECT_PATH
+from exordos_core.common.utils import PROJECT_PATH, validate_url, get_api_client
 
 LOG = logging.getLogger(__name__)
 ELEMENT_NAMESPACE = sys_uuid.UUID("f277e88a-cd58-4c33-a0c3-23a1086a53b7")
@@ -256,11 +256,11 @@ def validate_manifest(data: dict, schema: tp.Optional[dict]) -> None:
     return None
 
 
-def build_full_schema(base_manifest_schema: dict, user_api_spec: dict) -> dict:
+def build_full_schema(
+    base_manifest_schema: dict, user_api_spec: dict, specs: list | None = None
+) -> dict:
     for path, path_obj in user_api_spec["paths"].items():
         path_parts = path.split("/")
-        if len(path_parts) > 5:
-            continue
         post_path = path_obj.get("post")
         if post_path:
             operation_id = post_path.get("operationId")
@@ -269,10 +269,11 @@ def build_full_schema(base_manifest_schema: dict, user_api_spec: dict) -> dict:
                     "schema"
                 ]
                 model_name = schema_ref["$ref"].split("/")[-1]
-                api_part_1 = path_parts[2]
-                api_part_2 = path_parts[3]
-                model = user_api_spec["components"]["schemas"][model_name]
-                resource = f"$core.{api_part_1}.{api_part_2}"
+                api_parts = ".".join([path_part for path_part in path_parts[2:] if path_part and not path_part.startswith("{")])
+                model = user_api_spec["components"]["schemas"].get(model_name)
+                if not model:
+                    continue
+                resource = f"$core.{api_parts}"
                 base_manifest_schema["components"]["schemas"][model_name] = model
                 base_manifest_schema["properties"]["resources"]["properties"][
                     resource
@@ -280,6 +281,29 @@ def build_full_schema(base_manifest_schema: dict, user_api_spec: dict) -> dict:
                     "type": "object",
                     "additionalProperties": schema_ref,
                 }
+    if specs is not None:
+        for spec in specs:
+            if validate_url(spec):
+                client = get_api_client()
+                try:
+                    response = client.get(spec)
+                    if response.status_code == 200:
+                        data = response.content.decode()
+                        user_api_spec = yaml.safe_load(data)
+                        base_manifest_schema = build_full_schema(
+                            base_manifest_schema, user_api_spec
+                        )
+                except Exception as e:
+                    LOG.exception(f"Failed to get spec from {spec}: {e}")
+            elif os.path.exists(spec):
+                try:
+                    with open(spec, "r") as f:
+                        user_api_spec = yaml.safe_load(f)
+                        base_manifest_schema = build_full_schema(
+                            base_manifest_schema, user_api_spec
+                        )
+                except Exception as e:
+                    LOG.exception(f"Failed to get spec from {spec}: {e}")
     return base_manifest_schema
 
 
@@ -299,7 +323,32 @@ def search_parameter_example(
     return None
 
 
+def remove_middle_parts(input_string):
+    parts = input_string.split('.')
+
+    if len(parts) <= 2:
+        return input_string
+
+    result_parts = []
+    for i, part in enumerate(parts):
+        if  i > 0 and part.startswith('$'):
+            continue
+        result_parts.append(part)
+    return '.'.join(result_parts)
+
+
+def mutate_resource_types(manifest: dict) -> dict:
+    mutated_map = {}
+    for resource_type in manifest["resources"].keys():
+        mutated_resource_type = remove_middle_parts(resource_type)
+        if resource_type != mutated_resource_type:
+            mutated_map[mutated_resource_type] = resource_type
+    for mutated_resource_type, resource_type in mutated_map.items():
+        manifest["resources"][mutated_resource_type] = manifest["resources"].pop(resource_type)
+    return manifest
+
 def mutate_manifest(manifest: dict, scheme: dict) -> dict:
+    manifest = mutate_resource_types(manifest)
     for resource_type, resource in manifest["resources"].items():
         for resource_name, resource_value in resource.items():
             walk_replace(resource_type, scheme, resource_value)

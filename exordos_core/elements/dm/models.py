@@ -170,6 +170,10 @@ class Manifest(
         mutable=True,
         default=dict,
     )
+    openapi_spec = properties.property(
+        ra_types.AllowNone(ra_types.String()),
+        default=None,
+    )
 
     def install(self) -> "Manifest":
         """
@@ -188,6 +192,7 @@ class Manifest(
             api_version=self.api_version,
             description=self.description,
             project_id=utils.get_project_id(),
+            manifest=self,
         )
         element.save()
         element_engine.add_element(element)
@@ -406,6 +411,11 @@ class Element(
         "link": ra_types.String(),
     }
 
+    manifest = relationships.relationship(
+        Manifest,
+        prefetch=True,
+        required=False,
+    )
     STATUSES = Status
     INSTALL_TYPES = InstallTypes
 

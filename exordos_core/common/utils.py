@@ -18,9 +18,11 @@ import os
 import typing as tp
 import uuid as sys_uuid
 from importlib.metadata import entry_points
+from urllib.parse import urlparse
 
-from gcl_sdk.events import clients as sdk_clients
+import bazooka
 from gcl_sdk.agents.universal import utils as sdk_utils
+from gcl_sdk.events import clients as sdk_clients
 from restalchemy.common import contexts
 from restalchemy.dm import filters as dm_filters
 
@@ -85,6 +87,18 @@ def remove_nested_dm(dm_class, parent_field_name, parent, session=None, **kwargs
 
 def get_or_create_uuid_from_dict(data: tp.Dict[str, tp.Any]) -> sys_uuid.UUID:
     return sys_uuid.UUID(data.get("uuid", str(sys_uuid.uuid4())))
+
+
+def validate_url(url: str) -> bool:
+    try:
+        result = urlparse(url)
+        return all([result.scheme, result.netloc])
+    except ValueError:
+        return False
+
+
+def get_api_client(*args, **kwargs) -> bazooka.Client:
+    return bazooka.Client(*args, **kwargs)
 
 
 def get_project_path() -> str:
