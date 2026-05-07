@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   Build:
-    runs-on: self-hosted
+    runs-on: hard
     strategy:
       fail-fast: true
     steps:

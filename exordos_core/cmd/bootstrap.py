@@ -240,7 +240,7 @@ def _ensure_gctl_config(spec: dict[str, tp.Any]):
     gid = grp.getgrnam(USER).gr_gid
     os.chown(GCTL_CFG_DIR, uid, gid)
 
-    config_path = os.path.join(GCTL_CFG_DIR, "genesisctl.yaml")
+    config_path = os.path.join(GCTL_CFG_DIR, "exordosctl.yaml")
     with open(config_path, "w") as f:
         yaml.safe_dump(
             {
@@ -263,7 +263,7 @@ def _ensure_gctl_config(spec: dict[str, tp.Any]):
             f,
         )
     os.chown(config_path, uid, gid)
-    os.system("genesis autocomplete")
+    os.system("exordos autocomplete")
 
 
 def _install_element_manifest(
@@ -284,7 +284,7 @@ def _install_element_manifest(
         return
 
     os.system(
-        f"genesis --config {GCTL_CFG_DIR}/genesisctl.yaml elements install {manifest_path}"
+        f"exordos --config {GCTL_CFG_DIR}/exordosctl.yaml elements install {manifest_path}"
     )
 
 
