@@ -26,9 +26,27 @@ _RAW_PAYLOAD_MISSING = object()
 
 
 class GenesisCoreAuthContext(iam_contexts.GenesisCoreAuthContext):
+    """Custom auth context with security rules support."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._raw_payload_cache = _RAW_PAYLOAD_MISSING
+
+    def set_anonymous_bypass_matched(self) -> None:
+        """Mark that AnonymousBypassVerifier Rule matched for this request.
+
+        This is set by the AnonymousBypassVerifier when it successfully
+        verifies an anonymous/unauthenticated request.
+        """
+        if not hasattr(self.request, "environ"):
+            return
+        self.request.environ["_anonymous_bypass_matched"] = True
+
+    def is_anonymous_bypass_matched(self) -> bool:
+        """Check if AnonymousBypassVerifier Rule matched for this request."""
+        if not hasattr(self.request, "environ"):
+            return False
+        return self.request.environ.get("_anonymous_bypass_matched", False)
 
     def get_user_ip(self) -> tp.Optional[netaddr.IPAddress]:
         request = self.request
