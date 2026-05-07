@@ -21,7 +21,10 @@ import sys
 import time
 
 REPOSITORY_DIR = "/var/lib/repository"
-ELEMENTS_DIR = "genesis-elements"
+ELEMENTS_DIRS = [
+    "genesis-elements",
+    "exordos-elements",
+]
 INVENTORY = "*/inventory.json"
 
 
@@ -67,22 +70,23 @@ def write_merged_inventory(merged_data, output_path):
 
 
 def main():
-    root_dir = os.path.join(REPOSITORY_DIR, ELEMENTS_DIR)
-    output_file = os.path.join(root_dir, "inventory.json")
+    for elements_dir in ELEMENTS_DIRS:
+        root_dir = os.path.join(REPOSITORY_DIR, elements_dir)
+        output_file = os.path.join(root_dir, "inventory.json")
 
-    print("Searching for inventory.json files...")
-    inventory_files = find_inventory_files(root_dir)
+        print("Searching for inventory.json files...")
+        inventory_files = find_inventory_files(root_dir)
 
-    if not inventory_files:
-        print("No inventory.json files found.")
-        return
+        if not inventory_files:
+            print("No inventory.json files found.")
+            return
 
-    print(f"Found {len(inventory_files)} inventory.json files.")
+        print(f"Found {len(inventory_files)} inventory.json files.")
 
-    merged_data = merge_inventories(inventory_files)
-    print(f"Merged {len(merged_data['elements'])} items.")
+        merged_data = merge_inventories(inventory_files)
+        print(f"Merged {len(merged_data['elements'])} items.")
 
-    write_merged_inventory(merged_data, output_file)
+        write_merged_inventory(merged_data, output_file)
 
 
 if __name__ == "__main__":

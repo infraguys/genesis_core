@@ -24,18 +24,18 @@ jobs:
           mkdir -p ${ARTIFACTS_PATH}
 
           source ~/.profile
-          VERSION="$(genesis get-version .)"
+          VERSION="$(exordos get-version .)"
 
           # Build Exordos Core
-          genesis build $(pwd) --inventory
+          exordos build $(pwd) --inventory
 
           # Decode and write the push configuration
-          echo "$PUSH_CFG" | base64 -d > genesis/genesis.push.yaml
-          genesis push -c genesis/genesis.push.yaml -t local -f --latest
+          echo "$PUSH_CFG" | base64 -d > genesis/exordos.push.yaml
+          exordos push -c genesis/exordos.push.yaml -t local -f --latest
 
           # Upload the VM image
-          gzip -k output/exordos-core.raw -c | \
-          curl -X PUT -T - "$REPO_ENDPOINT_PUT/${PROJECT_NAME}/${VERSION}/exordos-core.raw.gz"
+          # gzip -k output/exordos-core.raw -c | \
+          # curl -X PUT -T - "$REPO_ENDPOINT_PUT/${PROJECT_NAME}/${VERSION}/exordos-core.raw.gz"
 
           # Temporary upload step is done in the build script
           echo "${VERSION}" > "${ARTIFACTS_PATH}/version.txt"
