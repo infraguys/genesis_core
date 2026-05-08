@@ -642,10 +642,10 @@ sudo<span class="w"> </span>adduser<span class="w"> </span><span class="nv">$USE
 <h2 id="локальная-машина-как-гипервизор">Локальная машина как гипервизор<a class="headerlink" href="#локальная-машина-как-гипервизор" title="Permanent link">#</a></h2>
 <p>Локальная машина должна быть настроена как гипервизор, чтобы платформа могла планировать и запускать на ней виртуальные машины.</p>
 <p>Инициализируйте текущую машину как гипервизор:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>compute<span class="w"> </span>hypervisors<span class="w"> </span>init
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>compute<span class="w"> </span>hypervisors<span class="w"> </span>init
 </code></pre></div>
 <h3 id="основные-параметры">Основные параметры<a class="headerlink" href="#основные-параметры" title="Permanent link">#</a></h3>
-<p>Выполните <code>genesis compute hypervisors init --help</code>, чтобы просмотреть все доступные параметры. Наиболее важные из них:</p>
+<p>Выполните <code>exordos compute hypervisors init --help</code>, чтобы просмотреть все доступные параметры. Наиболее важные из них:</p>
 <table>
 <thead>
 <tr>
@@ -670,18 +670,18 @@ sudo<span class="w"> </span>adduser<span class="w"> </span><span class="nv">$USE
 </table>
 <h2 id="bootstrap">Bootstrap<a class="headerlink" href="#bootstrap" title="Permanent link">#</a></h2>
 <p>После настройки локальной машины как гипервизора выполните процедуру bootstrap для развёртывания платформы:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>bootstrap<span class="w"> </span>-i<span class="w"> </span>&lt;version&gt;<span class="w"> </span>-f<span class="w"> </span>-m<span class="w"> </span>core<span class="w"> </span>--ssh-public-key<span class="w"> </span>/path/to/public/key
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>bootstrap<span class="w"> </span>-i<span class="w"> </span>&lt;version&gt;<span class="w"> </span>-f<span class="w"> </span>-m<span class="w"> </span>core<span class="w"> </span>--ssh-public-key<span class="w"> </span>/path/to/public/key
 </code></pre></div>
 <p>где <code>&lt;version&gt;</code> — версия платформы для развёртывания (например, <code>0.0.6</code>).</p>
 <p>Платформу можно запустить как из <strong>локальной сборки</strong> (локально собранный образ), так и из <strong>удалённого репозитория</strong> (готовый образ, загруженный из официального репозитория).</p>
 <p><strong>Пример с локальной сборкой:</strong></p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>bootstrap<span class="w"> </span>-i<span class="w"> </span>/path/to/exordos-core.raw<span class="w"> </span>-m<span class="w"> </span>core
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>bootstrap<span class="w"> </span>-i<span class="w"> </span>/path/to/exordos-core.raw<span class="w"> </span>-m<span class="w"> </span>core
 </code></pre></div>
 <p><strong>Пример с удалённым репозиторием (по умолчанию):</strong></p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>bootstrap<span class="w"> </span>-i<span class="w"> </span>https://repository.genesis-core.tech/genesis-elements/core/0.0.6/<span class="w"> </span>-m<span class="w"> </span>core
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>bootstrap<span class="w"> </span>-i<span class="w"> </span>https://repository.exordos.com/exordos-elements/core/0.0.6/<span class="w"> </span>-m<span class="w"> </span>core
 </code></pre></div>
 <h3 id="основные-параметры_1">Основные параметры<a class="headerlink" href="#основные-параметры_1" title="Permanent link">#</a></h3>
-<p>Выполните <code>genesis bootstrap --help</code>, чтобы просмотреть все доступные параметры. Наиболее важные из них:</p>
+<p>Выполните <code>exordos bootstrap --help</code>, чтобы просмотреть все доступные параметры. Наиболее важные из них:</p>
 <table>
 <thead>
 <tr>
@@ -729,7 +729,7 @@ sudo<span class="w"> </span>adduser<span class="w"> </span><span class="nv">$USE
 </tbody>
 </table>
 <h2 id="использование">Использование<a class="headerlink" href="#использование" title="Permanent link">#</a></h2>
-<p>После завершения <code>genesis bootstrap</code> платформа запущена и готова к работе. Команда выводит учётные данные администратора в консоль (либо сохраняет их в файл, если был указан <code>--save-admin-password-file</code>).</p>
+<p>После завершения <code>exordos bootstrap</code> платформа запущена и готова к работе. Команда выводит учётные данные администратора в консоль (либо сохраняет их в файл, если был указан <code>--save-admin-password-file</code>).</p>
 <h3 id="доступ-по-ssh">Доступ по SSH<a class="headerlink" href="#доступ-по-ssh" title="Permanent link">#</a></h3>
 <p>Если при bootstrap был указан публичный SSH-ключ через <code>--ssh-public-key</code>, можно подключиться к основной виртуальной машине напрямую:</p>
 <div class="highlight"><pre><span></span><code>ssh<span class="w"> </span>ubuntu@10.20.0.2
@@ -741,24 +741,24 @@ sudo<span class="w"> </span>adduser<span class="w"> </span><span class="nv">$USE
 <span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'grant_type=password'</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'username=&lt;ADMIN_USERNAME&gt;'</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'password=&lt;ADMIN_PASSWORD&gt;'</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'client_id=GenesisCoreClientId'</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'client_secret=GenesisCoreSecret'</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'client_id=ExordosCoreClientId'</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'client_secret=ExordosCoreSecret'</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'scope='</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'ttl=86400'</span>
 </code></pre></div>
 <p>В ответе содержится поле <code>access_token</code>. Используйте этот токен как <code>Bearer</code>-токен во всех последующих запросах к API.</p>
 <h3 id="доступ-через-cli">Доступ через CLI<a class="headerlink" href="#доступ-через-cli" title="Permanent link">#</a></h3>
-<p>Настройте CLI <code>genesis</code>, зарегистрировав realm и контекст с учётными данными администратора:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>settings<span class="w"> </span>set-realm<span class="w"> </span><span class="nb">local</span><span class="w"> </span>--endpoint<span class="w"> </span>http://10.20.0.2:11010<span class="w"> </span>--current
-genesis<span class="w"> </span>settings<span class="w"> </span>set-context<span class="w"> </span><span class="nb">local</span><span class="w"> </span>--name<span class="w"> </span>admin<span class="w"> </span>-u<span class="w"> </span>&lt;ADMIN_USERNAME&gt;<span class="w"> </span>-p<span class="w"> </span>&lt;ADMIN_PASSWORD&gt;<span class="w"> </span>--current
+<p>Настройте CLI <code>exordos</code>, зарегистрировав realm и контекст с учётными данными администратора:</p>
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>settings<span class="w"> </span>set-realm<span class="w"> </span><span class="nb">local</span><span class="w"> </span>--endpoint<span class="w"> </span>http://10.20.0.2:11010<span class="w"> </span>--current
+exordos<span class="w"> </span>settings<span class="w"> </span>set-context<span class="w"> </span><span class="nb">local</span><span class="w"> </span>--name<span class="w"> </span>admin<span class="w"> </span>-u<span class="w"> </span>&lt;ADMIN_USERNAME&gt;<span class="w"> </span>-p<span class="w"> </span>&lt;ADMIN_PASSWORD&gt;<span class="w"> </span>--current
 </code></pre></div>
 <ul>
 <li><code>set-realm</code> — регистрирует endpoint платформы под именем <code>local</code> и устанавливает его как активный realm.</li>
 <li><code>set-context</code> — создаёт именованный контекст с учётными данными администратора и устанавливает его как активный.</li>
 </ul>
-<p>После настройки можно управлять платформой с помощью команд <code>genesis</code>, например:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>compute<span class="w"> </span>hypervisors<span class="w"> </span>list
-genesis<span class="w"> </span>elements<span class="w"> </span>list
+<p>После настройки можно управлять платформой с помощью команд <code>exordos</code>, например:</p>
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>compute<span class="w"> </span>hypervisors<span class="w"> </span>list
+exordos<span class="w"> </span>elements<span class="w"> </span>list
 </code></pre></div>
 
 

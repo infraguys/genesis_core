@@ -14,7 +14,7 @@
     
     
       
-        <title>genesis elements install - exordos_core</title>
+        <title>exordos elements install - exordos_core</title>
       
     
     
@@ -111,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              genesis elements install
+              exordos elements install
             
           </span>
         </div>
@@ -626,11 +626,11 @@
   
 
 
-  <h1>genesis elements install</h1>
+  <h1>exordos elements install</h1>
 
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
-<p><code>genesis elements install</code> <strong>installs</strong> an element to a Exordos Core platform realm with necessary dependencies.</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>PATH_OR_NAME
+<p><code>exordos elements install</code> <strong>installs</strong> an element to a Exordos Core platform realm with necessary dependencies.</p>
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>PATH_OR_NAME
 </code></pre></div>
 <p>Key options:</p>
 <table>
@@ -643,7 +643,7 @@
 <tbody>
 <tr>
 <td><code>-r, --repository TEXT</code></td>
-<td>Repository endpoint where the element is stored [default: <code>https://repository.genesis-core.tech/genesis-elements/</code>]</td>
+<td>Repository endpoint where the element is stored [default: <code>https://repository.exordos.com/exordos-elements/</code>]</td>
 </tr>
 <tr>
 <td><code>PATH_OR_NAME</code></td>
@@ -656,16 +656,16 @@
 <h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">#</a></h2>
 <h3 id="install-from-repository">Install from Repository<a class="headerlink" href="#install-from-repository" title="Permanent link">#</a></h3>
 <p>To install an element by name from the default repository:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>my-element
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>my-element
 </code></pre></div>
 <p>The command fetches the element manifest from the repository, resolves dependencies, and provisions the element in the current realm.</p>
 <h3 id="install-from-local-manifest">Install from Local Manifest<a class="headerlink" href="#install-from-local-manifest" title="Permanent link">#</a></h3>
 <p>To install from a local manifest file:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>./manifests/my-element.yaml
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>./manifests/my-element.yaml
 </code></pre></div>
 <h3 id="install-from-custom-repository">Install from Custom Repository<a class="headerlink" href="#install-from-custom-repository" title="Permanent link">#</a></h3>
 <p>To install from a different repository endpoint:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>https://my-repo.example.com/elements/<span class="w"> </span>my-element
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>https://my-repo.example.com/elements/<span class="w"> </span>my-element
 </code></pre></div>
 <hr>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">#</a></h2>

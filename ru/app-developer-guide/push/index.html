@@ -14,7 +14,7 @@
     
     
       
-        <title>genesis push - exordos_core</title>
+        <title>exordos push - exordos_core</title>
       
     
     
@@ -111,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              genesis push
+              exordos push
             
           </span>
         </div>
@@ -626,12 +626,12 @@
   
 
 
-  <h1>genesis push</h1>
+  <h1>exordos push</h1>
 
 <h2 id="обзор">Обзор<a class="headerlink" href="#обзор" title="Permanent link">#</a></h2>
-<p><code>genesis push</code> <strong>публикует</strong> ваши собранные элементы в репозиторий Exordos, делая их доступными для развёртывания и для использования другими пользователями платформы.</p>
-<p>Команда читает файл <strong><code>genesis/genesis.yaml</code></strong> для определения, куда отправлять элементы. Секция <code>push</code> определяет один или несколько целевых репозиториев — директории локальной файловой системы или удалённые HTTP конечные точки.</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>push<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span><span class="o">[</span>PROJECT_DIR<span class="o">]</span>
+<p><code>exordos push</code> <strong>публикует</strong> ваши собранные элементы в репозиторий Exordos, делая их доступными для развёртывания и для использования другими пользователями платформы.</p>
+<p>Команда читает файл <strong><code>exordos/exordos.yaml</code></strong> для определения, куда отправлять элементы. Секция <code>push</code> определяет один или несколько целевых репозиториев — директории локальной файловой системы или удалённые HTTP конечные точки.</p>
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>push<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span><span class="o">[</span>PROJECT_DIR<span class="o">]</span>
 </code></pre></div>
 <p>Ключевые опции:</p>
 <table>
@@ -643,8 +643,8 @@
 </thead>
 <tbody>
 <tr>
-<td><code>-c, --genesis-cfg-file TEXT</code></td>
-<td>Имя файла конфигурации проекта (по умолчанию: <code>genesis.yaml</code>)</td>
+<td><code>-c, --exordos-cfg-file TEXT</code></td>
+<td>Имя файла конфигурации проекта (по умолчанию: <code>exordos.yaml</code>)</td>
 </tr>
 <tr>
 <td><code>-t, --target TEXT</code></td>
@@ -669,32 +669,32 @@
 <h2 id="начало-работы">Начало работы<a class="headerlink" href="#начало-работы" title="Permanent link">#</a></h2>
 <h3 id="базовая-отправка">Базовая отправка<a class="headerlink" href="#базовая-отправка" title="Permanent link">#</a></h3>
 <p>Из директории вашего проекта после успешной сборки:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>push
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>push
 </code></pre></div>
-<p>Команда читает <code>genesis.yaml</code>, находит конфигурацию push и загружает артефакты элементов из директории <code>output/</code> в настроенные репозитории.</p>
+<p>Команда читает <code>exordos.yaml</code>, находит конфигурацию push и загружает артефакты элементов из директории <code>output/</code> в настроенные репозитории.</p>
 <h3 id="отправка-в-конкретный-target">Отправка в конкретный target<a class="headerlink" href="#отправка-в-конкретный-target" title="Permanent link">#</a></h3>
-<p>Если ваш <code>genesis.yaml</code> определяет несколько репозиториев, укажите, в какой отправлять:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>push<span class="w"> </span>--target<span class="w"> </span><span class="nb">local</span>
+<p>Если ваш <code>exordos.yaml</code> определяет несколько репозиториев, укажите, в какой отправлять:</p>
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>push<span class="w"> </span>--target<span class="w"> </span><span class="nb">local</span>
 </code></pre></div>
 <h3 id="принудительная-отправка">Принудительная отправка<a class="headerlink" href="#принудительная-отправка" title="Permanent link">#</a></h3>
 <p>Перезапишите существующую версию элемента:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>push<span class="w"> </span>--force
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>push<span class="w"> </span>--force
 </code></pre></div>
 <h3 id="отправка-как-latest">Отправка как latest<a class="headerlink" href="#отправка-как-latest" title="Permanent link">#</a></h3>
 <p>Для стабильных релизов также пометьте элемент как <code>latest</code>:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>push<span class="w"> </span>--latest
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>push<span class="w"> </span>--latest
 </code></pre></div>
 <hr>
 <h2 id="конфигурация-push">Конфигурация push<a class="headerlink" href="#конфигурация-push" title="Permanent link">#</a></h2>
-<h3 id="конфигурация-в-genesisyaml">Конфигурация в genesis.yaml<a class="headerlink" href="#конфигурация-в-genesisyaml" title="Permanent link">#</a></h3>
-<p>Секция <code>push</code> в <code>genesis.yaml</code> определяет, где публикуются элементы. Вы можете настроить несколько репозиториев:</p>
+<h3 id="конфигурация-в-exordosyaml">Конфигурация в exordos.yaml<a class="headerlink" href="#конфигурация-в-exordosyaml" title="Permanent link">#</a></h3>
+<p>Секция <code>push</code> в <code>exordos.yaml</code> определяет, где публикуются элементы. Вы можете настроить несколько репозиториев:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">push</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">local</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fs</span>
 <span class="w">    </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/var/lib/exordos-pools/http</span>
 <span class="w">  </span><span class="nt">remote</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span>
-<span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://repository.genesis-core.tech</span>
+<span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://repository.exordos.com</span>
 </code></pre></div>
 <table>
 <thead>
@@ -734,23 +734,23 @@
 </tbody>
 </table>
 <h3 id="отдельный-конфигурационный-файл">Отдельный конфигурационный файл<a class="headerlink" href="#отдельный-конфигурационный-файл" title="Permanent link">#</a></h3>
-<p>Конфигурация push может также храниться в отдельном файле, например <code>genesis.push.yaml</code>:</p>
+<p>Конфигурация push может также храниться в отдельном файле, например <code>exordos.push.yaml</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">push</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">staging</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fs</span>
 <span class="w">    </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/var/lib/exordos-pools/staging</span>
 <span class="w">  </span><span class="nt">production</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span>
-<span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://repo.genesis-core.tech/production</span>
+<span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://repo.exordos.com/production</span>
 </code></pre></div>
 <p>Для использования отдельного конфигурационного файла укажите его с опцией <code>-c</code>:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>push<span class="w"> </span>-c<span class="w"> </span>genesis.push.yaml
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>push<span class="w"> </span>-c<span class="w"> </span>exordos.push.yaml
 </code></pre></div>
 <hr>
 <h2 id="следующие-шаги">Следующие шаги<a class="headerlink" href="#следующие-шаги" title="Permanent link">#</a></h2>
 <p>После успешной отправки ваш элемент доступен в реестре и готов для:</p>
 <ul>
-<li><a href="../deploy/"><code>genesis deploy</code></a> — развёртывание элемента в установку Exordos</li>
+<li><a href="../deploy/"><code>exordos deploy</code></a> — развёртывание элемента в установку Exordos</li>
 <li>Совместного использования с другими разработчиками в вашей организации</li>
 </ul>
 <hr>

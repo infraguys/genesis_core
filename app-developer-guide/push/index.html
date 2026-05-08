@@ -14,7 +14,7 @@
     
     
       
-        <title>genesis push - exordos_core</title>
+        <title>exordos push - exordos_core</title>
       
     
     
@@ -111,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              genesis push
+              exordos push
             
           </span>
         </div>
@@ -626,12 +626,12 @@
   
 
 
-  <h1>genesis push</h1>
+  <h1>exordos push</h1>
 
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
-<p><code>genesis push</code> <strong>publishes</strong> your built elements to a Exordos repository, making them available for deployment and for other platform users to consume.</p>
-<p>The command reads the <strong><code>genesis/genesis.yaml</code></strong> file to identify where to push the elements. The <code>push</code> section defines one or more target repositories — local filesystem directories or remote HTTP endpoints.</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>push<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span><span class="o">[</span>PROJECT_DIR<span class="o">]</span>
+<p><code>exordos push</code> <strong>publishes</strong> your built elements to a Exordos repository, making them available for deployment and for other platform users to consume.</p>
+<p>The command reads the <strong><code>exordos/exordos.yaml</code></strong> file to identify where to push the elements. The <code>push</code> section defines one or more target repositories — local filesystem directories or remote HTTP endpoints.</p>
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>push<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span><span class="o">[</span>PROJECT_DIR<span class="o">]</span>
 </code></pre></div>
 <p>Key options:</p>
 <table>
@@ -643,8 +643,8 @@
 </thead>
 <tbody>
 <tr>
-<td><code>-c, --genesis-cfg-file TEXT</code></td>
-<td>Name of the project configuration file (default: <code>genesis.yaml</code>)</td>
+<td><code>-c, --exordos-cfg-file TEXT</code></td>
+<td>Name of the project configuration file (default: <code>exordos.yaml</code>)</td>
 </tr>
 <tr>
 <td><code>-t, --target TEXT</code></td>
@@ -669,32 +669,32 @@
 <h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">#</a></h2>
 <h3 id="basic-push">Basic Push<a class="headerlink" href="#basic-push" title="Permanent link">#</a></h3>
 <p>From your project directory after a successful build:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>push
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>push
 </code></pre></div>
-<p>The command reads <code>genesis.yaml</code>, finds the push configuration, and uploads the element artifacts from the <code>output/</code> directory to the configured repositories.</p>
+<p>The command reads <code>exordos.yaml</code>, finds the push configuration, and uploads the element artifacts from the <code>output/</code> directory to the configured repositories.</p>
 <h3 id="push-to-specific-target">Push to Specific Target<a class="headerlink" href="#push-to-specific-target" title="Permanent link">#</a></h3>
-<p>If your <code>genesis.yaml</code> defines multiple repositories, specify which one to push to:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>push<span class="w"> </span>--target<span class="w"> </span><span class="nb">local</span>
+<p>If your <code>exordos.yaml</code> defines multiple repositories, specify which one to push to:</p>
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>push<span class="w"> </span>--target<span class="w"> </span><span class="nb">local</span>
 </code></pre></div>
 <h3 id="force-push">Force Push<a class="headerlink" href="#force-push" title="Permanent link">#</a></h3>
 <p>Overwrite an existing element version:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>push<span class="w"> </span>--force
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>push<span class="w"> </span>--force
 </code></pre></div>
 <h3 id="push-as-latest">Push as Latest<a class="headerlink" href="#push-as-latest" title="Permanent link">#</a></h3>
 <p>For stable releases, also tag the element as <code>latest</code>:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>push<span class="w"> </span>--latest
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>push<span class="w"> </span>--latest
 </code></pre></div>
 <hr>
 <h2 id="push-configuration">Push Configuration<a class="headerlink" href="#push-configuration" title="Permanent link">#</a></h2>
-<h3 id="configuration-in-genesisyaml">Configuration in genesis.yaml<a class="headerlink" href="#configuration-in-genesisyaml" title="Permanent link">#</a></h3>
-<p>The <code>push</code> section in <code>genesis.yaml</code> defines where elements are published. You can configure multiple repositories:</p>
+<h3 id="configuration-in-exordosyaml">Configuration in exordos.yaml<a class="headerlink" href="#configuration-in-exordosyaml" title="Permanent link">#</a></h3>
+<p>The <code>push</code> section in <code>exordos.yaml</code> defines where elements are published. You can configure multiple repositories:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">push</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">local</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fs</span>
 <span class="w">    </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/var/lib/exordos-pools/http</span>
 <span class="w">  </span><span class="nt">remote</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span>
-<span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://repository.genesis-core.tech</span>
+<span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://repository.exordos.com</span>
 </code></pre></div>
 <table>
 <thead>
@@ -734,23 +734,23 @@
 </tbody>
 </table>
 <h3 id="separate-configuration-file">Separate Configuration File<a class="headerlink" href="#separate-configuration-file" title="Permanent link">#</a></h3>
-<p>Push configuration can also be stored in a separate file, for example <code>genesis.push.yaml</code>:</p>
+<p>Push configuration can also be stored in a separate file, for example <code>exordos.push.yaml</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">push</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">staging</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">fs</span>
 <span class="w">    </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/var/lib/exordos-pools/staging</span>
 <span class="w">  </span><span class="nt">production</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">driver</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">nginx</span>
-<span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://repo.genesis-core.tech/production</span>
+<span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://repo.exordos.com/production</span>
 </code></pre></div>
 <p>To use a separate configuration file, specify it with the <code>-c</code> option:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>push<span class="w"> </span>-c<span class="w"> </span>genesis.push.yaml
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>push<span class="w"> </span>-c<span class="w"> </span>exordos.push.yaml
 </code></pre></div>
 <hr>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">#</a></h2>
 <p>After a successful push, your element is available in the registry and ready for:</p>
 <ul>
-<li><a href="../deploy/"><code>genesis deploy</code></a> — deploy the element to a Exordos installation</li>
+<li><a href="../deploy/"><code>exordos deploy</code></a> — deploy the element to a Exordos installation</li>
 <li>Sharing with other developers in your organization</li>
 </ul>
 <hr>

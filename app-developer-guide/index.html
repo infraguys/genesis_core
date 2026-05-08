@@ -631,29 +631,29 @@
 <p>This guide walks you through everything you need to build, publish, and deploy <strong>elements</strong> — the name Exordos Core gives to applications — on the platform.</p>
 <h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">#</a></h2>
 <h3 id="1-initialize-your-element">1. Initialize your element<a class="headerlink" href="#1-initialize-your-element" title="Permanent link">#</a></h3>
-<p>Set up an existing project as a Exordos Core element. The <code>genesis init</code> command launches an interactive wizard that generates all required configuration files — including manifests, and a <code>genesis.yaml</code> file that describes the build, publish, and deploy procedures.</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>init
+<p>Set up an existing project as a Exordos Core element. The <code>exordos init</code> command launches an interactive wizard that generates all required configuration files — including manifests, and a <code>exordos.yaml</code> file that describes the build, publish, and deploy procedures.</p>
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>init
 </code></pre></div>
 <p>After the wizard completes, your project will contain necessary configuration files — including manifests — that describe your element to the platform.</p>
 <p><a href="init/">Learn more →</a></p>
 <hr>
 <h3 id="2-build-your-element">2. Build your element<a class="headerlink" href="#2-build-your-element" title="Permanent link">#</a></h3>
-<p>Compile and package your element along with all its artifacts. Exordos Core uses the build configuration defined in <code>genesis.yaml</code> to produce a distributable artifact.</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build
+<p>Compile and package your element along with all its artifacts. Exordos Core uses the build configuration defined in <code>exordos.yaml</code> to produce a distributable artifact.</p>
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>build
 </code></pre></div>
 <p>On success, the build output (container image, binary, or other artifact type) is stored locally and tagged with the current element version.</p>
 <p><a href="build/">Learn more →</a></p>
 <hr>
 <h3 id="3-publish-your-element">3. Publish your element<a class="headerlink" href="#3-publish-your-element" title="Permanent link">#</a></h3>
 <p>Push the built element to the Exordos ecosystem registry so it becomes available to other platform users.</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>push
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>push
 </code></pre></div>
-<p>The element is versioned and pushed to the configured repository based on the metadata in <code>genesis.yaml</code>.</p>
+<p>The element is versioned and pushed to the configured repository based on the metadata in <code>exordos.yaml</code>.</p>
 <p><a href="push/">Learn more →</a></p>
 <hr>
 <h3 id="4-deploy-your-element">4. Deploy your element<a class="headerlink" href="#4-deploy-your-element" title="Permanent link">#</a></h3>
 <p>Install and run your element on a Exordos Core platform installation.</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>&lt;element-name&gt;
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>&lt;element-name&gt;
 </code></pre></div>
 <p>The platform resolves dependencies, installs the target element, and starts it in the chosen realm.</p>
 <p><a href="deploy/">Learn more →</a></p>
@@ -665,12 +665,12 @@
 <p>To follow this walkthrough, you need a running Exordos installation and the necessary tools.</p>
 <p><strong>Exordos</strong> — you can use either:</p>
 <ul>
-<li>A <strong>public Exordos installation</strong> — hosted at <a href="https://genesis-core.tech">genesis-core.tech</a>. No setup required; just create an account and start using the platform.</li>
+<li>A <strong>public Exordos installation</strong> — hosted at <a href="https://exordos.com">exordos.com</a>. No setup required; just create an account and start using the platform.</li>
 <li>A <strong>private Exordos installation</strong> — your own self-hosted instance. This document describes how to set one up: <a href="../usage/local_deployment/">Local Deployment</a>.</li>
 </ul>
 <p>Install the necessary tools below.</p>
 <p>Install Exordos CLI:</p>
-<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://repository.genesis-core.tech/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>sh
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://repository.exordos.com/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>sh
 </code></pre></div>
 <p>The Packer <a href="https://hashicorp-releases.yandexcloud.net/packer/1.9.2/">version 1.9.2</a> or earlier due to licensing limitation. Download and place into <code>/usr/local/bin/</code> or any other directory in your <code>$PATH</code>.</p>
 <p>The Qemu:</p>
@@ -683,8 +683,8 @@ sudo<span class="w"> </span>adduser<span class="w"> </span><span class="nv">$USE
 <p>Clone the project:</p>
 <div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/infraguys/todo_application.git<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>todo_application
 </code></pre></div>
-<p>The <code>genesis init</code> command allows you to initialize a new element interactively but you can also use it with flags. We will use the flags approach here to speed things up.</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>init<span class="w"> </span><span class="se">\</span>
+<p>The <code>exordos init</code> command allows you to initialize a new element interactively but you can also use it with flags. We will use the flags approach here to speed things up.</p>
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>init<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--project-name<span class="w"> </span>todo_application<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--project-type<span class="w"> </span>python<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--project-systemd-services<span class="w"> </span><span class="s2">"todo-api"</span><span class="w"> </span><span class="se">\</span>
@@ -694,7 +694,7 @@ sudo<span class="w"> </span>adduser<span class="w"> </span><span class="nv">$USE
 <span class="w">  </span>--author-name<span class="w"> </span><span class="s2">"Developer"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--author-email<span class="w"> </span><span class="s2">"dev@example.com"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--manifest-description<span class="w"> </span><span class="s2">"A simple ToDo list element"</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--repository<span class="w"> </span><span class="s2">"https://repository.genesis-core.tech/genesis-elements"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--repository<span class="w"> </span><span class="s2">"https://repository.exordos.com/exordos-elements"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--pgsql-usage-mode<span class="w"> </span><span class="s2">"own_cluster"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--pgsql-database-name<span class="w"> </span><span class="s2">"todo_api"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--pgsql-username<span class="w"> </span><span class="s2">"todo_api"</span><span class="w"> </span><span class="se">\</span>
@@ -704,23 +704,23 @@ sudo<span class="w"> </span>adduser<span class="w"> </span><span class="nv">$USE
 <p>The project is ready to be built and pushed as a Exordos Core element.</p>
 <h3 id="build-the-element">Build the element<a class="headerlink" href="#build-the-element" title="Permanent link">#</a></h3>
 <p>To build the element, run:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>build
 </code></pre></div>
 <h3 id="push-to-repository">Push to repository<a class="headerlink" href="#push-to-repository" title="Permanent link">#</a></h3>
-<p>Use the repository of your genesis installation and push the element:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>push<span class="w"> </span>-c<span class="w"> </span>genesis.push.yaml
+<p>Use the repository of your exordos installation and push the element:</p>
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>push<span class="w"> </span>-c<span class="w"> </span>exordos.push.yaml
 </code></pre></div>
 <h3 id="deploy-the-element">Deploy the element<a class="headerlink" href="#deploy-the-element" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>todo-api
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>todo-api
 </code></pre></div>
 <p>The ToDo API is now available at the configured endpoint.</p>
 <hr>
 <h2 id="advanced-usage">Advanced Usage<a class="headerlink" href="#advanced-usage" title="Permanent link">#</a></h2>
 <p>Once you're comfortable with the basics, explore the more in-depth topics below.</p>
 <ul>
-<li><a href="../misc/manifests.md">Writing a manifest from scratch</a> — understand the full manifest specification and author one by hand without relying on the <code>genesis init</code> wizard.</li>
+<li><a href="../misc/manifests.md">Writing a manifest from scratch</a> — understand the full manifest specification and author one by hand without relying on the <code>exordos init</code> wizard.</li>
 <li><a href="../usage/local_deployment/">Setting up a private platform installation</a> — spin up your own Exordos Core instance to develop and test your elements end-to-end without connecting to a remote environment.</li>
-<li><a href="https://genesis-core.tech">Public Exordos installation</a> — use the hosted Exordos platform without managing your own infrastructure.</li>
+<li><a href="https://exordos.com">Public Exordos installation</a> — use the hosted Exordos platform without managing your own infrastructure.</li>
 </ul>
 
 

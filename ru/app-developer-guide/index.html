@@ -631,29 +631,29 @@
 <p>Это руководство проведёт вас через всё, что нужно для сборки, публикации и развёртывания <strong>элементов</strong> — так Exordos Core называет приложения — на платформе.</p>
 <h2 id="быстрый-старт">Быстрый старт<a class="headerlink" href="#быстрый-старт" title="Permanent link">#</a></h2>
 <h3 id="1-инициализация-вашего-элемента">1. Инициализация вашего элемента<a class="headerlink" href="#1-инициализация-вашего-элемента" title="Permanent link">#</a></h3>
-<p>Настройте существующий проект как элемент Exordos Core. Команда <code>genesis init</code> запускает интерактивный мастер, который генерирует все необходимые конфигурационные файлы — включая манифесты и файл <code>genesis.yaml</code>, который описывает процедуры сборки, публикации и развёртывания.</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>init
+<p>Настройте существующий проект как элемент Exordos Core. Команда <code>exordos init</code> запускает интерактивный мастер, который генерирует все необходимые конфигурационные файлы — включая манифесты и файл <code>exordos.yaml</code>, который описывает процедуры сборки, публикации и развёртывания.</p>
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>init
 </code></pre></div>
 <p>После завершения работы мастера ваш проект будет содержать необходимые конфигурационные файлы — включая манифесты — которые описывают ваш элемент для платформы.</p>
 <p><a href="init/">Подробнее →</a></p>
 <hr>
 <h3 id="2-сборка-вашего-элемента">2. Сборка вашего элемента<a class="headerlink" href="#2-сборка-вашего-элемента" title="Permanent link">#</a></h3>
-<p>Скомпилируйте и упакуйте ваш элемент со всеми его артефактами. Exordos Core использует конфигурацию сборки, определённую в <code>genesis.yaml</code>, для создания распространяемого артефакта.</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build
+<p>Скомпилируйте и упакуйте ваш элемент со всеми его артефактами. Exordos Core использует конфигурацию сборки, определённую в <code>exordos.yaml</code>, для создания распространяемого артефакта.</p>
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>build
 </code></pre></div>
 <p>При успехе результат сборки (образ контейнера, бинарный файл или другой тип артефакта) сохраняется локально и помечается текущей версией элемента.</p>
 <p><a href="build/">Подробнее →</a></p>
 <hr>
 <h3 id="3-публикация-вашего-элемента">3. Публикация вашего элемента<a class="headerlink" href="#3-публикация-вашего-элемента" title="Permanent link">#</a></h3>
 <p>Отправьте собранный элемент в реестр экосистемы Exordos, чтобы он стал доступен другим пользователям платформы.</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>push
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>push
 </code></pre></div>
-<p>Элемент версионируется и отправляется в настроенный репозиторий на основе метаданных в <code>genesis.yaml</code>.</p>
+<p>Элемент версионируется и отправляется в настроенный репозиторий на основе метаданных в <code>exordos.yaml</code>.</p>
 <p><a href="push/">Подробнее →</a></p>
 <hr>
 <h3 id="4-развёртывание-вашего-элемента">4. Развёртывание вашего элемента<a class="headerlink" href="#4-развёртывание-вашего-элемента" title="Permanent link">#</a></h3>
 <p>Установите и запустите ваш элемент на установке Exordos Core.</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>&lt;element-name&gt;
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>&lt;element-name&gt;
 </code></pre></div>
 <p>Платформа разрешает зависимости, устанавливает целевой элемент и запускает его в выбранном окружении.</p>
 <p><a href="deploy/">Подробнее →</a></p>
@@ -665,12 +665,12 @@
 <p>Для следования этому руководству вам нужна работающая установка Exordos и необходимые инструменты.</p>
 <p><strong>Exordos</strong> — вы можете использовать:</p>
 <ul>
-<li><strong>Публичную установку Exordos</strong> — размещённую на <a href="https://genesis-core.tech">genesis-core.tech</a>. Не требуется настройка; просто создайте аккаунт и начните использовать платформу.</li>
+<li><strong>Публичную установку Exordos</strong> — размещённую на <a href="https://exordos.com">exordos.com</a>. Не требуется настройка; просто создайте аккаунт и начните использовать платформу.</li>
 <li><strong>Приватную установку Exordos</strong> — ваш собственный self-hosted экземпляр. Этот документ описывает, как его настроить: <a href="../usage/local_deployment/">Локальное развёртывание</a>.</li>
 </ul>
 <p>Установите необходимые инструменты ниже.</p>
 <p>Установка Exordos CLI:</p>
-<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://repository.genesis-core.tech/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>sh
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://repository.exordos.com/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sudo<span class="w"> </span>sh
 </code></pre></div>
 <p>Packer <a href="https://hashicorp-releases.yandexcloud.net/packer/1.9.2/">версии 1.9.2</a> или ранее из-за ограничений лицензирования. Скачайте и поместите в <code>/usr/local/bin/</code> или любую другую директорию из вашего <code>$PATH</code>.</p>
 <p>Qemu:</p>
@@ -683,8 +683,8 @@ sudo<span class="w"> </span>adduser<span class="w"> </span><span class="nv">$USE
 <p>Клонируйте проект:</p>
 <div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/infraguys/todo_application.git<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>todo_application
 </code></pre></div>
-<p>Команда <code>genesis init</code> позволяет вам интерактивно инициализировать новый элемент, но вы также можете использовать её с флагами. Мы будем использовать подход с флагами для ускорения.</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>init<span class="w"> </span><span class="se">\</span>
+<p>Команда <code>exordos init</code> позволяет вам интерактивно инициализировать новый элемент, но вы также можете использовать её с флагами. Мы будем использовать подход с флагами для ускорения.</p>
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>init<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--project-name<span class="w"> </span>todo_application<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--project-type<span class="w"> </span>python<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--project-systemd-services<span class="w"> </span><span class="s2">"todo-api"</span><span class="w"> </span><span class="se">\</span>
@@ -694,7 +694,7 @@ sudo<span class="w"> </span>adduser<span class="w"> </span><span class="nv">$USE
 <span class="w">  </span>--author-name<span class="w"> </span><span class="s2">"Developer"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--author-email<span class="w"> </span><span class="s2">"dev@example.com"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--manifest-description<span class="w"> </span><span class="s2">"Простой ToDo list элемент"</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--repository<span class="w"> </span><span class="s2">"https://repository.genesis-core.tech/genesis-elements"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--repository<span class="w"> </span><span class="s2">"https://repository.exordos.com/exordos-elements"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--pgsql-usage-mode<span class="w"> </span><span class="s2">"own_cluster"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--pgsql-database-name<span class="w"> </span><span class="s2">"todo_api"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--pgsql-username<span class="w"> </span><span class="s2">"todo_api"</span><span class="w"> </span><span class="se">\</span>
@@ -704,23 +704,23 @@ sudo<span class="w"> </span>adduser<span class="w"> </span><span class="nv">$USE
 <p>Проект готов к сборке и отправке как элемент Exordos Core.</p>
 <h3 id="сборка-элемента">Сборка элемента<a class="headerlink" href="#сборка-элемента" title="Permanent link">#</a></h3>
 <p>Для сборки элемента выполните:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>build
 </code></pre></div>
 <h3 id="отправка-в-репозиторий">Отправка в репозиторий<a class="headerlink" href="#отправка-в-репозиторий" title="Permanent link">#</a></h3>
-<p>Используйте репозиторий вашей genesis-установки и отправьте элемент:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>push<span class="w"> </span>-c<span class="w"> </span>genesis.push.yaml
+<p>Используйте репозиторий вашей exordos-установки и отправьте элемент:</p>
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>push<span class="w"> </span>-c<span class="w"> </span>exordos.push.yaml
 </code></pre></div>
 <h3 id="развёртывание-элемента">Развёртывание элемента<a class="headerlink" href="#развёртывание-элемента" title="Permanent link">#</a></h3>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>todo-api
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>todo-api
 </code></pre></div>
 <p>ToDo API теперь доступен по настроенной конечной точке.</p>
 <hr>
 <h2 id="расширенное-использование">Расширенное использование<a class="headerlink" href="#расширенное-использование" title="Permanent link">#</a></h2>
 <p>Когда вы освоитесь с основами, изучите более углублённые темы ниже.</p>
 <ul>
-<li><a href="../misc/manifests.ru.md">Написание манифеста с нуля</a> — изучите полную спецификацию манифеста и создайте его вручную без помощи мастера <code>genesis init</code>.</li>
+<li><a href="../misc/manifests.ru.md">Написание манифеста с нуля</a> — изучите полную спецификацию манифеста и создайте его вручную без помощи мастера <code>exordos init</code>.</li>
 <li><a href="../usage/local_deployment/">Настройка приватной установки платформы</a> — разверните собственный экземпляр Exordos Core для разработки и тестирования ваших элементов end-to-end без подключения к удалённому окружению.</li>
-<li><a href="https://genesis-core.tech">Публичная установка Exordos</a> — используйте размещённую Exordos-платформу без управления собственной инфраструктурой.</li>
+<li><a href="https://exordos.com">Публичная установка Exordos</a> — используйте размещённую Exordos-платформу без управления собственной инфраструктурой.</li>
 </ul>
 
 

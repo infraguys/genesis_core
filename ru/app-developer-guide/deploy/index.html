@@ -14,7 +14,7 @@
     
     
       
-        <title>genesis elements install - exordos_core</title>
+        <title>exordos elements install - exordos_core</title>
       
     
     
@@ -111,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              genesis elements install
+              exordos elements install
             
           </span>
         </div>
@@ -626,11 +626,11 @@
   
 
 
-  <h1>genesis elements install</h1>
+  <h1>exordos elements install</h1>
 
 <h2 id="обзор">Обзор<a class="headerlink" href="#обзор" title="Permanent link">#</a></h2>
-<p><code>genesis elements install</code> <strong>устанавливает</strong> элемент в realm платформы Exordos Core с необходимыми зависимостями.</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>PATH_OR_NAME
+<p><code>exordos elements install</code> <strong>устанавливает</strong> элемент в realm платформы Exordos Core с необходимыми зависимостями.</p>
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>PATH_OR_NAME
 </code></pre></div>
 <p>Ключевые опции:</p>
 <table>
@@ -643,7 +643,7 @@
 <tbody>
 <tr>
 <td><code>-r, --repository TEXT</code></td>
-<td>Конечная точка репозитория, где хранится элемент [по умолчанию: <code>https://repository.genesis-core.tech/genesis-elements/</code>]</td>
+<td>Конечная точка репозитория, где хранится элемент [по умолчанию: <code>https://repository.exordos.com/exordos-elements/</code>]</td>
 </tr>
 <tr>
 <td><code>PATH_OR_NAME</code></td>
@@ -656,16 +656,16 @@
 <h2 id="начало-работы">Начало работы<a class="headerlink" href="#начало-работы" title="Permanent link">#</a></h2>
 <h3 id="установка-из-репозитория">Установка из репозитория<a class="headerlink" href="#установка-из-репозитория" title="Permanent link">#</a></h3>
 <p>Для установки элемента по имени из стандартного репозитория:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>my-element
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>my-element
 </code></pre></div>
 <p>Команда получает манифест элемента из репозитория, разрешает зависимости и разворачивает элемент в текущем realm.</p>
 <h3 id="установка-из-локального-манифеста">Установка из локального манифеста<a class="headerlink" href="#установка-из-локального-манифеста" title="Permanent link">#</a></h3>
 <p>Для установки из локального файла манифеста:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>./manifests/my-element.yaml
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>./manifests/my-element.yaml
 </code></pre></div>
 <h3 id="установка-из-пользовательского-репозитория">Установка из пользовательского репозитория<a class="headerlink" href="#установка-из-пользовательского-репозитория" title="Permanent link">#</a></h3>
 <p>Для установки из другой конечной точки репозитория:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>https://my-repo.example.com/elements/<span class="w"> </span>my-element
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>elements<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>https://my-repo.example.com/elements/<span class="w"> </span>my-element
 </code></pre></div>
 <hr>
 <h2 id="конфигурация">Конфигурация<a class="headerlink" href="#конфигурация" title="Permanent link">#</a></h2>

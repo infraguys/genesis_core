@@ -14,7 +14,7 @@
     
     
       
-        <title>genesis build - exordos_core</title>
+        <title>exordos build - exordos_core</title>
       
     
     
@@ -111,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              genesis build
+              exordos build
             
           </span>
         </div>
@@ -626,11 +626,11 @@
   
 
 
-  <h1>genesis build</h1>
+  <h1>exordos build</h1>
 
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
-<p><code>genesis build</code> <strong>compiles and packages</strong> your Exordos element into distributable artifacts — images, manifests, and any other resources required for deployment.</p>
-<p>The command reads the <strong><code>genesis/genesis.yaml</code></strong> file — the main configuration file that transforms your application into a platform element. This file contains the <code>build</code> section describing:</p>
+<p><code>exordos build</code> <strong>compiles and packages</strong> your Exordos element into distributable artifacts — images, manifests, and any other resources required for deployment.</p>
+<p>The command reads the <strong><code>exordos/exordos.yaml</code></strong> file — the main configuration file that transforms your application into a platform element. This file contains the <code>build</code> section describing:</p>
 <ul>
 <li><strong>Dependencies</strong> — files, directories or external binary artifacts required for the build</li>
 <li><strong>Elements</strong> — a single project can produce multiple elements on output (e.g., separate API and worker services)</li>
@@ -638,11 +638,11 @@
 </ul>
 <p>Running the command performs the following steps:</p>
 <ol>
-<li><strong>Resolve dependencies</strong> — fetches dependencies specified in <code>genesis.yaml</code>.</li>
+<li><strong>Resolve dependencies</strong> — fetches dependencies specified in <code>exordos.yaml</code>.</li>
 <li><strong>Process manifests</strong> — renders manifest files (supporting raw YAML or Jinja2 templates with built-in variables).</li>
-<li><strong>Build artifacts</strong> — creates images and other build outputs based on the <code>build</code> section in <code>genesis.yaml</code>.</li>
+<li><strong>Build artifacts</strong> — creates images and other build outputs based on the <code>build</code> section in <code>exordos.yaml</code>.</li>
 </ol>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>PROJECT_DIR
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>build<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>PROJECT_DIR
 </code></pre></div>
 <p>Key options:</p>
 <table>
@@ -654,8 +654,8 @@
 </thead>
 <tbody>
 <tr>
-<td><code>-c, --genesis-cfg-file TEXT</code></td>
-<td>Name of the project configuration file (default: <code>genesis.yaml</code>)</td>
+<td><code>-c, --exordos-cfg-file TEXT</code></td>
+<td>Name of the project configuration file (default: <code>exordos.yaml</code>)</td>
 </tr>
 <tr>
 <td><code>--build-dir TEXT</code></td>
@@ -703,28 +703,28 @@ sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> <
 <h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">#</a></h2>
 <h3 id="basic-build">Basic Build<a class="headerlink" href="#basic-build" title="Permanent link">#</a></h3>
 <p>From your project directory:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build<span class="w"> </span>.
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>build<span class="w"> </span>.
 </code></pre></div>
 <h3 id="rebuild-with-force">Rebuild with Force<a class="headerlink" href="#rebuild-with-force" title="Permanent link">#</a></h3>
 <p>If you need to rebuild even when artifacts already exist:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build<span class="w"> </span>--force<span class="w"> </span>.
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>build<span class="w"> </span>--force<span class="w"> </span>.
 </code></pre></div>
 <h3 id="build-with-custom-variables">Build with Custom Variables<a class="headerlink" href="#build-with-custom-variables" title="Permanent link">#</a></h3>
 <p>Pass additional variables to manifest templates:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build<span class="w"> </span>--manifest-var<span class="w"> </span><span class="nv">commit_hash</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>rev-parse<span class="w"> </span>--short<span class="w"> </span>HEAD<span class="k">)</span><span class="w"> </span>.
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>build<span class="w"> </span>--manifest-var<span class="w"> </span><span class="nv">commit_hash</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>rev-parse<span class="w"> </span>--short<span class="w"> </span>HEAD<span class="k">)</span><span class="w"> </span>.
 </code></pre></div>
 <h3 id="inventory-build">Inventory Build<a class="headerlink" href="#inventory-build" title="Permanent link">#</a></h3>
 <p>For advanced deployments, build using the inventory format:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build<span class="w"> </span>--inventory<span class="w"> </span>.
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>build<span class="w"> </span>--inventory<span class="w"> </span>.
 </code></pre></div>
 <hr>
 <h2 id="build-process">Build Process<a class="headerlink" href="#build-process" title="Permanent link">#</a></h2>
-<p>The build process creates <strong>VM disk images</strong> that run on the Exordos Core platform. Packer starts a virtual machine from a base OS image, copies all resolved dependencies into it, and executes the provisioning script specified in <code>genesis.yaml</code>. This script is typically a Bash script that installs packages, configures services, and prepares the image. Once provisioning completes, the VM shuts down and the resulting disk image is packaged for deployment. This process is configured through the <code>elements</code> section in <code>genesis.yaml</code> where you define the base profile, provisioning script, output format, and any build overrides.</p>
+<p>The build process creates <strong>VM disk images</strong> that run on the Exordos Core platform. Packer starts a virtual machine from a base OS image, copies all resolved dependencies into it, and executes the provisioning script specified in <code>exordos.yaml</code>. This script is typically a Bash script that installs packages, configures services, and prepares the image. Once provisioning completes, the VM shuts down and the resulting disk image is packaged for deployment. This process is configured through the <code>elements</code> section in <code>exordos.yaml</code> where you define the base profile, provisioning script, output format, and any build overrides.</p>
 <hr>
 <h3 id="dependencies-resolution">Dependencies Resolution<a class="headerlink" href="#dependencies-resolution" title="Permanent link">#</a></h3>
-<p>Before building, <code>genesis build</code> resolves all dependencies declared in the <code>build.deps</code> section of <code>genesis.yaml</code>. Each dependency specifies a destination path (<code>dst</code>) and a source. Dependencies can be local directories, remote artifacts, or optional development resources.</p>
+<p>Before building, <code>exordos build</code> resolves all dependencies declared in the <code>build.deps</code> section of <code>exordos.yaml</code>. Each dependency specifies a destination path (<code>dst</code>) and a source. Dependencies can be local directories, remote artifacts, or optional development resources.</p>
 <h4 id="local-project-directory">Local Project Directory<a class="headerlink" href="#local-project-directory" title="Permanent link">#</a></h4>
-<p>Include another local project or directory into your build. The source path is relative to the <code>genesis.yaml</code> file location.</p>
+<p>Include another local project or directory into your build. The source path is relative to the <code>exordos.yaml</code> file location.</p>
 <div class="highlight"><pre><span></span><code><span class="nt">deps</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">dst</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/exordos_core</span>
 <span class="w">    </span><span class="nt">path</span><span class="p">:</span>
@@ -741,7 +741,7 @@ sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> <
 <div class="highlight"><pre><span></span><code><span class="nt">deps</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">dst</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/exordos_core/artifacts/vmlinuz</span>
 <span class="w">    </span><span class="nt">http</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">src</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://repository.genesis-core.tech/seed_os/1.1.0/vmlinuz</span>
+<span class="w">      </span><span class="nt">src</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://repository.exordos.com/seed_os/1.1.0/vmlinuz</span>
 </code></pre></div>
 <p>The <code>vmlinuz</code> kernel image is downloaded and placed at the specified destination path before the build continues.</p>
 <h4 id="optional-dependencies">Optional Dependencies<a class="headerlink" href="#optional-dependencies" title="Permanent link">#</a></h4>
@@ -755,7 +755,7 @@ sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> <
 <p>Here, the SDK is only included if the <code>LOCAL_GENESIS_SDK_PATH</code> environment variable is set. If not present, the build continues without this dependency.</p>
 <hr>
 <h3 id="vm-image-build-configuration">VM Image Build Configuration<a class="headerlink" href="#vm-image-build-configuration" title="Permanent link">#</a></h3>
-<p>Each element in the <code>elements</code> list of <code>genesis.yaml</code> defines how its VM images are built. An element can produce multiple images (for example, different formats or variants). The following parameters control the image creation process:</p>
+<p>Each element in the <code>elements</code> list of <code>exordos.yaml</code> defines how its VM images are built. An element can produce multiple images (for example, different formats or variants). The following parameters control the image creation process:</p>
 <table>
 <thead>
 <tr>
@@ -774,7 +774,7 @@ sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> <
 </tr>
 <tr>
 <td><code>profile</code></td>
-<td>Base OS image profile to use as the starting point (e.g., <code>genesis_base</code>). This determines the initial operating system and pre-installed packages.</td>
+<td>Base OS image profile to use as the starting point (e.g., <code>exordos_base</code>). This determines the initial operating system and pre-installed packages.</td>
 </tr>
 <tr>
 <td><code>script</code></td>
@@ -782,7 +782,7 @@ sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> <
 </tr>
 <tr>
 <td><code>override</code></td>
-<td>Build-time parameter overrides passed to the underlying tool (e.g., Packer). Common uses include increasing <code>disk_size</code>, <code>cpus</code>, or <code>memory</code> for the build VM. When using the <code>genesis_custom</code> profile, specify <code>base_image_url</code> and <code>base_image_checksum</code> here to use any custom image as the base.</td>
+<td>Build-time parameter overrides passed to the underlying tool (e.g., Packer). Common uses include increasing <code>disk_size</code>, <code>cpus</code>, or <code>memory</code> for the build VM. When using the <code>exordos_custom</code> profile, specify <code>base_image_url</code> and <code>base_image_checksum</code> here to use any custom image as the base.</td>
 </tr>
 <tr>
 <td><code>envs</code></td>
@@ -791,13 +791,13 @@ sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> <
 </tbody>
 </table>
 <h4 id="using-environment-variables">Using Environment Variables<a class="headerlink" href="#using-environment-variables" title="Permanent link">#</a></h4>
-<p>Define variables in <code>genesis.yaml</code>:</p>
+<p>Define variables in <code>exordos.yaml</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">elements</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">manifest</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">manifests/core.yaml.j2</span>
 <span class="w">    </span><span class="nt">images</span><span class="p">:</span>
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-app</span>
 <span class="w">        </span><span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">qcow2</span>
-<span class="w">        </span><span class="nt">profile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">genesis_base</span>
+<span class="w">        </span><span class="nt">profile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">exordos_base</span>
 <span class="w">        </span><span class="nt">script</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">install.sh</span>
 <span class="w">        </span><span class="nt">envs</span><span class="p">:</span>
 <span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">APP_PORT=8080</span>
@@ -850,7 +850,7 @@ sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> <
 </tbody>
 </table>
 <p>Additional variables can be passed using <code>--manifest-var key=value</code>:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build<span class="w"> </span>--manifest-var<span class="w"> </span><span class="nv">environment</span><span class="o">=</span>production<span class="w"> </span>--manifest-var<span class="w"> </span><span class="nv">region</span><span class="o">=</span>europe-east<span class="w"> </span>.
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>build<span class="w"> </span>--manifest-var<span class="w"> </span><span class="nv">environment</span><span class="o">=</span>production<span class="w"> </span>--manifest-var<span class="w"> </span><span class="nv">region</span><span class="o">=</span>europe-east<span class="w"> </span>.
 </code></pre></div>
 <p><a href="../misc/manifests.md">Full manifest reference →</a></p>
 <hr>
@@ -902,13 +902,13 @@ sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> <
 </tr>
 </tbody>
 </table>
-<p>The exact contents depend on your project type and <code>genesis.yaml</code> configuration.</p>
+<p>The exact contents depend on your project type and <code>exordos.yaml</code> configuration.</p>
 <hr>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">#</a></h2>
 <p>After a successful build, your elements are ready for:</p>
 <ul>
-<li><a href="../push/"><code>genesis push</code></a> — publish to the ecosystem registry</li>
-<li><a href="../deploy/"><code>genesis deploy</code></a> — deploy to a Exordos installation</li>
+<li><a href="../push/"><code>exordos push</code></a> — publish to the ecosystem registry</li>
+<li><a href="../deploy/"><code>exordos deploy</code></a> — deploy to a Exordos installation</li>
 </ul>
 <hr>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>

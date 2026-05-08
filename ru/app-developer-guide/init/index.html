@@ -14,7 +14,7 @@
     
     
       
-        <title>genesis init - exordos_core</title>
+        <title>exordos init - exordos_core</title>
       
     
     
@@ -111,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              genesis init
+              exordos init
             
           </span>
         </div>
@@ -626,10 +626,10 @@
   
 
 
-  <h1>genesis init</h1>
+  <h1>exordos init</h1>
 
 <h2 id="обзор">Обзор<a class="headerlink" href="#обзор" title="Permanent link">#</a></h2>
-<p><code>genesis init</code> <strong>платформенизирует</strong> существующий проект — он подготавливает всё, что нужно платформе Exordos Core для сборки, публикации и развёртывания его как элемента.</p>
+<p><code>exordos init</code> <strong>платформенизирует</strong> существующий проект — он подготавливает всё, что нужно платформе Exordos Core для сборки, публикации и развёртывания его как элемента.</p>
 <p>Выполнение команды выполняет следующие шаги:</p>
 <ol>
 <li><strong>Определение типа проекта</strong> — идентифицирует runtime и фреймворк (Python, Node.js, generic и т.д.) или просит вас выбрать один.</li>
@@ -637,7 +637,7 @@
 <li><strong>Настройка CI/CD</strong> — генерирует конфигурацию конвейера для вашей CI/CD системы, чтобы сборки и развёртывания были автоматизированы с первого дня.</li>
 <li><strong>Вывод резюме</strong> — сообщает обо всём, что было создано или изменено, чтобы вы точно знали, что изменилось.</li>
 </ol>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>init<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>init<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </code></pre></div>
 <p>Ключевые опции:</p>
 <table>
@@ -661,7 +661,7 @@
 <p>Все остальные параметры собираются интерактивно через мастер.</p>
 <hr>
 <h2 id="интерактивный-режим">Интерактивный режим<a class="headerlink" href="#интерактивный-режим" title="Permanent link">#</a></h2>
-<p><code>genesis init</code> работает как <strong>интерактивный мастер</strong> — он проводит вас через серию вопросов и принимает решения на основе ваших ответов. Вам не нужно знать опции заранее; мастер адаптирует свои вопросы в зависимости от выбранного типа проекта.</p>
+<p><code>exordos init</code> работает как <strong>интерактивный мастер</strong> — он проводит вас через серию вопросов и принимает решения на основе ваших ответов. Вам не нужно знать опции заранее; мастер адаптирует свои вопросы в зависимости от выбранного типа проекта.</p>
 <p><a href="wizard.ru.md">Подробнее о мастере →</a></p>
 <hr>
 <h2 id="начало-работы">Начало работы<a class="headerlink" href="#начало-работы" title="Permanent link">#</a></h2>
@@ -703,14 +703,14 @@
 <p><a href="../misc/manifests.ru.md">Полный справочник по манифестам →</a></p>
 <hr>
 <h3 id="cicd">CI/CD<a class="headerlink" href="#cicd" title="Permanent link">#</a></h3>
-<p><code>genesis init</code> может генерировать готовую конфигурацию конвейера CI/CD (<code>--ci-cd</code>). В настоящее время поддерживаются:</p>
+<p><code>exordos init</code> может генерировать готовую конфигурацию конвейера CI/CD (<code>--ci-cd</code>). В настоящее время поддерживаются:</p>
 <ul>
-<li><strong>GitLab CI</strong> — создаёт <code>.gitlab-ci.yml</code>, который запускает <code>genesis build</code>, <code>genesis push</code> и <code>genesis deploy</code> на каждом релевантном событии.</li>
+<li><strong>GitLab CI</strong> — создаёт <code>.gitlab-ci.yml</code>, который запускает <code>exordos build</code>, <code>exordos push</code> и <code>exordos deploy</code> на каждом релевантном событии.</li>
 <li><strong>GitHub Actions</strong> — создаёт директорию <code>.github/workflows/</code> с workflow для сборки, публикации и развёртывания.</li>
 </ul>
 <hr>
 <h3 id="резюме">Резюме<a class="headerlink" href="#резюме" title="Permanent link">#</a></h3>
-<p>После завершения работы мастера <code>genesis init</code> выводит <strong>резюме</strong> всего, что было создано или изменено — файлы манифеста, конфигурацию CI/CD и любые другие сгенерированные артефакты. Просмотрите его, чтобы убедиться, что настройка соответствует вашим ожиданиям, прежде чем переходить к <code>genesis build</code>.</p>
+<p>После завершения работы мастера <code>exordos init</code> выводит <strong>резюме</strong> всего, что было создано или изменено — файлы манифеста, конфигурацию CI/CD и любые другие сгенерированные артефакты. Просмотрите его, чтобы убедиться, что настройка соответствует вашим ожиданиям, прежде чем переходить к <code>exordos build</code>.</p>
 <hr>
 <h2 id="устранение-неполадок">Устранение неполадок<a class="headerlink" href="#устранение-неполадок" title="Permanent link">#</a></h2>
 <p>Если вы столкнулись с проблемами во время инициализации — такими как ошибки определения типа проекта, ошибки генерации манифеста или проблемы конфигурации CI/CD — обратитесь к <a href="troubleshooting.ru.md">Руководству по устранению неполадок</a> для подробных решений и типичных исправлений.</p>

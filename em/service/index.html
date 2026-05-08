@@ -1145,7 +1145,7 @@
 <h2 id="dataplane-behavior">Dataplane Behavior<a class="headerlink" href="#dataplane-behavior" title="Permanent link">#</a></h2>
 <p>When a Service is created, the system:</p>
 <ol>
-<li>Creates a systemd service file at <code>/etc/systemd/system/genesis_srv_&lt;name&gt;_&lt;uuid&gt;.service</code></li>
+<li>Creates a systemd service file at <code>/etc/systemd/system/ec_&lt;name&gt;_&lt;uuid&gt;.service</code></li>
 <li>Runs <code>systemctl daemon-reload</code></li>
 <li>Enables and starts the service if <code>target_status</code> is <code>enabled</code></li>
 <li>Disables the service if <code>target_status</code> is <code>disabled</code></li>

@@ -14,7 +14,7 @@
     
     
       
-        <title>genesis init - exordos_core</title>
+        <title>exordos init - exordos_core</title>
       
     
     
@@ -111,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              genesis init
+              exordos init
             
           </span>
         </div>
@@ -626,10 +626,10 @@
   
 
 
-  <h1>genesis init</h1>
+  <h1>exordos init</h1>
 
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">#</a></h2>
-<p><code>genesis init</code> <strong>platformizes</strong> an existing project — it prepares everything the Exordos Core platform needs to build, publish, and deploy it as an element.</p>
+<p><code>exordos init</code> <strong>platformizes</strong> an existing project — it prepares everything the Exordos Core platform needs to build, publish, and deploy it as an element.</p>
 <p>Running the command performs the following steps:</p>
 <ol>
 <li><strong>Detect the project type</strong> — identifies the runtime and framework (Python, Node.js, generic, etc.) or asks you to choose one.</li>
@@ -637,7 +637,7 @@
 <li><strong>Set up CI/CD</strong> — generates pipeline configuration for your CI/CD system so builds and deployments are automated from day one.</li>
 <li><strong>Print a summary</strong> — reports everything that was created or modified so you know exactly what changed.</li>
 </ol>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>init<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>init<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span>
 </code></pre></div>
 <p>Key options:</p>
 <table>
@@ -661,7 +661,7 @@
 <p>All other parameters are collected interactively via the wizard.</p>
 <hr>
 <h2 id="interactive-mode">Interactive Mode<a class="headerlink" href="#interactive-mode" title="Permanent link">#</a></h2>
-<p><code>genesis init</code> runs as an <strong>interactive wizard</strong> — it guides you through a series of questions and makes decisions based on your answers. You don't need to know the options upfront; the wizard adapts its questions depending on the project type you select.</p>
+<p><code>exordos init</code> runs as an <strong>interactive wizard</strong> — it guides you through a series of questions and makes decisions based on your answers. You don't need to know the options upfront; the wizard adapts its questions depending on the project type you select.</p>
 <p><a href="wizard.md">Learn more about the wizard →</a></p>
 <hr>
 <h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">#</a></h2>
@@ -703,14 +703,14 @@
 <p><a href="../misc/manifests.md">Full manifest reference →</a></p>
 <hr>
 <h3 id="cicd">CI/CD<a class="headerlink" href="#cicd" title="Permanent link">#</a></h3>
-<p><code>genesis init</code> can generate a ready-to-use CI/CD pipeline configuration (<code>--ci-cd</code>). Currently supported:</p>
+<p><code>exordos init</code> can generate a ready-to-use CI/CD pipeline configuration (<code>--ci-cd</code>). Currently supported:</p>
 <ul>
-<li><strong>GitLab CI</strong> — produces a <code>.gitlab-ci.yml</code> that runs <code>genesis build</code>, <code>genesis push</code>, and <code>genesis deploy</code> on every relevant event.</li>
+<li><strong>GitLab CI</strong> — produces a <code>.gitlab-ci.yml</code> that runs <code>exordos build</code>, <code>exordos push</code>, and <code>exordos deploy</code> on every relevant event.</li>
 <li><strong>GitHub Actions</strong> — produces a <code>.github/workflows/</code> directory with workflows for build, push, and deploy.</li>
 </ul>
 <hr>
 <h3 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">#</a></h3>
-<p>After the wizard finishes, <code>genesis init</code> prints a <strong>summary</strong> of everything it created or modified — manifest files, CI/CD configuration, and any other generated artifacts. Review it to confirm the setup matches your expectations before moving on to <code>genesis build</code>.</p>
+<p>After the wizard finishes, <code>exordos init</code> prints a <strong>summary</strong> of everything it created or modified — manifest files, CI/CD configuration, and any other generated artifacts. Review it to confirm the setup matches your expectations before moving on to <code>exordos build</code>.</p>
 <hr>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">#</a></h2>
 <p>If you encounter issues during initialization — such as project type detection failures, manifest generation errors, or CI/CD configuration problems — refer to the <a href="troubleshooting.md">Troubleshooting Guide</a> for detailed solutions and common fixes.</p>

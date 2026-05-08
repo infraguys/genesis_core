@@ -1070,7 +1070,7 @@
 <h2 id="element-manifest-example">Element manifest example<a class="headerlink" href="#element-manifest-example" title="Permanent link">#</a></h2>
 <p>Examples:</p>
 <ul>
-<li><a href="https://github.com/infraguys/genesis_basic/blob/master/genesis/manifests/basic.yaml.j2">Jitsi element</a></li>
+<li><a href="https://github.com/infraguys/exordos_basic/blob/master/exordos/manifests/basic.yaml.j2">Jitsi element</a></li>
 </ul>
 <p>Basic manifest for https site (let's imagine that some nodes are already exist):</p>
 <div class="highlight"><pre><span></span><code><span class="nn">...</span>
@@ -1097,7 +1097,7 @@
 <span class="w">      </span><span class="nt">parent</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$core.network.lb.$basic_lb:uuid</span>
 <span class="w">      </span><span class="nt">endpoints</span><span class="p">:</span>
 <span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">host</span>
-<span class="w">          </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$core.compute.nodes.$genesis_basic:default_network:ipv4</span>
+<span class="w">          </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">$core.compute.nodes.$exordos_basic:default_network:ipv4</span>
 <span class="w">          </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
 <span class="w">  </span><span class="nt">$core.network.lb.$basic_lb.vhosts</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">basic_http</span><span class="p">:</span>
@@ -1153,7 +1153,7 @@
 <span class="w">    </span><span class="nt">basic_cert</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">basic_cert</span>
 <span class="w">      </span><span class="nt">project_id</span><span class="p">:</span><span class="w"> </span><span class="s">"12345678-c625-4fee-81d5-f691897b8142"</span>
-<span class="w">      </span><span class="nt">email</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user@geneis-core.tech</span>
+<span class="w">      </span><span class="nt">email</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">user@exordos.com</span>
 <span class="w">      </span><span class="nt">domains</span><span class="p">:</span>
 <span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">f"example.{$basic.imports.$core_public_domain:name}"</span>
 <span class="w">        </span><span class="l l-Scalar l-Scalar-Plain">f"*.example.{$basic.imports.$core_public_domain:name}"</span>

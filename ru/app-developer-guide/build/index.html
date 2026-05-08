@@ -14,7 +14,7 @@
     
     
       
-        <title>genesis build - exordos_core</title>
+        <title>exordos build - exordos_core</title>
       
     
     
@@ -111,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              genesis build
+              exordos build
             
           </span>
         </div>
@@ -626,11 +626,11 @@
   
 
 
-  <h1>genesis build</h1>
+  <h1>exordos build</h1>
 
 <h2 id="обзор">Обзор<a class="headerlink" href="#обзор" title="Permanent link">#</a></h2>
-<p><code>genesis build</code> <strong>компилирует и упаковывает</strong> ваш Exordos элемент в распространяемые артефакты — образы, манифесты и любые другие ресурсы, необходимые для развёртывания.</p>
-<p>Команда читает файл <strong><code>genesis/genesis.yaml</code></strong> — основной конфигурационный файл, который превращает ваше приложение в элемент платформы. Этот файл содержит секцию <code>build</code>, описывающую:</p>
+<p><code>exordos build</code> <strong>компилирует и упаковывает</strong> ваш Exordos элемент в распространяемые артефакты — образы, манифесты и любые другие ресурсы, необходимые для развёртывания.</p>
+<p>Команда читает файл <strong><code>exordos/exordos.yaml</code></strong> — основной конфигурационный файл, который превращает ваше приложение в элемент платформы. Этот файл содержит секцию <code>build</code>, описывающую:</p>
 <ul>
 <li><strong>Зависимости</strong> — файлы, директории или внешние бинарные артефакты, необходимые для сборки</li>
 <li><strong>Элементы</strong> — один проект может производить несколько элементов на выходе (например, отдельные сервисы API и worker)</li>
@@ -638,11 +638,11 @@
 </ul>
 <p>Выполнение команды выполняет следующие шаги:</p>
 <ol>
-<li><strong>Разрешение зависимостей</strong> — загружает зависимости, указанные в <code>genesis.yaml</code>.</li>
+<li><strong>Разрешение зависимостей</strong> — загружает зависимости, указанные в <code>exordos.yaml</code>.</li>
 <li><strong>Обработка манифестов</strong> — рендерит файлы манифестов (поддерживаются raw YAML или шаблоны Jinja2 со встроенными переменными).</li>
-<li><strong>Сборка артефактов</strong> — создаёт образы и другие результаты сборки на основе секции <code>build</code> в <code>genesis.yaml</code>.</li>
+<li><strong>Сборка артефактов</strong> — создаёт образы и другие результаты сборки на основе секции <code>build</code> в <code>exordos.yaml</code>.</li>
 </ol>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>PROJECT_DIR
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>build<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>PROJECT_DIR
 </code></pre></div>
 <p>Ключевые опции:</p>
 <table>
@@ -654,8 +654,8 @@
 </thead>
 <tbody>
 <tr>
-<td><code>-c, --genesis-cfg-file TEXT</code></td>
-<td>Имя файла конфигурации проекта (по умолчанию: <code>genesis.yaml</code>)</td>
+<td><code>-c, --exordos-cfg-file TEXT</code></td>
+<td>Имя файла конфигурации проекта (по умолчанию: <code>exordos.yaml</code>)</td>
 </tr>
 <tr>
 <td><code>--build-dir TEXT</code></td>
@@ -703,28 +703,28 @@ sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> <
 <h2 id="начало-работы">Начало работы<a class="headerlink" href="#начало-работы" title="Permanent link">#</a></h2>
 <h3 id="базовая-сборка">Базовая сборка<a class="headerlink" href="#базовая-сборка" title="Permanent link">#</a></h3>
 <p>Из директории вашего проекта:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build<span class="w"> </span>.
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>build<span class="w"> </span>.
 </code></pre></div>
 <h3 id="пересборка-с-force">Пересборка с force<a class="headerlink" href="#пересборка-с-force" title="Permanent link">#</a></h3>
 <p>Если вам нужно пересобрать, даже когда артефакты уже существуют:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build<span class="w"> </span>--force<span class="w"> </span>.
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>build<span class="w"> </span>--force<span class="w"> </span>.
 </code></pre></div>
 <h3 id="сборка-с-пользовательскими-переменными">Сборка с пользовательскими переменными<a class="headerlink" href="#сборка-с-пользовательскими-переменными" title="Permanent link">#</a></h3>
 <p>Передайте дополнительные переменные в шаблоны манифестов:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build<span class="w"> </span>--manifest-var<span class="w"> </span><span class="nv">commit_hash</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>rev-parse<span class="w"> </span>--short<span class="w"> </span>HEAD<span class="k">)</span><span class="w"> </span>.
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>build<span class="w"> </span>--manifest-var<span class="w"> </span><span class="nv">commit_hash</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>rev-parse<span class="w"> </span>--short<span class="w"> </span>HEAD<span class="k">)</span><span class="w"> </span>.
 </code></pre></div>
 <h3 id="сборка-inventory">Сборка inventory<a class="headerlink" href="#сборка-inventory" title="Permanent link">#</a></h3>
 <p>Для продвинутых развёртываний, соберите в формате inventory:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build<span class="w"> </span>--inventory<span class="w"> </span>.
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>build<span class="w"> </span>--inventory<span class="w"> </span>.
 </code></pre></div>
 <hr>
 <h2 id="процесс-сборки">Процесс сборки<a class="headerlink" href="#процесс-сборки" title="Permanent link">#</a></h2>
-<p>Процесс сборки создаёт <strong>образы VM дисков</strong>, которые запускаются на платформе Exordos Core. Packer запускает виртуальную машину из базового образа ОС, копирует все разрешённые зависимости в неё и выполняет скрипт подготовки, указанный в <code>genesis.yaml</code>. Этот скрипт обычно является Bash-скриптом, который устанавливает пакеты, настраивает сервисы и подготавливает образ. После завершения подготовки VM выключается, и полученный образ диска упаковывается для развёртывания. Этот процесс настраивается через секцию <code>elements</code> в <code>genesis.yaml</code>, где вы определяете базовый профиль, скрипт подготовки, формат вывода и любые переопределения сборки.</p>
+<p>Процесс сборки создаёт <strong>образы VM дисков</strong>, которые запускаются на платформе Exordos Core. Packer запускает виртуальную машину из базового образа ОС, копирует все разрешённые зависимости в неё и выполняет скрипт подготовки, указанный в <code>exordos.yaml</code>. Этот скрипт обычно является Bash-скриптом, который устанавливает пакеты, настраивает сервисы и подготавливает образ. После завершения подготовки VM выключается, и полученный образ диска упаковывается для развёртывания. Этот процесс настраивается через секцию <code>elements</code> в <code>exordos.yaml</code>, где вы определяете базовый профиль, скрипт подготовки, формат вывода и любые переопределения сборки.</p>
 <hr>
 <h3 id="разрешение-зависимостей">Разрешение зависимостей<a class="headerlink" href="#разрешение-зависимостей" title="Permanent link">#</a></h3>
-<p>Перед сборкой <code>genesis build</code> разрешает все зависимости, объявленные в секции <code>build.deps</code> файла <code>genesis.yaml</code>. Каждая зависимость указывает путь назначения (<code>dst</code>) и источник. Зависимости могут быть локальными директориями, удалёнными артефактами или опциональными ресурсами для разработки.</p>
+<p>Перед сборкой <code>exordos build</code> разрешает все зависимости, объявленные в секции <code>build.deps</code> файла <code>exordos.yaml</code>. Каждая зависимость указывает путь назначения (<code>dst</code>) и источник. Зависимости могут быть локальными директориями, удалёнными артефактами или опциональными ресурсами для разработки.</p>
 <h4 id="локальная-директория-проекта">Локальная директория проекта<a class="headerlink" href="#локальная-директория-проекта" title="Permanent link">#</a></h4>
-<p>Включите другой локальный проект или директорию в вашу сборку. Путь источника относителен к расположению файла <code>genesis.yaml</code>.</p>
+<p>Включите другой локальный проект или директорию в вашу сборку. Путь источника относителен к расположению файла <code>exordos.yaml</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="nt">deps</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">dst</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/exordos_core</span>
 <span class="w">    </span><span class="nt">path</span><span class="p">:</span>
@@ -741,7 +741,7 @@ sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> <
 <div class="highlight"><pre><span></span><code><span class="nt">deps</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">dst</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/opt/exordos_core/artifacts/vmlinuz</span>
 <span class="w">    </span><span class="nt">http</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">src</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://repository.genesis-core.tech/seed_os/1.1.0/vmlinuz</span>
+<span class="w">      </span><span class="nt">src</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://repository.exordos.com/seed_os/1.1.0/vmlinuz</span>
 </code></pre></div>
 <p>Образ ядра <code>vmlinuz</code> загружается и помещается по указанному пути назначения перед продолжением сборки.</p>
 <h4 id="опциональные-зависимости">Опциональные зависимости<a class="headerlink" href="#опциональные-зависимости" title="Permanent link">#</a></h4>
@@ -755,7 +755,7 @@ sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> <
 <p>Здесь SDK включается только если установлена переменная окружения <code>LOCAL_GENESIS_SDK_PATH</code>. Если она не задана, сборка продолжается без этой зависимости.</p>
 <hr>
 <h3 id="конфигурация-сборки-образов-vm">Конфигурация сборки образов VM<a class="headerlink" href="#конфигурация-сборки-образов-vm" title="Permanent link">#</a></h3>
-<p>Каждый элемент в списке <code>elements</code> файла <code>genesis.yaml</code> определяет, как собираются его образы VM. Элемент может производить несколько образов (например, разные форматы или варианты). Следующие параметры управляют процессом создания образа:</p>
+<p>Каждый элемент в списке <code>elements</code> файла <code>exordos.yaml</code> определяет, как собираются его образы VM. Элемент может производить несколько образов (например, разные форматы или варианты). Следующие параметры управляют процессом создания образа:</p>
 <table>
 <thead>
 <tr>
@@ -774,7 +774,7 @@ sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> <
 </tr>
 <tr>
 <td><code>profile</code></td>
-<td>Профиль базового образа ОС, используемый как отправная точка (например, <code>genesis_base</code>). Определяет начальную операционную систему и предустановленные пакеты.</td>
+<td>Профиль базового образа ОС, используемый как отправная точка (например, <code>exordos_base</code>). Определяет начальную операционную систему и предустановленные пакеты.</td>
 </tr>
 <tr>
 <td><code>script</code></td>
@@ -782,7 +782,7 @@ sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> <
 </tr>
 <tr>
 <td><code>override</code></td>
-<td>Переопределения параметров сборки, передаваемые в базовый инструмент (например, Packer). Типичные использования включают увеличение <code>disk_size</code>, <code>cpus</code> или <code>memory</code> для VM сборки. При использовании профиля <code>genesis_custom</code> укажите здесь <code>base_image_url</code> и <code>base_image_checksum</code> для использования любого произвольного образа как базового.</td>
+<td>Переопределения параметров сборки, передаваемые в базовый инструмент (например, Packer). Типичные использования включают увеличение <code>disk_size</code>, <code>cpus</code> или <code>memory</code> для VM сборки. При использовании профиля <code>exordos_custom</code> укажите здесь <code>base_image_url</code> и <code>base_image_checksum</code> для использования любого произвольного образа как базового.</td>
 </tr>
 <tr>
 <td><code>envs</code></td>
@@ -791,13 +791,13 @@ sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> <
 </tbody>
 </table>
 <h4 id="использование-переменных-окружения">Использование переменных окружения<a class="headerlink" href="#использование-переменных-окружения" title="Permanent link">#</a></h4>
-<p>Определите переменные в <code>genesis.yaml</code>:</p>
+<p>Определите переменные в <code>exordos.yaml</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">elements</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">manifest</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">manifests/core.yaml.j2</span>
 <span class="w">    </span><span class="nt">images</span><span class="p">:</span>
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-app</span>
 <span class="w">        </span><span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">qcow2</span>
-<span class="w">        </span><span class="nt">profile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">genesis_base</span>
+<span class="w">        </span><span class="nt">profile</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">exordos_base</span>
 <span class="w">        </span><span class="nt">script</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">install.sh</span>
 <span class="w">        </span><span class="nt">envs</span><span class="p">:</span>
 <span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">APP_PORT=8080</span>
@@ -850,7 +850,7 @@ sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> <
 </tbody>
 </table>
 <p>Дополнительные переменные можно передать с помощью <code>--manifest-var key=value</code>:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>build<span class="w"> </span>--manifest-var<span class="w"> </span><span class="nv">environment</span><span class="o">=</span>production<span class="w"> </span>--manifest-var<span class="w"> </span><span class="nv">region</span><span class="o">=</span>europe-east<span class="w"> </span>.
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>build<span class="w"> </span>--manifest-var<span class="w"> </span><span class="nv">environment</span><span class="o">=</span>production<span class="w"> </span>--manifest-var<span class="w"> </span><span class="nv">region</span><span class="o">=</span>europe-east<span class="w"> </span>.
 </code></pre></div>
 <p><a href="../misc/manifests.ru.md">Полный справочник по манифестам →</a></p>
 <hr>
@@ -902,13 +902,13 @@ sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> <
 </tr>
 </tbody>
 </table>
-<p>Точное содержимое зависит от типа вашего проекта и конфигурации <code>genesis.yaml</code>.</p>
+<p>Точное содержимое зависит от типа вашего проекта и конфигурации <code>exordos.yaml</code>.</p>
 <hr>
 <h2 id="следующие-шаги">Следующие шаги<a class="headerlink" href="#следующие-шаги" title="Permanent link">#</a></h2>
 <p>После успешной сборки ваши элементы готовы для:</p>
 <ul>
-<li><a href="../push/"><code>genesis push</code></a> — публикация в реестр экосистемы</li>
-<li><a href="../deploy/"><code>genesis deploy</code></a> — развёртывание в установку Exordos</li>
+<li><a href="../push/"><code>exordos push</code></a> — публикация в реестр экосистемы</li>
+<li><a href="../deploy/"><code>exordos deploy</code></a> — развёртывание в установку Exordos</li>
 </ul>
 <hr>
 <h2 id="устранение-неполадок">Устранение неполадок<a class="headerlink" href="#устранение-неполадок" title="Permanent link">#</a></h2>

@@ -1145,7 +1145,7 @@
 <h2 id="поведение-dataplane">Поведение Dataplane<a class="headerlink" href="#поведение-dataplane" title="Permanent link">#</a></h2>
 <p>При создании сервиса система:</p>
 <ol>
-<li>Создаёт файл сервиса systemd по пути <code>/etc/systemd/system/genesis_srv_&lt;name&gt;_&lt;uuid&gt;.service</code></li>
+<li>Создаёт файл сервиса systemd по пути <code>/etc/systemd/system/ec_&lt;name&gt;_&lt;uuid&gt;.service</code></li>
 <li>Запускает <code>systemctl daemon-reload</code></li>
 <li>Включает и запускает сервис, если <code>target_status</code> равен <code>enabled</code></li>
 <li>Отключает сервис, если <code>target_status</code> равен <code>disabled</code></li>

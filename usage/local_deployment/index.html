@@ -642,10 +642,10 @@ sudo<span class="w"> </span>adduser<span class="w"> </span><span class="nv">$USE
 <h2 id="local-machine-as-a-hypervisor">Local machine as a hypervisor<a class="headerlink" href="#local-machine-as-a-hypervisor" title="Permanent link">#</a></h2>
 <p>The local host must be configured as a hypervisor so that the platform can schedule and run virtual machine workloads on it.</p>
 <p>Initialize the current host as a hypervisor:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>compute<span class="w"> </span>hypervisors<span class="w"> </span>init
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>compute<span class="w"> </span>hypervisors<span class="w"> </span>init
 </code></pre></div>
 <h3 id="key-parameters">Key parameters<a class="headerlink" href="#key-parameters" title="Permanent link">#</a></h3>
-<p>Run <code>genesis compute hypervisors init --help</code> to see all available options. The most important ones are:</p>
+<p>Run <code>exordos compute hypervisors init --help</code> to see all available options. The most important ones are:</p>
 <table>
 <thead>
 <tr>
@@ -670,18 +670,18 @@ sudo<span class="w"> </span>adduser<span class="w"> </span><span class="nv">$USE
 </table>
 <h2 id="bootstrap">Bootstrap<a class="headerlink" href="#bootstrap" title="Permanent link">#</a></h2>
 <p>Once the local machine is configured as a hypervisor, run the bootstrap procedure to deploy the platform:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>bootstrap<span class="w"> </span>-i<span class="w"> </span>&lt;version&gt;<span class="w"> </span>-f<span class="w"> </span>-m<span class="w"> </span>core<span class="w"> </span>--ssh-public-key<span class="w"> </span>/path/to/public/key
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>bootstrap<span class="w"> </span>-i<span class="w"> </span>&lt;version&gt;<span class="w"> </span>-f<span class="w"> </span>-m<span class="w"> </span>core<span class="w"> </span>--ssh-public-key<span class="w"> </span>/path/to/public/key
 </code></pre></div>
 <p>where <code>&lt;version&gt;</code> is the version of the platform to deploy (e.g., <code>0.0.6</code>).</p>
 <p>The platform can be started either from a <strong>local build</strong> (a locally built image) or from a <strong>remote repository</strong> (a prebuilt image fetched from the official repository).</p>
 <p><strong>Local build example:</strong></p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>bootstrap<span class="w"> </span>-i<span class="w"> </span>/path/to/exordos-core.raw<span class="w"> </span>-m<span class="w"> </span>core
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>bootstrap<span class="w"> </span>-i<span class="w"> </span>/path/to/exordos-core.raw<span class="w"> </span>-m<span class="w"> </span>core
 </code></pre></div>
 <p><strong>Remote repository example (default):</strong></p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>bootstrap<span class="w"> </span>-i<span class="w"> </span>https://repository.genesis-core.tech/genesis-elements/core/0.0.6/<span class="w"> </span>-m<span class="w"> </span>core
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>bootstrap<span class="w"> </span>-i<span class="w"> </span>https://repository.exordos.com/exordos-elements/core/0.0.6/<span class="w"> </span>-m<span class="w"> </span>core
 </code></pre></div>
 <h3 id="key-parameters_1">Key parameters<a class="headerlink" href="#key-parameters_1" title="Permanent link">#</a></h3>
-<p>Run <code>genesis bootstrap --help</code> to see all available options. The most important ones are:</p>
+<p>Run <code>exordos bootstrap --help</code> to see all available options. The most important ones are:</p>
 <table>
 <thead>
 <tr>
@@ -729,7 +729,7 @@ sudo<span class="w"> </span>adduser<span class="w"> </span><span class="nv">$USE
 </tbody>
 </table>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">#</a></h2>
-<p>After <code>genesis bootstrap</code> completes, the platform is up and running. The command prints the credentials for the admin user to the console (or saves them to a file if <code>--save-admin-password-file</code> was specified).</p>
+<p>After <code>exordos bootstrap</code> completes, the platform is up and running. The command prints the credentials for the admin user to the console (or saves them to a file if <code>--save-admin-password-file</code> was specified).</p>
 <h3 id="ssh-access">SSH access<a class="headerlink" href="#ssh-access" title="Permanent link">#</a></h3>
 <p>If a public SSH key was provided during bootstrap via <code>--ssh-public-key</code>, you can connect directly to the core VM:</p>
 <div class="highlight"><pre><span></span><code>ssh<span class="w"> </span>ubuntu@10.20.0.2
@@ -741,24 +741,24 @@ sudo<span class="w"> </span>adduser<span class="w"> </span><span class="nv">$USE
 <span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'grant_type=password'</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'username=&lt;ADMIN_USERNAME&gt;'</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'password=&lt;ADMIN_PASSWORD&gt;'</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'client_id=GenesisCoreClientId'</span><span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'client_secret=GenesisCoreSecret'</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'client_id=ExordosCoreClientId'</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'client_secret=ExordosCoreSecret'</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'scope='</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--data-urlencode<span class="w"> </span><span class="s1">'ttl=86400'</span>
 </code></pre></div>
 <p>The response contains an <code>access_token</code> field. Use this token as a <code>Bearer</code> token in all subsequent API requests.</p>
 <h3 id="cli-access">CLI access<a class="headerlink" href="#cli-access" title="Permanent link">#</a></h3>
-<p>Configure the <code>genesis</code> CLI by registering a realm and a context with the admin credentials:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>settings<span class="w"> </span>set-realm<span class="w"> </span><span class="nb">local</span><span class="w"> </span>--endpoint<span class="w"> </span>http://10.20.0.2:11010<span class="w"> </span>--current
-genesis<span class="w"> </span>settings<span class="w"> </span>set-context<span class="w"> </span><span class="nb">local</span><span class="w"> </span>--name<span class="w"> </span>admin<span class="w"> </span>-u<span class="w"> </span>&lt;ADMIN_USERNAME&gt;<span class="w"> </span>-p<span class="w"> </span>&lt;ADMIN_PASSWORD&gt;<span class="w"> </span>--current
+<p>Configure the <code>exordos</code> CLI by registering a realm and a context with the admin credentials:</p>
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>settings<span class="w"> </span>set-realm<span class="w"> </span><span class="nb">local</span><span class="w"> </span>--endpoint<span class="w"> </span>http://10.20.0.2:11010<span class="w"> </span>--current
+exordos<span class="w"> </span>settings<span class="w"> </span>set-context<span class="w"> </span><span class="nb">local</span><span class="w"> </span>--name<span class="w"> </span>admin<span class="w"> </span>-u<span class="w"> </span>&lt;ADMIN_USERNAME&gt;<span class="w"> </span>-p<span class="w"> </span>&lt;ADMIN_PASSWORD&gt;<span class="w"> </span>--current
 </code></pre></div>
 <ul>
 <li><code>set-realm</code> registers the platform endpoint under the name <code>local</code> and marks it as the active realm.</li>
 <li><code>set-context</code> creates a named context with the admin credentials and marks it as the active context.</li>
 </ul>
-<p>After configuration, you can manage the platform using <code>genesis</code> commands, for example:</p>
-<div class="highlight"><pre><span></span><code>genesis<span class="w"> </span>compute<span class="w"> </span>hypervisors<span class="w"> </span>list
-genesis<span class="w"> </span>elements<span class="w"> </span>list
+<p>After configuration, you can manage the platform using <code>exordos</code> commands, for example:</p>
+<div class="highlight"><pre><span></span><code>exordos<span class="w"> </span>compute<span class="w"> </span>hypervisors<span class="w"> </span>list
+exordos<span class="w"> </span>elements<span class="w"> </span>list
 </code></pre></div>
 
 
