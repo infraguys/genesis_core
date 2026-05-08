@@ -53,6 +53,16 @@ class EnforceMixin:
         iam = contexts.get_context().iam_context
         return iam.enforcer.enforce(rule, do_raise, exc)
 
+    def _is_anonymous_registration_allowed(self):
+        """Check if anonymous/Rule-based registration is allowed.
+
+        Returns True when AnonymousBypassVerifier Rule matched for this request.
+        This allows "street" registration for any request that passes the
+        security Rule, regardless of whether the user has a token or not.
+        """
+        ctx = contexts.get_context()
+        return ctx.is_anonymous_bypass_matched()
+
 
 class ValidationException(ra_e.RestAlchemyException):
     code = 400
@@ -158,11 +168,13 @@ class UserController(
     )
 
     def create(self, **kwargs):
-        self.enforce(
-            c.PERMISSION_USER_CREATE,
-            do_raise=True,
-            exc=iam_e.CanNotCreateUser,
-        )
+        # Allow anonymous (street) registration only when Rule permits
+        if not self._is_anonymous_registration_allowed():
+            self.enforce(
+                c.PERMISSION_USER_CREATE,
+                do_raise=True,
+                exc=iam_e.CanNotCreateUser,
+            )
         self.validate_secret(kwargs)
         kwargs.pop("email_verified", None)
         user = super().create(**kwargs)

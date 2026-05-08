@@ -81,6 +81,14 @@ class TestUserCreationSecurity(base.BaseIamResourceTest):
             project_id=project_id,
         )
 
+    def _create_anonymous_bypass_rule(self, project_id=None):
+        verifier = security_models.AnonymousBypassVerifier()
+        return self._create_rule(
+            name="Anonymous bypass for user creation",
+            verifier=verifier,
+            project_id=project_id,
+        )
+
     def _user_create_url(self, user_api):
         return urljoin(user_api.base_url, CREATE_USER_PATH)
 
@@ -193,3 +201,129 @@ class TestUserCreationSecurity(base.BaseIamResourceTest):
             user_api, headers, username_suffix="forbidden"
         )
         assert response.status_code == 403
+
+    def test_anonymous_bypass_verifier_matches_all(
+        self,
+    ):
+        """AnonymousBypassVerifier returns True for ALL requests."""
+        from unittest import mock
+
+        from gcl_iam import exceptions as gcl_iam_exceptions
+
+        verifier = security_models.AnonymousBypassVerifier()
+
+        # Test with NoIamSessionStored (no auth at all)
+        ctx1 = mock.MagicMock()
+        ctx1.iam_context.get_introspection_info.side_effect = (
+            gcl_iam_exceptions.NoIamSessionStored()
+        )
+        assert verifier.verify(ctx1) is True
+
+        # Test with anonymous token (type='anon')
+        ctx2 = mock.MagicMock()
+        info2 = mock.MagicMock()
+        user_info2 = mock.MagicMock()
+        user_info2.type = "anon"
+        info2.user_info = user_info2
+        ctx2.iam_context.get_introspection_info.return_value = info2
+        assert verifier.verify(ctx2) is True
+
+        # Test with authenticated user (type='user') - ALSO returns True now
+        ctx3 = mock.MagicMock()
+        info3 = mock.MagicMock()
+        user_info3 = mock.MagicMock()
+        user_info3.type = "user"
+        info3.user_info = user_info3
+        ctx3.iam_context.get_introspection_info.return_value = info3
+        assert verifier.verify(ctx3) is True
+
+    def test_anonymous_bypass_tracking_api(
+        self,
+    ):
+        """Test anonymous bypass matched tracking API."""
+        from exordos_core.common import contexts
+
+        # Create mock request with environ
+        mock_request = mock.MagicMock()
+        mock_request.environ = {}
+
+        # Create context with mock request
+        ctx = mock.MagicMock(spec=contexts.GenesisCoreAuthContext)
+        ctx.request = mock_request
+
+        # Bind real methods to mock
+        ctx.set_anonymous_bypass_matched = (
+            contexts.GenesisCoreAuthContext.set_anonymous_bypass_matched.__get__(ctx)
+        )
+        ctx.is_anonymous_bypass_matched = (
+            contexts.GenesisCoreAuthContext.is_anonymous_bypass_matched.__get__(ctx)
+        )
+
+        # Initially not matched
+        assert ctx.is_anonymous_bypass_matched() is False
+
+        # Set as matched
+        ctx.set_anonymous_bypass_matched()
+
+        # Now matched
+        assert ctx.is_anonymous_bypass_matched() is True
+
+    def test_create_user_anonymous_registration(
+        self,
+        user_api,
+    ):
+        """Anonymous user can register without authentication or permissions."""
+        # Only anonymous bypass rule - no Firebase, no CAPTCHA needed
+        self._create_anonymous_bypass_rule()
+
+        # No Authorization header - completely anonymous request
+        response = self._post_create_user(
+            user_api, headers={}, username_suffix="street_user"
+        )
+        assert response.status_code in (200, 201), (
+            f"Anonymous registration failed: {response.status_code} - {response.text[:200]}"
+        )
+
+        # Verify user was created
+        data = response.json()
+        assert "uuid" in data
+        assert data["username"] == "testuser_street_user"
+
+    def test_create_user_anonymous_without_rule_is_forbidden(
+        self,
+        user_api,
+    ):
+        """Anonymous user cannot register without AnonymousBypassVerifier Rule."""
+        # No rules created at all - only default admin rules exist
+
+        # No Authorization header - completely anonymous request
+        response = self._post_create_user(
+            user_api, headers={}, username_suffix="no_rule_user"
+        )
+        # Should be forbidden because no Rule allows anonymous access
+        # AND user doesn't have iam.user.create permission
+        assert response.status_code == 403
+
+    def test_authenticated_user_with_anonymous_bypass_rule(
+        self,
+        user_api,
+        auth_test1_user,
+    ):
+        """Authenticated user CAN register when AnonymousBypassVerifier Rule exists.
+
+        The Rule allows "street" registration for any request, regardless
+        of whether the user is anonymous or authenticated.
+        """
+        self._create_anonymous_bypass_rule()
+
+        token = self._get_access_token(user_api, auth_test1_user)
+        headers = {"Authorization": f"Bearer {token}"}
+
+        # Authenticated request with AnonymousBypassVerifier Rule
+        response = self._post_create_user(
+            user_api, headers=headers, username_suffix="auth_with_rule"
+        )
+        # Should succeed because Rule allows registration without permission
+        assert response.status_code in (200, 201), (
+            f"Auth user with Rule failed: {response.status_code} - {response.text[:200]}"
+        )

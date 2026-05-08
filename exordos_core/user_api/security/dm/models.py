@@ -258,6 +258,26 @@ class AdminBypassVerifier(AbstractVerifier):
         return False
 
 
+class AnonymousBypassVerifier(AbstractVerifier):
+    """Verifier that allows requests to bypass IAM permission checks.
+
+    This verifier enables "street" registration - allowing user creation
+    without explicit iam.user.create permission when this Rule is active.
+    It matches ALL requests (anonymous or authenticated), granting bypass
+    privilege simply by having this Rule configured.
+    """
+
+    KIND = "anonymous_bypass"
+
+    def verify(self, context):
+        """Return True for all requests.
+
+        The Rule.verify() will set the anonymous_bypass_matched flag
+        only when this verifier is part of a Rule that fully passes.
+        """
+        return True
+
+
 class OperatorEnum(str, enum.Enum):
     OR = "OR"
     AND = "AND"
@@ -294,6 +314,7 @@ class Rule(
             ra_types_dynamic.KindModelType(FirebaseAppCheckVerifier),
             ra_types_dynamic.KindModelType(CaptchaVerifier),
             ra_types_dynamic.KindModelType(AdminBypassVerifier),
+            ra_types_dynamic.KindModelType(AnonymousBypassVerifier),
         ),
         required=True,
     )
@@ -311,4 +332,8 @@ class Rule(
         return self.condition.can_handle(context)
 
     def verify(self, context):
-        return self.verifier.verify(context)
+        result = self.verifier.verify(context)
+        # If this Rule passed and uses AnonymousBypassVerifier, mark it
+        if result and isinstance(self.verifier, AnonymousBypassVerifier):
+            context.set_anonymous_bypass_matched()
+        return result
