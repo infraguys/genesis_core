@@ -1,0 +1,202 @@
+#    Copyright 2026 Genesis Corporation.
+#
+#    All Rights Reserved.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+import importlib
+import logging
+import typing as tp
+import uuid as sys_uuid
+
+from restalchemy.common import exceptions as ra_e
+from restalchemy.dm import filters as dm_filters
+from restalchemy.dm import models
+from restalchemy.dm import properties
+from restalchemy.dm import types
+from restalchemy.storage.sql import orm
+
+LOG = logging.getLogger(__name__)
+
+
+class QuotaExceededError(ra_e.ValidationErrorException):
+    message = "Quota exceeded for resource '%(resource_name)s' in project %(project_id)s: %(current)s > %(limit)s"
+
+    def __init__(
+        self, resource_name: str, limit: int, current: int, project_id: sys_uuid.UUID
+    ):
+        super().__init__(
+            resource_name=resource_name,
+            limit=limit,
+            current=current,
+            project_id=project_id,
+        )
+        self.resource_name = resource_name
+        self.limit = limit
+        self.current = current
+        self.project_id = project_id
+
+
+DEFAULT_QUOTA_LIMIT = 1000
+DEFAULT_QUOTA_LIMITS: tp.Dict[str, int] = {
+    "net_lb": DEFAULT_QUOTA_LIMIT,
+    "compute_sets": DEFAULT_QUOTA_LIMIT,
+    "nodes": DEFAULT_QUOTA_LIMIT,
+    "secret_passwords": DEFAULT_QUOTA_LIMIT,
+    "secret_certificates": DEFAULT_QUOTA_LIMIT,
+    "secret_rsa_keys": DEFAULT_QUOTA_LIMIT,
+    "secret_ssh_keys": DEFAULT_QUOTA_LIMIT,
+}
+DEFAULT_QUOTA_FIELD_LIMITS: tp.Dict[str, tp.Dict[str, int]] = {
+    "nodes": {"cores": 10000},
+}
+QUOTA_RESOURCE_MODELS = {
+    "net_lb": "exordos_core.user_api.network.dm.models:LB",
+    "compute_sets": "exordos_core.compute.dm.models:NodeSet",
+    "nodes": "exordos_core.compute.dm.models:Node",
+    "secret_passwords": "exordos_core.secret.dm.models:Password",
+    "secret_certificates": "exordos_core.secret.dm.models:Certificate",
+    "secret_rsa_keys": "exordos_core.secret.dm.models:RSAKey",
+    "secret_ssh_keys": "exordos_core.secret.dm.models:SSHKey",
+}
+
+
+def get_quota_resource_model(resource_name: str) -> type:
+    try:
+        module_name, class_name = QUOTA_RESOURCE_MODELS[resource_name].split(":")
+    except KeyError:
+        raise ValueError(f"Unknown quota resource: {resource_name}")
+
+    module = importlib.import_module(module_name)
+    return getattr(module, class_name)
+
+
+class QuotaModelMixin:
+    def _quota_limits(self, session) -> tp.Collection["QuotaLimit"]:
+        limits = list(
+            QuotaLimit.objects.get_all(
+                session=session,
+                filters={
+                    "project_id": dm_filters.EQ(self.project_id),
+                    "resource_name": dm_filters.EQ(self.__tablename__),
+                },
+            )
+        )
+        limit_fields = {limit.field_name for limit in limits}
+        if "" not in limit_fields:
+            default_limit = DEFAULT_QUOTA_LIMITS.get(self.__tablename__)
+            if default_limit is not None:
+                limits.append(
+                    QuotaLimit(
+                        project_id=self.project_id,
+                        resource_name=self.__tablename__,
+                        field_name="",
+                        limit=default_limit,
+                    )
+                )
+
+        for field_name, default_limit in DEFAULT_QUOTA_FIELD_LIMITS.get(
+            self.__tablename__, {}
+        ).items():
+            if field_name not in limit_fields:
+                limits.append(
+                    QuotaLimit(
+                        project_id=self.project_id,
+                        resource_name=self.__tablename__,
+                        field_name=field_name,
+                        limit=default_limit,
+                    )
+                )
+        return limits
+
+    def _quota_check(self, session) -> None:
+        # Check entity-count and aggregate-field limits before inserting.
+        try:
+            limits = self._quota_limits(session)
+        except ValueError:
+            LOG.exception("Invalid quota configuration for %s", self.__tablename__)
+            return
+
+        if not limits:
+            return
+
+        field_limits = [limit for limit in limits if limit.field_name]
+        count_limits = [limit for limit in limits if not limit.field_name]
+        aggregate_fields = ", ".join(
+            f"SUM({field_name}) AS {field_name}"
+            for field_name in sorted({limit.field_name for limit in field_limits})
+        )
+        selected_fields = ", ".join(
+            field
+            for field in ("COUNT(uuid) AS entity_count", aggregate_fields)
+            if field
+        )
+        result = session.execute(
+            f"SELECT {selected_fields} FROM {self.__tablename__} WHERE project_id = %s",
+            (self.project_id,),
+        )
+        row = result.fetchone()
+
+        for quota_limit in field_limits:
+            current = (row[quota_limit.field_name] or 0) + getattr(
+                self, quota_limit.field_name
+            )
+            if current > quota_limit.limit:
+                raise QuotaExceededError(
+                    resource_name=f"{self.__tablename__}.{quota_limit.field_name}",
+                    limit=quota_limit.limit,
+                    current=current,
+                    project_id=self.project_id,
+                )
+
+        current_count = row["entity_count"] + 1
+        for quota_limit in count_limits:
+            if current_count > quota_limit.limit:
+                raise QuotaExceededError(
+                    resource_name=self.__tablename__,
+                    limit=quota_limit.limit,
+                    current=current_count,
+                    project_id=self.project_id,
+                )
+
+    def insert(self, session=None):
+        # Reserve quota capacity by checking entity-count and field totals.
+        if session is None:
+            with self._get_engine().session_manager(session=session) as s:
+                self._quota_check(s)
+                super().insert(session=s)
+        else:
+            self._quota_check(session)
+            super().insert(session=session)
+
+
+class QuotaLimit(
+    models.ModelWithUUID,
+    models.ModelWithTimestamp,
+    models.ModelWithProject,
+    orm.SQLStorableMixin,
+):
+    __tablename__ = "quota_limits"
+
+    resource_name = properties.property(
+        types.String(max_length=255),
+        required=True,
+    )
+    field_name = properties.property(
+        types.String(max_length=255),
+        default="",
+    )
+    limit = properties.property(
+        types.Integer(min_value=0),
+        required=True,
+    )
