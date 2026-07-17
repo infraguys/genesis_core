@@ -398,6 +398,10 @@ def apply_startup_db(spec: dict[str, tp.Any]) -> None:
         # symmetric key already written to the local agent's disk by the
         # CLI, so it must be popped off before the driver spec is built.
         agent_private_key = hypervisor.pop("private_key", None)
+        # Drop unset optional fields (e.g. `node`, only used by the
+        # "exordos_local_hyper" kind) so they don't trip up spec kinds
+        # that don't define them.
+        hypervisor = {k: v for k, v in hypervisor.items() if v is not None}
         pool_data = {
             "name": "hypervisor",
             "machine_type": "VM",
