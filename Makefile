@@ -19,7 +19,7 @@ bootstrap:
 	exordos bootstrap -i output -f -m core --admin-password admin --cidr 10.20.0.0/22
 
 delete_core:
-	exordos realms d local
+	exordos realms d exordos-core
 
 add_ssh_keys:
 	exordos secret ssh_keys add --current-realm --target_public_key $(SSH_KEY)
