@@ -32,8 +32,8 @@ class TestHypervisorUserApi:
 
     @staticmethod
     def _node_cmp_shallow(
-        node_foo: tp.Dict[str, tp.Any],
-        node_bar: tp.Dict[str, tp.Any],
+        node_foo: dict[str, tp.Any],
+        node_bar: dict[str, tp.Any],
     ):
         return (
             all(
@@ -52,8 +52,8 @@ class TestHypervisorUserApi:
 
     @staticmethod
     def _hypervisor_cmp_shallow(
-        hypervisor_foo: tp.Dict[str, tp.Any],
-        hypervisor_bar: tp.Dict[str, tp.Any],
+        hypervisor_foo: dict[str, tp.Any],
+        hypervisor_bar: dict[str, tp.Any],
     ):
         return (
             all(
@@ -120,7 +120,7 @@ class TestHypervisorUserApi:
                 name=f"hypervisor_{i}",
                 driver_spec={
                     "kind": "libvirt",
-                    "connection_uri": f"qemu+tcp://10.20.0.{str(i + 1)}/system",
+                    "connection_uri": f"qemu+tcp://10.20.0.{i + 1!s}/system",
                 },
             )
             hypervisor.pop("status", None)

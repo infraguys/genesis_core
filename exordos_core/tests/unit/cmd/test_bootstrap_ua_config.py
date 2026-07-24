@@ -86,7 +86,7 @@ def test_noop_on_current_config(tmp_path):
     _run(tmp_path)
     content = etc_path.read_text(encoding="utf-8")
 
-    etc_path, data_path, run = _run(tmp_path)
+    etc_path, _data_path, run = _run(tmp_path)
 
     assert etc_path.read_text(encoding="utf-8") == content
     run.assert_not_called()

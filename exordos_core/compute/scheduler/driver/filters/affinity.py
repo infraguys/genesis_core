@@ -25,7 +25,7 @@ class DummySoftAntiAffinityFilter(base.MachinePoolAbstractFilter):
     def filter(
         self,
         node: base.NodeBundle,
-        pools: tp.List[base.MachinePoolBundle],
+        pools: list[base.MachinePoolBundle],
     ) -> tp.Iterable[base.MachinePoolBundle]:
         """Filter out pools that are not suitable for the node."""
         # Get all policies for the node

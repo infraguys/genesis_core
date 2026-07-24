@@ -154,15 +154,13 @@ def add_core_set(
                 continue
 
             p = compute_models.Port.restore_from_simple_view(
-                **dict(
-                    subnet=str(c.MAIN_SUBNET_UUID),
-                    source=spec["stand"]["network"]["name"],
-                    node=str(node.uuid),
-                    ipv4=port["ip"],
-                    mac=port["mac"],
-                    status="ACTIVE",
-                    project_id=str(c.SERVICE_PROJECT_ID),
-                )
+                subnet=str(c.MAIN_SUBNET_UUID),
+                source=spec["stand"]["network"]["name"],
+                node=str(node.uuid),
+                ipv4=port["ip"],
+                mac=port["mac"],
+                status="ACTIVE",
+                project_id=str(c.SERVICE_PROJECT_ID),
             )
             p.insert()
     return node_set
@@ -291,7 +289,7 @@ def init_secrets(
     default_user.secret_hash = admin_secret_hash
     default_user.save()
 
-    return None
+    return
 
 
 def _net_range(network: ipaddress.IPv4Network, start_offset: int) -> str:
@@ -328,7 +326,6 @@ def apply_flat_network(stand: dict[str, tp.Any]) -> None:
     network.insert()
     LOG.info("Created network %s", network.uuid)
 
-    #
     main_net = ipaddress.ip_network(stand["network"]["cidr"])
     boot_net = ipaddress.ip_network(stand["boot_network"]["cidr"])
 

@@ -32,7 +32,7 @@ class Node(
     ua_models.InstanceMixin,
     ua_models.DependenciesExistReadinessMixin,
 ):
-    __tracked_instances_model_map__ = {
+    __tracked_instances_model_map__: tp.ClassVar[dict] = {
         "machine": models.Machine,
     }
 

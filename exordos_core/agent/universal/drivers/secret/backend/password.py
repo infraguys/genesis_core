@@ -34,7 +34,7 @@ LOG = logging.getLogger(__name__)
 class DatabasePasswordBackendClient(base.AbstractBackendClient):
     """Secret Backend client based on SQL database."""
 
-    def get(self, resource: models.Resource) -> tp.Dict[str, tp.Any]:
+    def get(self, resource: models.Resource) -> dict[str, tp.Any]:
         """Get the resource value in dictionary format."""
         try:
             driver_password = driver_dm.Password.objects.get_one(
@@ -61,7 +61,7 @@ class DatabasePasswordBackendClient(base.AbstractBackendClient):
         else:
             return password.value
 
-    def create(self, resource: models.Resource) -> tp.Dict[str, tp.Any]:
+    def create(self, resource: models.Resource) -> dict[str, tp.Any]:
         """Creates the resource. Returns the created resource."""
         try:
             self.get(resource)
@@ -95,7 +95,7 @@ class DatabasePasswordBackendClient(base.AbstractBackendClient):
         driver_password.save()
         return driver_password.meta
 
-    def update(self, resource: models.Resource) -> tp.Dict[str, tp.Any]:
+    def update(self, resource: models.Resource) -> dict[str, tp.Any]:
         """Update the resource. Returns the updated resource."""
 
         target = secret_dm.Password.from_ua_resource(resource)
@@ -116,7 +116,7 @@ class DatabasePasswordBackendClient(base.AbstractBackendClient):
 
         return actual.meta
 
-    def list(self, kind: str, **kwargs) -> tp.List[tp.Dict[str, tp.Any]]:
+    def list(self, kind: str, **kwargs) -> list[dict[str, tp.Any]]:
         """Lists all resources by kind."""
         secrets = driver_dm.Password.objects.get_all()
         return [s.meta for s in secrets]

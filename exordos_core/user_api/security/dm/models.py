@@ -70,9 +70,8 @@ class UriConditions(AbstractConditions):
 
     def can_handle(self, context):
         request = context.request
-        if self.method:
-            if request.method.upper() != self.method:
-                return False
+        if self.method and request.method.upper() != self.method:
+            return False
         return request.path_info.lower() == self.uri.lower()
 
 
@@ -90,9 +89,8 @@ class UriRegexConditions(AbstractConditions):
 
     def can_handle(self, context):
         request = context.request
-        if self.method:
-            if request.method.upper() != self.method:
-                return False
+        if self.method and request.method.upper() != self.method:
+            return False
         return (
             re.match(
                 self.uri_regex,
@@ -121,7 +119,7 @@ class FieldNotInRequestVerifier(AbstractVerifier):
         payload = context.get_raw_payload()
         if not isinstance(payload, dict):
             return True
-        json_keys = set(key.lower() for key in payload)
+        json_keys = {key.lower() for key in payload}
         return not any(field.lower() in json_keys for field in self.fields)
 
 
@@ -251,10 +249,7 @@ class AdminBypassVerifier(AbstractVerifier):
             return True
 
         uuid_val = getattr(user_info, "uuid", None)
-        if uuid_val and str(uuid_val).lower() in allowed:
-            return True
-
-        return False
+        return bool(uuid_val and str(uuid_val).lower() in allowed)
 
 
 class GrantPermissionAction(AbstractVerifier):

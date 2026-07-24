@@ -233,12 +233,12 @@ class Manifest(
                 from_element=import_from_element,
                 link=f"{import_data['element']}.{import_data['link']}",
             )
-            import_kwargs = dict(
-                name=import_name,
-                element=element,
-                from_element=import_from_element,
-                from_resource=from_resource,
-            )
+            import_kwargs = {
+                "name": import_name,
+                "element": element,
+                "from_element": import_from_element,
+                "from_resource": from_resource,
+            }
 
             if "kind" in import_data:
                 import_kwargs["kind"] = import_data["kind"]
@@ -279,11 +279,11 @@ class Manifest(
         }
 
         for export_name, export_data in self.exports.items():
-            export_kwargs = dict(
-                name=export_name,
-                element=element,
-                link=export_data["link"],
-            )
+            export_kwargs = {
+                "name": export_name,
+                "element": element,
+                "link": export_data["link"],
+            }
             if "kind" in export_data:
                 export_kwargs["kind"] = export_data["kind"]
 
@@ -320,11 +320,11 @@ class Manifest(
             )
             for resource_name, resource_value in resources.items():
                 resolved_link_prefix = link_resolver.full_link_original
-                res_kwargs = dict(
-                    element=element,
-                    resource_link_prefix=resolved_link_prefix,
-                    value=resource_value,
-                )
+                res_kwargs = {
+                    "element": element,
+                    "resource_link_prefix": resolved_link_prefix,
+                    "value": resource_value,
+                }
                 res_key = (resolved_link_prefix, resource_name)
                 if resource := existing_resources.pop(res_key, None):
                     for k, v in res_kwargs.items():
@@ -440,7 +440,7 @@ class Element(
     orm.SQLStorableMixin,
 ):
     __tablename__ = "em_elements"
-    __custom_properties__ = {
+    __custom_properties__: tp.ClassVar[dict] = {
         "link": ra_types.String(),
     }
 
@@ -502,13 +502,13 @@ class Element(
     def original(self):
         return self
 
-    def imports(self) -> tp.List["Import"]:
+    def imports(self) -> list["Import"]:
         return Import.objects.get_all(filters={"element": ra_filters.EQ(self)})
 
-    def exports(self) -> tp.List["Export"]:
+    def exports(self) -> list["Export"]:
         return Export.objects.get_all(filters={"element": ra_filters.EQ(self)})
 
-    def resources(self) -> tp.List["Resource"]:
+    def resources(self) -> list["Resource"]:
         return Resource.objects.get_all(filters={"element": ra_filters.EQ(self)})
 
 
@@ -579,7 +579,7 @@ class Resource(
     orm.SQLStorableMixin,
 ):
     __tablename__ = "em_resources"
-    __custom_properties__ = {
+    __custom_properties__: tp.ClassVar[dict] = {
         # "project_id": ra_types.UUID(),
         # "target_state": ra_types.Dict(),
         # "target_hash": ra_types.String(min_length=32, max_length=32),
@@ -587,7 +587,7 @@ class Resource(
         "link": ra_types.String(min_length=2, max_length=256),
         "kind": ra_types.String(min_length=2, max_length=256),
     }
-    __allowed_methods_from_manifest__ = [
+    __allowed_methods_from_manifest__: tp.ClassVar[list] = [
         "get_uri",
         "to_str",
         "index",
@@ -645,7 +645,7 @@ class Resource(
             return ""
         return str(self.actual_resource.value[field])
 
-    def index(self, field: str, idx: tp.Union[str, int] = 0) -> tp.Optional[str]:
+    def index(self, field: str, idx: str | int = 0) -> str | None:
         if not self.actual_resource or not self.actual_resource.value:
             return None
         try:
@@ -670,10 +670,8 @@ class Resource(
         if len(resource_parameter_path) == 0:
             return self.actual_resource.value
         elif len(resource_parameter_path) == 1:
-            if match := re.match(
-                r"^(\w+)(?:\s*\(([^)]*)\))?$",
-                resource_parameter_path[0],
-            ):
+            match = re.match(r"^(\w+)(?:\s*\(([^)]*)\))?$", resource_parameter_path[0])
+            if match:
                 func_name = match.group(1)
                 if func_name in self.__allowed_methods_from_manifest__:
                     func = getattr(self, func_name)
@@ -710,7 +708,7 @@ class Resource(
             return str(value)
         except ValueError as e:
             raise exceptions.ValidateException(
-                err=f"Can't render value `{var}` for resource `{repr(self)}` by reason: {e}"
+                err=f"Can't render value `{var}` for resource `{self!r}` by reason: {e}"
             )
 
     def _render_value(self, value, engine):
@@ -727,7 +725,7 @@ class Resource(
             except ValueError as e:
                 raise exceptions.ValidateException(
                     err=f"Can't render value `{value}` for resource"
-                    f" `{repr(self)}` by reason: {e}"
+                    f" `{self!r}` by reason: {e}"
                 )
         elif value.startswith('f"'):
             return re.sub(
@@ -955,7 +953,7 @@ class Import(
 ):
     __tablename__ = "em_imports"
 
-    __custom_properties__ = {
+    __custom_properties__: tp.ClassVar[dict] = {
         "link": ra_types.String(min_length=2, max_length=256),
     }
 
@@ -1091,10 +1089,10 @@ class Namespace:
 class ElementEngine:
     def __init__(self):
         super().__init__()
-        self._namespaces: tp.Dict[str, Namespace] = {}
-        self._resource_exports: tp.Dict[str, Resource] = {}
-        self.base_schema: tp.Dict[str, tp.Any] = {}
-        self.full_schema: tp.Dict[str, tp.Any] = {}
+        self._namespaces: dict[str, Namespace] = {}
+        self._resource_exports: dict[str, Resource] = {}
+        self.base_schema: dict[str, tp.Any] = {}
+        self.full_schema: dict[str, tp.Any] = {}
 
     def load_schemas(self) -> None:
         if not self.base_schema:
@@ -1108,7 +1106,7 @@ class ElementEngine:
         except KeyError:
             raise exceptions.NamespaceNotFound(name=name)
 
-    def get_elements(self) -> tp.List["Element"]:
+    def get_elements(self) -> list["Element"]:
         return [namespace.element for namespace in self._namespaces.values()]
 
     def load_from_database(self) -> None:
@@ -1159,7 +1157,7 @@ class ElementEngine:
         namespace = self._namespaces[resource.element.link]
         namespace.delete_resource(resource)
 
-    def get_resources(self) -> tp.List["Resource"]:
+    def get_resources(self) -> list["Resource"]:
         result = []
         for namespace in self._namespaces.values():
             result.extend(namespace.get_resources())
@@ -1233,17 +1231,17 @@ class ServiceTarget(srv_models.ServiceTarget):
             filters={"uuid": ra_filters.EQ(self.service)}
         ):
             raise exceptions.ValidateException(
-                err="Service %s does not exist. Please create it first." % self.service
+                err=f"Service {self.service} does not exist. Please create it first."
             )
 
     @classmethod
     def from_service(cls, service: sys_uuid.UUID) -> "ServiceTarget":
         return cls(service=service)
 
-    def target_services(self) -> tp.List[sys_uuid.UUID]:
+    def target_services(self) -> list[sys_uuid.UUID]:
         return [self.service]
 
-    def owners(self) -> tp.List[sys_uuid.UUID]:
+    def owners(self) -> list[sys_uuid.UUID]:
         """It's the simplest case with an ordinary service target.
 
         In that case, the owner and target is the service itself.
@@ -1251,7 +1249,7 @@ class ServiceTarget(srv_models.ServiceTarget):
         """
         return [self.service]
 
-    def _fetch_services(self) -> tp.List["Service"]:
+    def _fetch_services(self) -> list["Service"]:
         return Service.objects.get_all(filters={"uuid": str(self.service)})
 
     def are_owners_alive(self) -> bool:
@@ -1331,8 +1329,8 @@ class Service(
         default=[],
     )
 
-    def target_nodes(self) -> tp.List[sys_uuid.UUID]:
+    def target_nodes(self) -> list[sys_uuid.UUID]:
         return self.target.target_nodes()
 
-    def target_owners(self) -> tp.List[sys_uuid.UUID]:
+    def target_owners(self) -> list[sys_uuid.UUID]:
         return self.target.owners()

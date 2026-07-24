@@ -40,7 +40,7 @@ class SecurityRulesMiddleware(ra_middlewares.Middleware):
         context = ra_contexts.get_context()
         rules_context = self._prepare_rules(context)
         if self._verify_rules(context, rules_context):
-            return None
+            return
         self._raise_error_answer()
 
     def _prepare_rules(self, context):

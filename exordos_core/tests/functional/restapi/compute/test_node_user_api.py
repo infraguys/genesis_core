@@ -29,8 +29,8 @@ class TestNodeUserApi:
 
     @staticmethod
     def _node_cmp_shallow(
-        node_foo: tp.Dict[str, tp.Any],
-        node_bar: tp.Dict[str, tp.Any],
+        node_foo: dict[str, tp.Any],
+        node_bar: dict[str, tp.Any],
     ):
         return (
             all(
@@ -203,7 +203,7 @@ class TestNodeUserApi:
 
     def test_hyper_list(
         self,
-        default_pool: tp.Dict[str, tp.Any],
+        default_pool: dict[str, tp.Any],
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
     ):

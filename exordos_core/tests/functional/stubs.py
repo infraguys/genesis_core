@@ -49,8 +49,7 @@ class ObjectCollection(sql_orm.ObjectCollection):
             return None
         if len(objects) > 1:
             raise storage_exceptions.HasManyRecords(
-                "Has many records in storage for model (%s) and filters (%s)."
-                % (self.model_cls, None)
+                f"Has many records in storage for model ({self.model_cls}) and filters ({None})."
             )
         return objects[0]
 

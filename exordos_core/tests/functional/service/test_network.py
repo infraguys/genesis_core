@@ -84,7 +84,7 @@ class TestNetworkService:
         node.insert()
         return node
 
-    def _add_network(self, **kwargs) -> tp.Tuple[models.Network, models.Subnet]:
+    def _add_network(self, **kwargs) -> tuple[models.Network, models.Subnet]:
         network = models.Network(
             name="foo-network",
             driver_spec={"driver": "dummy"},
@@ -104,12 +104,12 @@ class TestNetworkService:
     def _add_port(
         self,
         subnet: models.Subnet,
-        node: tp.Optional[models.Node] = None,
+        node: models.Node | None = None,
         ipv4: str = netaddr.IPAddress("10.0.0.0"),
         mask: str = netaddr.IPAddress("255.255.255.0"),
-        mac: tp.Optional[str] = None,
+        mac: str | None = None,
         save: bool = True,
-    ) -> tp.Tuple[models.Port]:
+    ) -> tuple[models.Port]:
         port = subnet.port(
             ipv4=ipv4,
             mask=mask,
@@ -123,7 +123,7 @@ class TestNetworkService:
         return port
 
     def _schedule_node(
-        self, node_uuid: str, machine: tp.Union[models.Machine, str]
+        self, node_uuid: str, machine: models.Machine | str
     ) -> models.Node:
         node = models.Node.objects.get_one(
             filters={

@@ -29,8 +29,8 @@ class TestNodeSetUserApi:
 
     @staticmethod
     def _node_cmp_shallow(
-        node_foo: tp.Dict[str, tp.Any],
-        node_bar: tp.Dict[str, tp.Any],
+        node_foo: dict[str, tp.Any],
+        node_bar: dict[str, tp.Any],
     ):
         return (
             all(
@@ -49,8 +49,8 @@ class TestNodeSetUserApi:
 
     @staticmethod
     def _node_set_cmp_shallow(
-        node_set_foo: tp.Dict[str, tp.Any],
-        node_set_bar: tp.Dict[str, tp.Any],
+        node_set_foo: dict[str, tp.Any],
+        node_set_bar: dict[str, tp.Any],
     ):
         return (
             all(

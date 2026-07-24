@@ -14,6 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import typing as tp
+
 from restalchemy.api import routes
 
 from exordos_core.user_api.em.api import controllers
@@ -47,7 +49,7 @@ class SchemaRoute(routes.Route):
     """Handler for /v1/em/manifests/schema/ endpoint"""
 
     __controller__ = controllers.SchemaController
-    __allow_methods__ = [
+    __allow_methods__: tp.ClassVar[list] = [
         routes.FILTER,
     ]
 
@@ -74,7 +76,7 @@ class ResourceAllRoute(routes.Route):
     """Handler for /v1/resources/[<id>] endpoint"""
 
     __controller__ = controllers.ResourceAllController
-    __allow_methods__ = [
+    __allow_methods__: tp.ClassVar[list] = [
         routes.FILTER,
         routes.GET,
     ]
@@ -90,7 +92,7 @@ class ExportAllRoute(routes.Route):
     """Handler for /v1/exports/[<id>] endpoint"""
 
     __controller__ = controllers.ExportAllController
-    __allow_methods__ = [
+    __allow_methods__: tp.ClassVar[list] = [
         routes.FILTER,
         routes.GET,
     ]
@@ -106,7 +108,7 @@ class ImportAllRoute(routes.Route):
     """Handler for /v1/imports/[<id>] endpoint"""
 
     __controller__ = controllers.ImportAllController
-    __allow_methods__ = [
+    __allow_methods__: tp.ClassVar[list] = [
         routes.FILTER,
         routes.GET,
     ]
@@ -146,7 +148,7 @@ class ElementManagerRoute(routes.Route):
     """Handler for /v1/em/ endpoint"""
 
     __controller__ = controllers.ElementManagerController
-    __allow_methods__ = [routes.FILTER]
+    __allow_methods__: tp.ClassVar[list] = [routes.FILTER]
 
     manifests = routes.route(ManifestRoute)
     elements = routes.route(ElementRoute)

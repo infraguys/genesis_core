@@ -32,11 +32,11 @@ class TestOrganizationMembers(base.BaseIamResourceTest):
         url = client.build_collection_uri(
             ["iam/organizations/", organization_uuid, "members"]
         )
-        body = dict(
-            organization=f"/v1/iam/organizations/{organization_uuid}",
-            user=f"/v1/iam/users/{user_uuid}",
-            role=role,
-        )
+        body = {
+            "organization": f"/v1/iam/organizations/{organization_uuid}",
+            "user": f"/v1/iam/users/{user_uuid}",
+            "role": role,
+        }
 
         response = client.post(url, json=body)
         assert response.status_code == 201
@@ -58,7 +58,6 @@ class TestOrganizationMembers(base.BaseIamResourceTest):
         )
         response = client.delete(url)
         assert response.status_code == 204
-        return None
 
     def test_create_member_as_owner_success(
         self,
@@ -391,11 +390,11 @@ class TestOrganizationMembers(base.BaseIamResourceTest):
         url = test1_client.build_collection_uri(
             ["iam/organizations/", org["uuid"], "members"]
         )
-        body = dict(
-            organization=f"/v1/iam/organizations/{org['uuid']}",
-            user=f"/v1/iam/users/{auth_test2_user.uuid}",
-            role=c.OrganizationRole.MEMBER.value,
-        )
+        body = {
+            "organization": f"/v1/iam/organizations/{org['uuid']}",
+            "user": f"/v1/iam/users/{auth_test2_user.uuid}",
+            "role": c.OrganizationRole.MEMBER.value,
+        }
 
         response = test1_client.post(url, json=body)
         assert response.status_code == 201

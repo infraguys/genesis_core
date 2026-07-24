@@ -46,7 +46,7 @@ class BorderIaasBuilder(builder.CoreInfraBuilder):
 
     def __init__(
         self,
-        instance_model: tp.Type[models.IaasBorder],
+        instance_model: type[models.IaasBorder],
         project_id: sys_uuid.UUID,
     ):
         super().__init__(instance_model)
@@ -81,7 +81,7 @@ class BorderIaasBuilder(builder.CoreInfraBuilder):
         infra: builder.InfraCollection,
     ) -> tp.Collection[ua_models.TargetResourceKindAwareMixin]:
         if instance.node or instance.type.kind != "core":
-            return tuple()
+            return ()
 
         nodeset = None
         tgt_nodeset = None

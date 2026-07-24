@@ -32,7 +32,7 @@ LOG = logging.getLogger(__name__)
 class LBBuilder(builder.PaaSBuilder):
     def __init__(
         self,
-        instance_model: tp.Type[models.PaasLB] = models.PaasLB,
+        instance_model: type[models.PaasLB] = models.PaasLB,
     ):
         super().__init__(instance_model)
 
@@ -46,7 +46,7 @@ class LBBuilder(builder.PaaSBuilder):
         """
 
         return self.actualize_paas_objects(
-            instance, builder.PaaSCollection(paas_objects=tuple())
+            instance, builder.PaaSCollection(paas_objects=())
         )
 
     def actualize_paas_objects(
@@ -63,7 +63,7 @@ class LBBuilder(builder.PaaSBuilder):
 
         if instance.type.kind == "core":
             nodes = self.get_actual_nodeset(instance).nodes
-            for node_uuid in nodes.keys():
+            for node_uuid in nodes:
                 nuuid = uuid.UUID(node_uuid)
                 actual_resources.append(
                     models.PaasLBNode(

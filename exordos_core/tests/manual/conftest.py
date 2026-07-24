@@ -379,8 +379,8 @@ def user_api_client(user_api, auth_user_admin):
 
     def build_client(
         auth: iam_clients.GenesisCoreAuth,
-        permissions: tp.Optional[tp.List[str]] = None,
-        project_id: tp.Optional[str] = None,
+        permissions: list[str] | None = None,
+        project_id: str | None = None,
     ):
         permissions = permissions or []
         client = iam_clients.GenericAutoRefreshRESTClient(
@@ -434,15 +434,15 @@ def user_api_noauth_client(user_api):
 @pytest.fixture
 def node_factory():
     def factory(
-        uuid: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
         name: str = "node",
         cores: int = 1,
         ram: int = 1024,
         image: str = "ubuntu_24.04",
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
-        status: tp.Optional[str] = None,
+        status: str | None = None,
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
         status_value = nc.NodeStatus.NEW.value if status is None else status.value
         node = node_models.Node(
@@ -467,7 +467,7 @@ def node_factory():
 @pytest.fixture
 def node_set_factory():
     def factory(
-        uuid: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
         name: str = "node_set",
         cores: int = 1,
         ram: int = 1024,
@@ -476,7 +476,7 @@ def node_set_factory():
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
         status: str = nc.NodeStatus.NEW.value,
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
         obj = node_set_models.NodeSet(
             uuid=uuid,
@@ -499,17 +499,17 @@ def node_set_factory():
 @pytest.fixture
 def pool_factory():
     def factory(
-        uuid: tp.Optional[sys_uuid.UUID] = None,
-        agent: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
+        agent: sys_uuid.UUID | None = None,
         name: str = "pool-default",
-        driver_spec: tp.Optional[dict] = None,
-        status: tp.Optional[str] = None,
+        driver_spec: dict | None = None,
+        status: str | None = None,
         avail_cores: int = 8,
         avail_ram: int = 16384,
         all_cores: int = 8,
         all_ram: int = 16384,
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
         driver_spec = (
             {"kind": "libvirt", "connection_uri": "qemu+tcp://127.0.0.1/system"}
@@ -547,10 +547,10 @@ def pool_factory():
 
 
 @pytest.fixture
-def machine_factory(default_pool: tp.Dict[str, tp.Any]):
+def machine_factory(default_pool: dict[str, tp.Any]):
     def factory(
-        uuid: tp.Optional[sys_uuid.UUID] = None,
-        pool: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
+        pool: sys_uuid.UUID | None = None,
         name: str = "node",
         cores: int = 1,
         ram: int = 1024,
@@ -558,7 +558,7 @@ def machine_factory(default_pool: tp.Dict[str, tp.Any]):
         status: str = nc.MachineStatus.ACTIVE.value,
         build_status: str = nc.MachineBuildStatus.READY.value,
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
         pool = pool or sys_uuid.UUID(default_pool["uuid"])
         machine = node_models.Machine(
@@ -582,15 +582,15 @@ def machine_factory(default_pool: tp.Dict[str, tp.Any]):
 def config_factory():
     def factory(
         target_node: sys_uuid.UUID,
-        uuid: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
         name: str = "config",
         path: str = "/etc/genesis-configs/config.conf",
         content_body: str = "test",
-        on_change_cmd: tp.Optional[str] = None,
+        on_change_cmd: str | None = None,
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
         status: str = cc.ConfigStatus.NEW.value,
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
         target = ct.NodeTarget.from_node(target_node)
         body = conf_models.TextBodyConfig.from_text(content_body)
@@ -619,15 +619,15 @@ def config_factory():
 @pytest.fixture
 def password_factory():
     def factory(
-        uuid: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
         name: str = "password",
-        constructor: tp.Optional[secret_models.AbstractSecretConstructor] = None,
+        constructor: secret_models.AbstractSecretConstructor | None = None,
         method: sc.SecretMethod = sc.SecretMethod.AUTO_HEX,
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
-        status: tp.Optional[cc.ConfigStatus] = None,
-        value: tp.Optional[str] = None,
+        status: cc.ConfigStatus | None = None,
+        value: str | None = None,
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
         constructor = (
             secret_models.PlainSecretConstructor()
@@ -657,18 +657,18 @@ def password_factory():
 @pytest.fixture
 def cert_factory():
     def factory(
-        uuid: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
         name: str = "cert",
         domains: tp.Collection[str] = ("genesis-core.tech",),
         email: str = "user@genesis-core.tech",
-        key: tp.Optional[str] = None,
-        cert: tp.Optional[str] = None,
-        constructor: tp.Optional[secret_models.AbstractSecretConstructor] = None,
-        method: tp.Optional[secret_models.AbstractCertificateMethod] = None,
+        key: str | None = None,
+        cert: str | None = None,
+        constructor: secret_models.AbstractSecretConstructor | None = None,
+        method: secret_models.AbstractCertificateMethod | None = None,
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
-        status: tp.Optional[cc.ConfigStatus] = None,
+        status: cc.ConfigStatus | None = None,
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
         constructor = (
             secret_models.PlainSecretConstructor()
@@ -710,15 +710,15 @@ def ssh_key_factory():
     def factory(
         target_node: sys_uuid.UUID,
         target_public_key: str,
-        uuid: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
         name: str = "key",
-        constructor: tp.Optional[secret_models.AbstractSecretConstructor] = None,
+        constructor: secret_models.AbstractSecretConstructor | None = None,
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
-        status: tp.Optional[cc.ConfigStatus] = None,
+        status: cc.ConfigStatus | None = None,
         user: str = "root",
         authorized_keys=".ssh/authorized_keys",
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
         target = ct.NodeTarget.from_node(target_node)
         constructor = (
@@ -751,7 +751,7 @@ def ssh_key_factory():
 @pytest.fixture
 def pool_builder_factory() -> tp.Callable:
     def factory(
-        uuid: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
         status: str = nc.BuilderStatus.ACTIVE.value,
         **kwargs,
     ) -> sdk_ua_models.UniversalAgent:
@@ -780,10 +780,10 @@ def pool_builder_factory() -> tp.Callable:
 @pytest.fixture
 def interface_factory() -> tp.Callable:
     def factory(
-        uuid: tp.Optional[sys_uuid.UUID] = None,
-        mac: tp.Optional[str] = None,
+        uuid: sys_uuid.UUID | None = None,
+        mac: str | None = None,
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
         interface = node_models.Interface(
             uuid=uuid,
@@ -800,12 +800,12 @@ def interface_factory() -> tp.Callable:
 def machine_pool_reservation_factory() -> tp.Callable:
     def factory(
         pool: sys_uuid.UUID,
-        uuid: tp.Optional[sys_uuid.UUID] = None,
-        machine: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
+        machine: sys_uuid.UUID | None = None,
         cores: int = 1,
         ram: int = 1024,
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
         reservation = node_models.MachinePoolReservations(
             uuid=uuid,
@@ -903,7 +903,7 @@ def default_subnet(
 def default_machine_agent(
     user_api_client: iam_clients.GenesisCoreTestRESTClient,
     auth_user_admin: iam_clients.GenesisCoreAuth,
-) -> tp.Dict[str, tp.Any]:
+) -> dict[str, tp.Any]:
     uuid = sys_uuid.UUID("00000000-1112-0100-0000-000000000211")
     agent = sdk_ua_models.UniversalAgent(
         uuid=uuid,
@@ -922,7 +922,7 @@ def default_machine_agent(
 def default_pool_builder(
     user_api_client: iam_clients.GenesisCoreTestRESTClient,
     auth_user_admin: iam_clients.GenesisCoreAuth,
-) -> tp.Dict[str, tp.Any]:
+) -> dict[str, tp.Any]:
     uuid = sys_uuid.UUID("00000000-1112-0100-0000-000000000322")
     agent = sdk_ua_models.UniversalAgent(
         uuid=uuid,

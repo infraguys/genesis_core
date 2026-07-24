@@ -31,7 +31,7 @@ LOG = logging.getLogger(__name__)
 class NodeSetBuilderService(builder.CoreInfraBuilder):
     def __init__(
         self,
-        instance_model: tp.Type[models.NodeSet],
+        instance_model: type[models.NodeSet],
         project_id: sys_uuid.UUID,
     ):
         super().__init__(instance_model)

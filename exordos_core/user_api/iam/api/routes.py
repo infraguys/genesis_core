@@ -14,6 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import typing as tp
+
 from restalchemy.api import routes
 
 from exordos_core.user_api.iam.api import controllers
@@ -189,7 +191,7 @@ class AuthorizationRequestRoute(routes.Route):
     """Handler for /v1/iam/authorization_requests/<uuid> endpoint"""
 
     __controller__ = controllers.AuthorizationInfoController
-    __allow_methods__ = [routes.GET]
+    __allow_methods__: tp.ClassVar[list] = [routes.GET]
 
     confirm = routes.action(ConfirmAuthorizationRequestAction, invoke=True)
 
@@ -269,13 +271,13 @@ class IamClientsRoute(routes.Route):
 
 class IamWebRoute(WebRoute):
     __controller__ = controllers.IamWebController
-    __allow_methods__ = []
+    __allow_methods__: tp.ClassVar[list] = []
 
 
 class IamRoute(routes.Route):
     """Handler for /v1/iam/ endpoint"""
 
-    __allow_methods__ = [routes.FILTER]
+    __allow_methods__: tp.ClassVar[list] = [routes.FILTER]
     __controller__ = controllers.IamController
 
     # main resources

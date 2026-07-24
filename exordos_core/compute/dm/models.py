@@ -1,4 +1,4 @@
-#    Copyright 2025 Genesis Corporation.
+#    Copyright 2025-2026 Genesis Corporation.
 #
 #    All Rights Reserved.
 #
@@ -14,9 +14,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import logging
 import random
 import typing as tp
 import uuid as sys_uuid
+
+LOG = logging.getLogger(__name__)
 
 from gcl_sdk.agents.universal.dm import models as ua_models
 from gcl_sdk.infra.dm import models as infra_models
@@ -46,7 +49,7 @@ class IPRange(types.BaseType):
     SEPARATOR = "-"
 
     def __init__(self, **kwargs):
-        super(IPRange, self).__init__(openapi_type="string", **kwargs)
+        super().__init__(openapi_type="string", **kwargs)
 
     def validate(self, value):
         return isinstance(value, netaddr.IPRange)
@@ -198,7 +201,7 @@ class MachinePool(
     models.SimpleViewMixin,
 ):
     __tablename__ = "machine_pools"
-    __driver_map__ = {}
+    __driver_map__: tp.ClassVar[dict] = {}
 
     driver_spec = properties.property(
         types_dynamic.KindModelSelectorType(
@@ -235,7 +238,7 @@ class MachinePool(
         default=list,
     )
 
-    def load_driver(self) -> tp.Type["AbstractPoolDriver"]:
+    def load_driver(self) -> type["AbstractPoolDriver"]:
         """
         Load the driver for the machine pool.
 
@@ -261,9 +264,8 @@ class MachinePool(
                 driver = class_(self)
                 self.__driver_map__[driver_key] = driver
                 return driver
-            except Exception:
-                # Just try another driver
-                pass
+            except (ImportError, AttributeError, TypeError):
+                LOG.debug("Failed to load driver %s", driver_key)
 
         raise ValueError(f"Driver for spec '{self.driver_spec}' not found")
 
@@ -346,7 +348,7 @@ class Node(
     orm.SQLStorableWithJSONFieldsMixin,
 ):
     __tablename__ = "nodes"
-    __jsonfields__ = ["default_network"]
+    __jsonfields__: tp.ClassVar[list] = ["default_network"]
 
     uuid = properties.property(
         types.UUID(),
@@ -590,11 +592,11 @@ class Network(
     models.SimpleViewMixin,
 ):
     __tablename__ = "compute_networks"
-    __driver_map__ = {}
+    __driver_map__: tp.ClassVar[dict] = {}
 
-    driver_spec = properties.property(types.Dict(), default=lambda: {})
+    driver_spec = properties.property(types.Dict(), default=dict)
 
-    def load_driver(self) -> tp.Type["AbstractNetworkDriver"]:
+    def load_driver(self) -> type["AbstractNetworkDriver"]:
         driver_key = str(self.driver_spec)
 
         if driver_key in self.__driver_map__:
@@ -607,9 +609,8 @@ class Network(
                 driver = class_(self)
                 self.__driver_map__[driver_key] = driver
                 return driver
-            except Exception:
-                # Just try another driver
-                pass
+            except (ImportError, AttributeError, TypeError):
+                LOG.debug("Failed to load driver %s", driver_key)
 
         raise ValueError(f"Driver for spec '{self.driver_spec}' not found")
 
@@ -620,7 +621,7 @@ class Subnet(
     models.SimpleViewMixin,
 ):
     __tablename__ = "compute_subnets"
-    __jsonfields__ = ["dns_servers", "routers"]
+    __jsonfields__: tp.ClassVar[list] = ["dns_servers", "routers"]
 
     network = properties.property(types.UUID())
     cidr = properties.property(
@@ -643,7 +644,7 @@ class Subnet(
 
     dns_servers = properties.property(
         types.AllowNone(types.TypedList(types.String(min_length=1, max_length=128))),
-        default=lambda: [],
+        default=list,
     )
     routers = properties.property(
         types.AllowNone(
@@ -656,7 +657,7 @@ class Subnet(
                 )
             )
         ),
-        default=lambda: [],
+        default=list,
     )
     next_server = properties.property(
         types.AllowNone(types.String(max_length=256)), default=None
@@ -664,14 +665,14 @@ class Subnet(
 
     def port(
         self,
-        target_ipv4: tp.Optional[netaddr.IPAddress] = None,
-        ipv4: tp.Optional[netaddr.IPAddress] = None,
-        target_mask: tp.Optional[netaddr.IPAddress] = None,
-        mask: tp.Optional[netaddr.IPAddress] = None,
-        mac: tp.Optional[str] = None,
-        node_uuid: tp.Optional[sys_uuid.UUID] = None,
-        machine_uuid: tp.Optional[sys_uuid.UUID] = None,
-        project_id: tp.Optional[str] = None,
+        target_ipv4: netaddr.IPAddress | None = None,
+        ipv4: netaddr.IPAddress | None = None,
+        target_mask: netaddr.IPAddress | None = None,
+        mask: netaddr.IPAddress | None = None,
+        mac: str | None = None,
+        node_uuid: sys_uuid.UUID | None = None,
+        machine_uuid: sys_uuid.UUID | None = None,
+        project_id: str | None = None,
     ) -> "Port":
         port = Port(
             subnet=self.uuid,
@@ -689,7 +690,7 @@ class Subnet(
     @property
     def ip_range_pair(
         self,
-    ) -> tp.Optional[tp.Tuple[netaddr.IPAddress, netaddr.IPAddress]]:
+    ) -> tuple[netaddr.IPAddress, netaddr.IPAddress] | None:
         if self.ip_range is None:
             return None
 
@@ -701,7 +702,7 @@ class Subnet(
     @property
     def ip_discovery_range_pair(
         self,
-    ) -> tp.Optional[tp.Tuple[netaddr.IPAddress, netaddr.IPAddress]]:
+    ) -> tuple[netaddr.IPAddress, netaddr.IPAddress] | None:
         if self.ip_discovery_range is None:
             return None
 
@@ -755,9 +756,9 @@ class Port(cm.ModelWithFullAsset, orm.SQLStorableMixin, models.SimpleViewMixin):
         octets = tuple(random.randint(0, 255) for _ in range(5))
 
         if virtual_machine:
-            return "52:54:00:%02x:%02x:%02x" % octets[2:]
+            return f"52:54:00:{octets[2]:02x}:{octets[3]:02x}:{octets[4]:02x}"
 
-        return "a9:%02x:%02x:%02x:%02x:%02x" % octets
+        return f"a9:{octets[0]:02x}:{octets[1]:02x}:{octets[2]:02x}:{octets[3]:02x}:{octets[4]:02x}"
 
     @classmethod
     def from_boot_network(cls):
@@ -828,7 +829,7 @@ class Interface(
     mtu = properties.property(types.Integer(min_value=1, max_value=65536), default=1500)
 
     @classmethod
-    def from_system(cls) -> tp.List["Interface"]:
+    def from_system(cls) -> list["Interface"]:
         ifaces = []
         system_uuid = system.system_uuid()
         for iface in system.get_ifaces():

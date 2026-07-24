@@ -22,86 +22,82 @@ from exordos_core.user_api.iam import constants as c
 responses = {}
 responses.update(
     oa_c.build_openapi_user_response(
-        **{
-            "type": "object",
-            "required": [
-                "access_token",
-                "expires_at",
-                "id_token",
-                "refresh_token",
-                "scope",
-                "token_type",
-            ],
-            "properties": {
-                "access_token": {
-                    "type": "string",
-                    "description": "JWT access token",
-                    "example": "eyJhbGciOiJSUzI...",
-                },
-                "expires_at": {
-                    "type": "integer",
-                    "format": "int64",
-                    "description": "UNIX timestamp when token expires",
-                    "example": 1740524674,
-                },
-                "id_token": {
-                    "type": "string",
-                    "description": "OpenID Connect ID Token",
-                    "example": "eyJhbGciOiJSUzI1NiIsInR...",
-                },
-                "refresh_token": {
-                    "type": "string",
-                    "description": "Refresh token",
-                    "example": "eyJhbGciOiJIUzUxMiIsIn...",
-                },
-                "scope": {
-                    "type": "string",
-                    "description": "Granted scopes (space-separated)",
-                    "example": "openid email profile",
-                },
-                "token_type": {
-                    "type": "string",
-                    "description": "Type of token",
-                    "enum": ["Bearer"],
-                    "example": "Bearer",
-                },
+        type="object",
+        required=[
+            "access_token",
+            "expires_at",
+            "id_token",
+            "refresh_token",
+            "scope",
+            "token_type",
+        ],
+        properties={
+            "access_token": {
+                "type": "string",
+                "description": "JWT access token",
+                "example": "eyJhbGciOiJSUzI...",
             },
-        }
+            "expires_at": {
+                "type": "integer",
+                "format": "int64",
+                "description": "UNIX timestamp when token expires",
+                "example": 1740524674,
+            },
+            "id_token": {
+                "type": "string",
+                "description": "OpenID Connect ID Token",
+                "example": "eyJhbGciOiJSUzI1NiIsInR...",
+            },
+            "refresh_token": {
+                "type": "string",
+                "description": "Refresh token",
+                "example": "eyJhbGciOiJIUzUxMiIsIn...",
+            },
+            "scope": {
+                "type": "string",
+                "description": "Granted scopes (space-separated)",
+                "example": "openid email profile",
+            },
+            "token_type": {
+                "type": "string",
+                "description": "Type of token",
+                "enum": ["Bearer"],
+                "example": "Bearer",
+            },
+        },
     )
 )
 responses.update(
     oa_c.build_openapi_user_response(
         code=401,
-        **{
-            "title": "Wrong OTP error",
-            "description": "The provided otp code is invalid",
-            "type": "object",
-            "required": [
-                "error",
-                "error_description",
-            ],
-            "properties": {
-                "error": {
-                    "type": "string",
-                    "description": "Error class name",
-                    "example": "OSError",
-                },
-                "error_description": {
-                    "type": "string",
-                    "description": "Error description",
-                    "example": "A human-readable explanation of problem",
-                },
+        title="Wrong OTP error",
+        description="The provided otp code is invalid",
+        type="object",
+        required=[
+            "error",
+            "error_description",
+        ],
+        properties={
+            "error": {
+                "type": "string",
+                "description": "Error class name",
+                "example": "OSError",
             },
-            "example": {
-                "error": "invalid_client",
-                "error_description": "The provided otp code is invalid",
+            "error_description": {
+                "type": "string",
+                "description": "Error description",
+                "example": "A human-readable explanation of problem",
             },
+        },
+        example={
+            "error": "invalid_client",
+            "error_description": "The provided otp code is invalid",
         },
     )
 )
 
 
-OA_SPEC_SEND_RESET_PASSWORD_CODE = dict(
+OA_SPEC_SEND_RESET_PASSWORD_CODE = dict(  # noqa: C408
     summary="Send password reset code to email",
     parameters=[
         oa_c.build_openapi_parameter(
@@ -133,7 +129,7 @@ OA_SPEC_SEND_RESET_PASSWORD_CODE = dict(
     ),
 )
 
-OA_SPEC_RESET_PASSWORD_USER = dict(
+OA_SPEC_RESET_PASSWORD_USER = dict(  # noqa: C408
     summary="Reset user password",
     parameters=[
         oa_c.build_openapi_parameter(
@@ -175,7 +171,7 @@ OA_SPEC_RESET_PASSWORD_USER = dict(
     responses=oa_c.build_openapi_get_update_response("User"),
 )
 
-OA_SPEC_GET_TOKEN_KWARGS = dict(
+OA_SPEC_GET_TOKEN_KWARGS = dict(  # noqa: C408
     summary="Create token by password",
     parameters=[
         oa_c.build_openapi_parameter(

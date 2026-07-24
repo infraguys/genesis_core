@@ -40,7 +40,7 @@ class MachinePoolAbstractFilter(abc.ABC):
     def filter(
         self,
         node: NodeBundle,
-        pools: tp.List[MachinePoolBundle],
+        pools: list[MachinePoolBundle],
     ) -> tp.Iterable[MachinePoolBundle]:
         """Filter out pools that are not suitable for the node."""
 
@@ -49,7 +49,7 @@ class MachinePoolAbstractWeighter(abc.ABC):
     @abc.abstractmethod
     def weight(
         self,
-        pools: tp.List[MachinePoolBundle],
+        pools: list[MachinePoolBundle],
     ) -> tp.Iterable[float]:
         """Assign weights to machine pools.
 
@@ -64,7 +64,7 @@ class MachineAbstractFilter(abc.ABC):
     def filter(
         self,
         node: NodeBundle,
-        machines: tp.List[MachineBundle],
+        machines: list[MachineBundle],
     ) -> tp.Iterable[MachineBundle]:
         """Filter out machines that are not suitable for the node."""
 
@@ -73,7 +73,7 @@ class MachineAbstractWeighter(abc.ABC):
     @abc.abstractmethod
     def weight(
         self,
-        machines: tp.List[MachineBundle],
+        machines: list[MachineBundle],
     ) -> tp.Iterable[float]:
         """Assign weights to machines.
 

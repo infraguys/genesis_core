@@ -53,7 +53,7 @@ class AbstractNetworkDriver(abc.ABC):
     def update_subnet(self, subnet: models.Subnet) -> models.Subnet:
         """Update the subnet in data plane."""
 
-    def create_ports(self, ports: tp.List[models.Port]) -> tp.List[models.Port]:
+    def create_ports(self, ports: list[models.Port]) -> list[models.Port]:
         """Create a list of ports."""
 
         # The default implementation is to create each port separately
@@ -62,7 +62,7 @@ class AbstractNetworkDriver(abc.ABC):
             new_ports.append(self.create_port(port))
         return new_ports
 
-    def delete_ports(self, ports: tp.List[models.Port]) -> None:
+    def delete_ports(self, ports: list[models.Port]) -> None:
         """Delete the port from data plane."""
 
         # The default implementation is to delete each port separately
@@ -71,7 +71,7 @@ class AbstractNetworkDriver(abc.ABC):
 
 
 class DummyNetworkDriver(AbstractNetworkDriver):
-    SPEC = {"driver": "dummy"}
+    SPEC: tp.ClassVar[dict] = {"driver": "dummy"}
 
     def __init__(self, network: models.Network) -> None:
         if network.driver_spec != self.SPEC:

@@ -87,9 +87,7 @@ def get_element_uuid(element_name, element_version):
 
 def get_project_id():
     # return sys_uuid.UUID(f"{UUID_PREFIX}{str(sys_uuid.uuid4())[8:]}")
-    return sys_uuid.UUID(
-        f"{UUID_PREFIX}{str('00000000-0000-0000-0000-000000000000')[8:]}"
-    )
+    return sys_uuid.UUID(f"{UUID_PREFIX}{'00000000-0000-0000-0000-000000000000'[8:]}")
 
 
 def get_required_field(data, field_name):
@@ -141,7 +139,7 @@ def parse_variable(var: str) -> Parsed:
             resource_name = parts[-1][1:]
             resource_parts = parts[1:-1]
             is_resource = True
-            is_variable = True if value else False
+            is_variable = bool(value)
             resource_type = f"${element_name}.{'.'.join(resource_parts)}"
         elif value:
             result.valid = False
@@ -163,7 +161,7 @@ def parse_variable(var: str) -> Parsed:
     return result
 
 
-def walk(node: tp.Union[dict, list, str]) -> tp.List[Parsed]:
+def walk(node: dict | list | str) -> list[Parsed]:
     variables = []
     if isinstance(node, dict):
         for value in node.values():
@@ -178,7 +176,7 @@ def walk(node: tp.Union[dict, list, str]) -> tp.List[Parsed]:
     return variables
 
 
-def walk_replace(resource_type: str, scheme: dict, node: tp.Union[dict, list, str]):
+def walk_replace(resource_type: str, scheme: dict, node: dict | list | str):
     if isinstance(node, dict):
         for key, value in node.items():
             if isinstance(value, str):
@@ -257,18 +255,17 @@ def load_user_api_spec() -> dict:
         return yaml.safe_load(f)
 
 
-def validate_manifest(data: dict, schema: tp.Optional[dict]) -> None:
+def validate_manifest(data: dict, schema: dict | None) -> None:
     if data and schema:
         try:
             openapi_schema_validator.validate(
                 data, schema, cls=openapi_schema_validator.OAS30Validator
             )
         except ValidationError as err:
-            LOG.exception("Failed to validate data %s: %s", data, err)
+            LOG.exception("Failed to validate data %s", data)
             raise exceptions.OpenApiValidateException(
                 err=f"{err.message} in {err.json_path}"
             )
-    return None
 
 
 def build_full_schema(
@@ -315,8 +312,8 @@ def build_full_schema(
                         base_manifest_schema = build_full_schema(
                             base_manifest_schema, user_api_spec
                         )
-                except Exception as e:
-                    LOG.exception(f"Failed to get spec from {spec}: {e}")
+                except Exception:
+                    LOG.exception("Failed to get spec from %s", spec)
             elif os.path.exists(spec):
                 try:
                     with open(spec, "r") as f:
@@ -324,8 +321,8 @@ def build_full_schema(
                         base_manifest_schema = build_full_schema(
                             base_manifest_schema, user_api_spec
                         )
-                except Exception as e:
-                    LOG.exception(f"Failed to get spec from {spec}: {e}")
+                except (OSError, yaml.YAMLError):
+                    LOG.exception("Failed to get spec from %s", spec)
     return base_manifest_schema
 
 
@@ -369,7 +366,7 @@ def remove_middle_parts(input_string):
 
 def mutate_resource_types(manifest: dict) -> dict:
     mutated_map = {}
-    for resource_type in manifest["resources"].keys():
+    for resource_type in manifest["resources"]:
         mutated_resource_type = remove_middle_parts(resource_type)
         if resource_type != mutated_resource_type:
             mutated_map[mutated_resource_type] = resource_type
@@ -383,7 +380,7 @@ def mutate_resource_types(manifest: dict) -> dict:
 def mutate_manifest(manifest: dict, scheme: dict) -> dict:
     manifest = mutate_resource_types(manifest)
     for resource_type, resource in manifest["resources"].items():
-        for resource_name, resource_value in resource.items():
+        for resource_value in resource.values():
             walk_replace(resource_type, scheme, resource_value)
     return manifest
 

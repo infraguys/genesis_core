@@ -14,7 +14,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import typing as tp
 import uuid as sys_uuid
 
 from gcl_sdk.infra.dm import models as sdk_models
@@ -30,7 +29,7 @@ class TestNodeBuilderService:
     def setup_method(self) -> None:
         self._service = node_builder.NodeBuilderService()
 
-    def _add_node(self, disks: tp.List[dict]) -> models.Node:
+    def _add_node(self, disks: list[dict]) -> models.Node:
         node = models.Node(
             uuid=sys_uuid.uuid4(),
             name="foo-node",
@@ -43,7 +42,7 @@ class TestNodeBuilderService:
         return node
 
     def _node_copy_with_disks(
-        self, node: models.Node, disks: tp.List[dict]
+        self, node: models.Node, disks: list[dict]
     ) -> models.Node:
         return models.Node(
             uuid=node.uuid,
@@ -54,7 +53,7 @@ class TestNodeBuilderService:
             project_id=node.project_id,
         )
 
-    def _node_volumes(self, node_uuid: sys_uuid.UUID) -> tp.List[models.Volume]:
+    def _node_volumes(self, node_uuid: sys_uuid.UUID) -> list[models.Volume]:
         return list(
             models.Volume.objects.get_all(
                 filters={"node": dm_filters.EQ(node_uuid)},

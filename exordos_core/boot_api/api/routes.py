@@ -14,6 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import typing as tp
+
 from gcl_sdk.agents.universal.orch_api import routes as orch_routes
 from gcl_sdk.agents.universal.status_api import routes as status_routes
 from restalchemy.api import routes
@@ -25,13 +27,13 @@ class NetbootRoute(routes.Route):
     """Handler for /v1/boots/ endpoint"""
 
     __controller__ = controllers.NetBootController
-    __allow_methods__ = [routes.GET]
+    __allow_methods__: tp.ClassVar[list] = [routes.GET]
 
 
 class UniversalAgentsRoute(orch_routes.UniversalAgentsRoute):
     """Handler for /v1/agents/ endpoint"""
 
-    __allow_methods__ = [
+    __allow_methods__: tp.ClassVar[list] = [
         routes.GET,
         routes.CREATE,
         routes.UPDATE,
@@ -43,7 +45,7 @@ class ApiEndpointRoute(routes.Route):
     """Handler for /v1/ endpoint"""
 
     __controller__ = controllers.ApiEndpointController
-    __allow_methods__ = [routes.FILTER]
+    __allow_methods__: tp.ClassVar[list] = [routes.FILTER]
 
     nodes = routes.route(status_routes.NodesRoute)
     boots = routes.route(NetbootRoute)

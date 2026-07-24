@@ -14,6 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import typing as tp
+
 from restalchemy.api import routes
 
 from exordos_core.user_api.dns.api import controllers
@@ -37,6 +39,6 @@ class DnsRoute(routes.Route):
     """Handler for /v1/dns/ endpoint"""
 
     __controller__ = controllers.DnsController
-    __allow_methods__ = [routes.FILTER]
+    __allow_methods__: tp.ClassVar[list] = [routes.FILTER]
 
     domains = routes.route(DomainsRoute)

@@ -22,7 +22,7 @@ class CoresRamAvailableFilter(base.MachinePoolAbstractFilter):
     def filter(
         self,
         node: base.NodeBundle,
-        pools: tp.List[base.MachinePoolBundle],
+        pools: list[base.MachinePoolBundle],
     ) -> tp.Iterable[base.MachinePoolBundle]:
         """Filter out pools that are not suitable for the node."""
 
@@ -39,7 +39,7 @@ class HWCoresRamAvailableFilter(base.MachineAbstractFilter):
     def filter(
         self,
         node: base.NodeBundle,
-        machines: tp.List[base.MachineBundle],
+        machines: list[base.MachineBundle],
     ) -> tp.Iterable[base.MachineBundle]:
         """Filter out machines that are not suitable for the node."""
 

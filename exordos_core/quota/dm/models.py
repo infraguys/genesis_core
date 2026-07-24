@@ -48,7 +48,7 @@ class QuotaExceededError(ra_e.ValidationErrorException):
 
 
 DEFAULT_QUOTA_LIMIT = 1000
-DEFAULT_QUOTA_LIMITS: tp.Dict[str, int] = {
+DEFAULT_QUOTA_LIMITS: dict[str, int] = {
     "net_lb": DEFAULT_QUOTA_LIMIT,
     "compute_sets": DEFAULT_QUOTA_LIMIT,
     "nodes": DEFAULT_QUOTA_LIMIT,
@@ -57,7 +57,7 @@ DEFAULT_QUOTA_LIMITS: tp.Dict[str, int] = {
     "secret_rsa_keys": DEFAULT_QUOTA_LIMIT,
     "secret_ssh_keys": DEFAULT_QUOTA_LIMIT,
 }
-DEFAULT_QUOTA_FIELD_LIMITS: tp.Dict[str, tp.Dict[str, int]] = {
+DEFAULT_QUOTA_FIELD_LIMITS: dict[str, dict[str, int]] = {
     "nodes": {"cores": 10000},
 }
 QUOTA_RESOURCE_MODELS = {

@@ -14,6 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import typing as tp
+
 from restalchemy.api import routes
 
 from exordos_core.user_api.api import controllers
@@ -36,14 +38,14 @@ class HealthRoute(routes.Route):
     """Handler for /v1/health endpoint"""
 
     __controller__ = controllers.HealthController
-    __allow_methods__ = [routes.FILTER]
+    __allow_methods__: tp.ClassVar[list] = [routes.FILTER]
 
 
 class ApiEndpointRoute(routes.Route):
     """Handler for /v1/ endpoint"""
 
     __controller__ = controllers.ApiEndpointController
-    __allow_methods__ = [routes.FILTER]
+    __allow_methods__: tp.ClassVar[list] = [routes.FILTER]
 
     compute = routes.route(compute_routes.ComputeRoute)
     config = routes.route(config_routes.ConfigRoute)

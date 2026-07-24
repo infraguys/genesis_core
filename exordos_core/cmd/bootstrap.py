@@ -129,7 +129,6 @@ def _apply_flat_network(stand: dict[str, tp.Any]) -> None:
     network.insert()
     LOG.info("Created network %s", network.uuid)
 
-    #
     main_net = ipaddress.ip_network(stand["network"]["cidr"])
     boot_net = ipaddress.ip_network(stand["boot_network"]["cidr"])
 

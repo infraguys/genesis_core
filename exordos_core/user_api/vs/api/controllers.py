@@ -25,7 +25,7 @@ from restalchemy.api import resources
 from restalchemy.common import exceptions as ra_e
 from restalchemy.dm import filters as dm_filters
 
-from exordos_core.vs.dm import models as models
+from exordos_core.vs.dm import models
 
 
 class ValueNotBelongsToVariableError(ra_e.ValidationErrorException):

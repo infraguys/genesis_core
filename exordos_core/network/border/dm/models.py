@@ -14,6 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import typing as tp
+
 from gcl_sdk.agents.universal.dm import models as ua_models
 from restalchemy.dm import models as ra_models
 from restalchemy.dm import properties
@@ -36,9 +38,9 @@ class BorderAgent(
         types.Enum([status.value for status in models.LBStatus]),
         default=models.LBStatus.NEW.value,
     )
-    snat_rules = properties.property(types.List(), default=lambda: [])
-    forwards = properties.property(types.List(), default=lambda: [])
-    routes = properties.property(types.List(), default=lambda: [])
+    snat_rules = properties.property(types.List(), default=list)
+    forwards = properties.property(types.List(), default=list)
+    routes = properties.property(types.List(), default=list)
 
     @classmethod
     def get_resource_kind(cls) -> str:
@@ -74,7 +76,7 @@ class IaasBorder(models.Border, ua_models.InstanceWithDerivativesMixin):
     schedules the border_node capability to that VM's agent.
     """
 
-    __derivative_model_map__ = {
+    __derivative_model_map__: tp.ClassVar[dict] = {
         "target_node_set": lb_models.TargetNodeSet,
     }
 
@@ -94,7 +96,7 @@ class IaasBorder(models.Border, ua_models.InstanceWithDerivativesMixin):
 
 
 class PaasBorder(models.Border, ua_models.InstanceWithDerivativesMixin):
-    __derivative_model_map__ = {
+    __derivative_model_map__: tp.ClassVar[dict] = {
         "border_agent": BorderAgent,
         "border_node": BorderNode,
     }

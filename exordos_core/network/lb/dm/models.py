@@ -35,7 +35,7 @@ class TargetNodeSet(sdk_models.NodeSet):
 
 
 class IaasLB(models.LB, ua_models.InstanceWithDerivativesMixin):
-    __derivative_model_map__ = {
+    __derivative_model_map__: tp.ClassVar[dict] = {
         "target_node_set": TargetNodeSet,
     }
 
@@ -98,7 +98,7 @@ class PaasLBNode(
 
 
 class PaasLB(IaasLB):
-    __derivative_model_map__ = {
+    __derivative_model_map__: tp.ClassVar[dict] = {
         "paas_lb_node": PaasLBNode,
         "paas_lb_agent": PaasLBAgent,
     }

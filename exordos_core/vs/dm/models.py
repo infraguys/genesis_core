@@ -87,11 +87,11 @@ class Profile(
 
         if not session:
             engine = engines.engine_factory.get_engine()
-            with engine.session_manager() as session:
-                curs = session.execute(expression, tuple())
+            with engine.session_manager() as _session:
+                curs = _session.execute(expression, ())
                 resp = curs.fetchall()
         else:
-            curs = session.execute(expression, tuple())
+            curs = session.execute(expression, ())
             resp = curs.fetchall()
 
         me = str(self.uuid)
@@ -134,7 +134,7 @@ class ProfileVariableSetter(infra_models.ProfileVariableSetter):
 
         If the value cannot be determined, the method raises an exception.
         """
-        profile: tp.Optional[Profile] = None
+        profile: Profile | None = None
 
         # If the variable is binded to an element,
         # we check if the element exists and has profile
@@ -186,7 +186,7 @@ class SelectorVariableSetter(infra_models.SelectorVariableSetter):
     """
 
     def _set_value_latest_strategy(
-        self, variable: "Variable", values: tp.List["Value"]
+        self, variable: "Variable", values: list["Value"]
     ) -> None:
         """Determine a value based on the `latest` strategy."""
         # If there is no manual selected value, select

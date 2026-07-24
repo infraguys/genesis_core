@@ -14,6 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import typing as tp
+
 from restalchemy.api import routes
 
 from exordos_core.user_api.network.api import controllers
@@ -62,7 +64,7 @@ class NetworkRoute(routes.Route):
     """Handler for /v1/network/ endpoint"""
 
     __controller__ = controllers.NetworkController
-    __allow_methods__ = [routes.FILTER]
+    __allow_methods__: tp.ClassVar[list] = [routes.FILTER]
 
     lb = routes.route(LBRoute)
     border = routes.route(BorderRoute)

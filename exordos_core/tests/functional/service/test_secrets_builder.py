@@ -96,7 +96,7 @@ class TestPasswordServiceBuilder:
     )
     def test_create_password(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
         password_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
@@ -153,7 +153,7 @@ class TestPasswordServiceBuilder:
 
     def test_update_password(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
         password_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
@@ -208,7 +208,7 @@ class TestPasswordServiceBuilder:
 
     def test_delete_password(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
         password_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
@@ -265,7 +265,7 @@ class TestCertificateServiceBuilder:
 
     def test_create_certificate(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
         cert_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
@@ -318,7 +318,7 @@ class TestCertificateServiceBuilder:
 
     def test_update_certificate(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
         cert_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
@@ -367,7 +367,7 @@ class TestCertificateServiceBuilder:
 
     def test_delete_certificate(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
         cert_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,

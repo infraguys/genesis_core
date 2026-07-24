@@ -15,7 +15,6 @@
 #    under the License.
 
 import logging
-import typing as tp
 
 from gcl_sdk.agents.universal.drivers import direct
 from gcl_sdk.agents.universal.storage import fs
@@ -38,6 +37,6 @@ class PasswordCapabilityDriver(direct.DirectAgentDriver):
 
         super().__init__(storage=storage, client=client)
 
-    def get_capabilities(self) -> tp.List[str]:
+    def get_capabilities(self) -> list[str]:
         """Returns a list of capabilities supported by the driver."""
         return ["password"]

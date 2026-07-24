@@ -36,7 +36,7 @@ class Volume(compute_models.Volume):
 
 
 class NodeSet(compute_models.NodeSet):
-    __derivative_model_map__ = {
+    __derivative_model_map__: tp.ClassVar[dict] = {
         "set_agent_node": Node,
         "set_agent_volume": Volume,
     }
@@ -44,8 +44,8 @@ class NodeSet(compute_models.NodeSet):
     def gen_nodes(
         self,
         project_id: sys_uuid.UUID,
-        placement_policies: tp.Collection[compute_models.PlacementPolicy] = tuple(),
-        node_uuids: tp.Collection[sys_uuid.UUID] = tuple(),
+        placement_policies: tp.Collection[compute_models.PlacementPolicy] = (),
+        node_uuids: tp.Collection[sys_uuid.UUID] = (),
     ) -> tp.Collection[Node]:
         """Generate nodes for the node set."""
         # FIXME(akremenetsky): Perhaps this method should be moved to

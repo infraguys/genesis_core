@@ -43,10 +43,7 @@ def _quota_limit_2(user_api):
     )
     obj.insert()
     yield obj
-    try:
-        obj.delete()
-    except Exception:
-        pass
+    obj.delete()
 
 
 class TestQuotaNoLimit:
@@ -87,10 +84,7 @@ class TestQuotaAggregateFieldLimit:
             limit.insert()
         yield limits
         for limit in limits:
-            try:
-                limit.delete()
-            except Exception:
-                pass
+            limit.delete()
 
     def test_rejects_unknown_quota_resource(self):
         with pytest.raises(ValueError, match="Unknown quota resource: unknown"):

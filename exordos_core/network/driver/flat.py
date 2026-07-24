@@ -62,11 +62,11 @@ class DhcpPortAlreadyExists(exceptions.CGNetException):
 @dataclasses.dataclass
 class DHCPContext:
     cfg_hash: str
-    subnets: tp.List[models.Subnet]
-    port_map: tp.DefaultDict[sys_uuid.UUID, tp.List[models.Port]]
+    subnets: list[models.Subnet]
+    port_map: collections.defaultdict[sys_uuid.UUID, list[models.Port]]
 
     @property
-    def subnet_map(self) -> tp.Dict[models.Subnet, tp.List[models.Port]]:
+    def subnet_map(self) -> dict[models.Subnet, list[models.Port]]:
         return {s: self.port_map[s.uuid] for s in self.subnets}
 
     def save_ctx(self, ctx_path: str) -> None:
@@ -259,7 +259,7 @@ class FlatBridgeNetworkDriver(base.AbstractNetworkDriver):
 
         return port
 
-    def create_ports(self, ports: tp.List[models.Port]) -> tp.List[models.Port]:
+    def create_ports(self, ports: list[models.Port]) -> list[models.Port]:
         """Create a list of ports."""
         ctx = self._load_ctx()
         new_ports = []
@@ -337,7 +337,7 @@ class FlatBridgeNetworkDriver(base.AbstractNetworkDriver):
             self._dhcp_cfg_path,
         )
 
-    def delete_ports(self, ports: tp.List[models.Port]) -> None:
+    def delete_ports(self, ports: list[models.Port]) -> None:
         ctx = self._load_ctx()
 
         for port in ports:

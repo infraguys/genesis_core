@@ -27,13 +27,13 @@ from exordos_core.common import constants as c
 class TestVSUserApi:
     @staticmethod
     def _profile_factory(
-        uuid: tp.Optional[sys_uuid.UUID] = None,
-        name: tp.Optional[str] = None,
+        uuid: sys_uuid.UUID | None = None,
+        name: str | None = None,
         description: str = "test profile",
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
         profile_type: str = "GLOBAL",
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
         name = name or f"profile_{str(uuid)[:8]}"
         return {
@@ -47,13 +47,13 @@ class TestVSUserApi:
 
     @staticmethod
     def _variable_factory(
-        uuid: tp.Optional[sys_uuid.UUID] = None,
-        name: tp.Optional[str] = None,
+        uuid: sys_uuid.UUID | None = None,
+        name: str | None = None,
         description: str = "test variable",
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
-        setter: tp.Optional[tp.Dict[str, tp.Any]] = None,
+        setter: dict[str, tp.Any] | None = None,
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
         name = name or f"var_{str(uuid)[:8]}"
         if setter is None:
@@ -69,17 +69,17 @@ class TestVSUserApi:
 
     @staticmethod
     def _value_factory(
-        uuid: tp.Optional[sys_uuid.UUID] = None,
-        name: tp.Optional[str] = None,
+        uuid: sys_uuid.UUID | None = None,
+        name: str | None = None,
         description: str = "test value",
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
         value: tp.Any = 1,
-        variable: tp.Optional[str] = None,
+        variable: str | None = None,
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or sys_uuid.uuid4()
         name = name or f"value_{str(uuid)[:8]}"
-        payload: tp.Dict[str, tp.Any] = {
+        payload: dict[str, tp.Any] = {
             "uuid": str(uuid),
             "name": name,
             "description": description,

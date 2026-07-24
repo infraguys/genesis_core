@@ -107,7 +107,7 @@ class Domain(CommonModel, models.ModelWithProject, ua_models.TargetResourceMixin
 
 class AbstractRecord(types_dynamic.AbstractKindModel):
     def get_name(self, domain) -> str:
-        return (".").join((self.name, domain.name)) if self.name else domain.name
+        return f"{self.name}.{domain.name}" if self.name else domain.name
 
     def get_content(self, domain) -> str:
         return str(self.content)

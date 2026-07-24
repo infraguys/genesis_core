@@ -31,7 +31,7 @@ from exordos_core.compute.dm import models
 
 
 class SchedulableToAgentFromAgentFieldMixin(ua_models.SchedulableToAgentMixin):
-    def schedule_to_ua_agent(self, **kwargs) -> tp.Optional[sys_uuid.UUID]:
+    def schedule_to_ua_agent(self, **kwargs) -> sys_uuid.UUID | None:
         """Schedule the resource to the UA agent.
 
         The method returns the node UUID that is equal to the
@@ -43,7 +43,7 @@ class SchedulableToAgentFromAgentFieldMixin(ua_models.SchedulableToAgentMixin):
 class SchedulableToAgentFromPoolMixin(ua_models.SchedulableToAgentMixin):
     def schedule_to_ua_agent(
         self, builder: sdk_builder.UniversalBuilderService, **kwargs
-    ) -> tp.Optional[sys_uuid.UUID]:
+    ) -> sys_uuid.UUID | None:
         """Schedule the resource to the UA agent.
 
         The method returns the node UUID that is equal to the
@@ -73,8 +73,8 @@ class Pool(
 
     @classmethod
     def get_filter_clause(
-        cls, builder: sys_uuid.UUID, pools: tp.List["Pool"]
-    ) -> tp.Optional[tp.Dict[str, dm_filters.AbstractClause]]:
+        cls, builder: sys_uuid.UUID, pools: list["Pool"]
+    ) -> dict[str, dm_filters.AbstractClause] | None:
         """Get filter clause for the instance model.
 
         The clause is returned back to the service to take a chance for
@@ -109,8 +109,8 @@ class MachineVolume(
 
     @classmethod
     def get_filter_clause(
-        cls, builder: sys_uuid.UUID, pools: tp.List[Pool]
-    ) -> tp.Optional[tp.Dict[str, dm_filters.AbstractClause]]:
+        cls, builder: sys_uuid.UUID, pools: list[Pool]
+    ) -> dict[str, dm_filters.AbstractClause] | None:
         """Get filter clause for the instance model.
 
         The clause is returned back to the service to take a chance for
@@ -204,7 +204,7 @@ class PoolMachine(
         cls,
         machine: "Machine",
         port: models.Port,
-        agent_uuid: tp.Optional[str] = None,
+        agent_uuid: str | None = None,
     ) -> "PoolMachine":
         return cls(
             uuid=machine.uuid,
@@ -268,7 +268,7 @@ class Machine(
     models.Machine,
     ua_models.InstanceWithDerivativesMixin,
 ):
-    __derivative_model_map__ = {
+    __derivative_model_map__: tp.ClassVar[dict] = {
         "pool_machine": PoolMachine,
         "guest_machine": GuestMachine,
     }
@@ -282,8 +282,8 @@ class Machine(
 
     @classmethod
     def get_filter_clause(
-        cls, builder: sys_uuid.UUID, pools: tp.List[Pool]
-    ) -> tp.Optional[tp.Dict[str, dm_filters.AbstractClause]]:
+        cls, builder: sys_uuid.UUID, pools: list[Pool]
+    ) -> dict[str, dm_filters.AbstractClause] | None:
         """Get filter clause for the instance model.
 
         The clause is returned back to the service to take a chance for

@@ -29,8 +29,6 @@ class Password(
     models.Password,
     ua_models.InstanceMixin,
 ):
-    pass
-
     @classmethod
     def get_resource_kind(cls) -> str:
         return sc.PASSWORD_KIND
@@ -40,8 +38,6 @@ class Certificate(
     models.Certificate,
     ua_models.InstanceMixin,
 ):
-    pass
-
     @classmethod
     def get_resource_kind(cls) -> str:
         return sc.CERTIFICATE_KIND
@@ -51,8 +47,6 @@ class RSAKey(
     models.RSAKey,
     ua_models.InstanceMixin,
 ):
-    pass
-
     @classmethod
     def get_resource_kind(cls) -> str:
         return sc.RSA_KEY_KIND
@@ -62,8 +56,6 @@ class SSHKey(
     models.SSHKey,
     ua_models.InstanceMixin,
 ):
-    pass
-
     @classmethod
     def get_resource_kind(cls) -> str:
         return sc.SSH_KEY_KIND

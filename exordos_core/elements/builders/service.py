@@ -38,7 +38,7 @@ class CommonBuilder(builder.PaaSBuilder):
 class ServiceNodeBuilder(CommonBuilder):
     def __init__(
         self,
-        instance_model: tp.Type[res_models.Service] = res_models.Service,
+        instance_model: type[res_models.Service] = res_models.Service,
     ):
         super().__init__(instance_model)
 
@@ -52,7 +52,7 @@ class ServiceNodeBuilder(CommonBuilder):
         """
 
         return self.actualize_paas_objects(
-            instance, builder.PaaSCollection(paas_objects=tuple())
+            instance, builder.PaaSCollection(paas_objects=())
         )
 
     def actualize_paas_objects(

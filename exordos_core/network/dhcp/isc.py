@@ -102,7 +102,7 @@ subnet {net_address} netmask {net_mask} {{
 """
 
 
-def rfc3442_static_routes(routes: tp.List[StaticRoute]) -> str:
+def rfc3442_static_routes(routes: list[StaticRoute]) -> str:
     if len(routes) == 0:
         return ""
 
@@ -116,14 +116,14 @@ def rfc3442_static_routes(routes: tp.List[StaticRoute]) -> str:
 
     # Only single route is supported as default
     if default_route := next((r for r in routes if r.is_default), None):
-        route_line = f"option routers {str(default_route.via)};"
+        route_line = f"option routers {default_route.via!s};"
         rfc3442_route_line += default_route.to_rfc3442()
 
     rfc3442_route_line = rfc3442_route_line[:-1] + ";"
     return f"{route_line}\n\t{rfc3442_route_line}\n"
 
 
-def dhcp_config(subnets: tp.Dict[models.Subnet, tp.List[models.Port]]) -> str:
+def dhcp_config(subnets: dict[models.Subnet, list[models.Port]]) -> str:
     # FIXME(akremenetsky): It's considered the subnets aren't intersecting
 
     config = _common_settings
@@ -147,7 +147,7 @@ def dhcp_config(subnets: tp.Dict[models.Subnet, tp.List[models.Port]]) -> str:
             hosts += _host_template.format(
                 mac_address=port.mac,
                 ip_address=port.ipv4,
-                hostname=f"P_{str(port.uuid)}",
+                hostname=f"P_{port.uuid!s}",
             )
 
         if subnet.next_server and ";" not in subnet.next_server:

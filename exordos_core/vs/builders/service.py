@@ -45,7 +45,7 @@ class Variable(
     models.Variable,
     ua_models.InstanceMixin,
 ):
-    __tracked_instances_model_map__ = {
+    __tracked_instances_model_map__: tp.ClassVar[dict] = {
         "vs_profile": Profile,
     }
 
@@ -63,7 +63,7 @@ class Variable(
                 ua_models.RI("vs_profile", p["profile"]) for p in self.setter.profiles
             )
 
-        return tuple()
+        return ()
 
 
 class VSBuilderService(sdk_builder.CollectionUniversalBuilderService):
@@ -86,7 +86,7 @@ class VSBuilderService(sdk_builder.CollectionUniversalBuilderService):
         self,
         instance: ua_models.InstanceMixin,
         resource: ua_models.TargetResource,
-        derivatives: tp.Collection[ua_models.TargetResource] = tuple(),
+        derivatives: tp.Collection[ua_models.TargetResource] = (),
     ) -> None:
         """The hook is performed after saving instance resource.
 
@@ -109,7 +109,7 @@ class VSBuilderService(sdk_builder.CollectionUniversalBuilderService):
         self,
         instance: ua_models.InstanceMixin,
         resource: ua_models.TargetResource,
-        derivatives: tp.Collection[ua_models.TargetResource] = tuple(),
+        derivatives: tp.Collection[ua_models.TargetResource] = (),
     ) -> None:
         """The hook is performed after updating instance resource."""
         # Skip Profile and Value instances

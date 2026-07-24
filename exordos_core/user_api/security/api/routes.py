@@ -14,6 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import typing as tp
+
 from restalchemy.api import routes
 
 from exordos_core.user_api.security.api import controllers
@@ -29,6 +31,6 @@ class SecurityRoute(routes.Route):
     """Handler for /v1/security/ endpoint"""
 
     __controller__ = controllers.SecurityController
-    __allow_methods__ = [routes.FILTER]
+    __allow_methods__: tp.ClassVar[list] = [routes.FILTER]
 
     rules = routes.route(RulesRoute)

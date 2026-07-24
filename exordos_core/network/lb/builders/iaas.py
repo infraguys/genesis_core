@@ -37,7 +37,7 @@ class LBBuilder(builder.CoreInfraBuilder):
 
     def __init__(
         self,
-        instance_model: tp.Type[models.IaasLB],
+        instance_model: type[models.IaasLB],
         project_id: sys_uuid.UUID,
     ):
         super().__init__(instance_model)
@@ -74,7 +74,7 @@ class LBBuilder(builder.CoreInfraBuilder):
         infra: builder.InfraCollection,
     ) -> tp.Collection[ua_models.TargetResourceKindAwareMixin]:
         if instance.type.kind != "core":
-            return tuple()
+            return ()
         nodeset = None
         tgt_nodeset = None
 

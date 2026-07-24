@@ -26,10 +26,10 @@ import pytest
 # collection when they're not available.
 pytest.importorskip("libvirt")
 
-from exordos_core.compute.dm import models  # noqa: E402
-from exordos_core.compute.pool.drivers.libvirt import LibvirtPoolDriver  # noqa: E402
-from exordos_core.compute.pool.drivers.libvirt import XMLLibvirtInstance  # noqa: E402
-from exordos_core.compute.pool.drivers.libvirt import domain_template  # noqa: E402
+from exordos_core.compute.dm import models
+from exordos_core.compute.pool.drivers.libvirt import LibvirtPoolDriver
+from exordos_core.compute.pool.drivers.libvirt import XMLLibvirtInstance
+from exordos_core.compute.pool.drivers.libvirt import domain_template
 
 
 def _local_driver() -> LibvirtPoolDriver:

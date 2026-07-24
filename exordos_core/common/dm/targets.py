@@ -14,7 +14,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import typing as tp
 import uuid as sys_uuid
 
 from restalchemy.dm import filters as dm_filters
@@ -27,11 +26,11 @@ from exordos_core.compute.dm import models as nm
 
 
 class AbstractTarget(types_dynamic.AbstractKindModel, models.SimpleViewMixin):
-    def target_nodes(self) -> tp.List[sys_uuid.UUID]:
+    def target_nodes(self) -> list[sys_uuid.UUID]:
         """Returns list of target nodes where config should be deployed."""
         return []
 
-    def owners(self) -> tp.List[sys_uuid.UUID]:
+    def owners(self) -> list[sys_uuid.UUID]:
         """Return list of owners objects where config bind to.
 
         For instance, the simplest case if an ordinary node config.
@@ -55,10 +54,10 @@ class NodeTarget(AbstractTarget):
     def from_node(cls, node: sys_uuid.UUID) -> "NodeTarget":
         return cls(node=node)
 
-    def target_nodes(self) -> tp.List[sys_uuid.UUID]:
+    def target_nodes(self) -> list[sys_uuid.UUID]:
         return [self.node]
 
-    def owners(self) -> tp.List[sys_uuid.UUID]:
+    def owners(self) -> list[sys_uuid.UUID]:
         """It's the simplest case with an ordinary node config.
 
         In that case, the owner and target is the node itself.
@@ -66,7 +65,7 @@ class NodeTarget(AbstractTarget):
         """
         return [self.node]
 
-    def _fetch_nodes(self) -> tp.List[nm.Node]:
+    def _fetch_nodes(self) -> list[nm.Node]:
         return nm.Node.objects.get_all(filters={"uuid": str(self.node)})
 
     def are_owners_alive(self) -> bool:
@@ -82,10 +81,10 @@ class NodeSetTarget(AbstractTarget):
     def from_node_set(cls, node_set: sys_uuid.UUID) -> "NodeSetTarget":
         return cls(node_set=node_set)
 
-    def target_nodes(self) -> tp.List[sys_uuid.UUID]:
+    def target_nodes(self) -> list[sys_uuid.UUID]:
         return [node.uuid for node in self._fetch_nodes()]
 
-    def owners(self) -> tp.List[sys_uuid.UUID]:
+    def owners(self) -> list[sys_uuid.UUID]:
         """It's the simplest case with an ordinary node config.
 
         In that case, the owner and target is the node itself.
@@ -93,7 +92,7 @@ class NodeSetTarget(AbstractTarget):
         """
         return [self.node_set]
 
-    def _fetch_nodes(self) -> tp.List[nm.Node]:
+    def _fetch_nodes(self) -> list[nm.Node]:
         return nm.Node.objects.get_all(
             filters={"node_set": dm_filters.EQ(str(self.node_set))}
         )

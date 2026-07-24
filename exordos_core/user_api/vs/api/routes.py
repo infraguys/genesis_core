@@ -14,6 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import typing as tp
+
 from restalchemy.api import routes
 
 from exordos_core.user_api.vs.api import controllers
@@ -63,7 +65,7 @@ class ValuesRoute(routes.Route):
 class VSRoute(routes.Route):
     """Handler for /v1/vs/ endpoint"""
 
-    __allow_methods__ = [routes.FILTER]
+    __allow_methods__: tp.ClassVar[list] = [routes.FILTER]
     __controller__ = controllers.ValuesStoreController
 
     profiles = routes.route(ProfilesRoute)

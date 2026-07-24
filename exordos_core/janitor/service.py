@@ -49,7 +49,7 @@ class ExpiredEmailConfirmationCodeJanitorService(basic.BasicService):
         for user in users:
             user.clear_confirmation_code()
 
-        LOG.debug("Users cleaned: %s" % len(users))
+        LOG.debug("Users cleaned: %d", len(users))
 
     def _iteration(self):
         with contexts.Context().session_manager():

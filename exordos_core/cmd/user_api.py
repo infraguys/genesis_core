@@ -122,7 +122,7 @@ def main():
             ),
             host=CONF[DOMAIN].bind_host,
             port=CONF[DOMAIN].bind_port,
-            bjoern_kwargs=dict(reuse_port=True),
+            bjoern_kwargs={"reuse_port": True},
         )
 
         service.add_setup(

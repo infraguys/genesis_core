@@ -26,7 +26,7 @@ from restalchemy.common import exceptions as ra_e
 from restalchemy.storage import exceptions as storage_exc
 
 from exordos_core.compute import constants as nc
-from exordos_core.compute.dm import models as models
+from exordos_core.compute.dm import models
 from exordos_core.user_api.compute.dm import models as user_models
 
 

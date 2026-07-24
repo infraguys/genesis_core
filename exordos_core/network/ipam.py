@@ -50,7 +50,7 @@ class IpamIpRangeOverlap(net_exceptions.CGNetException):
 class Ipam:
     def __init__(
         self,
-        subnet_map: tp.Dict[net_models.Subnet, tp.List[net_models.Port]],
+        subnet_map: dict[net_models.Subnet, list[net_models.Port]],
     ) -> None:
         """
         Initialize IPAM with a subnet map.
@@ -80,7 +80,7 @@ class Ipam:
 
     def calculate_pool(
         self, subnet: net_models.Subnet, ports: tp.Iterable[net_models.Port]
-    ) -> tp.List[tp.Tuple[int, int]]:
+    ) -> list[tuple[int, int]]:
         ip_start, ip_end = subnet.cidr[0], subnet.cidr[-1]
         if subnet.ip_range_pair:
             ip_start, ip_end = subnet.ip_range_pair
@@ -109,7 +109,7 @@ class Ipam:
     def occupy_ip(
         self,
         address: int,
-        address_pool: tp.List[tp.Tuple[int, int]],
+        address_pool: list[tuple[int, int]],
     ) -> None:
         for i, (s, e) in enumerate(address_pool):
             if s == e and s == address:
@@ -140,7 +140,7 @@ class Ipam:
     def allocate_ip(
         self,
         subnet: net_models.Subnet,
-        target_ip: tp.Optional[netaddr.IPAddress] = None,
+        target_ip: netaddr.IPAddress | None = None,
     ) -> netaddr.IPAddress:
         if subnet not in self._pool_map:
             raise IpamUndefinedSubnet(subnet=str(subnet.uuid))

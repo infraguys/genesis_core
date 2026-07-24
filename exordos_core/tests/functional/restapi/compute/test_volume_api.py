@@ -26,8 +26,8 @@ from exordos_core.compute import constants as nc
 class TestVolumeUserApi:
     @staticmethod
     def _volume_cmp_shallow(
-        volume_foo: tp.Dict[str, tp.Any],
-        volume_bar: tp.Dict[str, tp.Any],
+        volume_foo: dict[str, tp.Any],
+        volume_bar: dict[str, tp.Any],
     ) -> bool:
         return all(
             (volume_foo[key] == volume_bar[key])

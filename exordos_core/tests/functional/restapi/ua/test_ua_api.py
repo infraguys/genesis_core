@@ -27,9 +27,9 @@ from exordos_core.user_api.iam import constants as iam_c
 class TestUaAgentsApi:
     @staticmethod
     def _agent_factory(
-        uuid: tp.Optional[sys_uuid.UUID] = None,
-        name: tp.Optional[str] = None,
-        node: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
+        name: str | None = None,
+        node: sys_uuid.UUID | None = None,
         status: str = "ACTIVE",
         **kwargs,
     ) -> sys_uuid.UUID:
@@ -254,9 +254,9 @@ class TestUaAgentsApi:
 class TestUaResourcesApi:
     @staticmethod
     def _resource_factory(
-        uuid: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
         kind: str = "test_kind",
-        value: tp.Optional[tp.Dict[str, tp.Any]] = None,
+        value: dict[str, tp.Any] | None = None,
         status: str = "ACTIVE",
         **kwargs,
     ) -> sys_uuid.UUID:
@@ -379,9 +379,9 @@ class TestUaResourcesApi:
 class TestUaTargetResourcesApi:
     @staticmethod
     def _target_resource_factory(
-        uuid: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
         kind: str = "test_target_kind",
-        value: tp.Optional[tp.Dict[str, tp.Any]] = None,
+        value: dict[str, tp.Any] | None = None,
         status: str = "ACTIVE",
         **kwargs,
     ) -> sys_uuid.UUID:

@@ -25,6 +25,8 @@ from exordos_core.repo.drivers import base
 
 LOG = logging.getLogger(__name__)
 
+LOG = logging.getLogger(__name__)
+
 
 class BootstrapProxyRepoDriver(base.AbstractProxyRepoDriver):
     """Driver for bootstrap repository that reads manifests from local directory."""
@@ -69,7 +71,7 @@ class BootstrapProxyRepoDriver(base.AbstractProxyRepoDriver):
             try:
                 with open(filepath) as f:
                     manifest_data = yaml.safe_load(f)
-            except Exception:
+            except (yaml.YAMLError, OSError):
                 LOG.debug("Failed to load YAML from %s", filepath)
                 continue
 

@@ -33,9 +33,9 @@ class AbstractPoolDriver(abc.ABC):
     @abc.abstractmethod
     def list_pool_resources(
         self,
-    ) -> tp.Tuple[
+    ) -> tuple[
         models.MachinePool,
-        tp.Collection[tp.Tuple[models.Machine, tp.Tuple[models.Port, ...]]],
+        tp.Collection[tuple[models.Machine, tuple[models.Port, ...]]],
         tp.Collection[models.MachineVolume],
     ]:
         """List pool resources."""
@@ -43,7 +43,7 @@ class AbstractPoolDriver(abc.ABC):
     @abc.abstractmethod
     def list_machines(
         self,
-    ) -> tp.List[tp.Tuple[models.Machine, tp.Tuple[models.Port, ...]]]:
+    ) -> list[tuple[models.Machine, tuple[models.Port, ...]]]:
         """Return machine list from data plane."""
 
     @abc.abstractmethod
@@ -52,7 +52,7 @@ class AbstractPoolDriver(abc.ABC):
         machine: models.Machine,
         volumes: tp.Iterable[models.MachineVolume],
         ports: tp.Iterable[models.Port],
-    ) -> tp.Tuple[models.Machine, tp.Tuple[models.Port, ...]]:
+    ) -> tuple[models.Machine, tuple[models.Port, ...]]:
         """Create a new machine."""
 
     @abc.abstractmethod
@@ -64,7 +64,7 @@ class AbstractPoolDriver(abc.ABC):
     @abc.abstractmethod
     def get_machine(
         self, machine: sys_uuid.UUID
-    ) -> tp.Tuple[models.Machine, tp.Tuple[models.Port, ...]]:
+    ) -> tuple[models.Machine, tuple[models.Port, ...]]:
         """Get machine from data plane."""
 
     @abc.abstractmethod
@@ -97,7 +97,7 @@ class AbstractPoolDriver(abc.ABC):
 
     @abc.abstractmethod
     def list_volumes(
-        self, machine: tp.Optional[models.Machine] = None
+        self, machine: models.Machine | None = None
     ) -> tp.Iterable[models.MachineVolume]:
         """Return volume list from data plane."""
 
@@ -121,7 +121,7 @@ class AbstractPoolDriver(abc.ABC):
     def recreate_machine(
         self,
         machine: models.Machine,
-        ports: tp.Optional[tp.Collection[models.Port]] = None,
+        ports: tp.Collection[models.Port] | None = None,
     ) -> None:
         """Recreate the machine."""
 
@@ -159,9 +159,9 @@ class DummyPoolDriver(AbstractPoolDriver):
 
     def list_pool_resources(
         self,
-    ) -> tp.Tuple[
+    ) -> tuple[
         models.MachinePool,
-        tp.Collection[tp.Tuple[models.Machine, tp.Tuple[models.Port, ...]]],
+        tp.Collection[tuple[models.Machine, tuple[models.Port, ...]]],
         tp.Collection[models.MachineVolume],
     ]:
         """List pool resources."""
@@ -175,7 +175,7 @@ class DummyPoolDriver(AbstractPoolDriver):
 
     def list_machines(
         self,
-    ) -> tp.Collection[tp.Tuple[models.Machine, tp.Tuple[models.Port, ...]]]:
+    ) -> tp.Collection[tuple[models.Machine, tuple[models.Port, ...]]]:
         """Create a machine."""
         return []
 
@@ -184,7 +184,7 @@ class DummyPoolDriver(AbstractPoolDriver):
         machine: models.Machine,
         volumes: tp.Iterable[models.MachineVolume],
         ports: tp.Iterable[models.Port],
-    ) -> tp.Tuple[models.Machine, tp.Tuple[models.Port, ...]]:
+    ) -> tuple[models.Machine, tuple[models.Port, ...]]:
         """Create a machine."""
         return machine, ports
 
@@ -195,7 +195,7 @@ class DummyPoolDriver(AbstractPoolDriver):
 
     def get_machine(
         self, machine: sys_uuid.UUID
-    ) -> tp.Tuple[models.Machine, tp.Tuple[models.Port, ...]]:
+    ) -> tuple[models.Machine, tuple[models.Port, ...]]:
         """Get machine from data plane."""
         # Dummy implementation - return a dummy machine
         return (
@@ -208,19 +208,17 @@ class DummyPoolDriver(AbstractPoolDriver):
                 pool_id=sys_uuid.uuid4(),
                 project_id=sys_uuid.uuid4(),
             ),
-            tuple(),
+            (),
         )
 
     def create_volume(self, volume: models.MachineVolume) -> models.MachineVolume:
         """Create a new volume."""
-        pass
 
     def delete_volume(self, volume: models.MachineVolume) -> None:
         """Delete the volume from data plane."""
-        pass
 
     def list_volumes(
-        self, machine: tp.Optional[models.Machine] = None
+        self, machine: models.Machine | None = None
     ) -> tp.Iterable[models.MachineVolume]:
         """Return volume list from data plane."""
         return []
@@ -255,7 +253,7 @@ class DummyPoolDriver(AbstractPoolDriver):
     def recreate_machine(
         self,
         machine: models.Machine,
-        ports: tp.Optional[tp.Collection[models.Port]] = None,
+        ports: tp.Collection[models.Port] | None = None,
     ) -> None:
         """Recreate the machine."""
 

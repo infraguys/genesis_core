@@ -33,12 +33,12 @@ TARGET_IP_KEY = "target_ipv4"
 
 
 class NetworkService(basic.BasicService):
-    def _get_new_vm_nodes(self) -> tp.List[models.NodeWithoutPorts]:
+    def _get_new_vm_nodes(self) -> list[models.NodeWithoutPorts]:
         return models.NodeWithoutPorts.get_vm_nodes()
 
     def _get_new_hw_ports(
         self, subnets: tp.Iterable[net_models.Subnet]
-    ) -> tp.List[net_models.Port]:
+    ) -> list[net_models.Port]:
         ports = []
         nodes = net_models.HWNodeWithoutPorts.get_nodes()
 
@@ -66,7 +66,7 @@ class NetworkService(basic.BasicService):
 
     def _get_subnet_map(
         self,
-    ) -> tp.Dict[net_models.Subnet, tp.List[net_models.Port]]:
+    ) -> dict[net_models.Subnet, list[net_models.Port]]:
         # TODO(akremenetsky): Take all subnets so far.
         # This snippet will be reworked.
         subnets = net_models.Subnet.objects.get_all()
@@ -93,25 +93,25 @@ class NetworkService(basic.BasicService):
         return subnet_map
 
     def _build_network_map(
-        self, subnet_map: tp.Dict[net_models.Subnet, tp.List[net_models.Port]]
-    ) -> tp.DefaultDict[
-        models.Network, tp.Dict[net_models.Subnet, tp.List[net_models.Port]]
+        self, subnet_map: dict[net_models.Subnet, list[net_models.Port]]
+    ) -> collections.defaultdict[
+        models.Network, dict[net_models.Subnet, list[net_models.Port]]
     ]:
         network_map = collections.defaultdict(dict)
 
-        for subnet in subnet_map.keys():
-            network_map[subnet.network][subnet] = subnet_map[subnet]
+        for subnet, value in subnet_map.items():
+            network_map[subnet.network][subnet] = value
 
         return network_map
 
     def _actualize_network(
         self,
         network: models.Network,
-        subnet_map: tp.Dict[net_models.Subnet, tp.List[net_models.Port]],
+        subnet_map: dict[net_models.Subnet, list[net_models.Port]],
     ) -> None:
         driver: net_base.AbstractNetworkDriver = network.load_driver()
         actual_subnets = {s.uuid: s for s in driver.list_subnets()}
-        target_subnets = {s.uuid: s for s in subnet_map.keys()}
+        target_subnets = {s.uuid: s for s in subnet_map}
 
         # Create subnets
         for uuid in target_subnets.keys() - actual_subnets.keys():
@@ -150,7 +150,7 @@ class NetworkService(basic.BasicService):
         driver: net_base.AbstractNetworkDriver,
         actual_subnet: models.Subnet,
         target_subnet: net_models.Subnet,
-        target_ports: tp.List[net_models.Port],
+        target_ports: list[net_models.Port],
     ) -> None:
         actual_ports = {p.uuid: p for p in driver.list_ports(actual_subnet)}
         target_ports = {p.uuid: p for p in target_ports}
@@ -177,7 +177,7 @@ class NetworkService(basic.BasicService):
                 ports = driver.create_ports(ports)
         except Exception:
             LOG.exception("Error creating ports: %s", ports)
-            ports = tuple()
+            ports = ()
 
         for p in ports:
             target_port = target_ports[p.uuid]
@@ -204,7 +204,7 @@ class NetworkService(basic.BasicService):
                 driver.delete_ports(ports)
         except Exception:
             LOG.exception("Error creating ports: %s", ports)
-            ports = tuple()
+            ports = ()
 
         # Actualize ports
         for uuid in actual_ports.keys() & target_ports.keys():
@@ -255,10 +255,10 @@ class NetworkService(basic.BasicService):
         self,
         node: models.NodeWithoutPorts,
         ipam: net_ipam.Ipam,
-        subnet_map: tp.Dict[net_models.Subnet, tp.List[net_models.Port]],
+        subnet_map: dict[net_models.Subnet, list[net_models.Port]],
     ) -> net_models.Port:
         # Figure out the correct subnet
-        for subnet, ports in subnet_map.items():
+        for subnet in subnet_map:
             if self._is_subnet_match(node, subnet):
                 break
         else:

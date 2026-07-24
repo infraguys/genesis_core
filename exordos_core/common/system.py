@@ -14,12 +14,15 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import logging
 import os
 import subprocess
 import typing as tp
 import uuid as sys_uuid
 
 import netaddr
+
+LOG = logging.getLogger(__name__)
 
 
 def system_uuid() -> sys_uuid.UUID:
@@ -44,7 +47,7 @@ def get_memory(meminfo_path: str = "/proc/meminfo") -> int:
     raise RuntimeError(f"Unable to find MemTotal in {meminfo_path}")
 
 
-def get_ifaces(skip_virtual: bool = True) -> tp.List[tp.Dict[str, tp.Any]]:
+def get_ifaces(skip_virtual: bool = True) -> list[dict[str, tp.Any]]:
     """Return interfaces information."""
     ifaces = os.listdir("/sys/class/net")
     virtual_ifaces = set(os.listdir("/sys/devices/virtual/net"))
@@ -74,17 +77,21 @@ def get_ifaces(skip_virtual: bool = True) -> tp.List[tp.Dict[str, tp.Any]]:
             ipv4, _ = value.split("/")
             ipv4_address = netaddr.IPAddress(ipv4)
             mask = netaddr.IPNetwork(value).netmask
-        except Exception:
+        except (
+            netaddr.core.AddrFormatError,
+            IndexError,
+            subprocess.CalledProcessError,
+        ):
             # Unable to detect IPv4 address
-            pass
+            LOG.debug("Unable to detect IPv4 address for interface %s", iface)
 
-        iface_spec = dict(
-            name=iface,
-            mac=mac_address,
-            mtu=int(mtu),
-            ipv4_addresses=(ipv4_address,) if ipv4_address is not None else (),
-            masks=(mask,) if mask is not None else (),
-        )
+        iface_spec = {
+            "name": iface,
+            "mac": mac_address,
+            "mtu": int(mtu),
+            "ipv4_addresses": (ipv4_address,) if ipv4_address is not None else (),
+            "masks": (mask,) if mask is not None else (),
+        }
         result.append(iface_spec)
 
     return result

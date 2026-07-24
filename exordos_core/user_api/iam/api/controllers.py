@@ -68,9 +68,9 @@ class ValidationException(ra_e.RestAlchemyException):
 
 class ValidateMixin:
     __validate_min_length__ = 8
-    __validate_not_contain__: tp.List[str] = [string.whitespace]
-    __validate_must_contain__: tp.List[str] = None  # [digits, punctuation]
-    __validate_regex__: str = None
+    __validate_not_contain__: tp.ClassVar[list[str]] = [string.whitespace]
+    __validate_must_contain__: tp.ClassVar[list[str]] = None  # [digits, punctuation]
+    __validate_regex__: tp.ClassVar[str] = None
 
     def validate(self, value):
         error = None
@@ -301,7 +301,6 @@ class UserController(
         app_endpoint = _get_app_endpoint(req=self._req)
         resource.resend_confirmation_event(app_endpoint=app_endpoint)
         # Don't leak user data
-        return None
 
     def _get_request_iam_client(self) -> models.IamClient | None:
         try:
@@ -346,7 +345,6 @@ class UserController(
 
         resource.confirm_email()
         self._maybe_provision_workspace(resource)
-        return None
 
     @actions.post
     def confirm_email(self, resource, code=None):
@@ -852,17 +850,17 @@ class ClientsController(controllers.BaseResourceControllerPaginated, EnforceMixi
                 client_id=client_id,
                 client_secret=client_secret,
             )
-            payload = dict(
-                password=kwargs.get(c.PARAM_PASSWORD),
-                scope=kwargs.get(c.PARAM_SCOPE, ""),
-                ttl=kwargs.get(c.PARAM_TTL, None),
-                refresh_ttl=kwargs.get(c.PARAM_REFRESH_TTL, None),
-                otp_code=self._req.headers.get(c.HEADER_OTP_CODE, None),
-                root_endpoint=ra_utils.lastslash(
+            payload = {
+                "password": kwargs.get(c.PARAM_PASSWORD),
+                "scope": kwargs.get(c.PARAM_SCOPE, ""),
+                "ttl": kwargs.get(c.PARAM_TTL, None),
+                "refresh_ttl": kwargs.get(c.PARAM_REFRESH_TTL, None),
+                "otp_code": self._req.headers.get(c.HEADER_OTP_CODE, None),
+                "root_endpoint": ra_utils.lastslash(
                     ctx.get_real_url_with_prefix(),
                 ),
-                service_account_uuid=kwargs.get(c.PARAM_SERVICE_ACCOUNT_UUID),
-            )
+                "service_account_uuid": kwargs.get(c.PARAM_SERVICE_ACCOUNT_UUID),
+            }
             login_attr, token_getter = grant_type_map[grant_type]
             payload[login_attr] = kwargs.get(login_attr)
             if not payload[login_attr]:
@@ -1020,12 +1018,12 @@ class WebController:
 class IamWebController(WebController):
     TEMPLATE_DIR = os_path.abspath("web")
 
-    ERROR_FILES = {
+    ERROR_FILES: tp.ClassVar[dict] = {
         404: "errors/404.html",
         500: "errors/500.html",
     }
 
-    RENDER_FILES = [
+    RENDER_FILES: tp.ClassVar[list] = [
         "login/index.html",
     ]
 
@@ -1050,10 +1048,6 @@ class IamWebController(WebController):
             if e.errno == errno.ENOENT:
                 full_path = os_path.join(self.TEMPLATE_DIR, self.ERROR_FILES[404])
                 http_code = 404
-            buff = self._get_file_body(full_path)
-            file_mimetype = mimetypes.guess_file_type(full_path)[0]
-        except Exception:
-            full_path = os_path.join(self.TEMPLATE_DIR, self.ERROR_FILES[500])
             buff = self._get_file_body(full_path)
             file_mimetype = mimetypes.guess_file_type(full_path)[0]
 

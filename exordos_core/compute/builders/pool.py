@@ -99,7 +99,7 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
     def _get_machine_ctx(
         self,
         machine: pool_models.Machine,
-    ) -> tp.Optional[tp.Tuple[models.Port, models.MachineVolume]]:
+    ) -> tuple[models.Port, models.MachineVolume] | None:
         """Get the machine context."""
         if machine.uuid not in self._iteration_context:
             return None
@@ -111,7 +111,7 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
     def _fetch_machine_deps(
         self,
         machine: pool_models.Machine,
-    ) -> tp.Tuple[tp.Collection[models.Port], tp.Collection[models.MachineVolume]]:
+    ) -> tuple[tp.Collection[models.Port], tp.Collection[models.MachineVolume]]:
         """Fetch the machine dependencies."""
         ports = models.Port.objects.get_all(
             filters={"node": dm_filters.EQ(machine.node.uuid)}
@@ -124,7 +124,7 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
     def _get_or_fetch_machine_ctx(
         self,
         machine: pool_models.Machine,
-    ) -> tp.Tuple[tp.Optional[models.Port], tp.Optional[models.MachineVolume]]:
+    ) -> tuple[models.Port | None, models.MachineVolume | None]:
         """Get or fetch the machine context."""
         # Prepare dependencies. Firstly try to get them from the iteration
         # context. If they are not found, fetch them from the database.
@@ -148,7 +148,7 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
         self,
         pool: pool_models.Pool,
         target_machine: pool_models.Machine,
-        actual_machine: tp.Optional[pool_models.Machine] = None,
+        actual_machine: pool_models.Machine | None = None,
     ) -> bool:
         """Check if the pool has enough resources to create the machine."""
         # Calculate how many resources we need to create the machine
@@ -248,16 +248,10 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
         self,
         machine: pool_models.Machine,
         machine_pool_pair: (
-            tp.Optional[
-                tp.Tuple[pool_models.PoolMachine, tp.Optional[pool_models.PoolMachine]]
-            ]
+            tuple[pool_models.PoolMachine, pool_models.PoolMachine | None] | None
         ) = None,
         machine_guest_pair: (
-            tp.Optional[
-                tp.Tuple[
-                    pool_models.GuestMachine, tp.Optional[pool_models.GuestMachine]
-                ]
-            ]
+            tuple[pool_models.GuestMachine, pool_models.GuestMachine | None] | None
         ) = None,
     ) -> tp.Collection[pool_models.PoolMachine | pool_models.GuestMachine]:
         """Actualize the machine derivatives."""
@@ -335,11 +329,9 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
         self,
         machine: pool_models.Machine,
         derivative_pairs: tp.Collection[
-            tp.Tuple[
+            tuple[
                 ua_models.TargetResourceKindAwareMixin,  # The target resource
-                tp.Optional[
-                    ua_models.TargetResourceKindAwareMixin
-                ],  # The actual resource
+                ua_models.TargetResourceKindAwareMixin | None,  # The actual resource
             ]
         ],
     ) -> tp.Collection[ua_models.TargetResourceKindAwareMixin]:
@@ -395,8 +387,8 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
     def _actualize_machine_status(
         self,
         machine: pool_models.Machine,
-        pool_machine: tp.Optional[pool_models.PoolMachine],
-        guest_machine: tp.Optional[pool_models.GuestMachine],
+        pool_machine: pool_models.PoolMachine | None,
+        guest_machine: pool_models.GuestMachine | None,
     ) -> None:
         """Actualize the machine status."""
 
@@ -456,7 +448,7 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
         if agents:
             target_resources = ua_models.TargetResource.objects.get_all(
                 filters={
-                    "agent": dm_filters.In((a.uuid for a in agents)),
+                    "agent": dm_filters.In(a.uuid for a in agents),
                 }
             )
 
@@ -474,7 +466,7 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
         self,
         pool: pool_models.Pool,
         target_volume: pool_models.MachineVolume,
-        actual_volume: tp.Optional[pool_models.MachineVolume] = None,
+        actual_volume: pool_models.MachineVolume | None = None,
     ) -> bool:
         """Check if the pool has enough resources to create the machine."""
         # Calculate how many resources we need to create the machine
@@ -556,7 +548,7 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
 
     # Builder lifecycle hooks
 
-    def prepare_iteration(self) -> tp.Dict[str, tp.Any]:
+    def prepare_iteration(self) -> dict[str, tp.Any]:
         """Perform actions before iteration and return the iteration context.
 
         The result is a dictionary that is passed to the iteration context.
@@ -633,11 +625,9 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
         instance: pool_models.Machine,
         resource: ua_models.TargetResource,
         derivative_pairs: tp.Collection[
-            tp.Tuple[
+            tuple[
                 ua_models.TargetResourceKindAwareMixin,  # The target resource
-                tp.Optional[
-                    ua_models.TargetResourceKindAwareMixin
-                ],  # The actual resource
+                ua_models.TargetResourceKindAwareMixin | None,  # The actual resource
             ]
         ],
     ) -> tp.Collection[pool_models.PoolMachine | pool_models.GuestMachine]:
@@ -746,11 +736,9 @@ class PoolBuilderService(sdk_builder.CollectionUniversalBuilderService):
         self,
         instance: pool_models.Machine,
         derivative_pairs: tp.Collection[
-            tp.Tuple[
+            tuple[
                 ua_models.TargetResourceKindAwareMixin,  # The target resource
-                tp.Optional[
-                    ua_models.TargetResourceKindAwareMixin
-                ],  # The actual resource
+                ua_models.TargetResourceKindAwareMixin | None,  # The actual resource
             ]
         ],
     ) -> tp.Collection[ua_models.TargetResourceKindAwareMixin]:

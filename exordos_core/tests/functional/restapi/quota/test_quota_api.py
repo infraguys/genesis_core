@@ -34,8 +34,8 @@ def project_id():
 class TestQuotaLimitsUserApi:
     @staticmethod
     def _limit_cmp_shallow(
-        a: tp.Dict[str, tp.Any],
-        b: tp.Dict[str, tp.Any],
+        a: dict[str, tp.Any],
+        b: dict[str, tp.Any],
     ) -> bool:
         return all(
             a.get(key, "") == b[key]

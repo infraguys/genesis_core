@@ -35,7 +35,7 @@ class TestSecretsServiceBuilder:
 
     def test_new_ssh_key(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
         ssh_key_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
@@ -68,7 +68,7 @@ class TestSecretsServiceBuilder:
 
         assert len(target_resources) == 2
         assert len(keys) == 1
-        host_key = [r for r in target_resources if r.kind == "ssh_key_target"][0]
+        host_key = next(r for r in target_resources if r.kind == "ssh_key_target")
         key = keys[0]
 
         assert key.status == "IN_PROGRESS"
@@ -82,7 +82,7 @@ class TestSecretsServiceBuilder:
 
     def test_new_ssh_key_fake_node(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
         ssh_key_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
@@ -119,7 +119,7 @@ class TestSecretsServiceBuilder:
 
     def test_in_progress_ssh_keys(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
         ssh_key_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
@@ -151,7 +151,7 @@ class TestSecretsServiceBuilder:
         assert key.status == "IN_PROGRESS"
 
         target_resources = stubs.TargetResource.objects.get_all()
-        host_key = [r for r in target_resources if r.kind == "ssh_key_target"][0]
+        host_key = next(r for r in target_resources if r.kind == "ssh_key_target")
         view = host_key.dump_to_simple_view()
         view.pop("master", None)
         view.pop("master_hash", None)
@@ -175,7 +175,7 @@ class TestSecretsServiceBuilder:
 
     def test_update_ssh_keys(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
         ssh_key_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
@@ -208,7 +208,7 @@ class TestSecretsServiceBuilder:
         assert key.status == "IN_PROGRESS"
 
         target_resources = stubs.TargetResource.objects.get_all()
-        host_key = [r for r in target_resources if r.kind == "ssh_key_target"][0]
+        host_key = next(r for r in target_resources if r.kind == "ssh_key_target")
         view = host_key.dump_to_simple_view()
         view.pop("master", None)
         view.pop("master_hash", None)
@@ -248,7 +248,7 @@ class TestSecretsServiceBuilder:
 
     def test_delete_ssh_keys(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
         ssh_key_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,

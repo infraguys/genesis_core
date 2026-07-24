@@ -18,7 +18,6 @@ import contextlib
 import os
 import pathlib
 import socket
-import typing as tp
 from urllib import parse
 
 from gcl_sdk import migrations as sdk_migrations
@@ -68,7 +67,7 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
 
     @staticmethod
     def get_migration_engine(
-        migrations_path: tp.Optional[str] = None,
+        migrations_path: str | None = None,
     ) -> migrations.MigrationEngine:
         if migrations_path is None:
             migrations_path = os.path.join(
@@ -83,7 +82,7 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
     def apply_migrations(
         cls,
         migration_engine: migrations.MigrationEngine,
-        last_migration: tp.Optional[str] = None,
+        last_migration: str | None = None,
     ) -> None:
         last_migration = last_migration or migration_engine.get_latest_migration()
         migration_engine.apply_migration(last_migration)
@@ -129,7 +128,7 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
                 cls.drop_table(table, session=s, cascade=cascade)
 
     @classmethod
-    def get_all_views(cls, session=None) -> tp.Set[str]:
+    def get_all_views(cls, session=None) -> set[str]:
         with cls.engine.session_manager(session=session) as s:
             if session.engine.dialect.name == "mysql":
                 res = s.execute("""

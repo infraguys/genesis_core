@@ -29,8 +29,8 @@ class TestConfigUserApi:
 
     @staticmethod
     def _config_cmp_shallow(
-        cfg_foo: tp.Dict[str, tp.Any],
-        cfg_bar: tp.Dict[str, tp.Any],
+        cfg_foo: dict[str, tp.Any],
+        cfg_bar: dict[str, tp.Any],
     ):
         return all(
             (cfg_foo[key] == cfg_bar[key])

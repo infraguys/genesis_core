@@ -34,7 +34,7 @@ class TestVSServiceBuilder:
 
     def test_variables_value_depends_on_active_global_profile(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
     ):
         profile_1 = models.Profile(
             name="p1",
@@ -80,7 +80,7 @@ class TestVSServiceBuilder:
 
     def test_variables_value_set_undefined_profile(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
     ):
         profile_1 = models.Profile(
             name="p1",
@@ -133,7 +133,7 @@ class TestVSServiceBuilder:
 
     def test_variables_selector_strategy_latest(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
     ):
         variable = models.Variable(
             name="var_selector",
@@ -176,7 +176,7 @@ class TestVSServiceBuilder:
 
     def test_variables_selector_recalculate_on_delete(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
     ):
         variable = models.Variable(
             name="var_selector",
@@ -228,7 +228,7 @@ class TestVSServiceBuilder:
 
     def test_variables_undefined_no_value_field_in_ua_resource(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
     ):
         variable = models.Variable(
             name="var_selector",

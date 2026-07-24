@@ -14,14 +14,17 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from collections.abc import Generator
 import json
+import logging
 import os
 import tempfile
 import typing as tp
 from typing import Any
-from typing import Generator
 from urllib.parse import urlparse
 import uuid as sys_uuid
+
+LOG = logging.getLogger(__name__)
 
 import bazooka
 from gcl_iam import tokens
@@ -113,7 +116,7 @@ def cleanup_test_entities():
                 if str(obj.uuid).startswith(TEST_UUID_PREFIX):
                     obj.delete()
         except Exception:
-            pass
+            LOG.debug("Failed to clean up %s", model.__name__, exc_info=True)
 
 
 @pytest.fixture(scope="session")
@@ -261,7 +264,7 @@ def auth_test1_user(
         admin_client = user_api_client(auth_user_admin)
         admin_client.delete_user(auth.uuid)
     except Exception:
-        pass
+        LOG.debug("Cleanup failed", exc_info=True)
 
 
 @pytest.fixture()
@@ -302,7 +305,7 @@ def auth_test2_user(
         admin_client = user_api_client(auth_user_admin)
         admin_client.delete_user(auth.uuid)
     except Exception:
-        pass
+        LOG.debug("Cleanup failed", exc_info=True)
 
 
 @pytest.fixture()
@@ -364,17 +367,17 @@ def auth_test1_p1_user(
         admin_client = user_api_client(auth_user_admin)
         admin_client.delete_project(project["uuid"])
     except Exception:
-        pass
+        LOG.debug("Cleanup failed", exc_info=True)
     try:
         admin_client = user_api_client(auth_user_admin)
         admin_client.delete_organization(org["uuid"])
     except Exception:
-        pass
+        LOG.debug("Cleanup failed", exc_info=True)
     try:
         admin_client = user_api_client(auth_user_admin)
         admin_client.delete_user(user["uuid"])
     except Exception:
-        pass
+        LOG.debug("Cleanup failed", exc_info=True)
 
 
 @pytest.fixture()
@@ -431,17 +434,17 @@ def auth_test2_p1_user(
         admin_client = user_api_client(auth_user_admin)
         admin_client.delete_project(project["uuid"])
     except Exception:
-        pass
+        LOG.debug("Cleanup failed", exc_info=True)
     try:
         admin_client = user_api_client(auth_user_admin)
         admin_client.delete_organization(org["uuid"])
     except Exception:
-        pass
+        LOG.debug("Cleanup failed", exc_info=True)
     try:
         admin_client = user_api_client(auth_user_admin)
         admin_client.delete_user(user["uuid"])
     except Exception:
-        pass
+        LOG.debug("Cleanup failed", exc_info=True)
 
 
 @pytest.fixture()
@@ -449,8 +452,8 @@ def user_api_client(user_api, auth_user_admin):
 
     def build_client(
         auth: iam_clients.GenesisCoreAuth,
-        permissions: tp.Optional[tp.List[str]] = None,
-        project_id: tp.Optional[str] = None,
+        permissions: list[str] | None = None,
+        project_id: str | None = None,
     ):
         permissions = permissions or []
         client = iam_clients.GenericAutoRefreshRESTClient(
@@ -483,15 +486,15 @@ def user_api_noauth_client(user_api):
 @pytest.fixture
 def node_factory():
     def factory(
-        uuid: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
         name: str = "node",
         cores: int = 1,
         ram: int = 1024,
         image: str = "ubuntu_24.04",
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
-        status: tp.Optional[str] = None,
+        status: str | None = None,
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or _make_uuid()
         status_value = nc.NodeStatus.NEW.value if status is None else status.value
         node = node_models.Node(
@@ -516,15 +519,15 @@ def node_factory():
 @pytest.fixture
 def node_factory_with_model():
     def factory(
-        uuid: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
         name: str = "node",
         cores: int = 1,
         ram: int = 1024,
         image: str = "ubuntu_24.04",
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
-        status: tp.Optional[str] = None,
+        status: str | None = None,
         **kwargs,
-    ) -> tp.Tuple[tp.Dict[str, tp.Any], node_models.Node]:
+    ) -> tuple[dict[str, tp.Any], node_models.Node]:
         uuid = uuid or _make_uuid()
         status_value = nc.NodeStatus.NEW.value if status is None else status.value
         node = node_models.Node(
@@ -549,7 +552,7 @@ def node_factory_with_model():
 @pytest.fixture
 def node_set_factory():
     def factory(
-        uuid: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
         name: str = "node_set",
         cores: int = 1,
         ram: int = 1024,
@@ -558,7 +561,7 @@ def node_set_factory():
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
         status: str = nc.NodeStatus.NEW.value,
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or _make_uuid()
         obj = node_set_models.NodeSet(
             uuid=uuid,
@@ -581,17 +584,17 @@ def node_set_factory():
 @pytest.fixture
 def pool_factory():
     def factory(
-        uuid: tp.Optional[sys_uuid.UUID] = None,
-        agent: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
+        agent: sys_uuid.UUID | None = None,
         name: str = "pool-default",
-        driver_spec: tp.Optional[dict] = None,
-        status: tp.Optional[str] = None,
+        driver_spec: dict | None = None,
+        status: str | None = None,
         avail_cores: int = 8,
         avail_ram: int = 16384,
         all_cores: int = 8,
         all_ram: int = 16384,
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or _make_uuid()
         driver_spec = (
             {"kind": "libvirt", "connection_uri": "qemu+tcp://127.0.0.1/system"}
@@ -629,10 +632,10 @@ def pool_factory():
 
 
 @pytest.fixture
-def machine_factory(default_pool: tp.Dict[str, tp.Any]):
+def machine_factory(default_pool: dict[str, tp.Any]):
     def factory(
-        uuid: tp.Optional[sys_uuid.UUID] = None,
-        pool: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
+        pool: sys_uuid.UUID | None = None,
         name: str = "node",
         cores: int = 1,
         ram: int = 1024,
@@ -640,7 +643,7 @@ def machine_factory(default_pool: tp.Dict[str, tp.Any]):
         status: str = nc.MachineStatus.ACTIVE.value,
         build_status: str = nc.MachineBuildStatus.READY.value,
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or _make_uuid()
         pool = pool or sys_uuid.UUID(default_pool["uuid"])
         machine = node_models.Machine(
@@ -663,12 +666,12 @@ def machine_factory(default_pool: tp.Dict[str, tp.Any]):
 @pytest.fixture
 def volume_factory():
     def factory(
-        uuid: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
         name: str = "volume-default",
         size: int = 10,
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or _make_uuid()
         volume = node_models.Volume(
             uuid=uuid,
@@ -696,15 +699,15 @@ def volume_factory():
 def config_factory():
     def factory(
         target_node: sys_uuid.UUID,
-        uuid: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
         name: str = "config",
         path: str = "/etc/genesis-configs/config.conf",
         content_body: str = "test",
-        on_change_cmd: tp.Optional[str] = None,
+        on_change_cmd: str | None = None,
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
         status: str = cc.ConfigStatus.NEW.value,
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or _make_uuid()
         target = ct.NodeTarget.from_node(target_node)
         body = conf_models.TextBodyConfig.from_text(content_body)
@@ -733,15 +736,15 @@ def config_factory():
 @pytest.fixture
 def password_factory():
     def factory(
-        uuid: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
         name: str = "password",
-        constructor: tp.Optional[secret_models.AbstractSecretConstructor] = None,
+        constructor: secret_models.AbstractSecretConstructor | None = None,
         method: sc.SecretMethod = sc.SecretMethod.AUTO_HEX,
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
-        status: tp.Optional[cc.ConfigStatus] = None,
-        value: tp.Optional[str] = None,
+        status: cc.ConfigStatus | None = None,
+        value: str | None = None,
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or _make_uuid()
         constructor = (
             secret_models.PlainSecretConstructor()
@@ -772,18 +775,18 @@ def password_factory():
 @pytest.fixture
 def cert_factory():
     def factory(
-        uuid: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
         name: str = "cert",
         domains: tp.Collection[str] = ("genesis-core.tech",),
         email: str = "user@genesis-core.tech",
-        key: tp.Optional[str] = None,
-        cert: tp.Optional[str] = None,
-        constructor: tp.Optional[secret_models.AbstractSecretConstructor] = None,
-        method: tp.Optional[secret_models.AbstractCertificateMethod] = None,
+        key: str | None = None,
+        cert: str | None = None,
+        constructor: secret_models.AbstractSecretConstructor | None = None,
+        method: secret_models.AbstractCertificateMethod | None = None,
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
-        status: tp.Optional[cc.ConfigStatus] = None,
+        status: cc.ConfigStatus | None = None,
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or _make_uuid()
         constructor = (
             secret_models.PlainSecretConstructor()
@@ -825,15 +828,15 @@ def ssh_key_factory():
     def factory(
         target_node: sys_uuid.UUID,
         target_public_key: str,
-        uuid: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
         name: str = "key",
-        constructor: tp.Optional[secret_models.AbstractSecretConstructor] = None,
+        constructor: secret_models.AbstractSecretConstructor | None = None,
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
-        status: tp.Optional[cc.ConfigStatus] = None,
+        status: cc.ConfigStatus | None = None,
         user: str = "root",
         authorized_keys=".ssh/authorized_keys",
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or _make_uuid()
         target = ct.NodeTarget.from_node(target_node)
         constructor = (
@@ -866,7 +869,7 @@ def ssh_key_factory():
 @pytest.fixture
 def pool_builder_factory() -> tp.Callable:
     def factory(
-        uuid: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
         status: str = nc.BuilderStatus.ACTIVE.value,
         **kwargs,
     ) -> sdk_ua_models.UniversalAgent:
@@ -895,10 +898,10 @@ def pool_builder_factory() -> tp.Callable:
 @pytest.fixture
 def interface_factory() -> tp.Callable:
     def factory(
-        uuid: tp.Optional[sys_uuid.UUID] = None,
-        mac: tp.Optional[str] = None,
+        uuid: sys_uuid.UUID | None = None,
+        mac: str | None = None,
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or _make_uuid()
         interface = node_models.Interface(
             uuid=uuid,
@@ -915,12 +918,12 @@ def interface_factory() -> tp.Callable:
 def machine_pool_reservation_factory() -> tp.Callable:
     def factory(
         pool: sys_uuid.UUID,
-        uuid: tp.Optional[sys_uuid.UUID] = None,
-        machine: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
+        machine: sys_uuid.UUID | None = None,
         cores: int = 1,
         ram: int = 1024,
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or _make_uuid()
         reservation = node_models.MachinePoolReservations(
             uuid=uuid,
@@ -939,11 +942,11 @@ def machine_pool_reservation_factory() -> tp.Callable:
 @pytest.fixture
 def lb_factory():
     def factory(
-        uuid: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
         name: str = "load-balancer-default",
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or _make_uuid()
         lb = network_models.LB(
             uuid=uuid,
@@ -965,11 +968,11 @@ def lb_factory():
 @pytest.fixture
 def lb_factory_with_model():
     def factory(
-        uuid: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
         name: str = "load-balancer-default",
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
         **kwargs,
-    ) -> tp.Tuple[tp.Dict[str, tp.Any], network_models.LB]:
+    ) -> tuple[dict[str, tp.Any], network_models.LB]:
         uuid = uuid or _make_uuid()
         lb = network_models.LB(
             uuid=uuid,
@@ -992,7 +995,7 @@ def lb_factory_with_model():
 def vhost_factory():
     def factory(
         lb,
-        uuid: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
         name: str = "vhost-default",
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
         enabled: bool = True,
@@ -1003,7 +1006,7 @@ def vhost_factory():
         external_sources: list[str] | None = None,
         proxy_protocol_from: list[str] | None = None,
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or _make_uuid()
         vhost = network_models.Vhost(
             parent=lb,
@@ -1034,7 +1037,7 @@ def vhost_factory():
 def vhost_factory_with_model():
     def factory(
         lb,
-        uuid: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
         name: str = "vhost-default",
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
         enabled: bool = True,
@@ -1045,7 +1048,7 @@ def vhost_factory_with_model():
         external_sources: list[str] | None = None,
         proxy_protocol_from: list[str] | None = None,
         **kwargs,
-    ) -> tp.Tuple[tp.Dict[str, tp.Any], network_models.Vhost]:
+    ) -> tuple[dict[str, tp.Any], network_models.Vhost]:
         uuid = uuid or _make_uuid()
         vhost = network_models.Vhost(
             parent=lb,
@@ -1077,12 +1080,12 @@ def backend_pool_factory():
     def factory(
         lb,
         endpoints: list[network_models.BackendHostKind],
-        uuid: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
         name: str = "backend-pool-default",
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
         balance: str = network_models.BalanceTypes.RR.value,
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or _make_uuid()
         backend_pool = network_models.BackendPool(
             parent=lb,
@@ -1109,12 +1112,12 @@ def backend_pool_factory_with_model():
     def factory(
         lb,
         endpoints: list[network_models.BackendHostKind],
-        uuid: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
         name: str = "backend-pool-default",
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
         balance: str = network_models.BalanceTypes.RR.value,
         **kwargs,
-    ) -> tp.Tuple[tp.Dict[str, tp.Any], network_models.BackendPool]:
+    ) -> tuple[dict[str, tp.Any], network_models.BackendPool]:
         uuid = uuid or _make_uuid()
         backend_pool = network_models.BackendPool(
             parent=lb,
@@ -1141,12 +1144,12 @@ def route_factory():
     def factory(
         vhost,
         condition: network_models.AbstractHTTPRouteCondKind,
-        uuid: tp.Optional[sys_uuid.UUID] = None,
+        uuid: sys_uuid.UUID | None = None,
         name: str = "route-default",
         project_id: sys_uuid.UUID = c.SERVICE_PROJECT_ID,
         enabled: bool = True,
         **kwargs,
-    ) -> tp.Dict[str, tp.Any]:
+    ) -> dict[str, tp.Any]:
         uuid = uuid or _make_uuid()
         route = network_models.Route(
             parent=vhost,
@@ -1192,7 +1195,7 @@ def default_pool(
     try:
         client.delete(url)
     except Exception:
-        pass
+        LOG.debug("Cleanup failed", exc_info=True)
 
 
 @pytest.fixture
@@ -1231,7 +1234,7 @@ def default_network(
     try:
         network.delete()
     except Exception:
-        pass
+        LOG.debug("Cleanup failed", exc_info=True)
 
 
 @pytest.fixture
@@ -1254,7 +1257,7 @@ def default_subnet(
     try:
         subnet.delete()
     except Exception:
-        pass
+        LOG.debug("Cleanup failed", exc_info=True)
 
 
 @pytest.fixture
@@ -1278,7 +1281,7 @@ def default_machine_agent(
     try:
         agent.delete()
     except Exception:
-        pass
+        LOG.debug("Cleanup failed", exc_info=True)
 
 
 @pytest.fixture
@@ -1308,7 +1311,7 @@ def default_pool_builder(
     try:
         agent.delete()
     except Exception:
-        pass
+        LOG.debug("Cleanup failed", exc_info=True)
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -1468,7 +1471,7 @@ def self_signed_cert():
 
 @pytest.fixture()
 def password_agent_service(
-    default_node: tp.Dict[str, tp.Any],
+    default_node: dict[str, tp.Any],
     user_api_client: iam_clients.GenesisCoreTestRESTClient,
 ):
     agent_uuid = sys_uuid.UUID(default_node["uuid"])
@@ -1499,7 +1502,7 @@ def password_agent_service(
 
 @pytest.fixture()
 def cert_agent_service(
-    default_node: tp.Dict[str, tp.Any],
+    default_node: dict[str, tp.Any],
     user_api_client: iam_clients.GenesisCoreTestRESTClient,
 ):
     agent_uuid = sys_uuid.UUID(default_node["uuid"])

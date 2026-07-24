@@ -44,7 +44,7 @@ class RootVolumeNotFound(ua_driver_exc.AgentDriverException):
 class MetaPool(meta.MetaCoordinatorDataPlaneModel):
     """Machine pool meta model."""
 
-    __driver_map__ = {}
+    __driver_map__: tp.ClassVar[dict] = {}
 
     driver_spec = properties.property(
         types_dynamic.KindModelSelectorType(
@@ -109,7 +109,7 @@ class MetaPool(meta.MetaCoordinatorDataPlaneModel):
         self.__driver_map__[driver_key] = driver
         return driver
 
-    def get_meta_model_fields(self) -> tp.Optional[tp.Set[str]]:
+    def get_meta_model_fields(self) -> set[str] | None:
         """Return a list of meta fields or None.
 
         Meta fields are the fields that cannot be fetched from
@@ -294,9 +294,7 @@ class MetaVolume(meta.MetaCoordinatorDataPlaneModel):
     def _is_root_volume(self) -> bool:
         return self.machine and self.index == 0
 
-    def _has_storage_capacity(
-        self, pool: MetaPool, size: tp.Optional[int] = None
-    ) -> bool:
+    def _has_storage_capacity(self, pool: MetaPool, size: int | None = None) -> bool:
         if not pool.storage_pools:
             return False
 
@@ -306,12 +304,12 @@ class MetaVolume(meta.MetaCoordinatorDataPlaneModel):
         # but we need to support multiple storage pools
         return pool.storage_pools[0].has_capacity(size)
 
-    def _allocate_capacity(self, pool: MetaPool, size: tp.Optional[int] = None) -> None:
+    def _allocate_capacity(self, pool: MetaPool, size: int | None = None) -> None:
         size = size if size is not None else self.size
         storage_pool = pool.storage_pools[0]
         storage_pool.allocate_capacity(size)
 
-    def get_meta_model_fields(self) -> tp.Optional[tp.Set[str]]:
+    def get_meta_model_fields(self) -> set[str] | None:
         """Return a list of meta fields or None.
 
         Meta fields are the fields that cannot be fetched from
@@ -378,7 +376,7 @@ class MetaVolume(meta.MetaCoordinatorDataPlaneModel):
 
         self._attach_volume(pool, driver, dp_volume)
 
-    def restore_from_dp(self, pool: tp.Optional[MetaPool]) -> None:
+    def restore_from_dp(self, pool: MetaPool | None) -> None:
         """Load the pool information."""
         # Prevent actualization when pool is not provided
         if pool is None:
@@ -559,22 +557,19 @@ class MetaMachine(meta.MetaCoordinatorDataPlaneModel):
     def _has_enough_resources(
         self,
         pool: MetaPool,
-        cores: tp.Optional[int] = None,
-        ram: tp.Optional[int] = None,
+        cores: int | None = None,
+        ram: int | None = None,
     ) -> bool:
         if cores is not None and pool.avail_cores < cores:
             return False
 
-        if ram is not None and pool.avail_ram < ram:
-            return False
-
-        return True
+        return not (ram is not None and pool.avail_ram < ram)
 
     def _allocate_resources(
         self,
         pool: MetaPool,
-        cores: tp.Optional[int] = None,
-        ram: tp.Optional[int] = None,
+        cores: int | None = None,
+        ram: int | None = None,
     ) -> None:
         if cores is not None:
             pool.avail_cores -= cores
@@ -582,7 +577,7 @@ class MetaMachine(meta.MetaCoordinatorDataPlaneModel):
         if ram is not None:
             pool.avail_ram -= ram
 
-    def get_meta_model_fields(self) -> tp.Optional[tp.Set[str]]:
+    def get_meta_model_fields(self) -> set[str] | None:
         """Return a list of meta fields or None.
 
         Meta fields are the fields that cannot be fetched from
@@ -664,7 +659,7 @@ class MetaMachine(meta.MetaCoordinatorDataPlaneModel):
         self._allocate_resources(pool, self.cores, self.ram)
 
     def restore_from_dp(
-        self, pool: tp.Optional[MetaPool], volumes: tp.Collection[MetaVolume]
+        self, pool: MetaPool | None, volumes: tp.Collection[MetaVolume]
     ) -> None:
         """Load the machine from the data plane."""
         # Prevent actualization when pool is not provided
@@ -797,13 +792,13 @@ class MetaMachine(meta.MetaCoordinatorDataPlaneModel):
 
 class PoolAgentDriver(meta.MetaCoordinatorAgentDriver):
     # Order matters
-    __model_map__ = {
+    __model_map__: tp.ClassVar[dict] = {
         "pool": MetaPool,
         "pool_volume": MetaVolume,
         "pool_machine": MetaMachine,
     }
 
-    __coordinator_map__ = {
+    __coordinator_map__: tp.ClassVar[dict] = {
         "pool": {},
         "pool_volume": {
             "pool": {

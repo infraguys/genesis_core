@@ -115,7 +115,7 @@ CONF.register_cli_opts(cli_opts)
 
 
 def _persisted_path(dst_path: str) -> str:
-    dst_path = dst_path[1:] if dst_path.startswith("/") else dst_path
+    dst_path = dst_path.removeprefix("/")
     return os.path.join(c.DATA_DIR, dst_path)
 
 

@@ -47,7 +47,7 @@ class RelativeCoreRamWeighter(base.MachinePoolAbstractWeighter):
 
     def weight(
         self,
-        pools: tp.List[base.MachinePoolBundle],
+        pools: list[base.MachinePoolBundle],
     ) -> tp.Iterable[float]:
         """Assign weights to machine pools.
 
@@ -74,7 +74,7 @@ class SimpleMachineWeighter(base.MachineAbstractWeighter):
 
     def weight(
         self,
-        machines: tp.List[base.MachineBundle],
+        machines: list[base.MachineBundle],
     ) -> tp.Iterable[float]:
         """Assign weights to machines.
 
@@ -83,7 +83,7 @@ class SimpleMachineWeighter(base.MachineAbstractWeighter):
         0 means the machine is the worst for the node.
         """
         if not machines:
-            return tuple()
+            return ()
 
         ratios = tuple(self._ratio(m.machine) for m in machines)
 

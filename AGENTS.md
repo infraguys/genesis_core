@@ -1,3 +1,7 @@
+---
+apply: always
+mode: all
+---
 # Exordos Core Agent Guide
 
 ## 1. Think Before Coding

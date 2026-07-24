@@ -36,10 +36,10 @@ MACHINE_POOL_CAP = "pool"
 class SchedulerService(basic.BasicService):
     def __init__(
         self,
-        pool_filters: tp.List[base.MachinePoolAbstractFilter],
-        pool_weighters: tp.List[base.MachinePoolAbstractWeighter],
-        machine_filters: tp.List[base.MachineAbstractFilter],
-        machine_weighters: tp.List[base.MachineAbstractWeighter],
+        pool_filters: list[base.MachinePoolAbstractFilter],
+        pool_weighters: list[base.MachinePoolAbstractWeighter],
+        machine_filters: list[base.MachineAbstractFilter],
+        machine_weighters: list[base.MachineAbstractWeighter],
         iter_min_period: int = 1,
         iter_pause: float = 0.1,
     ):
@@ -51,7 +51,7 @@ class SchedulerService(basic.BasicService):
 
     def _get_pool_builders(
         self, limit: int = nc.DEF_SQL_LIMIT
-    ) -> tp.List[ua_models.UniversalAgent]:
+    ) -> list[ua_models.UniversalAgent]:
         """Get all active builders."""
         return ua_models.UniversalAgent.objects.get_all(
             filters={
@@ -64,7 +64,7 @@ class SchedulerService(basic.BasicService):
 
     def _get_in_update_machines(
         self, limit: int = nc.DEF_SQL_LIMIT
-    ) -> tp.List[models.Machine]:
+    ) -> list[models.Machine]:
         """Get all in update machines."""
         return models.Machine.objects.get_all(
             filters={
@@ -77,7 +77,7 @@ class SchedulerService(basic.BasicService):
 
     def _get_machines_for_nodes(
         self, nodes: tp.Collection[sys_uuid.UUID]
-    ) -> tp.List[models.Machine]:
+    ) -> list[models.Machine]:
         """Get all machines for nodes."""
         return models.Machine.objects.get_all(
             filters={
@@ -87,11 +87,11 @@ class SchedulerService(basic.BasicService):
 
     def _get_unscheduled_nodes(
         self, limit: int = nc.DEF_SQL_LIMIT
-    ) -> tp.Tuple[base.NodeBundle, ...]:
+    ) -> tuple[base.NodeBundle, ...]:
         unscheduled = models.UnscheduledNode.objects.get_all(limit=limit)
 
         if not unscheduled:
-            return tuple()
+            return ()
 
         volumes = models.Volume.objects.get_all(
             filters={
@@ -109,13 +109,13 @@ class SchedulerService(basic.BasicService):
 
     def _get_unscheduled_volumes(
         self, limit: int = nc.DEF_SQL_LIMIT
-    ) -> tp.List[models.UnscheduledVolume]:
+    ) -> list[models.UnscheduledVolume]:
         """Get all unscheduled volumes."""
         return models.UnscheduledVolume.objects.get_all(limit=limit)
 
     def _get_idle_machines(
         self, limit: int = nc.DEF_SQL_LIMIT
-    ) -> tp.Tuple[base.MachineBundle, ...]:
+    ) -> tuple[base.MachineBundle, ...]:
         idle = models.Machine.objects.get_all(
             filters={
                 "node": dm_filters.Is(None),
@@ -125,7 +125,7 @@ class SchedulerService(basic.BasicService):
         )
 
         if not idle:
-            return tuple()
+            return ()
 
         volumes = models.MachineVolume.objects.get_all(
             filters={
@@ -143,16 +143,14 @@ class SchedulerService(basic.BasicService):
 
     def _get_unscheduled_pools(
         self, limit: int = nc.DEF_SQL_LIMIT
-    ) -> tp.List[models.MachinePool]:
+    ) -> list[models.MachinePool]:
         """Get all unscheduled pools."""
         return models.MachinePool.objects.get_all(
             filters={"builder": dm_filters.Is(None)},
             limit=limit,
         )
 
-    def _get_pools(
-        self, limit: int = nc.DEF_SQL_LIMIT
-    ) -> tp.List[base.MachinePoolBundle]:
+    def _get_pools(self, limit: int = nc.DEF_SQL_LIMIT) -> list[base.MachinePoolBundle]:
         """Fetch pools and available volumes in the pools."""
         pools = models.MachinePool.objects.get_all(
             filters={
@@ -311,7 +309,7 @@ class SchedulerService(basic.BasicService):
         pool.pool.avail_cores -= machine.cores
         pool.pool.avail_ram -= machine.ram
 
-    def _schedule_on_existing_machines(self) -> tp.Tuple[base.MachineBundle, ...]:
+    def _schedule_on_existing_machines(self) -> tuple[base.MachineBundle, ...]:
         unscheduled = self._get_unscheduled_nodes()
 
         # TODO(akremenetsky): Idle machines are limited by some number
@@ -462,7 +460,7 @@ class SchedulerService(basic.BasicService):
                     pool.pool.uuid,
                 )
 
-    def _schedule_pools(self, pool_builders: tp.List[ua_models.UniversalAgent]) -> None:
+    def _schedule_pools(self, pool_builders: list[ua_models.UniversalAgent]) -> None:
         unsheduled = self._get_unscheduled_pools()
         if not unsheduled:
             LOG.debug("Nothing to schedule, no unscheduled pools")
@@ -526,7 +524,7 @@ class SchedulerService(basic.BasicService):
             except Exception:
                 LOG.exception("Error scheduling pool %s", pool.uuid)
 
-    def _schedule_volume_on_pools(self, pools: tp.List[base.MachinePoolBundle]) -> None:
+    def _schedule_volume_on_pools(self, pools: list[base.MachinePoolBundle]) -> None:
         """Schedule volumes on pools."""
         unscheduled_volumes = self._get_unscheduled_volumes()
         if not unscheduled_volumes:

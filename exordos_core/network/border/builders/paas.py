@@ -36,7 +36,7 @@ NODE_SET_KIND = lb_models.TargetNodeSet.get_resource_kind()
 class BorderBuilder(builder.PaaSBuilder):
     def __init__(
         self,
-        instance_model: tp.Type[models.PaasBorder] = models.PaasBorder,
+        instance_model: type[models.PaasBorder] = models.PaasBorder,
     ):
         super().__init__(instance_model)
 
@@ -44,7 +44,7 @@ class BorderBuilder(builder.PaaSBuilder):
         self, instance: models.PaasBorder
     ) -> tp.Collection[ua_models.TargetResourceKindAwareMixin]:
         return self.actualize_paas_objects(
-            instance, builder.PaaSCollection(paas_objects=tuple())
+            instance, builder.PaaSCollection(paas_objects=())
         )
 
     def actualize_paas_objects(
@@ -110,7 +110,7 @@ class BorderBuilder(builder.PaaSBuilder):
 
         return actual_resources
 
-    def _get_iaas_nodes(self, instance: models.PaasBorder) -> tp.List[str]:
+    def _get_iaas_nodes(self, instance: models.PaasBorder) -> list[str]:
         """Node uuids of the border VM node set (empty until provisioned)."""
         try:
             res = ua_models.Resource.objects.get_one(

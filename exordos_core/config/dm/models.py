@@ -14,7 +14,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import typing as tp
 import uuid as sys_uuid
 
 from gcl_sdk.agents.universal.dm import models as ua_models
@@ -125,10 +124,10 @@ class Config(
         default="root",
     )
 
-    def target_nodes(self) -> tp.List[sys_uuid.UUID]:
+    def target_nodes(self) -> list[sys_uuid.UUID]:
         return self.target.target_nodes()
 
-    def target_owners(self) -> tp.List[sys_uuid.UUID]:
+    def target_owners(self) -> list[sys_uuid.UUID]:
         return self.target.owners()
 
     def render(self, node: sys_uuid.UUID) -> ua_models.TargetResource:
@@ -155,17 +154,17 @@ class Config(
         return resource
 
     @classmethod
-    def get_new_configs(cls, limit: int = c.DEFAULT_SQL_LIMIT) -> tp.List["Config"]:
+    def get_new_configs(cls, limit: int = c.DEFAULT_SQL_LIMIT) -> list["Config"]:
         return cls.get_new_entities(cls.__tablename__, cc.CONFIG_KIND, limit=limit)
 
     @classmethod
-    def get_updated_configs(cls, limit: int = c.DEFAULT_SQL_LIMIT) -> tp.List["Config"]:
+    def get_updated_configs(cls, limit: int = c.DEFAULT_SQL_LIMIT) -> list["Config"]:
         return cls.get_updated_entities(cls.__tablename__, cc.CONFIG_KIND, limit=limit)
 
     @classmethod
     def get_deleted_config_renders(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
-    ) -> tp.List[ua_models.TargetResource]:
+    ) -> list[ua_models.TargetResource]:
         return cls.get_deleted_target_resources(
             cls.__tablename__, cc.CONFIG_KIND, limit=limit
         )

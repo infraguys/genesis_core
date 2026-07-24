@@ -52,14 +52,14 @@ class TestSchedulerService:
     def teardown_method(self) -> None:
         pass
 
-    def test_nothing_scheduler(self, default_pool: tp.Dict[str, tp.Any]):
+    def test_nothing_scheduler(self, default_pool: dict[str, tp.Any]):
         self._service._iteration()
 
     def test_schedule_pool(
         self,
-        default_pool: tp.Dict[str, tp.Any],
-        default_machine_agent: tp.Dict[str, tp.Any],
-        default_pool_builder: tp.Dict[str, tp.Any],
+        default_pool: dict[str, tp.Any],
+        default_machine_agent: dict[str, tp.Any],
+        default_pool_builder: dict[str, tp.Any],
     ):
         self._service._iteration()
         pool = models.MachinePool.objects.get_all()
@@ -73,10 +73,10 @@ class TestSchedulerService:
 
     def test_schedule_node(
         self,
-        default_pool: tp.Dict[str, tp.Any],
-        default_node: tp.Dict[str, tp.Any],
-        default_machine_agent: tp.Dict[str, tp.Any],
-        default_pool_builder: tp.Dict[str, tp.Any],
+        default_pool: dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
+        default_machine_agent: dict[str, tp.Any],
+        default_pool_builder: dict[str, tp.Any],
     ):
         self._service._iteration()
         self._service._iteration()
@@ -90,10 +90,10 @@ class TestSchedulerService:
 
     def test_schedule_extra_volume_on_scheduled_node(
         self,
-        default_pool: tp.Dict[str, tp.Any],
-        default_node: tp.Dict[str, tp.Any],
-        default_machine_agent: tp.Dict[str, tp.Any],
-        default_pool_builder: tp.Dict[str, tp.Any],
+        default_pool: dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
+        default_machine_agent: dict[str, tp.Any],
+        default_pool_builder: dict[str, tp.Any],
     ):
         # Schedule the node with its root volume first
         self._service._iteration()
@@ -130,9 +130,9 @@ class TestSchedulerService:
 
     def test_schedule_node_no_builders(
         self,
-        default_pool: tp.Dict[str, tp.Any],
-        default_node: tp.Dict[str, tp.Any],
-        default_machine_agent: tp.Dict[str, tp.Any],
+        default_pool: dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
+        default_machine_agent: dict[str, tp.Any],
     ):
         self._service._iteration()
         self._service._iteration()
@@ -144,10 +144,10 @@ class TestSchedulerService:
 
     def test_schedule_unscheduled_machine(
         self,
-        default_pool: tp.Dict[str, tp.Any],
-        default_node: tp.Dict[str, tp.Any],
-        default_machine_agent: tp.Dict[str, tp.Any],
-        default_pool_builder: tp.Dict[str, tp.Any],
+        default_pool: dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
+        default_machine_agent: dict[str, tp.Any],
+        default_pool_builder: dict[str, tp.Any],
         machine_factory: tp.Callable,
     ):
         view = machine_factory(pool=None)
@@ -166,8 +166,8 @@ class TestSchedulerService:
 
     def test_schedule_two_pools_single_iteration(
         self,
-        default_machine_agent: tp.Dict[str, tp.Any],
-        default_pool_builder: tp.Dict[str, tp.Any],
+        default_machine_agent: dict[str, tp.Any],
+        default_pool_builder: dict[str, tp.Any],
         pool_factory: tp.Callable,
         node_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
@@ -211,7 +211,7 @@ class TestSchedulerService:
 
         assert len(pools) == 2
         assert len(machines) == 4
-        assert set(m.pool for m in machines) == {uuid_foo, uuid_bar}
+        assert {m.pool for m in machines} == {uuid_foo, uuid_bar}
         assert collections.Counter(
             str(m.pool) for m in machines
         ) == collections.Counter(**{f"{uuid_foo}": 2, f"{uuid_bar}": 2})
@@ -226,7 +226,7 @@ class TestSchedulerService:
 
     def test_schedule_two_pools_different_iterations(
         self,
-        default_machine_agent: tp.Dict[str, tp.Any],
+        default_machine_agent: dict[str, tp.Any],
         pool_builder_factory: tp.Callable,
         pool_factory: tp.Callable,
         node_factory: tp.Callable,
@@ -276,7 +276,7 @@ class TestSchedulerService:
 
         assert len(pools) == 2
         assert len(machines) == 2
-        assert set(m.pool for m in machines) == {uuid_foo, uuid_bar}
+        assert {m.pool for m in machines} == {uuid_foo, uuid_bar}
         assert collections.Counter(
             str(m.pool) for m in machines
         ) == collections.Counter(**{f"{uuid_foo}": 1, f"{uuid_bar}": 1})
@@ -298,7 +298,7 @@ class TestSchedulerService:
 
         assert len(pools) == 2
         assert len(machines) == 4
-        assert set(m.pool for m in machines) == {uuid_foo, uuid_bar}
+        assert {m.pool for m in machines} == {uuid_foo, uuid_bar}
         assert collections.Counter(
             str(m.pool) for m in machines
         ) == collections.Counter(**{f"{uuid_foo}": 2, f"{uuid_bar}": 2})
@@ -315,9 +315,9 @@ class TestSchedulerService:
 
     def test_schedule_hw_node(
         self,
-        default_pool: tp.Dict[str, tp.Any],
-        default_machine_agent: tp.Dict[str, tp.Any],
-        default_pool_builder: tp.Dict[str, tp.Any],
+        default_pool: dict[str, tp.Any],
+        default_machine_agent: dict[str, tp.Any],
+        default_pool_builder: dict[str, tp.Any],
         machine_factory: tp.Callable,
         pool_factory: tp.Callable,
         node_factory: tp.Callable,
@@ -361,9 +361,9 @@ class TestSchedulerService:
 
     def test_schedule_hw_node_filtered_out_all(
         self,
-        default_pool: tp.Dict[str, tp.Any],
-        default_machine_agent: tp.Dict[str, tp.Any],
-        default_pool_builder: tp.Dict[str, tp.Any],
+        default_pool: dict[str, tp.Any],
+        default_machine_agent: dict[str, tp.Any],
+        default_pool_builder: dict[str, tp.Any],
         machine_factory: tp.Callable,
         pool_factory: tp.Callable,
         node_factory: tp.Callable,
@@ -408,9 +408,9 @@ class TestSchedulerService:
 
     def test_schedule_hw_node_simple_weighter(
         self,
-        default_pool: tp.Dict[str, tp.Any],
-        default_machine_agent: tp.Dict[str, tp.Any],
-        default_pool_builder: tp.Dict[str, tp.Any],
+        default_pool: dict[str, tp.Any],
+        default_machine_agent: dict[str, tp.Any],
+        default_pool_builder: dict[str, tp.Any],
         machine_factory: tp.Callable,
         pool_factory: tp.Callable,
         node_factory: tp.Callable,

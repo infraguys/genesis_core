@@ -101,7 +101,7 @@ def dry_run_decorator(return_index: int | str = 0):
             if getattr(self, "_dry_run", False):
                 # Log method name and all parameters
                 arg_strs = [repr(arg) for arg in args]
-                kwarg_strs = [f"{k}={repr(v)}" for k, v in kwargs.items()]
+                kwarg_strs = [f"{k}={v!r}" for k, v in kwargs.items()]
                 all_params = ", ".join(arg_strs + kwarg_strs)
                 LOG.info("DRY RUN: %s(%s)", func.__name__, all_params)
 
@@ -227,8 +227,8 @@ class XMLLibvirtMixin:
         cls,
         document: minidom.Document,
         tag_name: str,
-        parent: tp.Optional[minidom.Element] = None,
-        text: tp.Optional[str] = None,
+        parent: minidom.Element | None = None,
+        text: str | None = None,
         **kwargs,
     ) -> None:
         root = parent or document.firstChild
@@ -261,9 +261,9 @@ class XMLLibvirtMixin:
         cls,
         docement: minidom.Document,
         tag_name: str,
-        text: tp.Optional[str] = None,
-        meta_tag: tp.Optional[str] = None,
-        parent: tp.Optional[minidom.Element] = None,
+        text: str | None = None,
+        meta_tag: str | None = None,
+        parent: minidom.Element | None = None,
         **kwargs,
     ) -> None:
         root = parent or docement.firstChild
@@ -286,7 +286,7 @@ class XMLLibvirtMixin:
         cls,
         docement: minidom.Document,
         tag: str,
-        text: tp.Optional[str] = None,
+        text: str | None = None,
         **kwargs,
     ) -> None:
         # Remove the old value from the meta
@@ -436,11 +436,11 @@ class XMLLibvirtInstance(XMLLibvirtMixin):
     def interface_xml(
         cls,
         iface_type: NetworkType = "network",
-        source: tp.Optional[str] = None,
+        source: str | None = None,
         model: str = "virtio",
         mtu: int = 1450,
-        mac: tp.Optional[str] = None,
-        rom: tp.Optional[str] = None,
+        mac: str | None = None,
+        rom: str | None = None,
     ) -> str:
         interface = ET.Element("interface", type=iface_type)
 
@@ -471,11 +471,11 @@ class XMLLibvirtInstance(XMLLibvirtMixin):
         cls,
         domain: minidom.Document,
         iface_type: NetworkType = "network",
-        source: tp.Optional[str] = None,
+        source: str | None = None,
         model: str = "virtio",
         mtu: int = 1450,
-        mac: tp.Optional[str] = None,
-        rom: tp.Optional[str] = None,
+        mac: str | None = None,
+        rom: str | None = None,
     ) -> None:
         interface_xml = cls.interface_xml(
             iface_type=iface_type,
@@ -500,7 +500,7 @@ class XMLLibvirtInstance(XMLLibvirtMixin):
     def set_memory(self, memory: int) -> None:
         return self.domain_set_memory(self._domain, memory)
 
-    def set_image(self, image: tp.Optional[str]) -> None:
+    def set_image(self, image: str | None) -> None:
         if image is None:
             return
         return self.domain_set_image(self._domain, image)
@@ -522,11 +522,11 @@ class XMLLibvirtInstance(XMLLibvirtMixin):
     def add_interface(
         self,
         iface_type: NetworkType = "network",
-        source: tp.Optional[str] = None,
+        source: str | None = None,
         model: str = "virtio",
         mtu: int = 1450,
-        mac: tp.Optional[str] = None,
-        rom: tp.Optional[str] = None,
+        mac: str | None = None,
+        rom: str | None = None,
     ) -> None:
         return self.domain_add_interface(
             self._domain,
@@ -586,14 +586,14 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
     def _machine2domain_name(self, machine: models.Machine) -> str:
         machine_prefix = self._spec.machine_prefix or ""
         uuid_prefix = str(machine.uuid)[:8] + "-"
-        return f"{machine_prefix}{uuid_prefix}{str(machine.name)}"
+        return f"{machine_prefix}{uuid_prefix}{machine.name!s}"
 
     def _console_log_path(self, machine: models.Machine) -> str:
         return f"{CONSOLE_LOG_DIR}/{self._machine2domain_name(machine)}.console.log"
 
     def _domain2machine(
-        self, domain: libvirt.virDomain, element: tp.Optional[ET.Element] = None
-    ) -> tp.Tuple[models.Machine, tp.Tuple[models.Port, ...]]:
+        self, domain: libvirt.virDomain, element: ET.Element | None = None
+    ) -> tuple[models.Machine, tuple[models.Port, ...]]:
         element = element or ET.fromstring(domain.XMLDesc())
 
         cores_xml = element.find(f".//{{{GENESIS_NS}}}vcpu")
@@ -670,8 +670,8 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
     def _vir_volume2machine_volume(
         self,
         volume: libvirt.virStorageVol,
-        machine_uuid: tp.Optional[sys_uuid.UUID] = None,
-        index: tp.Optional[int] = None,
+        machine_uuid: sys_uuid.UUID | None = None,
+        index: int | None = None,
     ) -> models.MachineVolume:
         index = index if index is not None else MAX_VOLUME_INDEX
 
@@ -689,7 +689,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
             status=nc.VolumeStatus.ACTIVE.value,
         )
 
-    def _list_interfaces(self, machine: models.Machine) -> tp.List[models.Port]:
+    def _list_interfaces(self, machine: models.Machine) -> list[models.Port]:
         """List all interfaces of the machine."""
         domain = self._client.lookupByUUIDString(str(machine.uuid))
         element = ET.fromstring(domain.XMLDesc())
@@ -720,9 +720,9 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
 
     def _volume_attachments(
         self,
-        domains: tp.Collection[tp.Tuple[libvirt.virDomain, ET.Element]],
+        domains: tp.Collection[tuple[libvirt.virDomain, ET.Element]],
         volumes: tp.Collection[libvirt.virStorageVol],
-    ) -> tp.Dict[libvirt.virStorageVol, tp.Optional[tp.Tuple[libvirt.virDomain, int]]]:
+    ) -> dict[libvirt.virStorageVol, tuple[libvirt.virDomain, int] | None]:
         result = {v: None for v in volumes}
         path_map = {v.path(): v for v in volumes}
 
@@ -754,9 +754,9 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
 
     def _list_volumes(
         self,
-        domains: tp.Collection[tp.Tuple[libvirt.virDomain, ET.Element]],
+        domains: tp.Collection[tuple[libvirt.virDomain, ET.Element]],
         volumes: tp.Collection[libvirt.virStorageVol],
-    ) -> tp.List[models.MachineVolume]:
+    ) -> list[models.MachineVolume]:
         attachments = self._volume_attachments(domains, volumes)
         result = []
 
@@ -769,15 +769,15 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
                 result.append(
                     self._vir_volume2machine_volume(volume, machine_uuid, index=idx)
                 )
-            except Exception:
+            except (libvirt.libvirtError, ValueError, KeyError):
                 LOG.debug("Failed to parse volume %s", volume.name())
 
         return result
 
     def _list_machines(
         self,
-        domains: tp.Collection[tp.Tuple[libvirt.virDomain, tp.Optional[ET.Element]]],
-    ) -> tp.List[tp.Tuple[models.Machine, tp.Tuple[models.Port, ...]]]:
+        domains: tp.Collection[tuple[libvirt.virDomain, ET.Element | None]],
+    ) -> list[tuple[models.Machine, tuple[models.Port, ...]]]:
         """Return machine list from data plane."""
         # If the filter prefix is not set, return all domains
         if not self._spec.machine_prefix:
@@ -811,7 +811,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
 
     def _find_attached_volume_element(
         self, domain: ET.Element, volume: models.MachineVolume
-    ) -> tp.Optional[ET.Element]:
+    ) -> ET.Element | None:
         # Check the volume is attached to the domain
         for disk in domain.find("devices").findall("disk"):
             # Check source and path
@@ -857,7 +857,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
                 sys_uuid.UUID(vol)
                 sys_uuid.UUID(machine[:36])
                 return True
-            except Exception:
+            except (ValueError, AttributeError):
                 return False
 
         return False
@@ -873,9 +873,9 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
 
     def list_pool_resources(
         self,
-    ) -> tp.Tuple[
+    ) -> tuple[
         models.MachinePool,
-        tp.Collection[tp.Tuple[models.Machine, tp.Tuple[models.Port, ...]]],
+        tp.Collection[tuple[models.Machine, tuple[models.Port, ...]]],
         tp.Collection[models.MachineVolume],
     ]:
         pool = self.get_pool_info()
@@ -904,7 +904,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         return pool, (storage_pool,), machines, volumes
 
     def list_volumes(
-        self, machine: tp.Optional[models.Machine] = None
+        self, machine: models.Machine | None = None
     ) -> tp.Iterable[models.MachineVolume]:
         storage_pool = self._client.storagePoolLookupByName(self._spec.storage_pool)
         volumes = storage_pool.listAllVolumes()
@@ -969,12 +969,11 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         # Workaround until https://gitlab.com/libvirt/libvirt/-/commit/29f3c67837cc10dca3023f0bfd50414244c1bbc3
         pool_xml = ET.fromstring(storage_pool.XMLDesc())
         pool_type = StoragePoolType(pool_xml.get("type"))
-        if pool_type.value == "zfs":
-            if storage_pool.isActive():
-                storage_pool.refresh()
-                LOG.warning(
-                    "Due to libvirt<12.4 bug, ZFS storage pool was explicitly refreshed."
-                )
+        if pool_type.value == "zfs" and storage_pool.isActive():
+            storage_pool.refresh()
+            LOG.warning(
+                "Due to libvirt<12.4 bug, ZFS storage pool was explicitly refreshed."
+            )
 
         LOG.debug("The volume %s has been created", volume.uuid)
         return volume
@@ -1245,7 +1244,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
 
     def list_machines(
         self,
-    ) -> tp.List[tp.Tuple[models.Machine, tp.Tuple[models.Port, ...]]]:
+    ) -> list[tuple[models.Machine, tuple[models.Port, ...]]]:
         """Return machine list from data plane."""
         domains = self._client.listAllDomains()
         return self._list_machines(tuple((d, None) for d in domains))
@@ -1256,7 +1255,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         volumes: tp.Iterable[models.MachineVolume],
         ports: tp.Iterable[models.Port],
         legacy_machine: bool = False,
-    ) -> tp.Tuple[models.Machine, tp.Tuple[models.Port, ...]]:
+    ) -> tuple[models.Machine, tuple[models.Port, ...]]:
         """Create a new LibVirt domain."""
         # NOTE(akremenetsky): Unable to apply the dry_run decorator because of
         # the complex return type
@@ -1364,7 +1363,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
 
     def get_machine(
         self, machine: sys_uuid.UUID
-    ) -> tp.Tuple[models.Machine, tp.Tuple[models.Port, ...]]:
+    ) -> tuple[models.Machine, tuple[models.Port, ...]]:
         """Get machine from data plane."""
         domain = self._client.lookupByUUIDString(str(machine))
         return self._domain2machine(domain)
@@ -1476,7 +1475,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
     def recreate_machine(
         self,
         machine: models.Machine,
-        ports: tp.Optional[tp.Collection[models.Port]] = None,
+        ports: tp.Collection[models.Port] | None = None,
     ) -> None:
         """Recreate the machine."""
         if ports is None:
@@ -1499,7 +1498,7 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
         )
         LOG.debug("The domain %s was recreated", machine.uuid)
 
-    def list_storage_pools(self) -> tp.List[models.ThinStoragePool]:
+    def list_storage_pools(self) -> list[models.ThinStoragePool]:
         """List storage pools."""
         pools = []
         _pools = self._client.listAllStoragePools()

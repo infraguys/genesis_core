@@ -57,7 +57,7 @@ class KindModelSelectorType(ra_types_dynamic.KindModelSelectorType):
 
 
 class ModelWithSecret(models.Model, models.CustomPropertiesMixin):
-    __custom_properties__ = {
+    __custom_properties__: tp.ClassVar[dict] = {
         "secret": ra_types.String(min_length=5, max_length=128),
     }
 
@@ -665,7 +665,7 @@ class Organization(
     orm.SQLStorableWithJSONFieldsMixin,
 ):
     __tablename__ = "iam_organizations"
-    __jsonfields__ = ["info"]
+    __jsonfields__: tp.ClassVar[list] = ["info"]
 
     info = properties.property(ra_types.Dict(), default=dict)
 
@@ -1061,7 +1061,7 @@ class IamClient(
     )
 
     @classmethod
-    def get_id_token_signing_alg_values_supported(cls) -> tp.List[str]:
+    def get_id_token_signing_alg_values_supported(cls) -> list[str]:
         selector_type = cls.properties.properties[
             "signature_algorithm"
         ].get_property_type()
@@ -1384,8 +1384,7 @@ class IamClient(
             token.validate_refresh_expiration()
             token.refresh(scope=scope)
             return token
-        else:
-            raise iam_e.InvalidRefreshTokenError()
+        raise iam_e.InvalidRefreshTokenError()
 
     def get_token_by_authorization_code(self, code, redirect_uri):
         for auth_info in IdpAuthorizationInfo.objects.get_all(

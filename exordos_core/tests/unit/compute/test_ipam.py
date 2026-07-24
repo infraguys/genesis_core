@@ -54,24 +54,24 @@ class TestIPAM:
     #         assert e.ip == netaddr.IPAddress("0.0.0.20")
 
     def test_allocate_ip(self, empty_ipam: ipam.Ipam):
-        subnet = list(empty_ipam._pool_map.keys())[0]
+        subnet = next(iter(empty_ipam._pool_map.keys()))
         assert empty_ipam.allocate_ip(subnet) == netaddr.IPAddress("0.0.0.0")
 
     def test_allocate_ip_target(self, empty_ipam: ipam.Ipam):
-        subnet = list(empty_ipam._pool_map.keys())[0]
+        subnet = next(iter(empty_ipam._pool_map.keys()))
         assert empty_ipam.allocate_ip(
             subnet, netaddr.IPAddress("0.0.0.10")
         ) == netaddr.IPAddress("0.0.0.10")
         assert empty_ipam._pool_map[subnet] == [(0, 9), (11, 255)]
 
     def test_allocate_ip_no_available_ips(self, empty_ipam: ipam.Ipam):
-        subnet = list(empty_ipam._pool_map.keys())[0]
+        subnet = next(iter(empty_ipam._pool_map.keys()))
         empty_ipam._pool_map[subnet] = []
         with pytest.raises(ipam.IpamNoIPsAvailable):
             empty_ipam.allocate_ip(subnet)
 
     def test_deallocate_to_start(self, empty_ipam: ipam.Ipam):
-        subnet = list(empty_ipam._pool_map.keys())[0]
+        subnet = next(iter(empty_ipam._pool_map.keys()))
         empty_ipam.occupy_ip(0, empty_ipam._pool_map[subnet])
 
         assert empty_ipam._pool_map[subnet] == [(1, 255)]
@@ -80,7 +80,7 @@ class TestIPAM:
         assert empty_ipam._pool_map[subnet] == [(0, 255)]
 
     def test_deallocate_to_end(self, empty_ipam: ipam.Ipam):
-        subnet = list(empty_ipam._pool_map.keys())[0]
+        subnet = next(iter(empty_ipam._pool_map.keys()))
         empty_ipam.occupy_ip(255, empty_ipam._pool_map[subnet])
 
         assert empty_ipam._pool_map[subnet] == [(0, 254)]
@@ -89,7 +89,7 @@ class TestIPAM:
         assert empty_ipam._pool_map[subnet] == [(0, 255)]
 
     def test_deallocate_in_middle(self, empty_ipam: ipam.Ipam):
-        subnet = list(empty_ipam._pool_map.keys())[0]
+        subnet = next(iter(empty_ipam._pool_map.keys()))
         empty_ipam.occupy_ip(128, empty_ipam._pool_map[subnet])
 
         assert empty_ipam._pool_map[subnet] == [(0, 127), (129, 255)]
@@ -98,14 +98,14 @@ class TestIPAM:
         assert empty_ipam._pool_map[subnet] == [(0, 255)]
 
     def test_deallocate_already_deallocated(self, empty_ipam: ipam.Ipam):
-        subnet = list(empty_ipam._pool_map.keys())[0]
+        subnet = next(iter(empty_ipam._pool_map.keys()))
         assert empty_ipam._pool_map[subnet] == [(0, 255)]
 
         empty_ipam.deallocate_ip(subnet, netaddr.IPAddress("0.0.0.128"))
         assert empty_ipam._pool_map[subnet] == [(0, 255)]
 
     def test_deallocate_not_in_pool(self, empty_ipam: ipam.Ipam):
-        subnet = list(empty_ipam._pool_map.keys())[0]
+        subnet = next(iter(empty_ipam._pool_map.keys()))
         assert empty_ipam._pool_map[subnet] == [(0, 255)]
 
         empty_ipam.deallocate_ip(subnet, netaddr.IPAddress("0.0.1.1"))

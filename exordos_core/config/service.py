@@ -39,27 +39,27 @@ class ConfigServiceBuilder(basic.BasicService):
     def _get_new_configs(
         self,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> tp.List[models.Config]:
+    ) -> list[models.Config]:
         return models.Config.get_new_configs(limit=limit)
 
     def _get_changed_configs(
         self,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> tp.List[models.Config]:
+    ) -> list[models.Config]:
         return models.Config.get_updated_configs(limit=limit)
 
     def _get_deleted_configs(
         self,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> tp.List[ua_models.TargetResource]:
+    ) -> list[ua_models.TargetResource]:
         return models.Config.get_deleted_config_renders(limit=limit)
 
     def _get_outdated_renders(
         self,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> tp.Dict[
+    ) -> dict[
         sys_uuid.UUID,
-        tp.List[tp.Tuple[ua_models.TargetResource, ua_models.Resource]],
+        list[tuple[ua_models.TargetResource, ua_models.Resource]],
     ]:
         renders = ua_models.OutdatedResource.objects.get_all(
             filters={"kind": dm_filters.EQ(cc.RENDER_KIND)},
@@ -75,7 +75,7 @@ class ConfigServiceBuilder(basic.BasicService):
 
     def _get_outdated_configs(
         self, config_uuids: tp.Collection[sys_uuid.UUID]
-    ) -> tp.List[tp.Tuple[models.Config, ua_models.TargetResource]]:
+    ) -> list[tuple[models.Config, ua_models.TargetResource]]:
         configs = models.Config.objects.get_all(
             filters={"uuid": dm_filters.In(str(cfg) for cfg in config_uuids)},
             order_by={"uuid": "asc"},
@@ -93,7 +93,7 @@ class ConfigServiceBuilder(basic.BasicService):
     def _actualize_new_config(
         self,
         config: models.Config,
-        target_nodes: tp.List[node_models.Node],
+        target_nodes: list[node_models.Node],
     ) -> None:
         # Validate the owners exist
         # FIXME(akremenetsky): Only nodes as owners are supported for now.
@@ -135,7 +135,7 @@ class ConfigServiceBuilder(basic.BasicService):
         LOG.debug("Config resource %s created", config_resource.uuid)
 
     def _actualize_new_configs(
-        self, configs: tp.Optional[tp.List[models.Config]] = None
+        self, configs: list[models.Config] | None = None
     ) -> None:
         """Actualize new configs."""
         configs = configs or self._get_new_configs()
@@ -198,7 +198,7 @@ class ConfigServiceBuilder(basic.BasicService):
         self,
         config: models.Config,
         config_resource: ua_models.TargetResource,
-        renders: tp.List[tp.Tuple[ua_models.TargetResource, ua_models.Resource]],
+        renders: list[tuple[ua_models.TargetResource, ua_models.Resource]],
     ) -> None:
         """Actualize outdated config."""
         if len(renders) == 0:
@@ -212,9 +212,7 @@ class ConfigServiceBuilder(basic.BasicService):
             if (
                 actual_render.status == cc.ConfigStatus.ACTIVE
                 and target_render.hash == actual_render.hash
-            ):
-                target_render.status = actual_render.status
-            elif (
+            ) or (
                 actual_render.status != cc.ConfigStatus.ACTIVE
                 and target_render.status != actual_render.status
             ):

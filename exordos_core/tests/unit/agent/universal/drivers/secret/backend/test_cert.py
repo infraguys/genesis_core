@@ -15,7 +15,6 @@
 #    under the License.
 
 import datetime
-import typing as tp
 from unittest.mock import MagicMock
 from unittest.mock import patch
 import uuid as sys_uuid
@@ -31,8 +30,8 @@ from exordos_core.agent.universal.drivers.secret.backend.cert import (
 
 def _make_resource(
     kind: str,
-    uuid: tp.Optional[sys_uuid.UUID] = None,
-    value: tp.Optional[dict] = None,
+    uuid: sys_uuid.UUID | None = None,
+    value: dict | None = None,
 ):
     uuid = uuid or sys_uuid.uuid4()
     value = value or {"uuid": str(uuid)}

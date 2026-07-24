@@ -24,6 +24,8 @@ import urllib.parse
 
 import requests
 
+LOG = logging.getLogger(__name__)
+
 
 class UserAlreadyExistsError(Exception):
     """Raised when a user already exists in IAM."""
@@ -266,7 +268,7 @@ def main(argv: list[str] | None = None) -> int:
         users = json.load(f)
 
     if not isinstance(users, list):
-        raise ValueError("Input JSON must contain a list of users")
+        raise TypeError("Input JSON must contain a list of users")
 
     created = 0
     skipped = 0
@@ -282,7 +284,7 @@ def main(argv: list[str] | None = None) -> int:
         log_username = username or email or ""
 
         if not user_uuid:
-            logging.warning("Skipping user without uuid. username=%s", log_username)
+            LOG.warning("Skipping user without uuid. username=%s", log_username)
             skipped += 1
             continue
 
@@ -295,7 +297,7 @@ def main(argv: list[str] | None = None) -> int:
                 timeout=timeout,
             )
         except requests.RequestException as e:
-            logging.error(
+            LOG.error(
                 "Network error while checking user existence. username=%s uuid=%s error=%s",
                 log_username,
                 user_uuid,
@@ -303,8 +305,8 @@ def main(argv: list[str] | None = None) -> int:
             )
             failed += 1
             continue
-        except Exception as e:
-            logging.error(
+        except Exception as e:  # noqa: BLE001
+            LOG.error(
                 "Failed to check user existence. username=%s uuid=%s error=%s",
                 log_username,
                 user_uuid,
@@ -328,7 +330,7 @@ def main(argv: list[str] | None = None) -> int:
             include_uuid=not args.ignore_uuid,
         )
 
-        logging.info("Creating user. username=%s uuid=%s", log_username, user_uuid)
+        LOG.info("Creating user. username=%s uuid=%s", log_username, user_uuid)
         try:
             _create_user(
                 session=session,
@@ -339,7 +341,7 @@ def main(argv: list[str] | None = None) -> int:
             )
             created += 1
         except UserAlreadyExistsError:
-            logging.info(
+            LOG.info(
                 "User already exists, skipping. username=%s uuid=%s",
                 log_username,
                 user_uuid,
@@ -347,7 +349,7 @@ def main(argv: list[str] | None = None) -> int:
             skipped += 1
             continue
         except requests.RequestException as e:
-            logging.error(
+            LOG.error(
                 "Network error while creating user. username=%s uuid=%s error=%s",
                 log_username,
                 user_uuid,
@@ -355,8 +357,8 @@ def main(argv: list[str] | None = None) -> int:
             )
             failed += 1
             continue
-        except Exception as e:
-            logging.error(
+        except Exception as e:  # noqa: BLE001
+            LOG.error(
                 "Failed to create user. username=%s uuid=%s error=%s",
                 log_username,
                 user_uuid,
@@ -365,7 +367,7 @@ def main(argv: list[str] | None = None) -> int:
             failed += 1
             continue
 
-    logging.info("Done. created=%s skipped=%s failed=%s", created, skipped, failed)
+    LOG.info("Done. created=%s skipped=%s failed=%s", created, skipped, failed)
     return 0
 
 

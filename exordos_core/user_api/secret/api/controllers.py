@@ -48,14 +48,14 @@ class PasswordsController(iam_controllers.PolicyBasedController):
     )
 
     def create(self, **kwargs):
-        if "value" in kwargs:
-            if (
-                kwargs.get("method", sc.SecretMethod.AUTO_HEX.value)
-                != sc.SecretMethod.MANUAL.value
-            ):
-                raise common_exceptions.ValidateException(
-                    err="value is allowed only for MANUAL method"
-                )
+        if (
+            "value" in kwargs
+            and kwargs.get("method", sc.SecretMethod.AUTO_HEX.value)
+            != sc.SecretMethod.MANUAL.value
+        ):
+            raise common_exceptions.ValidateException(
+                err="value is allowed only for MANUAL method"
+            )
 
         return super().create(**kwargs)
 

@@ -14,6 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import typing as tp
+
 from restalchemy.api import routes
 
 from exordos_core.user_api.repo.api import controllers
@@ -68,7 +70,7 @@ class RepoElementRoute(routes.Route):
     """Handler for /v1/repo/elements/ endpoint"""
 
     __controller__ = controllers.RepoElementController
-    __allow_methods__ = [routes.GET, routes.FILTER, routes.DELETE]
+    __allow_methods__: tp.ClassVar[list] = [routes.GET, routes.FILTER, routes.DELETE]
 
     install = routes.action(RepoElementInstallActionRoute, invoke=True)
     uninstall = routes.action(RepoElementUninstallActionRoute, invoke=True)
@@ -80,7 +82,7 @@ class RepoRoute(routes.Route):
     """Handler for /v1/repo/ endpoint"""
 
     __controller__ = controllers.RepoProxyController
-    __allow_methods__ = [routes.FILTER]
+    __allow_methods__: tp.ClassVar[list] = [routes.FILTER]
 
     repositories = routes.route(RepositoryRoute)
     elements = routes.route(RepoElementRoute)

@@ -14,7 +14,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import typing as tp
 from unittest import mock
 import uuid as sys_uuid
 
@@ -37,8 +36,8 @@ def _make_local_hyper_spec(node: sys_uuid.UUID) -> models.ExordosLocalHyperDrive
 
 def _make_agent(
     uuid: sys_uuid.UUID,
-    node: tp.Optional[sys_uuid.UUID] = None,
-    capabilities: tp.Optional[list] = None,
+    node: sys_uuid.UUID | None = None,
+    capabilities: list | None = None,
 ) -> mock.MagicMock:
     agent = mock.MagicMock()
     agent.uuid = uuid
@@ -60,7 +59,7 @@ class TestSchedulePoolsLocalHyper:
 
     def _make_pool(
         self,
-        driver_spec: tp.Optional[models.AbstractPoolDriverSpec] = None,
+        driver_spec: models.AbstractPoolDriverSpec | None = None,
     ) -> mock.MagicMock:
         pool = mock.MagicMock()
         pool.uuid = sys_uuid.uuid4()

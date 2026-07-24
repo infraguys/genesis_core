@@ -52,7 +52,7 @@ class RepoEmBackendClient(client.DatabaseBackendClient):
         session: tp.Any | None = None,
     ):
         super().__init__(
-            model_specs=tuple(),
+            model_specs=(),
             tf_storage=tf_storage,
             session=session,
         )

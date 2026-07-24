@@ -92,7 +92,7 @@ def _fetch_all_users(
 
         batch = response.json()
         if not isinstance(batch, list):
-            raise RuntimeError("Keycloak users endpoint returned non-list JSON")
+            raise TypeError("Keycloak users endpoint returned non-list JSON")
 
         if not batch:
             break

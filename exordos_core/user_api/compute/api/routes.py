@@ -14,6 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import typing as tp
+
 from restalchemy.api import routes
 
 from exordos_core.user_api.compute.api import controllers
@@ -77,7 +79,7 @@ class NodeSetsRoute(routes.Route):
 class ComputeRoute(routes.Route):
     """Handler for /v1/compute/ endpoint"""
 
-    __allow_methods__ = [routes.FILTER]
+    __allow_methods__: tp.ClassVar[list] = [routes.FILTER]
     __controller__ = controllers.ComputeController
 
     volumes = routes.route(VolumesRoute)

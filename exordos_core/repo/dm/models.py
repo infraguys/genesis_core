@@ -167,7 +167,7 @@ class Repository(
     """
 
     __tablename__ = "repo_repositories"
-    __driver_map__ = {}
+    __driver_map__: tp.ClassVar[dict] = {}
 
     status = properties.property(
         ra_types.Enum([s.value for s in RepositoryStatus]),
@@ -230,9 +230,8 @@ class Repository(
                 driver = class_(self)
                 self.__driver_map__[driver_key] = driver
                 return driver
-            except Exception:
-                # Just try another driver
-                pass
+            except (ImportError, AttributeError, TypeError):
+                LOG.debug("Failed to load driver %s", driver_key)
 
         raise ValueError(f"Driver for spec '{self.driver_spec}' not found")
 

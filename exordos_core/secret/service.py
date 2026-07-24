@@ -36,46 +36,46 @@ class SecretServiceBuilder(basic.BasicService):
     def _get_new_certificates(
         self,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> tp.List[models.Certificate]:
+    ) -> list[models.Certificate]:
         return models.Certificate.get_new_certificates(limit=limit)
 
     def _get_changed_certificates(
         self,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> tp.List[models.Certificate]:
+    ) -> list[models.Certificate]:
         return models.Certificate.get_updated_certificates(limit=limit)
 
     def _get_deleted_certificates(
         self,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> tp.List[ua_models.TargetResource]:
+    ) -> list[ua_models.TargetResource]:
         return models.Certificate.get_deleted_certificates(limit=limit)
 
     def _get_new_ssh_keys(
         self,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> tp.List[models.SSHKey]:
+    ) -> list[models.SSHKey]:
         return models.SSHKey.get_new_keys(limit=limit)
 
     def _get_changed_ssh_keys(
         self,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> tp.List[models.SSHKey]:
+    ) -> list[models.SSHKey]:
         return models.SSHKey.get_updated_keys(limit=limit)
 
     def _get_deleted_ssh_keys(
         self,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> tp.List[ua_models.TargetResource]:
+    ) -> list[ua_models.TargetResource]:
         return models.SSHKey.get_deleted_keys(limit=limit)
 
     def _get_outdated_resources(
         self,
         kind: str,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> tp.Dict[
+    ) -> dict[
         sys_uuid.UUID,  # Resource UUID
-        tp.Tuple[ua_models.TargetResource, ua_models.Resource],
+        tuple[ua_models.TargetResource, ua_models.Resource],
     ]:
         outdated = ua_models.OutdatedResource.objects.get_all(
             filters={"kind": dm_filters.EQ(kind)},
@@ -93,7 +93,7 @@ class SecretServiceBuilder(basic.BasicService):
         self,
         model: models.Secret,
         uuids: tp.Collection[sys_uuid.UUID],
-    ) -> tp.List[models.Secret]:
+    ) -> list[models.Secret]:
         return model.objects.get_all(
             filters={"uuid": dm_filters.In(str(p) for p in uuids)},
         )
@@ -101,9 +101,9 @@ class SecretServiceBuilder(basic.BasicService):
     def _get_outdated_ssh_key_hosts(
         self,
         limit: int = c.DEFAULT_SQL_LIMIT,
-    ) -> tp.Dict[
+    ) -> dict[
         sys_uuid.UUID,  # Master UUID
-        tp.List[tp.Tuple[ua_models.TargetResource, ua_models.Resource]],
+        list[tuple[ua_models.TargetResource, ua_models.Resource]],
     ]:
         outdated = ua_models.OutdatedResource.objects.get_all(
             filters={"kind": dm_filters.EQ(sc.SSH_KEY_TARGET_KIND)},
@@ -120,7 +120,7 @@ class SecretServiceBuilder(basic.BasicService):
     def _get_outdated_ssh_keys(
         self,
         masters: tp.Collection[sys_uuid.UUID],
-    ) -> tp.List[tp.Tuple[models.SSHKey, ua_models.TargetResource]]:
+    ) -> list[tuple[models.SSHKey, ua_models.TargetResource]]:
         ssh_key_resources = ua_models.TargetResource.objects.get_all(
             filters={
                 "uuid": dm_filters.In(m for m in masters),
@@ -163,7 +163,7 @@ class SecretServiceBuilder(basic.BasicService):
                 LOG.exception("Error creating cert resource %s", secret.uuid)
 
     def _actualize_changed_secrets(
-        self, kind: str, changed_secrets: tp.Dict[sys_uuid.UUID, models.Secret]
+        self, kind: str, changed_secrets: dict[sys_uuid.UUID, models.Secret]
     ) -> None:
         """Actualize secrets changed by user."""
         if len(changed_secrets) == 0:
@@ -171,7 +171,7 @@ class SecretServiceBuilder(basic.BasicService):
 
         secret_resources = ua_models.TargetResource.objects.get_all(
             filters={
-                "uuid": dm_filters.In(str(p) for p in changed_secrets.keys()),
+                "uuid": dm_filters.In(str(p) for p in changed_secrets),
                 "kind": dm_filters.EQ(kind),
             }
         )
@@ -270,9 +270,7 @@ class SecretServiceBuilder(basic.BasicService):
         if (
             actual_resource.status == sc.SecretStatus.ACTIVE
             and target_resource.hash == actual_resource.hash
-        ):
-            status_updated = True
-        elif (
+        ) or (
             actual_resource.status != sc.SecretStatus.ACTIVE
             and target_resource.status != actual_resource.status
         ):
@@ -326,7 +324,7 @@ class SecretServiceBuilder(basic.BasicService):
     def _actualize_new_ssh_key(
         self,
         key: models.SSHKey,
-        target_nodes: tp.List[nm.Node],
+        target_nodes: list[nm.Node],
     ) -> None:
         # Validate the owners exist
         # FIXME(akremenetsky): Only nodes as owners are supported for now.
@@ -376,9 +374,7 @@ class SecretServiceBuilder(basic.BasicService):
         key_resource.update()
         LOG.debug("SSH key resource %s created", key_resource.uuid)
 
-    def _actualize_new_ssh_keys(
-        self, keys: tp.Collection[models.SSHKey] = tuple()
-    ) -> None:
+    def _actualize_new_ssh_keys(self, keys: tp.Collection[models.SSHKey] = ()) -> None:
         """Actualize new SSH keys."""
         keys = keys or self._get_new_ssh_keys()
 
@@ -434,9 +430,7 @@ class SecretServiceBuilder(basic.BasicService):
         self,
         key: models.SSHKey,
         key_resource: ua_models.TargetResource,
-        host_keys: tp.Collection[
-            tp.Tuple[ua_models.TargetResource, ua_models.Resource]
-        ],
+        host_keys: tp.Collection[tuple[ua_models.TargetResource, ua_models.Resource]],
     ) -> None:
         """Actualize outdated SSH keys."""
         # Update target keys with actual information from the DP.
@@ -444,11 +438,13 @@ class SecretServiceBuilder(basic.BasicService):
             target.full_hash = actual.full_hash
 
             # `ACTIVE` only if the hash is the same
-            if actual.status == sc.SecretStatus.ACTIVE and target.hash == actual.hash:
-                target.status = actual.status
-            elif (
-                actual.status != sc.SecretStatus.ACTIVE
-                and target.status != actual.status
+            if (
+                actual.status == sc.SecretStatus.ACTIVE
+                and target.hash == actual.hash
+                or (
+                    actual.status != sc.SecretStatus.ACTIVE
+                    and target.status != actual.status
+                )
             ):
                 target.status = actual.status
             target.update()

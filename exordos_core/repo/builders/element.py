@@ -129,7 +129,7 @@ class InstalledManifest(
 
 
 class RepoElement(models.RepoElement, ua_models.InstanceWithDerivativesMixin):
-    __derivative_model_map__ = {
+    __derivative_model_map__: tp.ClassVar[dict] = {
         "repo_proxy_installed_element": InstalledManifest,
     }
 
@@ -166,7 +166,7 @@ def _is_installation_in_progress(element: models.RepoElement) -> bool:
 def _matches_version_constraint(
     element: models.RepoElement,
     constraint: dict,
-    name: tp.Optional[str] = None,
+    name: str | None = None,
 ) -> bool:
     """Check whether element version satisfies the dependency constraint.
 
@@ -200,9 +200,7 @@ def _matches_version_constraint(
         return False
     if "<" in constraint and version_key >= _version_key(constraint["<"]):
         return False
-    if "<=" in constraint and version_key > _version_key(constraint["<="]):
-        return False
-    return True
+    return not ("<=" in constraint and version_key > _version_key(constraint["<="]))
 
 
 def _element_sort_key(element: models.RepoElement) -> tuple[bool, int, tuple]:
@@ -339,7 +337,7 @@ class RepoElementBuilderService(
                     element=instance.name,
                 )
 
-            selected = sorted(candidates, key=_element_sort_key)[0]
+            selected = min(candidates, key=_element_sort_key)
             LOG.info(
                 "Selected dependency %s:%s for element %s",
                 selected.name,
@@ -397,7 +395,7 @@ class RepoElementBuilderService(
         self,
         instance: RepoElement,
         resource: ua_models.TargetResource,
-        derivatives: tp.Collection[ua_models.TargetResource] = tuple(),
+        derivatives: tp.Collection[ua_models.TargetResource] = (),
     ) -> None:
         """The hook is performed after saving instance resource.
 

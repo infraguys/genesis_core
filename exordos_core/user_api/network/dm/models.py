@@ -81,7 +81,7 @@ class LB(
     )
     ipsv4 = properties.property(
         types.TypedList(types.String(max_length=15)),
-        default=lambda: [],
+        default=list,
     )
     type = properties.property(
         types_dynamic.KindModelSelectorType(
@@ -248,7 +248,7 @@ class Vhost(ChildModel):
                 types_dynamic.KindModelType(LBExtSourceSSHKind),
             )
         ),
-        default=lambda: [],
+        default=list,
         required=True,
     )
     proxy_protocol_from = properties.property(
@@ -301,8 +301,7 @@ class Vhost(ChildModel):
         }
         for vhost in Vhost.objects.get_all(filters=fltr, limit=1):
             raise ex_exceptions.ValidateException(
-                err="Protocol+port pair conflicts with another vhost %s."
-                % str(vhost.uuid)
+                err=f"Protocol+port pair conflicts with another vhost {vhost.uuid!s}."
             )
         for source in self.external_sources:
             if source.kind == "ssh_forward" and not su.validate_openssh_key(
@@ -387,7 +386,7 @@ class ArchivedTarUrl(types.Url):
     def validate(self, value):
         if not super().validate(value):
             return False
-        return value.endswith("tar.gz") or value.endswith("tar.zst")
+        return value.endswith(("tar.gz", "tar.zst"))
 
 
 class RuleStaticDownloadKind(AbstractRuleKind):
@@ -534,7 +533,7 @@ class AbstractHTTPRouteCondKind(AbstractRouteCondKind):
                 types_dynamic.KindModelType(ModifierRewriteUrlKind),
             )
         ),
-        default=lambda: [],
+        default=list,
     )
 
     def __init__(self, modifiers=None, **kwargs):
@@ -563,7 +562,7 @@ class RouteRegexConditionKind(AbstractHTTPRouteCondKind):
                 types_dynamic.KindModelType(ModifierRewriteUrlKind),
             )
         ),
-        default=lambda: [],
+        default=list,
     )
 
     def __init__(self, modifiers=None, **kwargs):
@@ -679,11 +678,11 @@ class Border(
     # entrypoint consumers point DNAT clients at (like LB.ipsv4).
     ipsv4 = properties.property(
         types.TypedList(types.String(max_length=15)),
-        default=lambda: [],
+        default=list,
     )
     # Inline NAT rules, reconciled as part of the Border resource:
     #   snat_rules: [{source_cidr, mode: "masquerade"|"snat", snat_to}]
     #   forwards:   [{proto: "tcp"|"udp", public_ip, listen_port, to_host,
     #                 to_port}]
-    snat_rules = properties.property(types.List(), default=lambda: [])
-    forwards = properties.property(types.List(), default=lambda: [])
+    snat_rules = properties.property(types.List(), default=list)
+    forwards = properties.property(types.List(), default=list)

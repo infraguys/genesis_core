@@ -14,10 +14,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import logging
+
 from bazooka import exceptions as bazooka_exc
 import pytest
 
 from exordos_core.tests.functional.restapi.iam import base
+
+LOG = logging.getLogger(__name__)
 from exordos_core.user_api.iam import constants as c
 
 
@@ -119,7 +123,7 @@ class TestOrganizations(base.BaseIamResourceTest):
             try:
                 admin_client.delete_organization(org["uuid"])
             except Exception:
-                pass
+                LOG.info("cleanup failed", exc_info=True)
 
     def test_list_all_organizations_test1_auth_success(
         self, user_api_client, auth_user_admin, auth_test1_user
@@ -146,7 +150,7 @@ class TestOrganizations(base.BaseIamResourceTest):
             try:
                 admin_client.delete_organization(org["uuid"])
             except Exception:
-                pass
+                LOG.info("cleanup failed", exc_info=True)
 
     def test_get_any_organization_test1_auth_success(
         self, user_api_client, auth_user_admin, auth_test1_user

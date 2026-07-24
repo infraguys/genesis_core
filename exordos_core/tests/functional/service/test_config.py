@@ -34,13 +34,13 @@ class TestConfigServiceBuilder:
 
     def test_no_configs(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
     ):
         self._service._iteration()
 
     def test_new_config(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
         config_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
@@ -71,8 +71,8 @@ class TestConfigServiceBuilder:
 
         assert len(target_resources) == 2
         assert len(configs) == 1
-        render = [r for r in target_resources if r.kind == "render"][0]
-        config = configs[0]
+        render = next(r for r in target_resources if r.kind == "render")
+        config = next(r for r in configs)
 
         assert config.status == "IN_PROGRESS"
         assert render.status == "IN_PROGRESS"
@@ -85,7 +85,7 @@ class TestConfigServiceBuilder:
 
     def test_new_config_fake_node(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
         config_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
@@ -119,7 +119,7 @@ class TestConfigServiceBuilder:
 
     def test_new_config_render_text(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
         config_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
@@ -144,7 +144,7 @@ class TestConfigServiceBuilder:
         self._service._iteration()
 
         target_resources = ua_models.TargetResource.objects.get_all()
-        render = [r for r in target_resources if r.kind == "render"][0]
+        render = next(r for r in target_resources if r.kind == "render")
 
         assert render.value["content"] == "TEST"
 
@@ -155,7 +155,7 @@ class TestConfigServiceBuilder:
 
     def test_in_progress_configs(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
         config_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
@@ -183,7 +183,7 @@ class TestConfigServiceBuilder:
         assert config.status == "IN_PROGRESS"
 
         target_resources = ua_models.TargetResource.objects.get_all()
-        render = [r for r in target_resources if r.kind == "render"][0]
+        render = next(r for r in target_resources if r.kind == "render")
         view = render.dump_to_simple_view()
         view.pop("master", None)
         view.pop("master_hash", None)
@@ -280,7 +280,7 @@ class TestConfigServiceBuilder:
 
     def test_update_configs(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
         config_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
@@ -309,7 +309,7 @@ class TestConfigServiceBuilder:
         assert config.status == "IN_PROGRESS"
 
         target_resources = ua_models.TargetResource.objects.get_all()
-        render = [r for r in target_resources if r.kind == "render"][0]
+        render = next(r for r in target_resources if r.kind == "render")
         view = render.dump_to_simple_view()
         view.pop("master", None)
         view.pop("master_hash", None)

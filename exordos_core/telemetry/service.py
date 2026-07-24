@@ -129,7 +129,7 @@ class TelemetryService(basic.BasicService):
         # Count by status
         status_counts = {}
         for pool in pools:
-            key = "machine_pools_status_%s" % pool.status.lower()
+            key = f"machine_pools_status_{pool.status.lower()}"
             status_counts[key] = status_counts.get(key, 0) + 1
         data.update(status_counts)
 

@@ -14,6 +14,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+
 import typing as tp
 
 from restalchemy.dm import types
@@ -25,7 +26,7 @@ LOCAL_GC_BOOT_API = "http://core.local.genesis-core.tech:11013"
 
 
 class MachineNetboot(models.Machine):
-    __custom_properties__ = {
+    __custom_properties__: tp.ClassVar[dict] = {
         "gc_host": types.String(max_length=255),
         "gc_boot_api": types.String(max_length=255),
         "kernel": types.AllowNone(types.String(max_length=255)),
@@ -36,8 +37,8 @@ class MachineNetboot(models.Machine):
         self,
         gc_host: str = LOCAL_GC_HOST,
         gc_boot_api: str = LOCAL_GC_BOOT_API,
-        kernel: tp.Optional[str] = None,
-        initrd: tp.Optional[str] = None,
+        kernel: str | None = None,
+        initrd: str | None = None,
         *args,
         **kwargs,
     ):
@@ -49,8 +50,8 @@ class MachineNetboot(models.Machine):
         cls,
         gc_host: str = LOCAL_GC_HOST,
         gc_boot_api: str = LOCAL_GC_BOOT_API,
-        kernel: tp.Optional[str] = None,
-        initrd: tp.Optional[str] = None,
+        kernel: str | None = None,
+        initrd: str | None = None,
         **kwargs,
     ):
         obj = super().restore_from_storage(**kwargs)
@@ -61,8 +62,8 @@ class MachineNetboot(models.Machine):
         self,
         gc_host: str,
         gc_boot_api: str,
-        kernel: tp.Optional[str],
-        initrd: tp.Optional[str],
+        kernel: str | None,
+        initrd: str | None,
     ) -> None:
         self.gc_host = gc_host
         self.gc_boot_api = gc_boot_api

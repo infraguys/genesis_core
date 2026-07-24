@@ -15,7 +15,6 @@
 #    under the License.
 
 import json
-import typing as tp
 
 from gcl_iam.api import controllers as iam_controllers
 from restalchemy.api import actions
@@ -54,7 +53,7 @@ class SchemaController(controllers.Controller):
         self,
         result: dict,
         status_code: int = 200,
-        headers: tp.Optional[dict] = None,
+        headers: dict | None = None,
         add_location: bool = False,
     ) -> webob.Response:
         if headers is not None:

@@ -14,6 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import typing as tp
+
 from gcl_sdk.agents.universal.status_api import routes as status_routes
 from restalchemy.api import routes
 
@@ -24,7 +26,7 @@ class ApiEndpointRoute(routes.Route):
     """Handler for /v1/ endpoint"""
 
     __controller__ = controllers.ApiEndpointController
-    __allow_methods__ = [routes.FILTER]
+    __allow_methods__: tp.ClassVar[list] = [routes.FILTER]
 
     agents = routes.route(status_routes.UniversalAgentsRoute)
     node_verifiers = routes.route(status_routes.NodeVerifiersRoute)

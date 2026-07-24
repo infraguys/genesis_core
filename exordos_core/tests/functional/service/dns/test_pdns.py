@@ -31,10 +31,10 @@ class TestDnsApi:
 
     @staticmethod
     def _cmp_shallow(
-        left: tp.Dict[str, tp.Any],
-        right: tp.Dict[str, tp.Any],
+        left: dict[str, tp.Any],
+        right: dict[str, tp.Any],
     ):
-        return all((left[key] == right[key]) for key in left.keys())
+        return all((left[key] == right[key]) for key in left)
 
     @pytest.fixture()
     def domain1(
@@ -76,8 +76,8 @@ class TestDnsApi:
         self,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
-        domain1: tp.Dict,
-        pdns_server: tp.Optional[int],
+        domain1: dict,
+        pdns_server: int | None,
     ):
         client = user_api_client(auth_user_admin)
 
@@ -127,8 +127,8 @@ class TestDnsApi:
         self,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
-        domain1: tp.Dict,
-        pdns_server: tp.Optional[int],
+        domain1: dict,
+        pdns_server: int | None,
     ):
         client = user_api_client(auth_user_admin)
 
@@ -176,8 +176,8 @@ class TestDnsApi:
         self,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
-        domain1: tp.Dict,
-        pdns_server: tp.Optional[int],
+        domain1: dict,
+        pdns_server: int | None,
     ):
         client = user_api_client(auth_user_admin)
 

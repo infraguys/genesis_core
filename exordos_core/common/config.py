@@ -15,35 +15,31 @@
 #    under the License.
 
 import logging
-import typing as tp
 
 from oslo_config import cfg
 
 from exordos_core import version
 from exordos_core.common import constants
 
+LOG = logging.getLogger(__name__)
+
 GLOBAL_SERVICE_NAME = constants.GLOBAL_SERVICE_NAME
 _CONFIG_NOT_FOUND_MESSAGE = (
-    "Unable to find configuration file in the"
-    " default search paths (~/.%(service_name)s/, ~/,"
-    " /etc/%(service_name)s/, /etc/) and the '--config-file' option!"
-    % {"service_name": GLOBAL_SERVICE_NAME}
+    f"Unable to find configuration file in the"
+    f" default search paths (~/.{GLOBAL_SERVICE_NAME}/, ~/,"
+    f" /etc/{GLOBAL_SERVICE_NAME}/, /etc/) and the '--config-file' option!"
 )
 
 
-def parse(args, conf: tp.Optional[cfg.ConfigOpts] = None):
+def parse(args, conf: cfg.ConfigOpts | None = None):
     if not conf:
         conf = cfg.CONF
 
     conf(
         args=args,
         project=GLOBAL_SERVICE_NAME,
-        version="%s %s"
-        % (
-            GLOBAL_SERVICE_NAME.capitalize(),
-            version.version_info,
-        ),
+        version=f"{GLOBAL_SERVICE_NAME.capitalize()} {version.version_info}",
     )
     if not conf.config_file:
-        logging.warning(_CONFIG_NOT_FOUND_MESSAGE)
+        LOG.warning(_CONFIG_NOT_FOUND_MESSAGE)
     return conf.config_file

@@ -14,6 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import typing as tp
+
 from restalchemy.api import routes
 
 from exordos_core.user_api.secret.api import controllers
@@ -46,7 +48,7 @@ class RSAKeysRoute(routes.Route):
 class SecretRoute(routes.Route):
     """Handler for /v1/secret/ endpoint"""
 
-    __allow_methods__ = [routes.FILTER]
+    __allow_methods__: tp.ClassVar[list] = [routes.FILTER]
     __controller__ = controllers.SecretController
 
     passwords = routes.route(PasswordsRoute)

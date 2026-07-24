@@ -33,7 +33,7 @@ class Volume(
     ua_models.InstanceMixin,
     ua_models.DependenciesExistReadinessMixin,
 ):
-    __tracked_instances_model_map__ = {
+    __tracked_instances_model_map__: tp.ClassVar[dict] = {
         "pool_volume": models.MachineVolume,
     }
 
@@ -76,7 +76,7 @@ class VolumeBuilderService(sdk_builder.UniversalBuilderService):
     # Internal methods
 
     def _actualize_machine_volume(
-        self, target: Volume, actual: tp.Optional[Volume] = None
+        self, target: Volume, actual: Volume | None = None
     ) -> None:
         """Update volume based on actual node data."""
         # Check if volumes are already up to date
@@ -123,7 +123,7 @@ class VolumeBuilderService(sdk_builder.UniversalBuilderService):
         self,
         instance: Volume,
         resource: ua_models.TargetResource,
-        derivatives: tp.Collection[ua_models.TargetResource] = tuple(),
+        derivatives: tp.Collection[ua_models.TargetResource] = (),
     ) -> None:
         """The hook is performed after saving instance resource.
 

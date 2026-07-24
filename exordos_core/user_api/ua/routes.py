@@ -14,6 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import typing as tp
+
 from restalchemy.api import routes
 
 from exordos_core.user_api.ua import controllers
@@ -28,7 +30,7 @@ class IssueKeyAction(routes.Action):
 class AgentsRoute(routes.Route):
     """Handler for /v1/ua/agents/ endpoint"""
 
-    __allow_methods__ = [routes.FILTER, routes.GET, routes.CREATE]
+    __allow_methods__: tp.ClassVar[list] = [routes.FILTER, routes.GET, routes.CREATE]
     __controller__ = controllers.AgentController
 
     issue_key = routes.action(IssueKeyAction, invoke=True)
@@ -37,14 +39,14 @@ class AgentsRoute(routes.Route):
 class ResourcesRoute(routes.Route):
     """Handler for /v1/ua/resources/ endpoint"""
 
-    __allow_methods__ = [routes.FILTER, routes.GET]
+    __allow_methods__: tp.ClassVar[list] = [routes.FILTER, routes.GET]
     __controller__ = controllers.ResourceController
 
 
 class TargetResourcesRoute(routes.Route):
     """Handler for /v1/ua/target_resources/ endpoint"""
 
-    __allow_methods__ = [routes.FILTER, routes.GET]
+    __allow_methods__: tp.ClassVar[list] = [routes.FILTER, routes.GET]
     __controller__ = controllers.TargetResourceController
 
 
@@ -52,7 +54,7 @@ class UaRoute(routes.Route):
     """Handler for /v1/ua/ endpoint"""
 
     __controller__ = controllers.InternalController
-    __allow_methods__ = [routes.FILTER]
+    __allow_methods__: tp.ClassVar[list] = [routes.FILTER]
 
     agents = routes.route(AgentsRoute)
     resources = routes.route(ResourcesRoute)

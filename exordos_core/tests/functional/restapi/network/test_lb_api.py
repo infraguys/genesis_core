@@ -26,8 +26,8 @@ from exordos_core.user_api.network.dm import models as nm
 class TestLBApi:
     @staticmethod
     def _lb_cmp_shallow(
-        lb_foo: tp.Dict[str, tp.Any],
-        lb_bar: tp.Dict[str, tp.Any],
+        lb_foo: dict[str, tp.Any],
+        lb_bar: dict[str, tp.Any],
     ) -> bool:
         return all(
             (lb_foo[key] == lb_bar[key])
@@ -39,8 +39,8 @@ class TestLBApi:
 
     @staticmethod
     def _vhost_cmp_shallow(
-        vhost_foo: tp.Dict[str, tp.Any],
-        vhost_bar: tp.Dict[str, tp.Any],
+        vhost_foo: dict[str, tp.Any],
+        vhost_bar: dict[str, tp.Any],
     ) -> bool:
         return all(
             (vhost_foo[key] == vhost_bar[key])
@@ -55,8 +55,8 @@ class TestLBApi:
 
     @staticmethod
     def _backend_pool_cmp_shallow(
-        backend_pool_foo: tp.Dict[str, tp.Any],
-        backend_pool_bar: tp.Dict[str, tp.Any],
+        backend_pool_foo: dict[str, tp.Any],
+        backend_pool_bar: dict[str, tp.Any],
     ) -> bool:
         return all(
             (backend_pool_foo[key] == backend_pool_bar[key])
@@ -65,8 +65,8 @@ class TestLBApi:
 
     @staticmethod
     def _route_cmp_shallow(
-        route_foo: tp.Dict[str, tp.Any],
-        route_bar: tp.Dict[str, tp.Any],
+        route_foo: dict[str, tp.Any],
+        route_bar: dict[str, tp.Any],
     ) -> bool:
         return all(
             (route_foo[key] == route_bar[key])

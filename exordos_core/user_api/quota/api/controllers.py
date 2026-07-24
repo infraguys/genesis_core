@@ -51,7 +51,7 @@ class QuotaLimitController(
         if not isinstance(
             quota_property.get_property_type(), (types.Integer, types.Float)
         ):
-            raise ValueError(f"Quota field must be an integer: {field_name}")
+            raise TypeError(f"Quota field must be an integer: {field_name}")
 
     def create(self, **kwargs):
         self._validate_quota_field(

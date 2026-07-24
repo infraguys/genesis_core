@@ -76,7 +76,7 @@ class RepoProxyBuilderService(
         self,
         instance: Repository,
         resource: ua_models.TargetResource,
-        derivatives: tp.Collection[ua_models.TargetResource] = tuple(),
+        derivatives: tp.Collection[ua_models.TargetResource] = (),
     ) -> None:
         """The hook is performed after saving instance resource.
 
@@ -182,7 +182,7 @@ class RepoProxyBuilderService(
         self,
         instance: models.Repository,
         resource: ua_models.TargetResource,
-        derivatives: tp.Collection[ua_models.TargetResource] = tuple(),
+        derivatives: tp.Collection[ua_models.TargetResource] = (),
     ) -> None:
         """Handle repository refresh if next_refresh time has passed."""
         super().post_update_instance_resource(instance, resource, derivatives)

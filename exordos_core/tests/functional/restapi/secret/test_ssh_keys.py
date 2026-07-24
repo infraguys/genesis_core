@@ -29,8 +29,8 @@ class TestSSHKeysUserApi:
 
     @staticmethod
     def _secret_cmp_shallow(
-        cfg_foo: tp.Dict[str, tp.Any],
-        cfg_bar: tp.Dict[str, tp.Any],
+        cfg_foo: dict[str, tp.Any],
+        cfg_bar: dict[str, tp.Any],
     ):
         return all(
             (cfg_foo[key] == cfg_bar[key])
@@ -63,7 +63,7 @@ class TestSSHKeysUserApi:
 
     def test_ssh_keys_add(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
         ssh_key_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
@@ -84,7 +84,7 @@ class TestSSHKeysUserApi:
 
     def test_ssh_keys_add_several(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
         ssh_key_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
@@ -111,7 +111,7 @@ class TestSSHKeysUserApi:
 
     def test_ssh_keys_add_same(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
         ssh_key_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
@@ -141,7 +141,7 @@ class TestSSHKeysUserApi:
 
     def test_ssh_keys_update(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
         ssh_key_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
@@ -175,7 +175,7 @@ class TestSSHKeysUserApi:
 
     def test_ssh_keys_update_status_new(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
         ssh_key_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
@@ -216,7 +216,7 @@ class TestSSHKeysUserApi:
 
     def test_ssh_keys_delete(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
         ssh_key_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
@@ -243,7 +243,7 @@ class TestSSHKeysUserApi:
 
     def test_ssh_keys_update_unable_update_status(
         self,
-        default_node: tp.Dict[str, tp.Any],
+        default_node: dict[str, tp.Any],
         ssh_key_factory: tp.Callable,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,

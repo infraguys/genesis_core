@@ -58,7 +58,7 @@ class TestComputeBootApi:
         CONF[boot_api_cmd.DOMAIN].gc_host = "10.20.0.2"
 
         uuid = sys_uuid.uuid4()
-        url = urljoin(boot_api.base_url, f"boots/{str(uuid)}")
+        url = urljoin(boot_api.base_url, f"boots/{uuid!s}")
 
         response = requests.get(url)
 
@@ -114,7 +114,7 @@ class TestComputeBootApi:
         CONF[boot_api_cmd.DOMAIN].initrd = "https://kernel.org/initrd.img"
 
         uuid = sys_uuid.uuid4()
-        url = urljoin(boot_api.base_url, f"boots/{str(uuid)}")
+        url = urljoin(boot_api.base_url, f"boots/{uuid!s}")
 
         response = requests.get(url)
 

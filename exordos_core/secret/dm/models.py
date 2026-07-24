@@ -85,7 +85,7 @@ class Password(
         default=None,
     )
 
-    def get_resource_target_fields(self) -> tp.Set[str]:
+    def get_resource_target_fields(self) -> set[str]:
         """Return the collection of target fields.
 
         Refer to the Resource model for more details about target fields.
@@ -106,13 +106,13 @@ class Password(
         return fields
 
     @classmethod
-    def get_new_passwords(cls, limit: int = c.DEFAULT_SQL_LIMIT) -> tp.List["Password"]:
+    def get_new_passwords(cls, limit: int = c.DEFAULT_SQL_LIMIT) -> list["Password"]:
         return cls.get_new_entities(cls.__tablename__, sc.PASSWORD_KIND, limit=limit)
 
     @classmethod
     def get_updated_passwords(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
-    ) -> tp.List["Password"]:
+    ) -> list["Password"]:
         return cls.get_updated_entities(
             cls.__tablename__, sc.PASSWORD_KIND, limit=limit
         )
@@ -120,7 +120,7 @@ class Password(
     @classmethod
     def get_deleted_passwords(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
-    ) -> tp.List[ua_models.TargetResource]:
+    ) -> list[ua_models.TargetResource]:
         return cls.get_deleted_target_resources(
             cls.__tablename__, sc.PASSWORD_KIND, limit=limit
         )
@@ -143,7 +143,7 @@ class Certificate(
     ua_models.TargetResourceSQLStorableMixin,
 ):
     __tablename__ = "secret_certificates"
-    __jsonfields__ = ["domains"]
+    __jsonfields__: tp.ClassVar[list] = ["domains"]
 
     method = properties.property(
         types_dynamic.KindModelSelectorType(
@@ -177,7 +177,7 @@ class Certificate(
     # - DP: Is the threshold overcame?
     overcome_threshold = properties.property(types.Boolean(), default=False)
 
-    def get_resource_target_fields(self) -> tp.Set[str]:
+    def get_resource_target_fields(self) -> set[str]:
         """Return the collection of target fields.
 
         Refer to the Resource model for more details about target fields.
@@ -198,13 +198,13 @@ class Certificate(
     @classmethod
     def get_new_certificates(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
-    ) -> tp.List["Certificate"]:
+    ) -> list["Certificate"]:
         return cls.get_new_entities(cls.__tablename__, sc.CERTIFICATE_KIND, limit=limit)
 
     @classmethod
     def get_updated_certificates(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
-    ) -> tp.List["Certificate"]:
+    ) -> list["Certificate"]:
         return cls.get_updated_entities(
             cls.__tablename__, sc.CERTIFICATE_KIND, limit=limit
         )
@@ -212,7 +212,7 @@ class Certificate(
     @classmethod
     def get_deleted_certificates(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
-    ) -> tp.List[ua_models.TargetResource]:
+    ) -> list[ua_models.TargetResource]:
         return cls.get_deleted_target_resources(
             cls.__tablename__, sc.CERTIFICATE_KIND, limit=limit
         )
@@ -241,9 +241,9 @@ class RSAKey(
 
     def __init__(
         self,
-        private_key: tp.Optional[str] = None,
-        public_key: tp.Optional[str] = None,
-        bitness: tp.Optional[int] = None,
+        private_key: str | None = None,
+        public_key: str | None = None,
+        bitness: int | None = None,
         **kwargs,
     ):
         """Initialize RSA key secret.
@@ -280,7 +280,7 @@ class RSAKey(
             **kwargs,
         )
 
-    def get_resource_target_fields(self) -> tp.Set[str]:
+    def get_resource_target_fields(self) -> set[str]:
         """Return the collection of target fields.
 
         Refer to the Resource model for more details about target fields.
@@ -320,10 +320,10 @@ class SSHKey(
         default="",
     )
 
-    def target_nodes(self) -> tp.List[sys_uuid.UUID]:
+    def target_nodes(self) -> list[sys_uuid.UUID]:
         return self.target.target_nodes()
 
-    def get_resource_target_fields(self) -> tp.Set[str]:
+    def get_resource_target_fields(self) -> set[str]:
         """Return the collection of target fields.
 
         Refer to the Resource model for more details about target fields.
@@ -344,7 +344,7 @@ class SSHKey(
         self,
         master: sys_uuid.UUID,
         node: sys_uuid.UUID,
-        status: tp.Optional[sc.SecretStatus] = None,
+        status: sc.SecretStatus | None = None,
     ) -> ua_models.TargetResource:
         """Create a target resource for a specific host (node).
 
@@ -362,7 +362,7 @@ class SSHKey(
         properties = {}
 
         # Copy properties
-        for name in self.properties.properties.keys():
+        for name in self.properties.properties:
             if name not in SSHHostKey.properties.properties:
                 continue
             properties[name] = getattr(self, name)
@@ -380,17 +380,17 @@ class SSHKey(
         return resource
 
     @classmethod
-    def get_new_keys(cls, limit: int = c.DEFAULT_SQL_LIMIT) -> tp.List["SSHKey"]:
+    def get_new_keys(cls, limit: int = c.DEFAULT_SQL_LIMIT) -> list["SSHKey"]:
         return cls.get_new_entities(cls.__tablename__, sc.SSH_KEY_KIND, limit=limit)
 
     @classmethod
-    def get_updated_keys(cls, limit: int = c.DEFAULT_SQL_LIMIT) -> tp.List["SSHKey"]:
+    def get_updated_keys(cls, limit: int = c.DEFAULT_SQL_LIMIT) -> list["SSHKey"]:
         return cls.get_updated_entities(cls.__tablename__, sc.SSH_KEY_KIND, limit=limit)
 
     @classmethod
     def get_deleted_keys(
         cls, limit: int = c.DEFAULT_SQL_LIMIT
-    ) -> tp.List[ua_models.TargetResource]:
+    ) -> list[ua_models.TargetResource]:
         return cls.get_deleted_target_resources(
             cls.__tablename__, sc.SSH_KEY_KIND, limit=limit
         )
