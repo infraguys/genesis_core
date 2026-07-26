@@ -32,6 +32,7 @@ GC_PG_PASS="exordos_core"
 GC_PG_DB="exordos_core"
 
 SYSTEMD_SERVICE_DIR=/etc/systemd/system/
+IAM_CACHE_GO_VERSION="1.23.12"
 
 DEV_SDK_PATH="/opt/gcl_sdk"
 SDK_DEV_MODE=$([ -d "$DEV_SDK_PATH" ] && echo "true" || echo "false")
@@ -141,11 +142,72 @@ sudo systemctl enable nginx
 # Install exordos core
 sudo mkdir -p $GC_CFG_DIR
 sudo cp "$GC_PATH/etc/exordos_core/logging.yaml" $GC_CFG_DIR/
+sudo install \
+  -o root \
+  -g root \
+  -m 0644 \
+  "$GC_PATH/etc/exordos_core/iam_cache.json.example" \
+  "$GC_CFG_DIR/iam_cache.json"
 # Drop-in config dir loaded by ec-user-api via --config-dir. The notification
 # element lands its [events] override and event_type_mapping.yaml here; must
 # exist (oslo --config-dir errors on a missing directory).
 sudo mkdir -p $GC_CFG_DIR/exordos_core.d
 sudo cp "$GC_PATH/exordos/images/bootstrap.sh" $BOOTSTRAP_PATH/0100-ec-bootstrap.sh
+
+# Build the IAM cache with a temporary Go toolchain. Only the stripped static
+# binary is installed into the image; the toolchain and every build cache are
+# removed both after a successful build and if the build fails.
+case "$(dpkg --print-architecture)" in
+  amd64)
+    IAM_CACHE_GO_ARCH="amd64"
+    IAM_CACHE_GO_SHA256="d3847fef834e9db11bf64e3fb34db9c04db14e068eeb064f49af747010454f90"
+    ;;
+  arm64)
+    IAM_CACHE_GO_ARCH="arm64"
+    IAM_CACHE_GO_SHA256="52ce172f96e21da53b1ae9079808560d49b02ac86cecfa457217597f9bc28ab3"
+    ;;
+  *)
+    echo "Unsupported architecture for the IAM cache: $(dpkg --print-architecture)" >&2
+    exit 1
+    ;;
+esac
+
+IAM_CACHE_BUILD_DIR=$(mktemp -d)
+cleanup_iam_cache_build() {
+    if [[ -n "${IAM_CACHE_BUILD_DIR:-}" && -d "$IAM_CACHE_BUILD_DIR" ]]; then
+        rm -rf -- "$IAM_CACHE_BUILD_DIR"
+    fi
+}
+trap cleanup_iam_cache_build EXIT
+
+curl -fsSLo "$IAM_CACHE_BUILD_DIR/go.tar.gz" \
+  "https://go.dev/dl/go${IAM_CACHE_GO_VERSION}.linux-${IAM_CACHE_GO_ARCH}.tar.gz"
+echo "$IAM_CACHE_GO_SHA256  $IAM_CACHE_BUILD_DIR/go.tar.gz" \
+  | sha256sum --check -
+tar -xzf "$IAM_CACHE_BUILD_DIR/go.tar.gz" -C "$IAM_CACHE_BUILD_DIR"
+
+(
+    cd "$GC_PATH/services/iam-cache"
+    CGO_ENABLED=0 \
+    GOCACHE="$IAM_CACHE_BUILD_DIR/go-cache" \
+    GOPATH="$IAM_CACHE_BUILD_DIR/gopath" \
+      "$IAM_CACHE_BUILD_DIR/go/bin/go" build \
+        -buildvcs=false \
+        -trimpath \
+        -ldflags="-s -w" \
+        -o "$IAM_CACHE_BUILD_DIR/exordos-iam-cache" \
+        ./cmd/exordos-iam-cache
+)
+sudo install \
+  -o root \
+  -g root \
+  -m 0755 \
+  "$IAM_CACHE_BUILD_DIR/exordos-iam-cache" \
+  /usr/bin/exordos-iam-cache
+
+cleanup_iam_cache_build
+trap - EXIT
+unset IAM_CACHE_BUILD_DIR
 
 cd "$GC_PATH"
 uv sync
@@ -206,6 +268,7 @@ sudo cp "$GC_PATH/etc/systemd/ec-core-agent.service" $SYSTEMD_SERVICE_DIR
 sudo cp "$GC_PATH/etc/systemd/exordos-universal-agent.service" $SYSTEMD_SERVICE_DIR
 sudo cp "$GC_PATH/etc/systemd/exordos-universal-scheduler.service" $SYSTEMD_SERVICE_DIR
 sudo cp "$GC_PATH/etc/systemd/exordos-repo-proxy-gservice.service" $SYSTEMD_SERVICE_DIR
+sudo cp "$GC_PATH/etc/systemd/exordos-iam-cache.service" $SYSTEMD_SERVICE_DIR
 
 # Prepare DNSaaS
 sudo systemctl disable --now pdns dnsdist@public dnsdist@private

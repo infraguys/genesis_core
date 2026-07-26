@@ -1,0 +1,10 @@
+{
+  "public_listen_address": "127.0.0.1:11110",
+  "internal_listen_address": "127.0.0.1:11111",
+  "core_url": "http://127.0.0.1:11010",
+  "request_timeout": "5s",
+  "introspection_cache_ttl": "15s",
+  "introspection_cache_max_entries": 100000,
+  "jwks_cache_ttl": "1m",
+  "jwks_cache_max_entries": 1000
+}
