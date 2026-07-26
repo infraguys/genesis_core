@@ -13,8 +13,8 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-import uuid as sys_uuid
 from unittest.mock import patch
+import uuid as sys_uuid
 
 from gcl_sdk.agents.universal.dm import models as ua_models
 from gcl_sdk.infra.dm import models as infra_models
