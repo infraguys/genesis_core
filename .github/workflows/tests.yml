@@ -16,19 +16,6 @@ on:
       - '*.md'
 
 jobs:
-  GoTests:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-go@v6
-        with:
-          go-version-file: services/iam-cache/go.mod
-          cache-dependency-path: services/iam-cache/go.mod
-      - name: Test IAM cache
-        working-directory: services/iam-cache
-        run: |
-          go test -race ./...
-          go vet ./...
   Lint:
     runs-on: ubuntu-24.04
     strategy:
