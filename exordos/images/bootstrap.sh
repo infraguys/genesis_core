@@ -85,6 +85,18 @@ if [[ -n "$PERSISTENT_DISK" ]]; then
     persist_migrate_complete
 fi
 
+# Existing persistent installations predate the IAM cache configuration. Add
+# its default config only when it is absent so operator changes survive future
+# image updates.
+if [[ ! -f "$GC_CFG_DIR/iam_cache.json" ]]; then
+    sudo install \
+      -o root \
+      -g root \
+      -m 0644 \
+      "$GC_PATH/etc/exordos_core/iam_cache.json.example" \
+      "$GC_CFG_DIR/iam_cache.json"
+fi
+
 # Create deprecated path
 mkdir -p /var/lib/exordos/data
 
@@ -159,6 +171,7 @@ fi
 log "systemctl enable --now ec-services"
 sudo systemctl enable --now \
     ec-user-api \
+    exordos-iam-cache \
     ec-orch-api \
     ec-status-api \
     ec-boot-api \
