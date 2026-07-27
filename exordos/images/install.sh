@@ -147,6 +147,71 @@ sudo cp "$GC_PATH/etc/exordos_core/logging.yaml" $GC_CFG_DIR/
 sudo mkdir -p $GC_CFG_DIR/exordos_core.d
 sudo cp "$GC_PATH/exordos/images/bootstrap.sh" $BOOTSTRAP_PATH/0100-ec-bootstrap.sh
 
+# Install the latest released IAM cache through its standalone installer.
+IAM_CACHE_REPO=https://github.com/exordos/iam-cache.git
+IAM_CACHE_DIR=$(mktemp -d)
+IAM_CACHE_CHECKSUM_FILE=$(mktemp)
+cleanup_iam_cache() {
+    rm -rf -- "$IAM_CACHE_DIR" "$IAM_CACHE_CHECKSUM_FILE"
+}
+trap cleanup_iam_cache EXIT
+
+IAM_CACHE_RELEASE=$(curl -fsSL https://api.github.com/repos/exordos/iam-cache/releases/latest)
+IAM_CACHE_TAG=$(printf '%s\n' "$IAM_CACHE_RELEASE" \
+    | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
+    | head -n 1)
+if [[ -z "$IAM_CACHE_TAG" ]]; then
+    echo "Unable to determine the latest IAM cache release tag." >&2
+    exit 1
+fi
+
+git clone --branch "$IAM_CACHE_TAG" --depth 1 "$IAM_CACHE_REPO" "$IAM_CACHE_DIR"
+case "$(dpkg --print-architecture)" in
+    amd64|arm64)
+        IAM_CACHE_ARCH=$(dpkg --print-architecture)
+        ;;
+    *)
+        echo "Unsupported architecture for the IAM cache: $(dpkg --print-architecture)" >&2
+        exit 1
+        ;;
+esac
+
+IAM_CACHE_DOWNLOAD_URL=$(printf '%s\n' "$IAM_CACHE_RELEASE" \
+    | grep -oE '"browser_download_url"[[:space:]]*:[[:space:]]*"[^"]+"' \
+    | cut -d '"' -f 4 \
+    | grep -E ".*linux[-_]${IAM_CACHE_ARCH}$" \
+    | head -n 1)
+if [[ -z "$IAM_CACHE_DOWNLOAD_URL" ]]; then
+    echo "No Linux ${IAM_CACHE_ARCH} IAM cache binary found in release ${IAM_CACHE_TAG}." >&2
+    exit 1
+fi
+
+IAM_CACHE_DOWNLOAD_NAME=$(basename "$IAM_CACHE_DOWNLOAD_URL")
+IAM_CACHE_BINARY="$IAM_CACHE_DIR/$IAM_CACHE_DOWNLOAD_NAME"
+curl -fsSLo "$IAM_CACHE_BINARY" "$IAM_CACHE_DOWNLOAD_URL"
+
+# Verify the downloaded binary against the SHA256 checksum shipped with the
+# release before installing it.
+IAM_CACHE_CHECKSUM_URL=$(sed -E 's#/[^/]+$#/checksums.txt#' <<<"$IAM_CACHE_DOWNLOAD_URL")
+curl -fsSLo "$IAM_CACHE_CHECKSUM_FILE" "$IAM_CACHE_CHECKSUM_URL"
+EXPECTED_SHA=$(grep -F "${IAM_CACHE_DOWNLOAD_NAME}" "$IAM_CACHE_CHECKSUM_FILE" \
+    | awk '{print $1}' | head -n 1)
+if [[ -z "$EXPECTED_SHA" ]]; then
+    echo "No checksum found for ${IAM_CACHE_DOWNLOAD_NAME} in ${IAM_CACHE_CHECKSUM_URL}." >&2
+    exit 1
+fi
+ACTUAL_SHA=$(sha256sum "$IAM_CACHE_BINARY" | awk '{print $1}')
+if [[ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]]; then
+    echo "Checksum verification failed for ${IAM_CACHE_DOWNLOAD_NAME} (expected ${EXPECTED_SHA}, got ${ACTUAL_SHA})." >&2
+    exit 1
+fi
+
+chmod 0755 "$IAM_CACHE_BINARY"
+sudo "$IAM_CACHE_DIR/scripts/install.sh" "$IAM_CACHE_BINARY"
+
+cleanup_iam_cache
+trap - EXIT
+
 cd "$GC_PATH"
 uv sync
 source "$GC_PATH"/.venv/bin/activate

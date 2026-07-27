@@ -18,6 +18,10 @@ build_core:
 bootstrap:
 	exordos bootstrap -i output -f -m core --admin-password admin --cidr 10.20.0.0/22
 
+build_bootstrap:
+	exordos build -i $(SSH_KEY) -f
+	exordos bootstrap -i output -f -m core --admin-password admin --cidr 10.20.0.0/22
+
 delete_core:
 	exordos realms d exordos-core
 

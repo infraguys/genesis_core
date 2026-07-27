@@ -131,6 +131,7 @@ venv.bak/
 # Documentation
 docs/build
 docs/source/*.png
+exordos_docs
 
 # Vagrant
 .vagrant/

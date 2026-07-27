@@ -161,6 +161,7 @@ fi
 log "systemctl enable --now ec-services"
 sudo systemctl enable --now \
     ec-user-api \
+    exordos-iam-cache \
     ec-orch-api \
     ec-status-api \
     ec-boot-api \
