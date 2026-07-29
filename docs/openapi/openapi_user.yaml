@@ -90,17 +90,133 @@ components:
           default: '2006-01-02T15:04:05.000576Z'
         driver_spec:
           type: object
-          additionalProperties:
-            oneOf:
-              - type: string
-              - type: integer
-              - type: boolean
-              - type: object
-              - type: array
-                items: {}
+          oneOf:
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - libvirt
+                connection_uri:
+                  type: string
+                  minLength: 0
+                  maxLength: 2048
+                  example: any_string
+                network:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                storage_pool:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                machine_prefix:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                network_type:
+                  type: string
+                  enum:
+                    - bridge
+                    - network
+                  example: network
+                  default: network
+                iface_rom_file:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                iface_mtu:
+                  type: integer
+                  minimum: 0
+                  maximum: 65536
+                  example: 32768
+                  default: 1500
+                iface_source:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+              example:
+                key: value
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - exordos_local_hyper
+                connection_uri:
+                  type: string
+                  minLength: 0
+                  maxLength: 2048
+                  example: any_string
+                network:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                storage_pool:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                machine_prefix:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                network_type:
+                  type: string
+                  enum:
+                    - bridge
+                    - network
+                  example: network
+                  default: network
+                iface_rom_file:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                iface_mtu:
+                  type: integer
+                  minimum: 0
+                  maximum: 65536
+                  example: 32768
+                  default: 1500
+                iface_source:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                node:
+                  type: string
+                  example: 00000000-0000-0000-0000-000000000000
+                  format: uuid
+              example:
+                key: value
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - dummy
+              example:
+                key: value
           example:
             key: value
-          default: {}
         agent:
           type: string
           example: 00000000-0000-0000-0000-000000000000
@@ -231,6 +347,8 @@ components:
           example:
             - key: value
           default: []
+      required:
+        - driver_spec
     MachinePool_Create:
       type: object
       properties:
@@ -267,17 +385,133 @@ components:
           default: '2006-01-02T15:04:05.000576Z'
         driver_spec:
           type: object
-          additionalProperties:
-            oneOf:
-              - type: string
-              - type: integer
-              - type: boolean
-              - type: object
-              - type: array
-                items: {}
+          oneOf:
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - libvirt
+                connection_uri:
+                  type: string
+                  minLength: 0
+                  maxLength: 2048
+                  example: any_string
+                network:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                storage_pool:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                machine_prefix:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                network_type:
+                  type: string
+                  enum:
+                    - bridge
+                    - network
+                  example: network
+                  default: network
+                iface_rom_file:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                iface_mtu:
+                  type: integer
+                  minimum: 0
+                  maximum: 65536
+                  example: 32768
+                  default: 1500
+                iface_source:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+              example:
+                key: value
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - exordos_local_hyper
+                connection_uri:
+                  type: string
+                  minLength: 0
+                  maxLength: 2048
+                  example: any_string
+                network:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                storage_pool:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                machine_prefix:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                network_type:
+                  type: string
+                  enum:
+                    - bridge
+                    - network
+                  example: network
+                  default: network
+                iface_rom_file:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                iface_mtu:
+                  type: integer
+                  minimum: 0
+                  maximum: 65536
+                  example: 32768
+                  default: 1500
+                iface_source:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                node:
+                  type: string
+                  example: 00000000-0000-0000-0000-000000000000
+                  format: uuid
+              example:
+                key: value
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - dummy
+              example:
+                key: value
           example:
             key: value
-          default: {}
         agent:
           type: string
           example: 00000000-0000-0000-0000-000000000000
@@ -408,6 +642,8 @@ components:
           example:
             - key: value
           default: []
+      required:
+        - driver_spec
     MachinePool_Update:
       type: object
       properties:
@@ -444,17 +680,133 @@ components:
           default: '2006-01-02T15:04:05.000576Z'
         driver_spec:
           type: object
-          additionalProperties:
-            oneOf:
-              - type: string
-              - type: integer
-              - type: boolean
-              - type: object
-              - type: array
-                items: {}
+          oneOf:
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - libvirt
+                connection_uri:
+                  type: string
+                  minLength: 0
+                  maxLength: 2048
+                  example: any_string
+                network:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                storage_pool:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                machine_prefix:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                network_type:
+                  type: string
+                  enum:
+                    - bridge
+                    - network
+                  example: network
+                  default: network
+                iface_rom_file:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                iface_mtu:
+                  type: integer
+                  minimum: 0
+                  maximum: 65536
+                  example: 32768
+                  default: 1500
+                iface_source:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+              example:
+                key: value
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - exordos_local_hyper
+                connection_uri:
+                  type: string
+                  minLength: 0
+                  maxLength: 2048
+                  example: any_string
+                network:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                storage_pool:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                machine_prefix:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                network_type:
+                  type: string
+                  enum:
+                    - bridge
+                    - network
+                  example: network
+                  default: network
+                iface_rom_file:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                iface_mtu:
+                  type: integer
+                  minimum: 0
+                  maximum: 65536
+                  example: 32768
+                  default: 1500
+                iface_source:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                node:
+                  type: string
+                  example: 00000000-0000-0000-0000-000000000000
+                  format: uuid
+              example:
+                key: value
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - dummy
+              example:
+                key: value
           example:
             key: value
-          default: {}
         agent:
           type: string
           example: 00000000-0000-0000-0000-000000000000
@@ -585,6 +937,8 @@ components:
           example:
             - key: value
           default: []
+      required:
+        - driver_spec
     MachinePool_Filter:
       type: object
       properties:
@@ -621,17 +975,133 @@ components:
           default: '2006-01-02T15:04:05.000576Z'
         driver_spec:
           type: object
-          additionalProperties:
-            oneOf:
-              - type: string
-              - type: integer
-              - type: boolean
-              - type: object
-              - type: array
-                items: {}
+          oneOf:
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - libvirt
+                connection_uri:
+                  type: string
+                  minLength: 0
+                  maxLength: 2048
+                  example: any_string
+                network:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                storage_pool:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                machine_prefix:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                network_type:
+                  type: string
+                  enum:
+                    - bridge
+                    - network
+                  example: network
+                  default: network
+                iface_rom_file:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                iface_mtu:
+                  type: integer
+                  minimum: 0
+                  maximum: 65536
+                  example: 32768
+                  default: 1500
+                iface_source:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+              example:
+                key: value
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - exordos_local_hyper
+                connection_uri:
+                  type: string
+                  minLength: 0
+                  maxLength: 2048
+                  example: any_string
+                network:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                storage_pool:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                machine_prefix:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                network_type:
+                  type: string
+                  enum:
+                    - bridge
+                    - network
+                  example: network
+                  default: network
+                iface_rom_file:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                iface_mtu:
+                  type: integer
+                  minimum: 0
+                  maximum: 65536
+                  example: 32768
+                  default: 1500
+                iface_source:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                node:
+                  type: string
+                  example: 00000000-0000-0000-0000-000000000000
+                  format: uuid
+              example:
+                key: value
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - dummy
+              example:
+                key: value
           example:
             key: value
-          default: {}
         agent:
           type: string
           example: 00000000-0000-0000-0000-000000000000
@@ -762,6 +1232,8 @@ components:
           example:
             - key: value
           default: []
+      required:
+        - driver_spec
     Node_Get:
       type: object
       properties:
@@ -6498,6 +6970,10 @@ components:
           minLength: 0
           maxLength: 64
           example: any_string
+        registration_auto_provision:
+          type: boolean
+          example: true
+          default: true
         signature_algorithm:
           type: object
           oneOf:
@@ -6594,6 +7070,10 @@ components:
           minLength: 0
           maxLength: 64
           example: any_string
+        registration_auto_provision:
+          type: boolean
+          example: true
+          default: true
         signature_algorithm:
           type: object
           oneOf:
@@ -6695,6 +7175,10 @@ components:
           minLength: 0
           maxLength: 64
           example: any_string
+        registration_auto_provision:
+          type: boolean
+          example: true
+          default: true
         signature_algorithm:
           type: object
           oneOf:
@@ -6796,6 +7280,10 @@ components:
           minLength: 0
           maxLength: 64
           example: any_string
+        registration_auto_provision:
+          type: boolean
+          example: true
+          default: true
         signature_algorithm:
           type: object
           oneOf:
@@ -7282,150 +7770,6 @@ components:
         - name
         - iam_client
         - callback
-    OrganizationMember_Get:
-      type: object
-      properties:
-        uuid:
-          type: string
-          example: 00000000-0000-0000-0000-000000000000
-          format: uuid
-          readOnly: true
-        created_at:
-          type: string
-          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
-          example: '2006-01-02T15:04:05.000576Z'
-          format: date-time
-          readOnly: true
-          default: '2006-01-02T15:04:05.000576Z'
-        updated_at:
-          type: string
-          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
-          example: '2006-01-02T15:04:05.000576Z'
-          format: date-time
-          readOnly: true
-          default: '2006-01-02T15:04:05.000576Z'
-        organization:
-          type: string
-        user:
-          type: string
-        role:
-          type: string
-          enum:
-            - MEMBER
-            - OWNER
-          example: MEMBER
-          default: MEMBER
-      required:
-        - organization
-        - user
-    OrganizationMember_Create:
-      type: object
-      properties:
-        uuid:
-          type: string
-          example: 00000000-0000-0000-0000-000000000000
-          format: uuid
-          readOnly: true
-        created_at:
-          type: string
-          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
-          example: '2006-01-02T15:04:05.000576Z'
-          format: date-time
-          readOnly: true
-          default: '2006-01-02T15:04:05.000576Z'
-        updated_at:
-          type: string
-          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
-          example: '2006-01-02T15:04:05.000576Z'
-          format: date-time
-          readOnly: true
-          default: '2006-01-02T15:04:05.000576Z'
-        organization:
-          type: string
-        user:
-          type: string
-        role:
-          type: string
-          enum:
-            - MEMBER
-            - OWNER
-          example: MEMBER
-          default: MEMBER
-      required:
-        - organization
-        - user
-    OrganizationMember_Update:
-      type: object
-      properties:
-        uuid:
-          type: string
-          example: 00000000-0000-0000-0000-000000000000
-          format: uuid
-          readOnly: true
-        created_at:
-          type: string
-          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
-          example: '2006-01-02T15:04:05.000576Z'
-          format: date-time
-          readOnly: true
-          default: '2006-01-02T15:04:05.000576Z'
-        updated_at:
-          type: string
-          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
-          example: '2006-01-02T15:04:05.000576Z'
-          format: date-time
-          readOnly: true
-          default: '2006-01-02T15:04:05.000576Z'
-        organization:
-          type: string
-        user:
-          type: string
-        role:
-          type: string
-          enum:
-            - MEMBER
-            - OWNER
-          example: MEMBER
-          default: MEMBER
-      required:
-        - organization
-        - user
-    OrganizationMember_Filter:
-      type: object
-      properties:
-        uuid:
-          type: string
-          example: 00000000-0000-0000-0000-000000000000
-          format: uuid
-          readOnly: true
-        created_at:
-          type: string
-          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
-          example: '2006-01-02T15:04:05.000576Z'
-          format: date-time
-          readOnly: true
-          default: '2006-01-02T15:04:05.000576Z'
-        updated_at:
-          type: string
-          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
-          example: '2006-01-02T15:04:05.000576Z'
-          format: date-time
-          readOnly: true
-          default: '2006-01-02T15:04:05.000576Z'
-        organization:
-          type: string
-        user:
-          type: string
-        role:
-          type: string
-          enum:
-            - MEMBER
-            - OWNER
-          example: MEMBER
-          default: MEMBER
-      required:
-        - organization
-        - user
     Organization_Get:
       type: object
       properties:
@@ -7642,6 +7986,150 @@ components:
           default: {}
       required:
         - name
+    OrganizationMember_Get:
+      type: object
+      properties:
+        uuid:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        organization:
+          type: string
+        user:
+          type: string
+        role:
+          type: string
+          enum:
+            - MEMBER
+            - OWNER
+          example: MEMBER
+          default: MEMBER
+      required:
+        - organization
+        - user
+    OrganizationMember_Create:
+      type: object
+      properties:
+        uuid:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        organization:
+          type: string
+        user:
+          type: string
+        role:
+          type: string
+          enum:
+            - MEMBER
+            - OWNER
+          example: MEMBER
+          default: MEMBER
+      required:
+        - organization
+        - user
+    OrganizationMember_Update:
+      type: object
+      properties:
+        uuid:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        organization:
+          type: string
+        user:
+          type: string
+        role:
+          type: string
+          enum:
+            - MEMBER
+            - OWNER
+          example: MEMBER
+          default: MEMBER
+      required:
+        - organization
+        - user
+    OrganizationMember_Filter:
+      type: object
+      properties:
+        uuid:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        organization:
+          type: string
+        user:
+          type: string
+        role:
+          type: string
+          enum:
+            - MEMBER
+            - OWNER
+          example: MEMBER
+          default: MEMBER
+      required:
+        - organization
+        - user
     PermissionBinding_Get:
       type: object
       properties:
@@ -9106,6 +9594,502 @@ components:
       required:
         - username
         - email
+    Border_Get:
+      type: object
+      properties:
+        uuid:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          minLength: 0
+          maxLength: 255
+          example: any_string
+          default: ''
+        description:
+          type: string
+          minLength: 0
+          maxLength: 255
+          example: any_string
+          default: ''
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        project_id:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - ERROR
+            - IN_PROGRESS
+            - NEW
+          example: NEW
+          readOnly: true
+          default: NEW
+        node:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          nullable: true
+        type:
+          type: object
+          oneOf:
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - core_agent
+              example:
+                key: value
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - core
+                cpu:
+                  type: integer
+                  minimum: 1
+                  maximum: 128
+                  example: 64
+                  default: 1
+                ram:
+                  type: integer
+                  minimum: 512
+                  maximum: 1073741824
+                  example: 536871168
+                  default: 512
+                disk_size:
+                  type: integer
+                  minimum: 10
+                  maximum: 1073741824
+                  example: 536870917
+                  default: 10
+              example:
+                key: value
+          example:
+            key: value
+          default:
+            kind: core_agent
+        ipsv4:
+          type: array
+          items:
+            type: string
+            minLength: 0
+            maxLength: 15
+            example: any_string
+          example:
+            - any_string
+          readOnly: true
+          default: []
+        snat_rules:
+          type: array
+          format: string
+          items:
+            type: string
+          example:
+            - '1'
+          default: []
+        forwards:
+          type: array
+          format: string
+          items:
+            type: string
+          example:
+            - '1'
+          default: []
+      required:
+        - project_id
+    Border_Create:
+      type: object
+      properties:
+        uuid:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          minLength: 0
+          maxLength: 255
+          example: any_string
+          default: ''
+        description:
+          type: string
+          minLength: 0
+          maxLength: 255
+          example: any_string
+          default: ''
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        project_id:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - ERROR
+            - IN_PROGRESS
+            - NEW
+          example: NEW
+          readOnly: true
+          default: NEW
+        node:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          nullable: true
+        type:
+          type: object
+          oneOf:
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - core_agent
+              example:
+                key: value
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - core
+                cpu:
+                  type: integer
+                  minimum: 1
+                  maximum: 128
+                  example: 64
+                  default: 1
+                ram:
+                  type: integer
+                  minimum: 512
+                  maximum: 1073741824
+                  example: 536871168
+                  default: 512
+                disk_size:
+                  type: integer
+                  minimum: 10
+                  maximum: 1073741824
+                  example: 536870917
+                  default: 10
+              example:
+                key: value
+          example:
+            key: value
+          default:
+            kind: core_agent
+        ipsv4:
+          type: array
+          items:
+            type: string
+            minLength: 0
+            maxLength: 15
+            example: any_string
+          example:
+            - any_string
+          readOnly: true
+          default: []
+        snat_rules:
+          type: array
+          format: string
+          items:
+            type: string
+          example:
+            - '1'
+          default: []
+        forwards:
+          type: array
+          format: string
+          items:
+            type: string
+          example:
+            - '1'
+          default: []
+      required:
+        - project_id
+    Border_Update:
+      type: object
+      properties:
+        uuid:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          minLength: 0
+          maxLength: 255
+          example: any_string
+          default: ''
+        description:
+          type: string
+          minLength: 0
+          maxLength: 255
+          example: any_string
+          default: ''
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        project_id:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - ERROR
+            - IN_PROGRESS
+            - NEW
+          example: NEW
+          readOnly: true
+          default: NEW
+        node:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          nullable: true
+        type:
+          type: object
+          oneOf:
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - core_agent
+              example:
+                key: value
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - core
+                cpu:
+                  type: integer
+                  minimum: 1
+                  maximum: 128
+                  example: 64
+                  default: 1
+                ram:
+                  type: integer
+                  minimum: 512
+                  maximum: 1073741824
+                  example: 536871168
+                  default: 512
+                disk_size:
+                  type: integer
+                  minimum: 10
+                  maximum: 1073741824
+                  example: 536870917
+                  default: 10
+              example:
+                key: value
+          example:
+            key: value
+          default:
+            kind: core_agent
+        ipsv4:
+          type: array
+          items:
+            type: string
+            minLength: 0
+            maxLength: 15
+            example: any_string
+          example:
+            - any_string
+          readOnly: true
+          default: []
+        snat_rules:
+          type: array
+          format: string
+          items:
+            type: string
+          example:
+            - '1'
+          default: []
+        forwards:
+          type: array
+          format: string
+          items:
+            type: string
+          example:
+            - '1'
+          default: []
+      required:
+        - project_id
+    Border_Filter:
+      type: object
+      properties:
+        uuid:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          minLength: 0
+          maxLength: 255
+          example: any_string
+          default: ''
+        description:
+          type: string
+          minLength: 0
+          maxLength: 255
+          example: any_string
+          default: ''
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        project_id:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - ERROR
+            - IN_PROGRESS
+            - NEW
+          example: NEW
+          readOnly: true
+          default: NEW
+        node:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          nullable: true
+        type:
+          type: object
+          oneOf:
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - core_agent
+              example:
+                key: value
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - core
+                cpu:
+                  type: integer
+                  minimum: 1
+                  maximum: 128
+                  example: 64
+                  default: 1
+                ram:
+                  type: integer
+                  minimum: 512
+                  maximum: 1073741824
+                  example: 536871168
+                  default: 512
+                disk_size:
+                  type: integer
+                  minimum: 10
+                  maximum: 1073741824
+                  example: 536870917
+                  default: 10
+              example:
+                key: value
+          example:
+            key: value
+          default:
+            kind: core_agent
+        ipsv4:
+          type: array
+          items:
+            type: string
+            minLength: 0
+            maxLength: 15
+            example: any_string
+          example:
+            - any_string
+          readOnly: true
+          default: []
+        snat_rules:
+          type: array
+          format: string
+          items:
+            type: string
+          example:
+            - '1'
+          default: []
+        forwards:
+          type: array
+          format: string
+          items:
+            type: string
+          example:
+            - '1'
+          default: []
+      required:
+        - project_id
     LB_Get:
       type: object
       properties:
@@ -13266,6 +14250,740 @@ components:
       required:
         - project_id
         - condition
+    RepoElement_Get:
+      type: object
+      properties:
+        uuid:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          minLength: 0
+          maxLength: 255
+          example: any_string
+        description:
+          type: string
+          minLength: 0
+          maxLength: 255
+          example: any_string
+          default: ''
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        project_id:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+        repository:
+          type: string
+        version:
+          type: string
+          minLength: 0
+          maxLength: 255
+          example: any_string
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - AVAILABLE
+            - ERROR
+            - IN_PROGRESS
+            - NEW
+          example: NEW
+          readOnly: true
+          default: NEW
+        manifest:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: integer
+              - type: boolean
+              - type: object
+              - type: array
+                items: {}
+          example:
+            key: value
+          default: {}
+        specification:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: integer
+              - type: boolean
+              - type: object
+              - type: array
+                items: {}
+          example:
+            key: value
+          default: {}
+        inventory:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: integer
+              - type: boolean
+              - type: object
+              - type: array
+                items: {}
+          example:
+            key: value
+          default: {}
+        element:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          nullable: true
+      required:
+        - name
+        - project_id
+        - repository
+        - version
+    RepoElement_Filter:
+      type: object
+      properties:
+        uuid:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          minLength: 0
+          maxLength: 255
+          example: any_string
+        description:
+          type: string
+          minLength: 0
+          maxLength: 255
+          example: any_string
+          default: ''
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        project_id:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+        repository:
+          type: string
+        version:
+          type: string
+          minLength: 0
+          maxLength: 255
+          example: any_string
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - AVAILABLE
+            - ERROR
+            - IN_PROGRESS
+            - NEW
+          example: NEW
+          readOnly: true
+          default: NEW
+        manifest:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: integer
+              - type: boolean
+              - type: object
+              - type: array
+                items: {}
+          example:
+            key: value
+          default: {}
+        specification:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: integer
+              - type: boolean
+              - type: object
+              - type: array
+                items: {}
+          example:
+            key: value
+          default: {}
+        inventory:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: integer
+              - type: boolean
+              - type: object
+              - type: array
+                items: {}
+          example:
+            key: value
+          default: {}
+        element:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          nullable: true
+      required:
+        - name
+        - project_id
+        - repository
+        - version
+    Repository_Get:
+      type: object
+      properties:
+        uuid:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          minLength: 0
+          maxLength: 255
+          example: any_string
+        description:
+          type: string
+          minLength: 0
+          maxLength: 255
+          example: any_string
+          default: ''
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        project_id:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - DISABLED
+            - ERROR
+            - IN_PROGRESS
+            - NEW
+          example: NEW
+          readOnly: true
+          default: NEW
+        priority:
+          type: integer
+          minimum: 0
+          maximum: 16384
+          example: 8192
+          default: 8192
+        refresh_rate:
+          type: integer
+          minimum: 0
+          maximum: 9223372036854775807
+          example: 0
+          default: 3600
+        sync_mode:
+          type: string
+          enum:
+            - copy
+            - lazy
+          example: copy
+          default: lazy
+        driver_spec:
+          type: object
+          oneOf:
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - nginx
+                url:
+                  type: string
+                  minLength: 0
+                  maxLength: 2048
+                  example: any_string
+                username:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                password:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+              example:
+                key: value
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - bootstrap
+                manifests_dir:
+                  type: string
+                  minLength: 0
+                  maxLength: 2048
+                  example: any_string
+              example:
+                key: value
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - dummy_migration
+              example:
+                key: value
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - database
+              example:
+                key: value
+          example:
+            key: value
+      required:
+        - name
+        - project_id
+        - driver_spec
+    Repository_Create:
+      type: object
+      properties:
+        uuid:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          minLength: 0
+          maxLength: 255
+          example: any_string
+        description:
+          type: string
+          minLength: 0
+          maxLength: 255
+          example: any_string
+          default: ''
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        project_id:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - DISABLED
+            - ERROR
+            - IN_PROGRESS
+            - NEW
+          example: NEW
+          readOnly: true
+          default: NEW
+        priority:
+          type: integer
+          minimum: 0
+          maximum: 16384
+          example: 8192
+          default: 8192
+        refresh_rate:
+          type: integer
+          minimum: 0
+          maximum: 9223372036854775807
+          example: 0
+          default: 3600
+        sync_mode:
+          type: string
+          enum:
+            - copy
+            - lazy
+          example: copy
+          default: lazy
+        driver_spec:
+          type: object
+          oneOf:
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - nginx
+                url:
+                  type: string
+                  minLength: 0
+                  maxLength: 2048
+                  example: any_string
+                username:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                password:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+              example:
+                key: value
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - bootstrap
+                manifests_dir:
+                  type: string
+                  minLength: 0
+                  maxLength: 2048
+                  example: any_string
+              example:
+                key: value
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - dummy_migration
+              example:
+                key: value
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - database
+              example:
+                key: value
+          example:
+            key: value
+      required:
+        - name
+        - project_id
+        - driver_spec
+    Repository_Update:
+      type: object
+      properties:
+        uuid:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          minLength: 0
+          maxLength: 255
+          example: any_string
+        description:
+          type: string
+          minLength: 0
+          maxLength: 255
+          example: any_string
+          default: ''
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        project_id:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - DISABLED
+            - ERROR
+            - IN_PROGRESS
+            - NEW
+          example: NEW
+          readOnly: true
+          default: NEW
+        priority:
+          type: integer
+          minimum: 0
+          maximum: 16384
+          example: 8192
+          default: 8192
+        refresh_rate:
+          type: integer
+          minimum: 0
+          maximum: 9223372036854775807
+          example: 0
+          default: 3600
+        sync_mode:
+          type: string
+          enum:
+            - copy
+            - lazy
+          example: copy
+          default: lazy
+        driver_spec:
+          type: object
+          oneOf:
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - nginx
+                url:
+                  type: string
+                  minLength: 0
+                  maxLength: 2048
+                  example: any_string
+                username:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                password:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+              example:
+                key: value
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - bootstrap
+                manifests_dir:
+                  type: string
+                  minLength: 0
+                  maxLength: 2048
+                  example: any_string
+              example:
+                key: value
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - dummy_migration
+              example:
+                key: value
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - database
+              example:
+                key: value
+          example:
+            key: value
+      required:
+        - name
+        - project_id
+        - driver_spec
+    Repository_Filter:
+      type: object
+      properties:
+        uuid:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          minLength: 0
+          maxLength: 255
+          example: any_string
+        description:
+          type: string
+          minLength: 0
+          maxLength: 255
+          example: any_string
+          default: ''
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        project_id:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - DISABLED
+            - ERROR
+            - IN_PROGRESS
+            - NEW
+          example: NEW
+          readOnly: true
+          default: NEW
+        priority:
+          type: integer
+          minimum: 0
+          maximum: 16384
+          example: 8192
+          default: 8192
+        refresh_rate:
+          type: integer
+          minimum: 0
+          maximum: 9223372036854775807
+          example: 0
+          default: 3600
+        sync_mode:
+          type: string
+          enum:
+            - copy
+            - lazy
+          example: copy
+          default: lazy
+        driver_spec:
+          type: object
+          oneOf:
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - nginx
+                url:
+                  type: string
+                  minLength: 0
+                  maxLength: 2048
+                  example: any_string
+                username:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+                password:
+                  type: string
+                  minLength: 0
+                  maxLength: 255
+                  example: any_string
+                  nullable: true
+              example:
+                key: value
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - bootstrap
+                manifests_dir:
+                  type: string
+                  minLength: 0
+                  maxLength: 2048
+                  example: any_string
+              example:
+                key: value
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - dummy_migration
+              example:
+                key: value
+            - type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - database
+              example:
+                key: value
+          example:
+            key: value
+      required:
+        - name
+        - project_id
+        - driver_spec
     Certificate_Get:
       type: object
       properties:
@@ -15838,6 +17556,82 @@ components:
         - uuid
         - name
         - node
+    UniversalAgent_Create:
+      type: object
+      properties:
+        uuid:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          minLength: 0
+          maxLength: 255
+          example: any_string
+        description:
+          type: string
+          minLength: 0
+          maxLength: 255
+          example: any_string
+          default: ''
+        created_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        updated_at:
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          default: '2006-01-02T15:04:05.000576Z'
+        capabilities:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: integer
+              - type: boolean
+              - type: object
+              - type: array
+                items: {}
+          example:
+            key: value
+          default: {}
+        facts:
+          type: object
+          additionalProperties:
+            oneOf:
+              - type: string
+              - type: integer
+              - type: boolean
+              - type: object
+              - type: array
+                items: {}
+          example:
+            key: value
+          default: {}
+        node:
+          type: string
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - DISABLED
+            - ERROR
+            - NEW
+          example: NEW
+          default: NEW
+      required:
+        - uuid
+        - name
+        - node
     TargetResource_Filter:
       type: object
       properties:
@@ -17059,17 +18853,63 @@ components:
       in: query
       schema:
         type: object
-        additionalProperties:
-          oneOf:
-            - type: string
-            - type: integer
-            - type: boolean
-            - type: object
-            - type: array
-              items: {}
+        oneOf:
+          - type: object
+            properties:
+              kind:
+                type: string
+                enum:
+                  - nginx
+              url:
+                type: string
+                minLength: 0
+                maxLength: 2048
+                example: any_string
+              username:
+                type: string
+                minLength: 0
+                maxLength: 255
+                example: any_string
+                nullable: true
+              password:
+                type: string
+                minLength: 0
+                maxLength: 255
+                example: any_string
+                nullable: true
+            example:
+              key: value
+          - type: object
+            properties:
+              kind:
+                type: string
+                enum:
+                  - bootstrap
+              manifests_dir:
+                type: string
+                minLength: 0
+                maxLength: 2048
+                example: any_string
+            example:
+              key: value
+          - type: object
+            properties:
+              kind:
+                type: string
+                enum:
+                  - dummy_migration
+            example:
+              key: value
+          - type: object
+            properties:
+              kind:
+                type: string
+                enum:
+                  - database
+            example:
+              key: value
         example:
           key: value
-        default: {}
     agent:
       name: agent
       in: query
@@ -17926,16 +19766,26 @@ components:
       name: manifest
       in: query
       schema:
-        type: string
+        type: object
+        additionalProperties:
+          oneOf:
+            - type: string
+            - type: integer
+            - type: boolean
+            - type: object
+            - type: array
+              items: {}
+        example:
+          key: value
+        default: {}
     version:
       name: version
       in: query
       schema:
         type: string
-        minLength: 5
-        maxLength: 64
+        minLength: 0
+        maxLength: 255
         example: any_string
-        readOnly: true
     api_version:
       name: api_version
       in: query
@@ -17998,6 +19848,9 @@ components:
       in: query
       schema:
         type: string
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        nullable: true
     kind:
       name: kind
       in: query
@@ -18421,6 +20274,13 @@ components:
         minLength: 0
         maxLength: 64
         example: any_string
+    registration_auto_provision:
+      name: registration_auto_provision
+      in: query
+      schema:
+        type: boolean
+        example: true
+        default: true
     signature_algorithm:
       name: signature_algorithm
       in: query
@@ -18548,25 +20408,6 @@ components:
         type: boolean
         example: true
         default: true
-    OrganizationMemberUuid:
-      name: OrganizationMemberUuid
-      in: path
-      schema:
-        type: string
-        example: 00000000-0000-0000-0000-000000000000
-        format: uuid
-        readOnly: true
-      required: true
-    organization:
-      name: organization
-      in: query
-      schema:
-        type: string
-    role:
-      name: role
-      in: query
-      schema:
-        type: string
     OrganizationUuid:
       name: OrganizationUuid
       in: path
@@ -18592,6 +20433,25 @@ components:
         example:
           key: value
         default: {}
+    OrganizationMemberUuid:
+      name: OrganizationMemberUuid
+      in: path
+      schema:
+        type: string
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        readOnly: true
+      required: true
+    organization:
+      name: organization
+      in: query
+      schema:
+        type: string
+    role:
+      name: role
+      in: query
+      schema:
+        type: string
     PermissionBindingUuid:
       name: PermissionBindingUuid
       in: path
@@ -18764,6 +20624,14 @@ components:
         type: boolean
         example: true
         default: false
+    registration_client:
+      name: registration_client
+      in: query
+      schema:
+        type: string
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        nullable: true
     confirmation_code:
       name: confirmation_code
       in: query
@@ -18871,8 +20739,8 @@ components:
         minLength: 5
         maxLength: 128
         example: any_string
-    LBUuid:
-      name: LBUuid
+    BorderUuid:
+      name: BorderUuid
       in: path
       schema:
         type: string
@@ -18894,6 +20762,37 @@ components:
           - any_string
         readOnly: true
         default: []
+    snat_rules:
+      name: snat_rules
+      in: query
+      schema:
+        type: array
+        format: string
+        items:
+          type: string
+        example:
+          - '1'
+        default: []
+    forwards:
+      name: forwards
+      in: query
+      schema:
+        type: array
+        format: string
+        items:
+          type: string
+        example:
+          - '1'
+        default: []
+    LBUuid:
+      name: LBUuid
+      in: path
+      schema:
+        type: string
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        readOnly: true
+      required: true
     BackendPoolUuid:
       name: BackendPoolUuid
       in: path
@@ -19137,6 +21036,108 @@ components:
               key: value
         example:
           key: value
+    RepoElementUuid:
+      name: RepoElementUuid
+      in: path
+      schema:
+        type: string
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        readOnly: true
+      required: true
+    repository:
+      name: repository
+      in: query
+      schema:
+        type: string
+    installation_state:
+      name: installation_state
+      in: query
+      schema:
+        type: string
+        enum:
+          - INSTALLED
+          - UNINSTALLED
+        example: INSTALLED
+        default: UNINSTALLED
+    specification:
+      name: specification
+      in: query
+      schema:
+        type: object
+        additionalProperties:
+          oneOf:
+            - type: string
+            - type: integer
+            - type: boolean
+            - type: object
+            - type: array
+              items: {}
+        example:
+          key: value
+        default: {}
+    inventory:
+      name: inventory
+      in: query
+      schema:
+        type: object
+        additionalProperties:
+          oneOf:
+            - type: string
+            - type: integer
+            - type: boolean
+            - type: object
+            - type: array
+              items: {}
+        example:
+          key: value
+        default: {}
+    RepositoryUuid:
+      name: RepositoryUuid
+      in: path
+      schema:
+        type: string
+        example: 00000000-0000-0000-0000-000000000000
+        format: uuid
+        readOnly: true
+      required: true
+    priority:
+      name: priority
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 16384
+        example: 8192
+        default: 8192
+    refresh_rate:
+      name: refresh_rate
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 9223372036854775807
+        example: 0
+        default: 3600
+    sync_mode:
+      name: sync_mode
+      in: query
+      schema:
+        type: string
+        enum:
+          - copy
+          - lazy
+        example: copy
+        default: lazy
+    next_refresh:
+      name: next_refresh
+      in: query
+      schema:
+        type: string
+        x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        example: '2006-01-02T15:04:05.000576Z'
+        format: date-time
+        default: '2006-01-02T15:04:05.000576Z'
     CertificateUuid:
       name: CertificateUuid
       in: path
@@ -21391,10 +23392,6 @@ paths:
             format: date-time
             readOnly: true
             default: '2006-01-02T15:04:05.000576Z'
-        - name: manifest
-          in: query
-          schema:
-            type: string
         - name: status
           in: query
           schema:
@@ -21411,10 +23408,9 @@ paths:
           in: query
           schema:
             type: string
-            minLength: 5
-            maxLength: 64
+            minLength: 0
+            maxLength: 255
             example: any_string
-            readOnly: true
         - name: api_version
           in: query
           schema:
@@ -22099,6 +24095,9 @@ paths:
           in: query
           schema:
             type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            nullable: true
         - name: name
           in: query
           schema:
@@ -22192,6 +24191,9 @@ paths:
           in: query
           schema:
             type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            nullable: true
         - name: from_element
           in: query
           schema:
@@ -22321,10 +24323,9 @@ paths:
           in: query
           schema:
             type: string
-            minLength: 5
-            maxLength: 64
+            minLength: 0
+            maxLength: 255
             example: any_string
-            readOnly: true
         - name: schema_version
           in: query
           schema:
@@ -22608,6 +24609,9 @@ paths:
           in: query
           schema:
             type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            nullable: true
         - name: name
           in: query
           schema:
@@ -23101,6 +25105,12 @@ paths:
             minLength: 0
             maxLength: 64
             example: any_string
+        - name: registration_auto_provision
+          in: query
+          schema:
+            type: boolean
+            example: true
+            default: true
         - name: secret
           in: query
           schema:
@@ -23955,159 +25965,6 @@ paths:
         default:
           $ref: '#/components/responses/Error'
       operationId: Login_v1_iam_idp_IdpUuid_actions_login_invoke
-  /v1/iam/organization_members/:
-    get:
-      summary: Get OrganizationMembers
-      tags:
-        - OrganizationMember
-      parameters:
-        - name: uuid
-          in: query
-          schema:
-            type: string
-            example: 00000000-0000-0000-0000-000000000000
-            format: uuid
-            readOnly: true
-        - name: created_at
-          in: query
-          schema:
-            type: string
-            x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
-            example: '2006-01-02T15:04:05.000576Z'
-            format: date-time
-            readOnly: true
-            default: '2006-01-02T15:04:05.000576Z'
-        - name: updated_at
-          in: query
-          schema:
-            type: string
-            x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
-            example: '2006-01-02T15:04:05.000576Z'
-            format: date-time
-            readOnly: true
-            default: '2006-01-02T15:04:05.000576Z'
-        - name: organization
-          in: query
-          schema:
-            type: string
-        - name: user
-          in: query
-          schema:
-            type: string
-            minLength: 1
-            maxLength: 64
-            example: any_string
-        - name: role
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OrganizationMember_Filter
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/OrganizationMember_Filter'
-        default:
-          $ref: '#/components/responses/Error'
-      operationId: Filter_v1_iam_organization_members
-    post:
-      summary: Create OrganizationMember
-      tags:
-        - OrganizationMember
-      parameters: []
-      responses:
-        '201':
-          description: OrganizationMember_Create
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrganizationMember_Create'
-        default:
-          $ref: '#/components/responses/Error'
-      operationId: Create_v1_iam_organization_members
-      requestBody:
-        description: OrganizationMember_Create
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OrganizationMember_Create'
-  /v1/iam/organization_members/{OrganizationMemberUuid}:
-    get:
-      summary: Get OrganizationMember
-      tags:
-        - OrganizationMember
-      parameters:
-        - name: OrganizationMemberUuid
-          in: path
-          schema:
-            type: string
-            example: 00000000-0000-0000-0000-000000000000
-            format: uuid
-            readOnly: true
-          required: true
-      responses:
-        '200':
-          description: OrganizationMember_Get
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrganizationMember_Get'
-        default:
-          $ref: '#/components/responses/Error'
-      operationId: Get_v1_iam_organization_members_OrganizationMemberUuid
-    put:
-      summary: Update OrganizationMember
-      tags:
-        - OrganizationMember
-      parameters:
-        - name: OrganizationMemberUuid
-          in: path
-          schema:
-            type: string
-            example: 00000000-0000-0000-0000-000000000000
-            format: uuid
-            readOnly: true
-          required: true
-      responses:
-        '200':
-          description: OrganizationMember_Update
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrganizationMember_Update'
-        default:
-          $ref: '#/components/responses/Error'
-      operationId: Update_v1_iam_organization_members_OrganizationMemberUuid
-      requestBody:
-        description: OrganizationMember_Update
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OrganizationMember_Update'
-    delete:
-      summary: Delete OrganizationMember
-      tags:
-        - OrganizationMember
-      parameters:
-        - name: OrganizationMemberUuid
-          in: path
-          schema:
-            type: string
-            example: 00000000-0000-0000-0000-000000000000
-            format: uuid
-            readOnly: true
-          required: true
-      responses:
-        '204':
-          description: OrganizationMember_Delete
-        default:
-          $ref: '#/components/responses/Error'
-      operationId: Delete_v1_iam_organization_members_OrganizationMemberUuid
   /v1/iam/organizations/:
     get:
       summary: Get Organizations
@@ -24274,6 +26131,162 @@ paths:
         default:
           $ref: '#/components/responses/Error'
       operationId: Delete_v1_iam_organizations_OrganizationUuid
+  /v1/iam/organizations/{OrganizationUuid}/members/:
+    get:
+      summary: Get OrganizationMembers
+      tags:
+        - OrganizationMember
+      parameters:
+        - name: OrganizationUuid
+          in: path
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+          required: true
+      responses:
+        '200':
+          description: OrganizationMember_Filter
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrganizationMember_Filter'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Filter_v1_iam_organizations_OrganizationUuid_members
+    post:
+      summary: Create OrganizationMember
+      tags:
+        - OrganizationMember
+      parameters:
+        - name: OrganizationUuid
+          in: path
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+          required: true
+      responses:
+        '201':
+          description: OrganizationMember_Create
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationMember_Create'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Create_v1_iam_organizations_OrganizationUuid_members
+      requestBody:
+        description: OrganizationMember_Create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationMember_Create'
+  /v1/iam/organizations/{OrganizationUuid}/members/{OrganizationMemberUuid}:
+    get:
+      summary: Get OrganizationMember
+      tags:
+        - OrganizationMember
+      parameters:
+        - name: OrganizationUuid
+          in: path
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+          required: true
+        - name: OrganizationMemberUuid
+          in: path
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+          required: true
+      responses:
+        '200':
+          description: OrganizationMember_Get
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationMember_Get'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: 
+        Get_v1_iam_organizations_OrganizationUuid_members_OrganizationMemberUuid
+    put:
+      summary: Update OrganizationMember
+      tags:
+        - OrganizationMember
+      parameters:
+        - name: OrganizationUuid
+          in: path
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+          required: true
+        - name: OrganizationMemberUuid
+          in: path
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+          required: true
+      responses:
+        '200':
+          description: OrganizationMember_Update
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationMember_Update'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: 
+        Update_v1_iam_organizations_OrganizationUuid_members_OrganizationMemberUuid
+      requestBody:
+        description: OrganizationMember_Update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationMember_Update'
+    delete:
+      summary: Delete OrganizationMember
+      tags:
+        - OrganizationMember
+      parameters:
+        - name: OrganizationUuid
+          in: path
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+          required: true
+        - name: OrganizationMemberUuid
+          in: path
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+          required: true
+      responses:
+        '204':
+          description: OrganizationMember_Delete
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: 
+        Delete_v1_iam_organizations_OrganizationUuid_members_OrganizationMemberUuid
   /v1/iam/permission_bindings/:
     get:
       summary: Get PermissionBindings
@@ -25216,6 +27229,13 @@ paths:
             type: boolean
             example: true
             default: false
+        - name: registration_client
+          in: query
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            nullable: true
         - name: confirmation_code
           in: query
           schema:
@@ -25623,6 +27643,186 @@ paths:
         default:
           $ref: '#/components/responses/Error'
       operationId: Filter_v1_network
+  /v1/network/border/:
+    get:
+      summary: Get Borders
+      tags:
+        - Border
+      parameters:
+        - name: uuid
+          in: query
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+        - name: name
+          in: query
+          schema:
+            type: string
+            minLength: 0
+            maxLength: 255
+            example: any_string
+            default: ''
+        - name: description
+          in: query
+          schema:
+            type: string
+            minLength: 0
+            maxLength: 255
+            example: any_string
+            default: ''
+        - name: created_at
+          in: query
+          schema:
+            type: string
+            x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+            example: '2006-01-02T15:04:05.000576Z'
+            format: date-time
+            readOnly: true
+            default: '2006-01-02T15:04:05.000576Z'
+        - name: updated_at
+          in: query
+          schema:
+            type: string
+            x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+            example: '2006-01-02T15:04:05.000576Z'
+            format: date-time
+            readOnly: true
+            default: '2006-01-02T15:04:05.000576Z'
+        - name: project_id
+          in: query
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum:
+              - ACTIVE
+              - ERROR
+              - IN_PROGRESS
+              - NEW
+            example: NEW
+            readOnly: true
+            default: NEW
+        - name: node
+          in: query
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            nullable: true
+      responses:
+        '200':
+          description: Border_Filter
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Border_Filter'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Filter_v1_network_border
+    post:
+      summary: Create Border
+      tags:
+        - Border
+      parameters: []
+      responses:
+        '201':
+          description: Border_Create
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Border_Create'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Create_v1_network_border
+      requestBody:
+        description: Border_Create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Border_Create'
+  /v1/network/border/{BorderUuid}:
+    get:
+      summary: Get Border
+      tags:
+        - Border
+      parameters:
+        - name: BorderUuid
+          in: path
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+          required: true
+      responses:
+        '200':
+          description: Border_Get
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Border_Get'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Get_v1_network_border_BorderUuid
+    put:
+      summary: Update Border
+      tags:
+        - Border
+      parameters:
+        - name: BorderUuid
+          in: path
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+          required: true
+      responses:
+        '200':
+          description: Border_Update
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Border_Update'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Update_v1_network_border_BorderUuid
+      requestBody:
+        description: Border_Update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Border_Update'
+    delete:
+      summary: Delete Border
+      tags:
+        - Border
+      parameters:
+        - name: BorderUuid
+          in: path
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+          required: true
+      responses:
+        '204':
+          description: Border_Delete
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Delete_v1_network_border_BorderUuid
   /v1/network/lb/:
     get:
       summary: Get LBs
@@ -26295,6 +28495,532 @@ paths:
         default:
           $ref: '#/components/responses/Error'
       operationId: Delete_v1_network_lb_LBUuid_vhosts_VhostUuid_routes_RouteUuid
+  /v1/repo/:
+    get:
+      summary: Returns a list of all routes in the main route that are 
+        collection
+      tags: []
+      parameters:
+        - name: filters
+          description: "the filters to apply when filtering the routes (Is not\nimplemented
+            now)\n"
+          schema:
+            type: string
+          in: query
+        - name: order_by
+          description: "fields to order the routes by (Is not implemented\nnow)\n"
+          schema:
+            type: string
+          in: query
+      responses:
+        '200':
+          description: Get nested urls
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Filter_v1_repo
+  /v1/repo/elements/:
+    get:
+      summary: Get RepoElements
+      tags:
+        - RepoElement
+      parameters:
+        - name: uuid
+          in: query
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+        - name: name
+          in: query
+          schema:
+            type: string
+            minLength: 0
+            maxLength: 255
+            example: any_string
+            default: ''
+        - name: description
+          in: query
+          schema:
+            type: string
+            minLength: 0
+            maxLength: 255
+            example: any_string
+            default: ''
+        - name: created_at
+          in: query
+          schema:
+            type: string
+            x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+            example: '2006-01-02T15:04:05.000576Z'
+            format: date-time
+            readOnly: true
+            default: '2006-01-02T15:04:05.000576Z'
+        - name: updated_at
+          in: query
+          schema:
+            type: string
+            x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+            example: '2006-01-02T15:04:05.000576Z'
+            format: date-time
+            readOnly: true
+            default: '2006-01-02T15:04:05.000576Z'
+        - name: project_id
+          in: query
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+        - name: repository
+          in: query
+          schema:
+            type: string
+        - name: version
+          in: query
+          schema:
+            type: string
+            minLength: 0
+            maxLength: 255
+            example: any_string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum:
+              - ACTIVE
+              - ERROR
+              - IN_PROGRESS
+              - NEW
+            example: NEW
+            readOnly: true
+            default: NEW
+        - name: installation_state
+          in: query
+          schema:
+            type: string
+            enum:
+              - INSTALLED
+              - UNINSTALLED
+            example: INSTALLED
+            default: UNINSTALLED
+        - name: element
+          in: query
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            nullable: true
+      responses:
+        '200':
+          description: RepoElement_Filter
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RepoElement_Filter'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Filter_v1_repo_elements
+  /v1/repo/elements/{RepoElementUuid}:
+    get:
+      summary: Get RepoElement
+      tags:
+        - RepoElement
+      parameters:
+        - name: RepoElementUuid
+          in: path
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+          required: true
+      responses:
+        '200':
+          description: RepoElement_Get
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepoElement_Get'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Get_v1_repo_elements_RepoElementUuid
+    delete:
+      summary: Delete RepoElement
+      tags:
+        - RepoElement
+      parameters:
+        - name: RepoElementUuid
+          in: path
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+          required: true
+      responses:
+        '204':
+          description: RepoElement_Delete
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Delete_v1_repo_elements_RepoElementUuid
+  /v1/repo/elements/{RepoElementUuid}/actions/edit/invoke:
+    post:
+      summary: Edit RepoElement
+      tags:
+        - RepoElement
+      parameters:
+        - name: RepoElementUuid
+          in: path
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+          required: true
+      responses:
+        '200':
+          description: Get nested urls
+          content:
+            application/json:
+              schema: {}
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Edit_v1_repo_elements_RepoElementUuid_actions_edit_invoke
+  /v1/repo/elements/{RepoElementUuid}/actions/install/invoke:
+    post:
+      summary: Install RepoElement
+      tags:
+        - RepoElement
+      parameters:
+        - name: RepoElementUuid
+          in: path
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+          required: true
+      responses:
+        '200':
+          description: Get nested urls
+          content:
+            application/json:
+              schema: {}
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: 
+        Install_v1_repo_elements_RepoElementUuid_actions_install_invoke
+  /v1/repo/elements/{RepoElementUuid}/actions/uninstall/invoke:
+    post:
+      summary: Uninstall RepoElement
+      tags:
+        - RepoElement
+      parameters:
+        - name: RepoElementUuid
+          in: path
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+          required: true
+      responses:
+        '200':
+          description: Get nested urls
+          content:
+            application/json:
+              schema: {}
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: 
+        Uninstall_v1_repo_elements_RepoElementUuid_actions_uninstall_invoke
+  /v1/repo/elements/{RepoElementUuid}/actions/upgrade/invoke:
+    post:
+      summary: Upgrade RepoElement
+      tags:
+        - RepoElement
+      parameters:
+        - name: RepoElementUuid
+          in: path
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+          required: true
+      responses:
+        '200':
+          description: Get nested urls
+          content:
+            application/json:
+              schema: {}
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: 
+        Upgrade_v1_repo_elements_RepoElementUuid_actions_upgrade_invoke
+  /v1/repo/repositories/:
+    get:
+      summary: Get Repositorys
+      tags:
+        - Repository
+      parameters:
+        - name: uuid
+          in: query
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+        - name: name
+          in: query
+          schema:
+            type: string
+            minLength: 0
+            maxLength: 255
+            example: any_string
+            default: ''
+        - name: description
+          in: query
+          schema:
+            type: string
+            minLength: 0
+            maxLength: 255
+            example: any_string
+            default: ''
+        - name: created_at
+          in: query
+          schema:
+            type: string
+            x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+            example: '2006-01-02T15:04:05.000576Z'
+            format: date-time
+            readOnly: true
+            default: '2006-01-02T15:04:05.000576Z'
+        - name: updated_at
+          in: query
+          schema:
+            type: string
+            x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+            example: '2006-01-02T15:04:05.000576Z'
+            format: date-time
+            readOnly: true
+            default: '2006-01-02T15:04:05.000576Z'
+        - name: project_id
+          in: query
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum:
+              - ACTIVE
+              - ERROR
+              - IN_PROGRESS
+              - NEW
+            example: NEW
+            readOnly: true
+            default: NEW
+        - name: priority
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 16384
+            example: 8192
+            default: 8192
+        - name: refresh_rate
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 9223372036854775807
+            example: 0
+            default: 3600
+        - name: sync_mode
+          in: query
+          schema:
+            type: string
+            enum:
+              - copy
+              - lazy
+            example: copy
+            default: lazy
+        - name: next_refresh
+          in: query
+          schema:
+            type: string
+            x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+            example: '2006-01-02T15:04:05.000576Z'
+            format: date-time
+            default: '2006-01-02T15:04:05.000576Z'
+      responses:
+        '200':
+          description: Repository_Filter
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Repository_Filter'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Filter_v1_repo_repositories
+    post:
+      summary: Create Repository
+      tags:
+        - Repository
+      parameters: []
+      responses:
+        '201':
+          description: Repository_Create
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Repository_Create'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Create_v1_repo_repositories
+      requestBody:
+        description: Repository_Create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Repository_Create'
+  /v1/repo/repositories/{RepositoryUuid}:
+    get:
+      summary: Get Repository
+      tags:
+        - Repository
+      parameters:
+        - name: RepositoryUuid
+          in: path
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+          required: true
+      responses:
+        '200':
+          description: Repository_Get
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Repository_Get'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Get_v1_repo_repositories_RepositoryUuid
+    put:
+      summary: Update Repository
+      tags:
+        - Repository
+      parameters:
+        - name: RepositoryUuid
+          in: path
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+          required: true
+      responses:
+        '200':
+          description: Repository_Update
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Repository_Update'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Update_v1_repo_repositories_RepositoryUuid
+      requestBody:
+        description: Repository_Update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Repository_Update'
+    delete:
+      summary: Delete Repository
+      tags:
+        - Repository
+      parameters:
+        - name: RepositoryUuid
+          in: path
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+          required: true
+      responses:
+        '204':
+          description: Repository_Delete
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Delete_v1_repo_repositories_RepositoryUuid
+  /v1/repo/repositories/{RepositoryUuid}/actions/refresh/invoke:
+    post:
+      summary: Refresh Repository
+      tags:
+        - Repository
+      parameters:
+        - name: RepositoryUuid
+          in: path
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+          required: true
+      responses:
+        '200':
+          description: Get nested urls
+          content:
+            application/json:
+              schema: {}
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: 
+        Refresh_v1_repo_repositories_RepositoryUuid_actions_refresh_invoke
+  /v1/repo/repositories/{RepositoryUuid}/actions/upload/invoke:
+    post:
+      summary: Upload Repository
+      tags:
+        - Repository
+      parameters:
+        - name: RepositoryUuid
+          in: path
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+          required: true
+      responses:
+        '200':
+          description: Get nested urls
+          content:
+            application/json:
+              schema: {}
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: 
+        Upload_v1_repo_repositories_RepositoryUuid_actions_upload_invoke
   /v1/secret/:
     get:
       summary: Returns a list of all routes in the main route that are 
@@ -27471,6 +30197,28 @@ paths:
         default:
           $ref: '#/components/responses/Error'
       operationId: Filter_v1_ua_agents
+    post:
+      summary: Create UniversalAgent
+      tags:
+        - UniversalAgent
+      parameters: []
+      responses:
+        '201':
+          description: UniversalAgent_Create
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UniversalAgent_Create'
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: Create_v1_ua_agents
+      requestBody:
+        description: UniversalAgent_Create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UniversalAgent_Create'
   /v1/ua/agents/{UniversalAgentUuid}:
     get:
       summary: Get UniversalAgent
@@ -27495,6 +30243,30 @@ paths:
         default:
           $ref: '#/components/responses/Error'
       operationId: Get_v1_ua_agents_UniversalAgentUuid
+  /v1/ua/agents/{UniversalAgentUuid}/actions/issue_key/invoke:
+    post:
+      summary: Issue_key UniversalAgent
+      tags:
+        - UniversalAgent
+      parameters:
+        - name: UniversalAgentUuid
+          in: path
+          schema:
+            type: string
+            example: 00000000-0000-0000-0000-000000000000
+            format: uuid
+            readOnly: true
+          required: true
+      responses:
+        '200':
+          description: Get nested urls
+          content:
+            application/json:
+              schema: {}
+        default:
+          $ref: '#/components/responses/Error'
+      operationId: 
+        Issue_key_v1_ua_agents_UniversalAgentUuid_actions_issue_key_invoke
   /v1/ua/resources/:
     get:
       summary: Get Resources
@@ -28502,6 +31274,8 @@ tags:
     description: ''
   - name: User
     description: ''
+  - name: Border
+    description: ''
   - name: BackendPool
     description: ''
   - name: Route
@@ -28509,6 +31283,10 @@ tags:
   - name: Vhost
     description: ''
   - name: LB
+    description: ''
+  - name: RepoElement
+    description: ''
+  - name: Repository
     description: ''
   - name: Certificate
     description: ''
