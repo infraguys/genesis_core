@@ -110,7 +110,7 @@ Production-образ будет ожидать `/etc/exordos/realm_spec.json` �
 `exordos_core/cmd/bootstrap.py` / `exordos_core/bootstrap/defaults.py`
 (`realm_uuid`, `realm_secret`, `realm_tokens`, `ecosystem_endpoint`,
 `admin_password`, `disable_telemetry`), чтобы скрипт первой загрузки образа мог
-объедините этот файл с его готовым шаблоном спецификации с минимальным сопоставлением.
+объединить этот файл с его готовым шаблоном спецификации с минимальным сопоставлением.
 
 Далее вы можете просмотреть логи службы bootstrap с помощью `sudo journalctl -u exordos-realm-bootstrap`.
 
