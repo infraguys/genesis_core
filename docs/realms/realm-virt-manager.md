@@ -107,6 +107,6 @@ Key names deliberately match the `spec.json` keys consumed by
 `admin_password`, `disable_telemetry`), so the image's first-boot script can
 merge this file into its baked spec template with minimal mapping.
 
-Next you can see logs of bootstrap service by `sudo journalctl -u exordos-realm-bootstrap`.
+Next you can view the bootstrap service logs with `sudo journalctl -u exordos-realm-bootstrap`.
 
-And after some time you can see work stand by `exordos e e l.`
+And after few seconds you can see work stand by `exordos e e l`.

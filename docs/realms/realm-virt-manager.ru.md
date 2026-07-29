@@ -114,4 +114,4 @@ Production-образ будет ожидать `/etc/exordos/realm_spec.json` �
 
 Далее вы можете просмотреть логи службы bootstrap с помощью `sudo journalctl -u exordos-realm-bootstrap`.
 
-И через некоторое время вы можете увидеть рабочий стенд, выполнив команду "exordos e e l`.
+И через несколько секунд вы можете увидеть рабочий стенд, выполнив команду `exordos e e l`.
