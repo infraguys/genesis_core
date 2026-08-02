@@ -322,10 +322,14 @@ class SchedulerService(basic.BasicService):
         idle_machines = self._get_idle_machines()
 
         idle_hws = [
-            m for m in idle_machines if m.machine.machine_type == ua_pool.NodeType.HW.value
+            m
+            for m in idle_machines
+            if m.machine.machine_type == ua_pool.NodeType.HW.value
         ]
         idle_vms = [
-            m for m in idle_machines if m.machine.machine_type == ua_pool.NodeType.VM.value
+            m
+            for m in idle_machines
+            if m.machine.machine_type == ua_pool.NodeType.VM.value
         ]
         vms = []
 

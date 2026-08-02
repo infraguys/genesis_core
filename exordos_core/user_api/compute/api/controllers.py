@@ -199,7 +199,10 @@ class HypervisorsController(
     )
 
     def create(self, **kwargs):
-        if "machine_type" in kwargs and kwargs["machine_type"] != ua_pool.NodeType.VM.value:
+        if (
+            "machine_type" in kwargs
+            and kwargs["machine_type"] != ua_pool.NodeType.VM.value
+        ):
             raise ValueError("Hyper must be VM type")
 
         self._validate_driver_spec_uniqueness(kwargs)

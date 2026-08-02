@@ -517,7 +517,9 @@ def pool_factory():
             if driver_spec is None
             else driver_spec
         )
-        status_value = ua_pool.MachinePoolStatus.ACTIVE.value if status is None else status
+        status_value = (
+            ua_pool.MachinePoolStatus.ACTIVE.value if status is None else status
+        )
         storage_pool = ua_pool.ThinStoragePool(
             pool_type="dummy",
             capacity_usable=1000,
