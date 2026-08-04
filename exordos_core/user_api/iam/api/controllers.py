@@ -541,18 +541,19 @@ class ProjectController(controllers.BaseResourceControllerPaginated, EnforceMixi
         try:
             user_uuid_obj = sys_uuid.UUID(value)
         except ValueError:
-            return models.User.objects.get_one(
-                filters={"username": ra_filters.EQ(value)}
-            )
+            return models.User.objects.get_one(filters={"name": ra_filters.EQ(value)})
         return models.User.objects.get_one(
             filters={"uuid": ra_filters.EQ(user_uuid_obj)}
         )
 
     @staticmethod
-    def _resolve_role(role):
+    def _resolve_role(role, project_id):
         try:
             return models.Role.objects.get_one(
-                filters={"uuid": ra_filters.EQ(sys_uuid.UUID(role))}
+                filters={
+                    "uuid": ra_filters.EQ(sys_uuid.UUID(role)),
+                    "project_id": ra_filters.In((None, project_id)),
+                }
             )
         except ValueError:
             return models.Role.objects.get_one(filters={"name": ra_filters.EQ(role)})
@@ -586,7 +587,26 @@ class ProjectController(controllers.BaseResourceControllerPaginated, EnforceMixi
         target_user = self._resolve_user(user)
 
         # Look up the role by UUID or name
-        role = self._resolve_role(role)
+        role = self._resolve_role(role, project.uuid)
+        if (
+            role.project_id != project.uuid
+            and str(role.uuid) != common_c.OWNER_ROLE_UUID
+        ):
+            raise iam_e.CanNotAddUserToProject(
+                uuid=project_uuid,
+                rule=c.PERMISSION_PROJECT_ADD_USER,
+            )
+
+        if str(role.uuid) != common_c.OWNER_ROLE_UUID:
+            for permission_binding in models.PermissionBinding.objects.get_all(
+                filters={"role": ra_filters.EQ(role)}
+            ):
+                permission = permission_binding.permission.name
+                if not self.enforce(rules.Rule.from_raw(permission)):
+                    raise iam_e.CanNotAddUserToProject(
+                        uuid=project_uuid,
+                        rule=permission,
+                    )
 
         role_binding = models.RoleBinding.objects.get_one_or_none(
             filters={

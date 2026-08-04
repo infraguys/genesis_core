@@ -317,6 +317,120 @@ class TestProjectAddUser(base.BaseIamResourceTest):
                 },
             )
 
+    def test_project_owner_cannot_assign_global_admin_role(
+        self,
+        user_api_client,
+        auth_user_admin,
+        auth_test1_user,
+        auth_test2_user,
+    ):
+        """Project owners cannot grant the global admin role."""
+        admin_client = user_api_client(auth_user_admin)
+        project_client = user_api_client(auth_test1_user)
+        org = admin_client.create_organization(name="GlobalRoleForbiddenOrg")
+        project = admin_client.create_project(
+            organization_uuid=org["uuid"],
+            name="GlobalRoleForbiddenProject",
+        )
+        owner_role = admin_client.create_or_get_role("owner")
+        admin_role = admin_client.create_or_get_role("admin")
+        admin_client.create_role_binding(
+            role_uuid=owner_role["uuid"],
+            user_uuid=auth_test1_user.uuid,
+            project_id=project["uuid"],
+        )
+
+        with pytest.raises(bazooka_exc.NotFoundError):
+            project_client.post(
+                self._add_user_url(project_client, project["uuid"]),
+                json={
+                    "user": str(auth_test2_user.uuid),
+                    "role": admin_role["uuid"],
+                },
+            )
+
+        with pytest.raises(bazooka_exc.ForbiddenError):
+            project_client.post(
+                self._add_user_url(project_client, project["uuid"]),
+                json={
+                    "user": str(auth_test2_user.uuid),
+                    "role": "admin",
+                },
+            )
+
+        assert (
+            iam_models.RoleBinding.objects.get_one_or_none(
+                filters={
+                    "project": dm_filters.EQ(project["uuid"]),
+                    "user": dm_filters.EQ(auth_test2_user.uuid),
+                    "role": dm_filters.EQ(admin_role["uuid"]),
+                }
+            )
+            is None
+        )
+
+        admin_client.delete_project(project["uuid"])
+        admin_client.delete_organization(org["uuid"])
+
+    def test_project_owner_cannot_grant_unheld_role_permission(
+        self,
+        user_api_client,
+        auth_user_admin,
+        auth_test1_user,
+        auth_test2_user,
+    ):
+        """Project owners cannot grant permissions they do not hold."""
+        admin_client = user_api_client(auth_user_admin)
+        project_client = user_api_client(auth_test1_user)
+        org = admin_client.create_organization(name="PermissionSubsetOrg")
+        project = admin_client.create_project(
+            organization_uuid=org["uuid"],
+            name="PermissionSubsetProject",
+        )
+        role = admin_client.create_role(
+            name="permission_subset_role",
+            project_id=project["uuid"],
+        )
+        permission = admin_client.create_permission(
+            name="iam.test.unheld_role_permission"
+        )
+        permission_binding = admin_client.create_permission_binding(
+            role_uuid=role["uuid"],
+            permission_uuid=permission["uuid"],
+        )
+        owner_role = admin_client.create_or_get_role("owner")
+        admin_client.create_role_binding(
+            role_uuid=owner_role["uuid"],
+            user_uuid=auth_test1_user.uuid,
+            project_id=project["uuid"],
+        )
+
+        with pytest.raises(bazooka_exc.ForbiddenError):
+            project_client.post(
+                self._add_user_url(project_client, project["uuid"]),
+                json={
+                    "user": str(auth_test2_user.uuid),
+                    "role": role["uuid"],
+                },
+            )
+
+        assert (
+            iam_models.RoleBinding.objects.get_one_or_none(
+                filters={
+                    "project": dm_filters.EQ(project["uuid"]),
+                    "user": dm_filters.EQ(auth_test2_user.uuid),
+                    "role": dm_filters.EQ(role["uuid"]),
+                }
+            )
+            is None
+        )
+
+        admin_client.delete_permission_binding(permission_binding["uuid"])
+        admin_client.delete_permission(permission["uuid"])
+        admin_client.delete_role(role["uuid"])
+        admin_client.delete_project(project["uuid"])
+        admin_client.delete_organization(org["uuid"])
+
     def test_add_user_owner_role_success(
         self,
         user_api_client,
