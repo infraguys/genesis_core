@@ -243,84 +243,6 @@ class SecretServiceBuilder(basic.BasicService):
                     "Error deleting resource(%s) %s", secret.kind, secret.uuid
                 )
 
-    # Certificates
-
-    def _actualize_new_certificates(self) -> None:
-        """Actualize new certificates."""
-        certs = self._get_new_certificates()
-        self._actualize_new_secrets(sc.CERTIFICATE_KIND, certs)
-
-    def _actualize_changed_certificates(self) -> None:
-        """Actualize certificates changed by user."""
-        changed_certs = {crt.uuid: crt for crt in self._get_changed_certificates()}
-        self._actualize_changed_secrets(sc.CERTIFICATE_KIND, changed_certs)
-
-    def _actualize_outdated_certificate(
-        self,
-        certificate: models.Certificate,
-        target_resource: ua_models.TargetResource,
-        actual_resource: ua_models.Resource,
-    ) -> None:
-        """Actualize outdated certificate."""
-        certificate_updated = False
-        status_updated = False
-        actual_cert = models.Certificate.from_ua_resource(actual_resource)
-
-        # `ACTIVE` only if the hash is the same
-        if (
-            actual_resource.status == sc.SecretStatus.ACTIVE
-            and target_resource.hash == actual_resource.hash
-        ):
-            status_updated = True
-        elif (
-            actual_resource.status != sc.SecretStatus.ACTIVE
-            and target_resource.status != actual_resource.status
-        ):
-            status_updated = True
-
-        # Actualize certificate
-        if (
-            status_updated
-            or actual_cert.key != certificate.key
-            or actual_cert.cert != certificate.cert
-            or actual_cert.expiration_at != certificate.expiration_at
-        ):
-            if status_updated:
-                certificate.status = actual_cert.status
-            certificate.key = actual_cert.key
-            certificate.cert = actual_cert.cert
-            certificate.expiration_at = actual_cert.expiration_at
-            certificate.save()
-            certificate_updated = True
-
-        # Actualize resource
-        if (
-            certificate_updated
-            or actual_resource.full_hash != target_resource.full_hash
-        ):
-            if status_updated:
-                target_resource.status = actual_resource.status
-            target_resource.full_hash = actual_resource.full_hash
-            target_resource.tracked_at = certificate.updated_at
-            target_resource.update()
-
-    def _actualize_outdated_certificates(self) -> None:
-        """Actualize outdated certificates.
-
-        It means some changes occurred in the system and the certificates
-        are outdated now. For instance, their status is incorrect.
-        """
-        self._actualize_outdated_secrets(
-            sc.CERTIFICATE_KIND,
-            models.Certificate,
-            self._actualize_outdated_certificate,
-        )
-
-    def _actualize_deleted_certificates(self) -> None:
-        """Actualize certificates deleted by user."""
-        deleted_certificates = self._get_deleted_certificates()
-        self._actualize_deleted_secrets(deleted_certificates)
-
     # SSH Keys
 
     def _actualize_new_ssh_key(
@@ -511,27 +433,6 @@ class SecretServiceBuilder(basic.BasicService):
             except Exception:
                 LOG.exception("Error deleting resource %s", resource.uuid)
 
-    def _actualize_certificates(self) -> None:
-        try:
-            self._actualize_new_certificates()
-        except Exception:
-            LOG.exception("Error actualizing new certificates")
-
-        try:
-            self._actualize_changed_certificates()
-        except Exception:
-            LOG.exception("Error actualizing changed certificates")
-
-        try:
-            self._actualize_outdated_certificates()
-        except Exception:
-            LOG.exception("Error actualizing outdated certificates")
-
-        try:
-            self._actualize_deleted_certificates()
-        except Exception:
-            LOG.exception("Error actualizing deleted certificates")
-
     def _actualize_ssh_keys(self) -> None:
         try:
             self._actualize_new_ssh_keys()
@@ -555,5 +456,4 @@ class SecretServiceBuilder(basic.BasicService):
 
     def _iteration(self) -> None:
         with contexts.Context().session_manager():
-            # self._actualize_certificates()
             self._actualize_ssh_keys()

@@ -650,7 +650,7 @@ name = "exceptiongroup"
 version = "1.3.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
+    { name = "typing-extensions" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/50/79/66800aadf48771f6b62f7eb014e352e5d06856655206165d775e675a02c9/exceptiongroup-1.3.1.tar.gz", hash = "sha256:8b412432c6055b0b7d14c310000ae93352ed6754f70fa8f7c34141f91c4e3219", size = 30371, upload-time = "2025-11-21T23:01:54.787Z" }
 wheels = [
@@ -732,7 +732,7 @@ requires-dist = [
     { name = "cryptography", specifier = ">=45.0.5,<47.0.0" },
     { name = "dnspython", marker = "extra == 'test'", specifier = ">=2.6.0,<3.0.0" },
     { name = "firebase-admin", specifier = ">=6.0.0,<8.0.0" },
-    { name = "gcl-certbot-plugin", specifier = ">=0.0.9,<1.0.0" },
+    { name = "gcl-certbot-plugin", specifier = ">=0.0.12,<1.0.0" },
     { name = "gcl-iam", specifier = ">=1.3.2,<2.0.0" },
     { name = "gcl-looper", specifier = ">=1.2.3,<2.0.0" },
     { name = "gcl-sdk", specifier = ">=3.2.2,<4.0.0" },
@@ -791,7 +791,7 @@ wheels = [
 
 [[package]]
 name = "gcl-certbot-plugin"
-version = "0.0.9"
+version = "0.0.12"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bazooka" },
@@ -800,9 +800,9 @@ dependencies = [
     { name = "gcl-iam" },
     { name = "gcl-sdk" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/1c/2a/f86163b4dd02abed4bc6ae5a1f9d8587d344cbe603eb0c575e26ce1e8c82/gcl_certbot_plugin-0.0.9.tar.gz", hash = "sha256:a9ed696beb3f840ef9604f3a2f5888d13d2e535a3db8e7b6feda2fa9eca6304a", size = 209373, upload-time = "2026-05-19T13:11:39.897Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/0d/a9/812053d1a6de2da34703e2c5ee32b32c8055d5f52fe376081b8318149450/gcl_certbot_plugin-0.0.12.tar.gz", hash = "sha256:a4f9cf7f4d935a3d8df21d224476a91e727d3b85f528d14d42a8c81f59fcab83", size = 129144, upload-time = "2026-08-04T13:49:20.18Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/15/f9/1e12a4fae4ee4f3da89d6dcbabde7eec86b13a8d1fd7cf83f2bd94f2f14e/gcl_certbot_plugin-0.0.9-py3-none-any.whl", hash = "sha256:b34888c71569ae37b723be9a13839d23025f3744bedc7acda24aa75265c3367d", size = 14866, upload-time = "2026-05-19T13:11:38.092Z" },
+    { url = "https://files.pythonhosted.org/packages/11/84/0707c28d7d3aeac6e062c3747d441f27c197f145343a0884d50d7d833ead/gcl_certbot_plugin-0.0.12-py3-none-any.whl", hash = "sha256:18437180fcc6fce7fbea967e268d20d3da062ae222d2deb6b93ed5f7a5cdb9d1", size = 15009, upload-time = "2026-08-04T13:49:18.819Z" },
 ]
 
 [[package]]
@@ -1848,7 +1848,7 @@ resolution-markers = [
     "python_full_version < '3.11'",
 ]
 dependencies = [
-    { name = "pbr", marker = "python_full_version < '3.11'" },
+    { name = "pbr" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/5f/26/85800d24c3aa7650bbd5fa0398aca78a84e8a8693f9c6a852148a196ddac/oslo_i18n-6.8.0.tar.gz", hash = "sha256:a0b4c64c1396869d7144dca60ad97c7eb028f78f61f91c7007531238051997df", size = 50114, upload-time = "2026-05-18T09:16:54.09Z" }
 wheels = [
@@ -1866,7 +1866,7 @@ resolution-markers = [
     "python_full_version >= '3.11' and python_full_version < '3.13'",
 ]
 dependencies = [
-    { name = "pbr", marker = "python_full_version >= '3.11'" },
+    { name = "pbr" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/5e/69/72b03bb4d33f51a157c02d5297227bae48b9c359103856942b8774b608df/oslo_i18n-6.9.0.tar.gz", hash = "sha256:574bcf21873b185068bcec951de1ec093158ffdff05a8055fd18ddcb69f69e65", size = 50369, upload-time = "2026-07-10T13:44:34.301Z" }
 wheels = [

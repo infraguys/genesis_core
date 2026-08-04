@@ -41,16 +41,20 @@ class CertBotBackendClient(base.AbstractBackendClient):
         dns_client: dns_clients.TinyDNSCoreClient,
         admin_email: str,
         private_key_path: str,
+        directory_url: str = acme.DIRECTORY_URL_PROD,
     ) -> None:
         self._dns_client = dns_client
         self._admin_email = admin_email
         self._client_acme: tp.Optional[acme_lib_client.ClientV2] = None
         self._private_key = acme.get_or_create_client_private_key(private_key_path)
+        self._directory_url = directory_url
 
     def _get_or_create_acme_client(self) -> acme_lib_client.ClientV2:
         if self._client_acme is None:
             self._client_acme = acme.get_acme_client(
-                self._private_key, self._admin_email
+                private_client_key=self._private_key,
+                email=self._admin_email,
+                directory_url=self._directory_url,
             )
         return self._client_acme
 
@@ -106,13 +110,32 @@ class CertBotBackendClient(base.AbstractBackendClient):
         except ra_exc.RecordNotFound:
             raise exceptions.ResourceNotFound(resource=resource)
 
-        # TODO(akremenetsky): It's tricky logic to update the cert
-        # if domains changed. Need to check domains intersection,
-        # check wildcards
+        # If domains changed, issue a new certificate.
+        # We use create_cert (not renew_cert) because the domain set is
+        # fundamentally different – the old key/CSR may not cover the
+        # new domains.
         if set(cert["meta"]["domains"]) != set(resource.value["domains"]):
-            LOG.error("Not implemented yet")
-            raise NotImplementedError("Domains changed")
-            # return cert.to_resource_value()
+            LOG.info(
+                "Domains changed for cert %s, re-issuing: %s -> %s",
+                resource.uuid,
+                cert["meta"]["domains"],
+                resource.value["domains"],
+            )
+            pkey_pem, csr_pem, fullchain_pem = acme.create_cert(
+                self._get_or_create_acme_client(),
+                self._dns_client,
+                resource.value["domains"],
+            )
+            cert_x509 = x509.load_pem_x509_certificate(fullchain_pem.encode())
+            expiration_at = cert_x509.not_valid_after_utc
+
+            driver_cert = driver_dm.Certificate.from_cert_resource(
+                resource, pkey_pem, csr_pem, fullchain_pem, expiration_at
+            )
+
+            cert.delete()
+            driver_cert.save()
+            return driver_cert.to_resource_value()
 
         # Should the cert be renewed?
         if not cert.is_under_threshold():

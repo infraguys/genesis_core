@@ -129,5 +129,12 @@ class CertificateBuilder(sdk_builder.UniversalBuilderService):
             current_instance.cert = actual_instance.cert
             current_instance.expiration_at = actual_instance.expiration_at
 
-        if status_updated or cert_updated:
+        # Detect domain changes from the DP
+        domains_updated = sorted(current_instance.domains) != sorted(
+            actual_instance.domains
+        )
+        if domains_updated:
+            current_instance.domains = actual_instance.domains
+
+        if status_updated or cert_updated or domains_updated:
             current_instance.save()

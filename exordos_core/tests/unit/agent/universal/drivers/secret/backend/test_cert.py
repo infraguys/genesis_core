@@ -231,7 +231,14 @@ class TestCertBotBackendClient:
         with pytest.raises(client_exc.ResourceNotFound):
             self.client.update(resource)
 
-    def test_update_domains_changed(self, mock_cert_objects):
+    def test_update_domains_changed(
+        self,
+        mock_cert_objects,
+        mock_acme_create_cert,
+        mock_x509_load,
+        mock_from_cert_resource,
+    ):
+        """When domains change, the driver should re-issue the cert via create_cert."""
         resource = _make_resource(
             KIND, value={"uuid": str(sys_uuid.uuid4()), "domains": ["new.example.com"]}
         )
@@ -241,8 +248,68 @@ class TestCertBotBackendClient:
         }[key]
         mock_cert_objects.get_one.return_value = cert_mock
 
-        with pytest.raises(NotImplementedError, match="Domains changed"):
+        mock_acme_create_cert.return_value = (PKEY_BYTES, CSR_BYTES, FULLCHAIN_STR)
+
+        driver_cert_mock = MagicMock()
+        driver_cert_mock.to_resource_value.return_value = {
+            "key": "new_val",
+            "status": "ACTIVE",
+        }
+        mock_from_cert_resource.return_value = driver_cert_mock
+
+        result = self.client.update(resource)
+
+        assert result == {"key": "new_val", "status": "ACTIVE"}
+        # Should call create_cert (not renew_cert) for domain changes
+        mock_acme_create_cert.assert_called_once_with(
+            self.client._get_or_create_acme_client(),
+            self.mock_dns_client,
+            resource.value["domains"],
+        )
+        mock_x509_load.assert_called_once()
+        # Old cert should be deleted and new one saved
+        cert_mock.delete.assert_called_once()
+        driver_cert_mock.save.assert_called_once()
+
+    def test_update_domains_changed_create_cert_failure(
+        self,
+        mock_cert_objects,
+        mock_acme_create_cert,
+        mock_x509_load,
+        mock_from_cert_resource,
+    ):
+        resource = _make_resource(
+            KIND,
+            value={
+                "uuid": str(sys_uuid.uuid4()),
+                "status": "ACTIVE",
+                "domains": ["example.com"],
+            },
+        )
+
+        cert_mock = mock_cert_objects.filter.return_value.get.return_value
+        cert_mock.to_resource_value.return_value = {
+            "key": "old_val",
+            "status": "ACTIVE",
+            "domains": ["old-example.com"],
+        }
+
+        # Simulate domains changed so that create_cert is invoked
+        resource.value["domains"] = ["new-example.com"]
+
+        # Ensure ACME create_cert fails
+        mock_acme_create_cert.side_effect = RuntimeError("ACME create_cert failed")
+
+        driver_cert_mock = MagicMock()
+        mock_from_cert_resource.return_value = driver_cert_mock
+
+        with pytest.raises(RuntimeError, match="ACME create_cert failed"):
             self.client.update(resource)
+
+        # Failure during create_cert must not delete the old certificate
+        cert_mock.delete.assert_not_called()
+        driver_cert_mock.save.assert_not_called()
+        mock_x509_load.assert_not_called()
 
     def test_update_within_threshold(self, mock_cert_objects):
         resource = _make_resource(
