@@ -823,7 +823,7 @@ class Resource(
         try:
             target_state = self.render_target_state()
         except KeyError as e:
-            LOG.debug(
+            LOG.warning(
                 "Target state is not available for resource %s by reason: %r",
                 self,
                 str(e),
