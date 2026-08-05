@@ -58,6 +58,38 @@ class TestProjects(base.BaseIamResourceTest):
         assert len(projects) == 1
         assert projects[0]["name"] == "ProjectU1P1"
 
+    def test_list_projects_deduplicates_multiple_user_roles(
+        self,
+        user_api_client,
+        auth_user_admin,
+        auth_test1_p1_user,
+    ):
+        admin_client = user_api_client(auth_user_admin)
+        client = user_api_client(auth_test1_p1_user)
+        project = client.list_projects()[0]
+        role = admin_client.create_role(
+            name="additional-project-role",
+            description="Additional role in the same project",
+            project_id=project["uuid"],
+        )
+        role_binding = None
+        try:
+            role_binding = admin_client.bind_role_to_user(
+                role["uuid"],
+                auth_test1_p1_user.uuid,
+                project["uuid"],
+            )
+
+            projects = client.list_projects()
+
+            assert [item["uuid"] for item in projects] == [project["uuid"]]
+        finally:
+            try:
+                if role_binding is not None:
+                    admin_client.delete_role_binding(role_binding["uuid"])
+            finally:
+                admin_client.delete_role(role["uuid"])
+
     def test_list_projects_invited_user_to_project(
         self,
         user_api_client,

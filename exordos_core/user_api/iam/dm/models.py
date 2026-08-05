@@ -806,7 +806,15 @@ class Project(
             filters=filters,
             order_by={"created_at": "asc"},
         )
-        return [binding.project for binding in role_bindings]
+        # Preserve the order of the earliest role binding for each project.
+        projects = []
+        project_uuids = set()
+        for binding in role_bindings:
+            if binding.project.uuid in project_uuids:
+                continue
+            project_uuids.add(binding.project.uuid)
+            projects.append(binding.project)
+        return projects
 
     def delete(self, session=None):
         u.remove_nested_dm(RoleBinding, "project", self, session=session)
