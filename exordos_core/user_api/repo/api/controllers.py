@@ -83,7 +83,7 @@ class RepositoryController(
 
 
 class RepoElementController(
-    iam_controllers.PolicyBasedController,
+    iam_controllers.PolicyBasedWithoutProjectController,
     controllers.BaseResourceControllerPaginated,
 ):
     __policy_service_name__ = "repo"
