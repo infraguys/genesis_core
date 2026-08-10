@@ -724,9 +724,24 @@ class LibvirtPoolDriver(base.AbstractPoolDriver):
             if not mac or not source:
                 raise ValueError(f"Interface {iface} has no mac or source")
 
+            # A <source network=...> attribute only ever appears on an
+            # interface create_machine() built with iface_type='network' -
+            # i.e. the transient boot port (see Port.from_boot_network()),
+            # which create_machine() always makes type='network' regardless
+            # of the hypervisor's own network_type. A real bridge-type
+            # interface's <source> only ever carries a 'bridge' attribute.
+            # Reuse that distinction (rather than reusing the boot port's
+            # sentinel UUID for every reconstructed port) so a real port
+            # round-trips through create_machine() with its own type intact.
+            port_uuid = (
+                nc.BOOT_NETWORK_PORT_UUID
+                if source_el is not None and source_el.get("network") is not None
+                else sys_uuid.uuid4()
+            )
+
             ports.append(
                 models.Port(
-                    uuid=sys_uuid.UUID("00000000-0000-0000-0000-000000000000"),
+                    uuid=port_uuid,
                     machine=machine.uuid,
                     mac=mac,
                     project_id=c.SERVICE_PROJECT_ID,

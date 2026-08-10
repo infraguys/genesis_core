@@ -247,6 +247,37 @@ class TestCreateMachine:
         assert interface.find("source").get("bridge") == "br0"
 
 
+class TestListInterfaces:
+    def test_update_preserves_each_ports_original_interface_type(self):
+        # Regression: _list_interfaces() used to reconstruct every live
+        # interface with the same all-zero sentinel UUID reserved for the
+        # transient boot port (BOOT_NETWORK_PORT_UUID). set_machine_cores(),
+        # set_machine_ram(), rename_machine() and recreate_machine(ports=
+        # None) all feed its result straight back into create_machine(), so
+        # on a bridge-type hypervisor a real bridge port would round-trip
+        # back as type='network' too.
+        driver = _local_driver(network_type="bridge")
+        machine = _machine()
+        boot_port = _port(nc.BOOT_NETWORK_PORT_UUID, source="exordos-core-boot-net")
+        real_port = _port(sys_uuid.uuid4(), source="br0")
+
+        driver.create_machine(machine, volumes=[], ports=[boot_port, real_port])
+
+        driver.set_machine_cores(machine, cores=2)
+
+        domain = driver._client.lookupByUUIDString(str(machine.uuid))
+        interfaces = ET.fromstring(domain.XMLDesc()).findall(".//devices/interface")
+        by_mac = {i.find("mac").get("address"): i for i in interfaces}
+
+        boot_iface = by_mac[boot_port.mac]
+        assert boot_iface.get("type") == "network"
+        assert boot_iface.find("source").get("network") == "exordos-core-boot-net"
+
+        real_iface = by_mac[real_port.mac]
+        assert real_iface.get("type") == "bridge"
+        assert real_iface.find("source").get("bridge") == "br0"
+
+
 class TestAttachPort:
     def test_honors_the_hypervisors_network_type_for_bridge_hypervisors(self):
         # Regression: attach_port() is only ever used for the real port,
