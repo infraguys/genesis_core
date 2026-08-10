@@ -174,5 +174,7 @@ class TestDeleteMachine:
 
         driver.delete_machine(machine, delete_volumes=True)
 
+        assert driver.list_volumes(machine) == []
+
         storage_pool = driver._client.storagePoolLookupByName("default-pool")
         assert list(storage_pool.listAllVolumes()) == []
