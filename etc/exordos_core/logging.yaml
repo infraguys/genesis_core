@@ -28,6 +28,7 @@ loggers:
   psycopg: {}
   bazooka:
     level: WARNING
+
 root:
   handlers: [console]
   level: INFO
