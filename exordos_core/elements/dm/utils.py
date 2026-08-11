@@ -26,6 +26,7 @@ import openapi_schema_validator
 import yaml
 
 from exordos_core.common import exceptions
+from exordos_core.common import openapi
 from exordos_core.common.utils import PROJECT_PATH
 from exordos_core.common.utils import get_api_client
 from exordos_core.common.utils import validate_url
@@ -257,11 +258,12 @@ def dump_api_spec(data):
 
 
 def load_user_api_spec() -> dict:
-    with open(
-        os.path.join(PROJECT_PATH, "docs", "openapi", "openapi_user.yaml"),
-        "r",
-    ) as f:
-        return yaml.safe_load(f)
+    """The user API document the manifest schema is derived from.
+
+    Built rather than read: it describes the code in this checkout, and a
+    copy on disk under `docs/` is a copy that goes stale on its own.
+    """
+    return openapi.build(openapi.USER_API)
 
 
 def validate_manifest(data: dict, schema: tp.Optional[dict]) -> None:

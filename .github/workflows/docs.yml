@@ -6,6 +6,12 @@ on:
     paths:
       - 'docs/**'
       - mkdocs.yml
+      # The OpenAPI documents are built from the code, so the site is out of
+      # date whenever the API is.
+      - 'exordos_core/**'
+      - pyproject.toml
+      - uv.lock
+      - tox.ini
   workflow_dispatch:
 permissions:
   contents: read
