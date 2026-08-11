@@ -172,7 +172,7 @@ OA_SPEC_RESET_PASSWORD_USER = dict(
             },
         },
     ),
-    responses=oa_c.build_openapi_get_update_response("User"),
+    responses=oa_c.build_openapi_get_update_response("User_Get"),
 )
 
 OA_SPEC_GET_TOKEN_KWARGS = dict(
