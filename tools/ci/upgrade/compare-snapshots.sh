@@ -71,6 +71,24 @@ if [[ -n "${missing_elements}" ]]; then
     fail "elements lost during the upgrade: ${missing_elements//$'\n'/, }"
 fi
 
+# A capability that stops being claimed is invisible to the convergence check —
+# unscheduled work is not divergent work, it is work that never starts. It shows
+# up here instead: the upgrade may add kinds, but a kind the scheduler handed to
+# an agent before and hands to nobody after is the data plane silently losing a
+# capability.
+unscheduled_kinds="$(
+    jq -r -n \
+        --slurpfile before "${before_dir}/target_resources.json" \
+        --slurpfile after "${after_dir}/target_resources.json" \
+        '($after[0] | map(select(.agent != null) | .kind) | unique) as $now
+         | $before[0] | map(select(.agent != null) | .kind) | unique
+         | map(select(. as $kind | $now | index($kind) | not))
+         | .[]'
+)"
+if [[ -n "${unscheduled_kinds}" ]]; then
+    fail "kinds no longer scheduled to any agent: ${unscheduled_kinds//$'\n'/, }"
+fi
+
 before_nodes="$(jq -r '.nodes' "${before_dir}/counts.json")"
 after_nodes="$(jq -r '.nodes' "${after_dir}/counts.json")"
 if ((after_nodes < before_nodes)); then

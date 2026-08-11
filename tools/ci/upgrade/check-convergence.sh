@@ -26,9 +26,20 @@
 # decision, so that is what is asserted here; `full_hash` is only reported, as
 # the two sides may legitimately differ on fields outside the target set.
 #
-# A target with no agent is a different failure and is reported as such: the
-# scheduler leaves `agent` unset when no agent claims the capability, and
-# blaming the data plane for that sends you looking at the wrong side.
+# Only target resources the scheduler has given to an agent are asserted on.
+# `/v1/ua/target_resources/` is not a list of things a data plane renders: on a
+# freshly bootstrapped installation 966 of its 1069 rows carry no agent at all,
+# and they are supposed to. Most are the repository catalogue
+# (`repo_proxy_element`, one row per element version a repository offers); the
+# rest are instance-level rows (`node`, `machine`, `vs_variable`) whose
+# derivatives are the things that go to agents. Demanding that all of them
+# converge asserts that the core is doing something it never claimed to, and
+# fails every run before an upgrade is even attempted.
+#
+# What the unscheduled rows *can* hide — a capability no agent claims, so the
+# work is never handed out — is caught by comparing the snapshots instead: a
+# kind that was scheduled before the upgrade and is not after is a regression,
+# and that is a question about two runs, not about one listing.
 #
 # Usage: check-convergence.sh [report.json]
 #
@@ -61,14 +72,12 @@ divergences() {
         '
         ($actual[0] | map({key: "\(.kind)/\(.res_uuid)", value: .}) | from_entries) as $by_key
         | $targets[0]
+        | map(select(.agent != null))
         | map(
             . as $target
             | "\($target.kind)/\($target.res_uuid)" as $key
             | $by_key[$key] as $actual_resource
-            | if $target.agent == null then
-                  {key: $key, reason: "never scheduled: no agent has this capability",
-                   target_status: $target.status}
-              elif $actual_resource == null then
+            | if $actual_resource == null then
                   {key: $key, reason: "the data plane never reported this resource",
                    target_status: $target.status}
               elif $actual_resource.hash != $target.hash then
@@ -101,9 +110,9 @@ while ((SECONDS < deadline)); do
         clean_polls=$((clean_polls + 1))
         log "converged (${clean_polls}/${STABLE_POLLS} consecutive polls clean)"
         if ((clean_polls >= STABLE_POLLS)); then
-            total="$(jq -r 'length' "${work_dir}/targets.json")"
-            ((total > 0)) || die "no target resources at all — the installation is not doing anything"
-            log "all ${total} target resources match the data plane"
+            total="$(jq -r 'map(select(.agent != null)) | length' "${work_dir}/targets.json")"
+            ((total > 0)) || die "nothing is scheduled to any agent — the installation is not doing anything"
+            log "all ${total} scheduled target resources match the data plane"
             [[ -z "${report_file}" ]] || printf '[]\n' >"${report_file}"
             exit 0
         fi
