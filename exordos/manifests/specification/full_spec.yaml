@@ -1,7 +1,9 @@
 components:
   schemas:
     BackendPool_Create:
+      $ref: '#/components/schemas/BackendPool_Get'
       path: /v1/network/lb/{LBUuid}/backend_pools/
+    BackendPool_Get:
       properties:
         balance:
           default: roundrobin
@@ -20,7 +22,6 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         endpoints:
           example:
@@ -60,7 +61,6 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         project_id:
           example: 00000000-0000-0000-0000-000000000000
@@ -93,8 +93,134 @@ components:
       - project_id
       - endpoints
       type: object
+    Border_Create:
+      $ref: '#/components/schemas/Border_Get'
+      path: /v1/network/border/
+    Border_Get:
+      properties:
+        created_at:
+          default: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        description:
+          default: ''
+          example: any_string
+          maxLength: 255
+          type: string
+        forwards:
+          default: []
+          example:
+          - '1'
+          format: string
+          items:
+            type: string
+          type: array
+        ipsv4:
+          default: []
+          example:
+          - any_string
+          items:
+            example: any_string
+            maxLength: 15
+            type: string
+          readOnly: true
+          type: array
+        name:
+          default: ''
+          example: any_string
+          maxLength: 255
+          type: string
+        node:
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          nullable: true
+          type: string
+        project_id:
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+          type: string
+        snat_rules:
+          default: []
+          example:
+          - '1'
+          format: string
+          items:
+            type: string
+          type: array
+        status:
+          default: NEW
+          enum:
+          - ACTIVE
+          - ERROR
+          - IN_PROGRESS
+          - NEW
+          example: NEW
+          readOnly: true
+          type: string
+        type:
+          default:
+            kind: core_agent
+          example:
+            key: value
+          oneOf:
+          - example:
+              key: value
+            properties:
+              kind:
+                enum:
+                - core_agent
+                type: string
+            type: object
+          - example:
+              key: value
+            properties:
+              cpu:
+                default: 1
+                example: 64
+                maximum: 128
+                minimum: 1
+                type: integer
+              disk_size:
+                default: 10
+                example: 536870917
+                maximum: 1073741824
+                minimum: 10
+                type: integer
+              kind:
+                enum:
+                - core
+                type: string
+              ram:
+                default: 512
+                example: 536871168
+                maximum: 1073741824
+                minimum: 512
+                type: integer
+            type: object
+          type: object
+        updated_at:
+          default: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        uuid:
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+          type: string
+      required:
+      - project_id
+      type: object
     Certificate_Create:
+      $ref: '#/components/schemas/Certificate_Get'
       path: /v1/secret/certificates/
+    Certificate_Get:
       properties:
         cert:
           example: any_string
@@ -129,7 +255,6 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         domains:
           example:
@@ -176,7 +301,6 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         project_id:
           example: 00000000-0000-0000-0000-000000000000
@@ -210,7 +334,9 @@ components:
       - domains
       type: object
     Config_Create:
+      $ref: '#/components/schemas/Config_Get'
       path: /v1/config/configs/
+    Config_Get:
       properties:
         body:
           example:
@@ -222,8 +348,6 @@ components:
               content:
                 default: ''
                 example: any_string
-                maxLength: 9223372036854775807
-                minLength: 0
                 type: string
               kind:
                 enum:
@@ -240,8 +364,6 @@ components:
               template:
                 default: ''
                 example: any_string
-                maxLength: 9223372036854775807
-                minLength: 0
                 type: string
               variables:
                 additionalProperties:
@@ -269,13 +391,11 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         group:
           default: root
           example: any_string
           maxLength: 128
-          minLength: 0
           type: string
         mode:
           default: '0644'
@@ -286,7 +406,6 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         on_change:
           default:
@@ -309,7 +428,6 @@ components:
                 default: ''
                 example: any_string
                 maxLength: 262144
-                minLength: 0
                 type: string
               kind:
                 enum:
@@ -321,7 +439,6 @@ components:
           default: root
           example: any_string
           maxLength: 128
-          minLength: 0
           type: string
         path:
           example: any_string
@@ -390,7 +507,9 @@ components:
       - body
       type: object
     Domain_Create:
+      $ref: '#/components/schemas/Domain_Get'
       path: /v1/dns/domains/
+    Domain_Get:
       properties:
         created_at:
           default: '2006-01-02T15:04:05.000576Z'
@@ -401,8 +520,6 @@ components:
           x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
         name:
           example: any_string
-          maxLength: 9223372036854775807
-          minLength: 0
           type: string
         project_id:
           example: 00000000-0000-0000-0000-000000000000
@@ -430,7 +547,9 @@ components:
       - name
       type: object
     Element_Create:
+      $ref: '#/components/schemas/Element_Get'
       path: /v1/em/elements/
+    Element_Get:
       properties:
         api_version:
           example: any_string
@@ -449,7 +568,6 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         install_type:
           default: MANUAL
@@ -460,15 +578,12 @@ components:
           type: string
         link:
           example: any_string
-          maxLength: 9223372036854775807
-          minLength: 0
           type: string
         manifest:
           type: string
         name:
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         profile:
           type: string
@@ -520,7 +635,9 @@ components:
       - version
       type: object
     Export_Create:
+      $ref: '#/components/schemas/Export_Get'
       path: /v1/em/elements/{ElementUuid}/exports/
+    Export_Get:
       properties:
         created_at:
           default: '2006-01-02T15:04:05.000576Z'
@@ -570,7 +687,6 @@ components:
         client_id:
           example: any_string
           maxLength: 64
-          minLength: 0
           type: string
         created_at:
           default: '2006-01-02T15:04:05.000576Z'
@@ -583,12 +699,10 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         name:
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         project_id:
           example: 00000000-0000-0000-0000-000000000000
@@ -596,6 +710,10 @@ components:
           nullable: true
           readOnly: true
           type: string
+        registration_auto_provision:
+          default: true
+          example: true
+          type: boolean
         secret:
           example: any_string
           maxLength: 128
@@ -667,7 +785,9 @@ components:
       - client_id
       type: object
     Idp_Create:
+      $ref: '#/components/schemas/Idp_Get'
       path: /v1/iam/idp/
+    Idp_Get:
       properties:
         callback:
           example:
@@ -679,7 +799,6 @@ components:
               callback:
                 example: any_string
                 maxLength: 256
-                minLength: 0
                 type: string
               kind:
                 enum:
@@ -696,7 +815,6 @@ components:
                 items:
                   example: any_string
                   maxLength: 256
-                  minLength: 0
                   type: string
                 type: array
               kind:
@@ -714,7 +832,6 @@ components:
               pattern:
                 example: any_string
                 maxLength: 256
-                minLength: 0
                 type: string
             type: object
           type: object
@@ -729,14 +846,12 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         iam_client:
           type: string
         name:
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         nonce_required:
           default: true
@@ -752,7 +867,6 @@ components:
           default: openid
           example: any_string
           maxLength: 64
-          minLength: 0
           type: string
         status:
           default: ACTIVE
@@ -778,7 +892,9 @@ components:
       - callback
       type: object
     Import_Create:
+      $ref: '#/components/schemas/Import_Get'
       path: /v1/em/elements/{ElementUuid}/imports/
+    Import_Get:
       properties:
         created_at:
           default: '2006-01-02T15:04:05.000576Z'
@@ -828,7 +944,9 @@ components:
       - from_resource
       type: object
     LB_Create:
+      $ref: '#/components/schemas/LB_Get'
       path: /v1/network/lb/
+    LB_Get:
       properties:
         created_at:
           default: '2006-01-02T15:04:05.000576Z'
@@ -841,7 +959,6 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         ipsv4:
           default: []
@@ -850,7 +967,6 @@ components:
           items:
             example: any_string
             maxLength: 15
-            minLength: 0
             type: string
           readOnly: true
           type: array
@@ -858,7 +974,6 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         project_id:
           example: 00000000-0000-0000-0000-000000000000
@@ -942,7 +1057,9 @@ components:
       - project_id
       type: object
     MachinePool_Create:
+      $ref: '#/components/schemas/MachinePool_Get'
       path: /v1/compute/hypervisors/
+    MachinePool_Get:
       properties:
         agent:
           example: 00000000-0000-0000-0000-000000000000
@@ -952,26 +1069,18 @@ components:
         all_cores:
           default: 0
           example: 0
-          maximum: 9223372036854775807
-          minimum: -9223372036854775807
           type: integer
         all_ram:
           default: 0
           example: 0
-          maximum: 9223372036854775807
-          minimum: -9223372036854775807
           type: integer
         avail_cores:
           default: 0
           example: 0
-          maximum: 9223372036854775807
-          minimum: -9223372036854775807
           type: integer
         avail_ram:
           default: 0
           example: 0
-          maximum: 9223372036854775807
-          minimum: -9223372036854775807
           type: integer
         builder:
           example: 00000000-0000-0000-0000-000000000000
@@ -982,7 +1091,6 @@ components:
           default: 1.0
           example: 0.0
           format: float
-          maximum: 1.7976931348623157e+308
           minimum: 0.0
           type: number
         created_at:
@@ -996,20 +1104,123 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         driver_spec:
-          additionalProperties:
-            oneOf:
-            - type: string
-            - type: integer
-            - type: boolean
-            - type: object
-            - items: {}
-              type: array
-          default: {}
           example:
             key: value
+          oneOf:
+          - example:
+              key: value
+            properties:
+              connection_uri:
+                example: any_string
+                maxLength: 2048
+                type: string
+              iface_mtu:
+                default: 1500
+                example: 32768
+                maximum: 65536
+                minimum: 0
+                type: integer
+              iface_rom_file:
+                example: any_string
+                maxLength: 255
+                nullable: true
+                type: string
+              iface_source:
+                example: any_string
+                maxLength: 255
+                nullable: true
+                type: string
+              kind:
+                enum:
+                - libvirt
+                type: string
+              machine_prefix:
+                example: any_string
+                maxLength: 255
+                nullable: true
+                type: string
+              network:
+                example: any_string
+                maxLength: 255
+                nullable: true
+                type: string
+              network_type:
+                default: network
+                enum:
+                - bridge
+                - network
+                example: network
+                type: string
+              storage_pool:
+                example: any_string
+                maxLength: 255
+                nullable: true
+                type: string
+            type: object
+          - example:
+              key: value
+            properties:
+              connection_uri:
+                example: any_string
+                maxLength: 2048
+                type: string
+              iface_mtu:
+                default: 1500
+                example: 32768
+                maximum: 65536
+                minimum: 0
+                type: integer
+              iface_rom_file:
+                example: any_string
+                maxLength: 255
+                nullable: true
+                type: string
+              iface_source:
+                example: any_string
+                maxLength: 255
+                nullable: true
+                type: string
+              kind:
+                enum:
+                - exordos_local_hyper
+                type: string
+              machine_prefix:
+                example: any_string
+                maxLength: 255
+                nullable: true
+                type: string
+              network:
+                example: any_string
+                maxLength: 255
+                nullable: true
+                type: string
+              network_type:
+                default: network
+                enum:
+                - bridge
+                - network
+                example: network
+                type: string
+              node:
+                example: 00000000-0000-0000-0000-000000000000
+                format: uuid
+                type: string
+              storage_pool:
+                example: any_string
+                maxLength: 255
+                nullable: true
+                type: string
+            type: object
+          - example:
+              key: value
+            properties:
+              kind:
+                enum:
+                - dummy
+                type: string
+            type: object
           type: object
         machine_type:
           default: VM
@@ -1022,13 +1233,11 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         ram_ratio:
           default: 1.0
           example: 0.0
           format: float
-          maximum: 1.7976931348623157e+308
           minimum: 0.0
           type: number
         status:
@@ -1055,26 +1264,22 @@ components:
                 available_actual:
                   default: 0
                   example: 0
-                  maximum: 9223372036854775807
                   minimum: 0
                   type: integer
                 capacity_provisioned:
                   default: 0
                   example: 0
-                  maximum: 9223372036854775807
                   minimum: 0
                   type: integer
                 capacity_usable:
                   default: 0
                   example: 0
-                  maximum: 9223372036854775807
                   minimum: 0
                   type: integer
                 description:
                   default: ''
                   example: any_string
                   maxLength: 255
-                  minLength: 0
                   type: string
                 kind:
                   enum:
@@ -1084,19 +1289,15 @@ components:
                   default: ''
                   example: any_string
                   maxLength: 255
-                  minLength: 0
                   type: string
                 oversubscription_ratio:
                   default: 1.0
                   example: 0.0
                   format: float
-                  maximum: 1.7976931348623157e+308
                   minimum: 0.0
                   type: number
                 pool_type:
                   example: any_string
-                  maxLength: 9223372036854775807
-                  minLength: 0
                   type: string
                 uuid:
                   example: 00000000-0000-0000-0000-000000000000
@@ -1118,9 +1319,13 @@ components:
           format: uuid
           readOnly: true
           type: string
+      required:
+      - driver_spec
       type: object
     Manifest_Create:
+      $ref: '#/components/schemas/Manifest_Get'
       path: /v1/em/manifests/
+    Manifest_Get:
       properties:
         api_version:
           example: any_string
@@ -1139,7 +1344,6 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         exports:
           additionalProperties:
@@ -1170,12 +1374,9 @@ components:
         name:
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         openapi_spec:
           example: any_string
-          maxLength: 9223372036854775807
-          minLength: 0
           nullable: true
           type: string
         project_id:
@@ -1247,7 +1448,9 @@ components:
       - version
       type: object
     NodeSet_Create:
+      $ref: '#/components/schemas/NodeSet_Get'
       path: /v1/compute/sets/
+    NodeSet_Get:
       properties:
         cores:
           example: 2048
@@ -1278,7 +1481,6 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         disk_spec:
           example:
@@ -1290,7 +1492,6 @@ components:
               image:
                 example: any_string
                 maxLength: 255
-                minLength: 0
                 type: string
               kind:
                 enum:
@@ -1325,22 +1526,18 @@ components:
                     fs:
                       example: any_string
                       maxLength: 256
-                      minLength: 0
                       type: string
                     image:
                       example: any_string
                       maxLength: 256
-                      minLength: 0
                       type: string
                     label:
                       example: any_string
                       maxLength: 128
-                      minLength: 0
                       type: string
                     mount_point:
                       example: any_string
                       maxLength: 512
-                      minLength: 0
                       type: string
                     size:
                       example: 500000
@@ -1359,7 +1556,6 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         node_type:
           default: VM
@@ -1389,7 +1585,6 @@ components:
           type: string
         ram:
           example: 0
-          maximum: 9223372036854775807
           minimum: 0
           type: integer
         replicas:
@@ -1435,7 +1630,9 @@ components:
       - disk_spec
       type: object
     Node_Create:
+      $ref: '#/components/schemas/Node_Get'
       path: /v1/compute/nodes/
+    Node_Get:
       properties:
         cores:
           example: 2048
@@ -1466,7 +1663,6 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         disk_spec:
           example:
@@ -1478,7 +1674,6 @@ components:
               image:
                 example: any_string
                 maxLength: 255
-                minLength: 0
                 type: string
               kind:
                 enum:
@@ -1513,22 +1708,18 @@ components:
                     fs:
                       example: any_string
                       maxLength: 256
-                      minLength: 0
                       type: string
                     image:
                       example: any_string
                       maxLength: 256
-                      minLength: 0
                       type: string
                     label:
                       example: any_string
                       maxLength: 128
-                      minLength: 0
                       type: string
                     mount_point:
                       example: any_string
                       maxLength: 512
-                      minLength: 0
                       type: string
                     size:
                       example: 500000
@@ -1552,7 +1743,6 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         node_set:
           readOnly: true
@@ -1580,7 +1770,6 @@ components:
           type: string
         ram:
           example: 1
-          maximum: 9223372036854775807
           minimum: 1
           type: integer
         status:
@@ -1614,7 +1803,9 @@ components:
       - disk_spec
       type: object
     OrganizationMember_Create:
-      path: /v1/iam/organization_members/
+      $ref: '#/components/schemas/OrganizationMember_Get'
+      path: /v1/iam/organizations/{OrganizationUuid}/members/
+    OrganizationMember_Get:
       properties:
         created_at:
           default: '2006-01-02T15:04:05.000576Z'
@@ -1651,7 +1842,9 @@ components:
       - user
       type: object
     Organization_Create:
+      $ref: '#/components/schemas/Organization_Get'
       path: /v1/iam/organizations/
+    Organization_Get:
       properties:
         created_at:
           default: '2006-01-02T15:04:05.000576Z'
@@ -1664,7 +1857,6 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         info:
           additionalProperties:
@@ -1682,7 +1874,6 @@ components:
         name:
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         status:
           default: ACTIVE
@@ -1706,7 +1897,9 @@ components:
       - name
       type: object
     Password_Create:
+      $ref: '#/components/schemas/Password_Get'
       path: /v1/secret/passwords/
+    Password_Get:
       properties:
         constructor:
           default:
@@ -1740,7 +1933,6 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         method:
           default: AUTO_HEX
@@ -1754,7 +1946,6 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         project_id:
           example: 00000000-0000-0000-0000-000000000000
@@ -1788,13 +1979,14 @@ components:
           maxLength: 512
           minLength: 1
           nullable: true
-          readOnly: true
           type: string
       required:
       - project_id
       type: object
     PermissionBinding_Create:
+      $ref: '#/components/schemas/PermissionBinding_Get'
       path: /v1/iam/permission_bindings/
+    PermissionBinding_Get:
       properties:
         created_at:
           default: '2006-01-02T15:04:05.000576Z'
@@ -1830,7 +2022,9 @@ components:
       - permission
       type: object
     Permission_Create:
+      $ref: '#/components/schemas/Permission_Get'
       path: /v1/iam/permissions/
+    Permission_Get:
       properties:
         created_at:
           default: '2006-01-02T15:04:05.000576Z'
@@ -1843,12 +2037,10 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         name:
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         status:
           default: ACTIVE
@@ -1872,7 +2064,9 @@ components:
       - name
       type: object
     Profile_Create:
+      $ref: '#/components/schemas/Profile_Get'
       path: /v1/vs/profiles/
+    Profile_Get:
       properties:
         active:
           default: false
@@ -1889,13 +2083,11 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         name:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         profile_type:
           default: ELEMENT
@@ -1932,7 +2124,9 @@ components:
       - project_id
       type: object
     Project_Create:
+      $ref: '#/components/schemas/Project_Get'
       path: /v1/iam/projects/
+    Project_Get:
       properties:
         created_at:
           default: '2006-01-02T15:04:05.000576Z'
@@ -1945,12 +2139,10 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         name:
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         organization:
           type: string
@@ -1978,8 +2170,57 @@ components:
       - name
       - organization
       type: object
+    QuotaLimit_Create:
+      $ref: '#/components/schemas/QuotaLimit_Get'
+      path: /v1/quota/limits/
+    QuotaLimit_Get:
+      properties:
+        created_at:
+          default: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        field_name:
+          default: ''
+          example: any_string
+          maxLength: 255
+          type: string
+        limit:
+          example: 0
+          minimum: 0
+          type: integer
+        project_id:
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+          type: string
+        resource_name:
+          example: any_string
+          maxLength: 255
+          type: string
+        updated_at:
+          default: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        uuid:
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+          type: string
+      required:
+      - project_id
+      - resource_name
+      - limit
+      type: object
     RSAKey_Create:
+      $ref: '#/components/schemas/RSAKey_Get'
       path: /v1/secret/rsa_keys/
+    RSAKey_Get:
       properties:
         bitness:
           default: 2048
@@ -1988,7 +2229,7 @@ components:
           - 3072
           - 4096
           example: 2048
-          type: string
+          type: integer
         constructor:
           default:
             kind: plain
@@ -2015,13 +2256,11 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         name:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         private_key:
           example: any_string
@@ -2066,7 +2305,9 @@ components:
       - public_key
       type: object
     Record_Create:
+      $ref: '#/components/schemas/Record_Get'
       path: /v1/dns/domains/{DomainUuid}/records/
+    Record_Get:
       properties:
         created_at:
           default: '2006-01-02T15:04:05.000576Z'
@@ -2083,15 +2324,10 @@ components:
           type: string
         name:
           example: any_string
-          maxLength: 9223372036854775807
-          minLength: 0
           readOnly: true
           type: string
         prio:
-          default: null
           example: 0
-          maximum: 9223372036854775807
-          minimum: -9223372036854775807
           type: integer
         project_id:
           example: 00000000-0000-0000-0000-000000000000
@@ -2126,7 +2362,6 @@ components:
               expire:
                 default: 604800
                 example: 60
-                maximum: 9223372036854775807
                 minimum: 60
                 type: integer
               kind:
@@ -2145,25 +2380,21 @@ components:
               refresh:
                 default: 10800
                 example: 60
-                maximum: 9223372036854775807
                 minimum: 60
                 type: integer
               retry:
                 default: 3600
                 example: 60
-                maximum: 9223372036854775807
                 minimum: 60
                 type: integer
               serial:
                 default: 0
                 example: 0
-                maximum: 9223372036854775807
                 minimum: 0
                 type: integer
               ttl:
                 default: 3600
                 example: 60
-                maximum: 9223372036854775807
                 minimum: 60
                 type: integer
             type: object
@@ -2203,8 +2434,6 @@ components:
         ttl:
           default: 3600
           example: 0
-          maximum: 9223372036854775807
-          minimum: -9223372036854775807
           type: integer
         type:
           enum:
@@ -2233,8 +2462,10 @@ components:
       - type
       - record
       type: object
-    Resource_Create:
-      path: /v1/em/elements/{ElementUuid}/resources/
+    Repository_Create:
+      $ref: '#/components/schemas/Repository_Get'
+      path: /v1/repo/repositories/
+    Repository_Get:
       properties:
         created_at:
           default: '2006-01-02T15:04:05.000576Z'
@@ -2243,42 +2474,103 @@ components:
           readOnly: true
           type: string
           x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
-        element:
-          type: string
-        full_hash:
+        description:
           default: ''
           example: any_string
-          maxLength: 256
-          minLength: 0
+          maxLength: 255
           type: string
-        kind:
-          example: any_string
-          maxLength: 256
-          minLength: 2
-          type: string
-        link:
-          example: any_string
-          maxLength: 256
-          minLength: 2
-          type: string
+        driver_spec:
+          example:
+            key: value
+          oneOf:
+          - example:
+              key: value
+            properties:
+              kind:
+                enum:
+                - nginx
+                type: string
+              password:
+                example: any_string
+                maxLength: 255
+                nullable: true
+                type: string
+              url:
+                example: any_string
+                maxLength: 2048
+                type: string
+              username:
+                example: any_string
+                maxLength: 255
+                nullable: true
+                type: string
+            type: object
+          - example:
+              key: value
+            properties:
+              kind:
+                enum:
+                - bootstrap
+                type: string
+              manifests_dir:
+                example: any_string
+                maxLength: 2048
+                type: string
+            type: object
+          - example:
+              key: value
+            properties:
+              kind:
+                enum:
+                - dummy_migration
+                type: string
+            type: object
+          - example:
+              key: value
+            properties:
+              kind:
+                enum:
+                - database
+                type: string
+            type: object
+          type: object
         name:
           example: any_string
           maxLength: 255
-          minLength: 1
+          type: string
+        priority:
+          default: 8192
+          example: 8192
+          maximum: 16384
+          minimum: 0
+          type: integer
+        project_id:
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
           readOnly: true
           type: string
-        resource_link_prefix:
-          example: any_string
-          maxLength: 256
-          minLength: 1
-          type: string
+        refresh_rate:
+          default: 3600
+          example: 0
+          minimum: 0
+          type: integer
         status:
           default: NEW
           enum:
           - ACTIVE
+          - DISABLED
+          - ERROR
           - IN_PROGRESS
           - NEW
           example: NEW
+          readOnly: true
+          type: string
+        sync_mode:
+          default: lazy
+          enum:
+          - copy
+          - lazy
+          example: copy
           type: string
         updated_at:
           default: '2006-01-02T15:04:05.000576Z'
@@ -2292,25 +2584,70 @@ components:
           format: uuid
           readOnly: true
           type: string
-        value:
-          additionalProperties:
-            oneOf:
-            - type: string
-            - type: integer
-            - type: boolean
-            - type: object
-            - items: {}
-              type: array
-          example:
-            key: value
-          type: object
       required:
-      - element
-      - resource_link_prefix
-      - value
+      - name
+      - project_id
+      - driver_spec
+      type: object
+    Resource_Create:
+      $ref: '#/components/schemas/Resource_Get'
+      path: /v1/em/elements/{ElementUuid}/resources/
+    Resource_Get:
+      properties:
+        created_at:
+          default: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        full_hash:
+          default: ''
+          example: any_string
+          maxLength: 256
+          type: string
+        hash:
+          default: ''
+          example: any_string
+          maxLength: 256
+          type: string
+        kind:
+          example: any_string
+          maxLength: 64
+          type: string
+        node:
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          nullable: true
+          type: string
+        res_uuid:
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          type: string
+        status:
+          default: ACTIVE
+          example: any_string
+          maxLength: 32
+          type: string
+        updated_at:
+          default: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        uuid:
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+          type: string
+      required:
+      - kind
       type: object
     RoleBinding_Create:
+      $ref: '#/components/schemas/RoleBinding_Get'
       path: /v1/iam/role_bindings/
+    RoleBinding_Get:
       properties:
         created_at:
           default: '2006-01-02T15:04:05.000576Z'
@@ -2320,7 +2657,6 @@ components:
           type: string
           x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
         project:
-          default: null
           type: string
         role:
           type: string
@@ -2349,7 +2685,9 @@ components:
       - role
       type: object
     Role_Create:
+      $ref: '#/components/schemas/Role_Get'
       path: /v1/iam/roles/
+    Role_Get:
       properties:
         created_at:
           default: '2006-01-02T15:04:05.000576Z'
@@ -2362,12 +2700,10 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         name:
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         project_id:
           example: 00000000-0000-0000-0000-000000000000
@@ -2397,7 +2733,9 @@ components:
       - name
       type: object
     Route_Create:
+      $ref: '#/components/schemas/Route_Get'
       path: /v1/network/lb/{LBUuid}/vhosts/{VhostUuid}/routes/
+    Route_Get:
       properties:
         condition:
           example:
@@ -2465,7 +2803,7 @@ components:
                         type: string
                       url:
                         example: http://example.com
-                        pattern: ^(?:http|ftp)s?://(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:/?|[/?]\S+)$
+                        pattern: ^(?:http|ftp)s?://(?:(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+(?:[A-Za-z]{2,6}\.?|[A-Za-z0-9-]{2,}\.?)|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:/?|[/?]\S+)$
                         type: string
                     type: object
                   - example:
@@ -2497,7 +2835,7 @@ components:
                         type: string
                       url:
                         example: http://example.com
-                        pattern: ^(?:http|ftp)s?://(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:/?|[/?]\S+)$
+                        pattern: ^(?:http|ftp)s?://(?:(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+(?:[A-Za-z]{2,6}\.?|[A-Za-z0-9-]{2,}\.?)|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:/?|[/?]\S+)$
                         type: string
                     type: object
                   type: object
@@ -2508,9 +2846,6 @@ components:
                 example:
                 - 10.0.0.1/32
                 items:
-                  anyOf:
-                  - format: ipv4
-                  - format: ipv6
                   example: 10.0.0.1/32
                   type: string
                 type: array
@@ -2568,7 +2903,6 @@ components:
                       value:
                         example: any_string
                         maxLength: 1000
-                        minLength: 0
                         type: string
                     type: object
                   - example:
@@ -2658,7 +2992,7 @@ components:
                         type: string
                       url:
                         example: http://example.com
-                        pattern: ^(?:http|ftp)s?://(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:/?|[/?]\S+)$
+                        pattern: ^(?:http|ftp)s?://(?:(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+(?:[A-Za-z]{2,6}\.?|[A-Za-z0-9-]{2,}\.?)|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:/?|[/?]\S+)$
                         type: string
                     type: object
                   - example:
@@ -2690,7 +3024,7 @@ components:
                         type: string
                       url:
                         example: http://example.com
-                        pattern: ^(?:http|ftp)s?://(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:/?|[/?]\S+)$
+                        pattern: ^(?:http|ftp)s?://(?:(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+(?:[A-Za-z]{2,6}\.?|[A-Za-z0-9-]{2,}\.?)|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:/?|[/?]\S+)$
                         type: string
                     type: object
                   type: object
@@ -2701,9 +3035,6 @@ components:
                 example:
                 - 10.0.0.1/32
                 items:
-                  anyOf:
-                  - format: ipv4
-                  - format: ipv6
                   example: 10.0.0.1/32
                   type: string
                 type: array
@@ -2761,7 +3092,6 @@ components:
                       value:
                         example: any_string
                         maxLength: 1000
-                        minLength: 0
                         type: string
                     type: object
                   - example:
@@ -2851,7 +3181,7 @@ components:
                         type: string
                       url:
                         example: http://example.com
-                        pattern: ^(?:http|ftp)s?://(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:/?|[/?]\S+)$
+                        pattern: ^(?:http|ftp)s?://(?:(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+(?:[A-Za-z]{2,6}\.?|[A-Za-z0-9-]{2,}\.?)|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:/?|[/?]\S+)$
                         type: string
                     type: object
                   - example:
@@ -2883,7 +3213,7 @@ components:
                         type: string
                       url:
                         example: http://example.com
-                        pattern: ^(?:http|ftp)s?://(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:/?|[/?]\S+)$
+                        pattern: ^(?:http|ftp)s?://(?:(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+(?:[A-Za-z]{2,6}\.?|[A-Za-z0-9-]{2,}\.?)|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:/?|[/?]\S+)$
                         type: string
                     type: object
                   type: object
@@ -2894,9 +3224,6 @@ components:
                 example:
                 - 10.0.0.1/32
                 items:
-                  anyOf:
-                  - format: ipv4
-                  - format: ipv6
                   example: 10.0.0.1/32
                   type: string
                 type: array
@@ -2952,7 +3279,6 @@ components:
                       value:
                         example: any_string
                         maxLength: 1000
-                        minLength: 0
                         type: string
                     type: object
                   - example:
@@ -2977,8 +3303,6 @@ components:
                 type: array
               value:
                 example: any_string
-                maxLength: 9223372036854775807
-                minLength: 0
                 type: string
             type: object
           - example:
@@ -3009,9 +3333,6 @@ components:
                 example:
                 - 10.0.0.1/32
                 items:
-                  anyOf:
-                  - format: ipv4
-                  - format: ipv6
                   example: 10.0.0.1/32
                   type: string
                 type: array
@@ -3032,7 +3353,6 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         enabled:
           default: true
@@ -3042,7 +3362,6 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         project_id:
           example: 00000000-0000-0000-0000-000000000000
@@ -3076,7 +3395,9 @@ components:
       - condition
       type: object
     Rule_Create:
+      $ref: '#/components/schemas/Rule_Get'
       path: /v1/security/rules/
+    Rule_Get:
       properties:
         action:
           example:
@@ -3090,8 +3411,6 @@ components:
                 - any_string
                 items:
                   example: any_string
-                  maxLength: 9223372036854775807
-                  minLength: 0
                   type: string
                 type: array
               kind:
@@ -3108,14 +3427,10 @@ components:
                 - any_string
                 items:
                   example: any_string
-                  maxLength: 9223372036854775807
-                  minLength: 0
                   type: string
                 type: array
               credentials_path:
                 example: any_string
-                maxLength: 9223372036854775807
-                minLength: 0
                 type: string
               kind:
                 enum:
@@ -3127,8 +3442,6 @@ components:
             properties:
               hmac_key:
                 example: any_string
-                maxLength: 9223372036854775807
-                minLength: 0
                 type: string
               kind:
                 enum:
@@ -3144,8 +3457,6 @@ components:
                 - any_string
                 items:
                   example: any_string
-                  maxLength: 9223372036854775807
-                  minLength: 0
                   type: string
                 type: array
               kind:
@@ -3162,8 +3473,6 @@ components:
                 type: string
               permission:
                 example: any_string
-                maxLength: 9223372036854775807
-                minLength: 0
                 type: string
             type: object
           type: object
@@ -3220,8 +3529,6 @@ components:
                 type: string
               uri_regex:
                 example: any_string
-                maxLength: 9223372036854775807
-                minLength: 0
                 type: string
             type: object
           type: object
@@ -3236,13 +3543,11 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         name:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         operator:
           default: OR
@@ -3280,7 +3585,9 @@ components:
       - action
       type: object
     SSHKey_Create:
+      $ref: '#/components/schemas/SSHKey_Get'
       path: /v1/secret/ssh_keys/
+    SSHKey_Get:
       properties:
         authorized_keys:
           default: .ssh/authorized_keys
@@ -3314,13 +3621,11 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         name:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         project_id:
           example: 00000000-0000-0000-0000-000000000000
@@ -3370,7 +3675,6 @@ components:
           default: ''
           example: any_string
           maxLength: 10240
-          minLength: 0
           type: string
         updated_at:
           default: '2006-01-02T15:04:05.000576Z'
@@ -3394,7 +3698,9 @@ components:
       - target
       type: object
     Service_Create:
+      $ref: '#/components/schemas/Service_Get'
       path: /v1/em/services/
+    Service_Get:
       properties:
         after:
           default: []
@@ -3411,7 +3717,6 @@ components:
                   default: ''
                   example: any_string
                   maxLength: 262144
-                  minLength: 0
                   type: string
                 kind:
                   enum:
@@ -3447,7 +3752,6 @@ components:
                   default: ''
                   example: any_string
                   maxLength: 262144
-                  minLength: 0
                   type: string
                 kind:
                   enum:
@@ -3479,7 +3783,6 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         group:
           example: any_string
@@ -3620,6 +3923,83 @@ components:
       - target
       - service_type
       type: object
+    UniversalAgent_Create:
+      $ref: '#/components/schemas/UniversalAgent_Get'
+      path: /v1/ua/agents/
+    UniversalAgent_Get:
+      properties:
+        capabilities:
+          additionalProperties:
+            oneOf:
+            - type: string
+            - type: integer
+            - type: boolean
+            - type: object
+            - items: {}
+              type: array
+          default: {}
+          example:
+            key: value
+          type: object
+        created_at:
+          default: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        description:
+          default: ''
+          example: any_string
+          maxLength: 255
+          type: string
+        facts:
+          additionalProperties:
+            oneOf:
+            - type: string
+            - type: integer
+            - type: boolean
+            - type: object
+            - items: {}
+              type: array
+          default: {}
+          example:
+            key: value
+          type: object
+        name:
+          example: any_string
+          maxLength: 255
+          type: string
+        node:
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          type: string
+        status:
+          default: NEW
+          enum:
+          - ACTIVE
+          - DISABLED
+          - ERROR
+          - NEW
+          example: NEW
+          type: string
+        updated_at:
+          default: '2006-01-02T15:04:05.000576Z'
+          example: '2006-01-02T15:04:05.000576Z'
+          format: date-time
+          readOnly: true
+          type: string
+          x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
+        uuid:
+          example: 00000000-0000-0000-0000-000000000000
+          format: uuid
+          readOnly: true
+          type: string
+      required:
+      - uuid
+      - name
+      - node
+      type: object
     User_Create:
       path: /v1/iam/users/
       properties:
@@ -3645,10 +4025,8 @@ components:
                 type: string
                 x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
               employment_format:
-                default: null
                 example: any_string
                 maxLength: 255
-                minLength: 0
                 type: string
               hire_date:
                 example: '2006-01-02T15:04:05.000576Z'
@@ -3667,10 +4045,8 @@ components:
                 type: string
                 x-ogen-time-format: '2006-01-02T15:04:05.000576Z'
               legal_entity:
-                default: null
                 example: any_string
                 maxLength: 255
-                minLength: 0
                 type: string
               other:
                 additionalProperties:
@@ -3686,10 +4062,8 @@ components:
                   key: value
                 type: object
               role:
-                default: null
                 example: any_string
                 maxLength: 255
-                minLength: 0
                 type: string
             type: object
           type: object
@@ -3697,7 +4071,6 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         email:
           example: user@example.com
@@ -3728,10 +4101,8 @@ components:
           minLength: 5
           type: string
         phone:
-          default: null
           example: any_string
           maxLength: 15
-          minLength: 0
           type: string
         status:
           default: ACTIVE
@@ -3751,7 +4122,6 @@ components:
           - service
           - user
           example: user
-          readOnly: true
           type: string
         updated_at:
           default: '2006-01-02T15:04:05.000576Z'
@@ -3780,16 +4150,14 @@ components:
               client_id:
                 example: any_string
                 maxLength: 256
-                minLength: 0
                 type: string
               client_secret:
                 example: any_string
                 maxLength: 512
-                minLength: 0
                 type: string
               endpoint:
                 example: http://example.com
-                pattern: ^(?:http|ftp)s?://(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:/?|[/?]\S+)$
+                pattern: ^(?:http|ftp)s?://(?:(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+(?:[A-Za-z]{2,6}\.?|[A-Za-z0-9-]{2,}\.?)|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:/?|[/?]\S+)$
                 type: string
               kind:
                 enum:
@@ -3798,7 +4166,6 @@ components:
               realm:
                 example: any_string
                 maxLength: 256
-                minLength: 0
                 type: string
               timeout:
                 default: 5
@@ -3822,7 +4189,9 @@ components:
       - email
       type: object
     Value_Create:
+      $ref: '#/components/schemas/Value_Get'
       path: /v1/vs/values/
+    Value_Get:
       properties:
         created_at:
           default: '2006-01-02T15:04:05.000576Z'
@@ -3835,7 +4204,6 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         manual_selected:
           default: false
@@ -3845,7 +4213,6 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         project_id:
           example: 00000000-0000-0000-0000-000000000000
@@ -3890,7 +4257,9 @@ components:
       - project_id
       type: object
     Variable_Create:
+      $ref: '#/components/schemas/Variable_Get'
       path: /v1/vs/variables/
+    Variable_Get:
       properties:
         created_at:
           default: '2006-01-02T15:04:05.000576Z'
@@ -3903,13 +4272,11 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         name:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         project_id:
           example: 00000000-0000-0000-0000-000000000000
@@ -4015,7 +4382,9 @@ components:
       - setter
       type: object
     Vhost_Create:
+      $ref: '#/components/schemas/Vhost_Get'
       path: /v1/network/lb/{LBUuid}/vhosts/
+    Vhost_Get:
       properties:
         cert:
           example:
@@ -4052,7 +4421,6 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         domains:
           example:
@@ -4111,7 +4479,6 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         port:
           default: 80
@@ -4135,9 +4502,6 @@ components:
           readOnly: true
           type: string
         proxy_protocol_from:
-          anyOf:
-          - format: ipv4
-          - format: ipv6
           example: 10.0.0.1/32
           nullable: true
           type: string
@@ -4167,7 +4531,9 @@ components:
       - project_id
       type: object
     Volume_Create:
+      $ref: '#/components/schemas/Volume_Get'
       path: /v1/compute/volumes/
+    Volume_Get:
       properties:
         boot:
           default: true
@@ -4184,31 +4550,26 @@ components:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         device_type:
           default: ''
           example: any_string
           maxLength: 64
-          minLength: 0
           type: string
         image:
           example: any_string
           maxLength: 255
-          minLength: 0
           nullable: true
           type: string
         label:
           example: any_string
           maxLength: 127
-          minLength: 0
           nullable: true
           type: string
         name:
           default: ''
           example: any_string
           maxLength: 255
-          minLength: 0
           type: string
         node:
           type: string
@@ -4363,13 +4724,13 @@ properties:
         additionalProperties:
           $ref: '#/components/schemas/Idp_Create'
         type: object
-      $core.iam.organization_members:
-        additionalProperties:
-          $ref: '#/components/schemas/OrganizationMember_Create'
-        type: object
       $core.iam.organizations:
         additionalProperties:
           $ref: '#/components/schemas/Organization_Create'
+        type: object
+      $core.iam.organizations.members:
+        additionalProperties:
+          $ref: '#/components/schemas/OrganizationMember_Create'
         type: object
       $core.iam.permission_bindings:
         additionalProperties:
@@ -4395,6 +4756,10 @@ properties:
         additionalProperties:
           $ref: '#/components/schemas/User_Create'
         type: object
+      $core.network.border:
+        additionalProperties:
+          $ref: '#/components/schemas/Border_Create'
+        type: object
       $core.network.lb:
         additionalProperties:
           $ref: '#/components/schemas/LB_Create'
@@ -4410,6 +4775,14 @@ properties:
       $core.network.lb.vhosts.routes:
         additionalProperties:
           $ref: '#/components/schemas/Route_Create'
+        type: object
+      $core.quota.limits:
+        additionalProperties:
+          $ref: '#/components/schemas/QuotaLimit_Create'
+        type: object
+      $core.repo.repositories:
+        additionalProperties:
+          $ref: '#/components/schemas/Repository_Create'
         type: object
       $core.secret.certificates:
         additionalProperties:
@@ -4430,6 +4803,10 @@ properties:
       $core.security.rules:
         additionalProperties:
           $ref: '#/components/schemas/Rule_Create'
+        type: object
+      $core.ua.agents:
+        additionalProperties:
+          $ref: '#/components/schemas/UniversalAgent_Create'
         type: object
       $core.vs.profiles:
         additionalProperties:
