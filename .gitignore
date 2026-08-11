@@ -132,6 +132,9 @@ venv.bak/
 docs/build
 docs/source/*.png
 exordos_docs
+# Written by `ec-openapi-spec` when the site is built; see
+# exordos_core/common/openapi.py
+docs/openapi/*.yaml
 
 # Vagrant
 .vagrant/

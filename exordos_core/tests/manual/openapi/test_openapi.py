@@ -14,17 +14,43 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import os
+"""The published documents have to be the ones the services serve.
+
+These files used to be written here, by asking four running services for
+their document and committing the answer. They are built from the route
+tree instead now (`exordos_core.common.openapi`), which is what lets the
+site be built without a database -- honest only as long as building one
+without a service gives what a service gives. That is what this checks, and
+it is the one place the substitutions made for the offline build are held
+against the real thing.
+
+Run against a live stand: `tox -e openapi_spec`.
+"""
 
 from gcl_iam.tests.functional import clients as iam_clients
 from gcl_sdk.agents.universal.api.packers import EXORDOS_NODE_UUID_HEADER
-import ruamel.yaml
 
-from exordos_core.common.utils import PROJECT_PATH
+from exordos_core.common import openapi
 
 SPECIFICATIONS_PATH = "specifications/3.0.3"
-yaml = ruamel.yaml.YAML()
-yaml.indent(sequence=4, offset=2)
+
+# What an agent has to say to be answered at all.
+AGENT_HEADERS = {
+    "Content-Type": "application/x-genesis-agent-chacha20-poly1305-encrypted",
+}
+
+
+def assert_served_matches_built(api, response):
+    """Compare a served document with the one built without a service."""
+    assert response.status_code == 200
+
+    served = response.json()
+    # Both parts are the request's, not the API's: the served document
+    # names the host it was asked on and the release serving it.
+    served["servers"][0]["url"] = api.url
+    served["info"]["version"] = openapi.PUBLISHED_VERSION
+
+    assert served == openapi.build(api)
 
 
 class TestGetOpenApiSpecs:
@@ -33,72 +59,54 @@ class TestGetOpenApiSpecs:
         user_api,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,
         auth_user_admin: iam_clients.GenesisCoreAuth,
+    ):
+        client = user_api_client(auth_user_admin)
+
+        response = client.get(
+            f"{user_api.get_endpoint()}{SPECIFICATIONS_PATH}", timeout=30
+        )
+
+        assert_served_matches_built(openapi.USER_API, response)
+
+    def test_boot_openapi(
+        self,
         boot_api_service,
         boot_api_noauth_client: iam_clients.GenesisCoreTestNoAuthRESTClient,
+    ):
+        response = boot_api_noauth_client.get(
+            f"{boot_api_service.get_endpoint()}{SPECIFICATIONS_PATH}"
+        )
+
+        assert_served_matches_built(openapi.BOOT_API, response)
+
+    def test_orch_openapi(
+        self,
         orch_api_service,
         orch_api_noauth_client: iam_clients.GenesisCoreTestNoAuthRESTClient,
+        default_node,
+    ):
+        response = orch_api_noauth_client.get(
+            f"{orch_api_service.get_endpoint()}{SPECIFICATIONS_PATH}",
+            headers={
+                EXORDOS_NODE_UUID_HEADER: default_node["uuid"],
+                **AGENT_HEADERS,
+            },
+        )
+
+        assert_served_matches_built(openapi.ORCH_API, response)
+
+    def test_status_openapi(
+        self,
         status_api_service,
         status_api_noauth_client: iam_clients.GenesisCoreTestNoAuthRESTClient,
         default_node,
     ):
-        # User API
-        client = user_api_client(auth_user_admin)
-        url = f"{user_api.get_endpoint()}{SPECIFICATIONS_PATH}"
-        response = client.get(url, timeout=30)
-        assert response.status_code == 200
-
-        path = os.path.join(PROJECT_PATH, "docs", "openapi", "openapi_user.yaml")
-        spec = response.json()
-        spec["servers"][0]["url"] = "http://127.0.0.1:11010"
-        spec["info"]["version"] = "latest"
-        with open(path, "w") as f:
-            yaml.dump(spec, f)
-
-        # Boot API
-        url = f"{boot_api_service.get_endpoint()}{SPECIFICATIONS_PATH}"
-        response = boot_api_noauth_client.get(
-            url,
-        )
-        assert response.status_code == 200
-        path = os.path.join(PROJECT_PATH, "docs", "openapi", "openapi_boot.yaml")
-        spec = response.json()
-        spec["servers"][0]["url"] = "http://127.0.0.1:11013"
-        spec["info"]["version"] = "latest"
-        with open(path, "w") as f:
-            yaml.dump(spec, f)
-
-        # Orch API
-        url = f"{orch_api_service.get_endpoint()}{SPECIFICATIONS_PATH}"
-        response = orch_api_noauth_client.get(
-            url,
-            headers={
-                EXORDOS_NODE_UUID_HEADER: default_node["uuid"],
-                "Content-Type": "application/x-genesis-agent-chacha20-poly1305-encrypted",
-            },
-        )
-        assert response.status_code == 200
-
-        path = os.path.join(PROJECT_PATH, "docs", "openapi", "openapi_orch.yaml")
-        spec = response.json()
-        spec["servers"][0]["url"] = "http://127.0.0.1:11011"
-        spec["info"]["version"] = "latest"
-        with open(path, "w") as f:
-            yaml.dump(spec, f)
-
-        # Status API
-        url = f"{status_api_service.get_endpoint()}{SPECIFICATIONS_PATH}"
         response = status_api_noauth_client.get(
-            url,
+            f"{status_api_service.get_endpoint()}{SPECIFICATIONS_PATH}",
             headers={
                 EXORDOS_NODE_UUID_HEADER: default_node["uuid"],
-                "Content-Type": "application/x-genesis-agent-chacha20-poly1305-encrypted",
+                **AGENT_HEADERS,
             },
         )
-        assert response.status_code == 200
 
-        path = os.path.join(PROJECT_PATH, "docs", "openapi", "openapi_status.yaml")
-        spec = response.json()
-        spec["servers"][0]["url"] = "http://127.0.0.1:11012"
-        spec["info"]["version"] = "latest"
-        with open(path, "w") as f:
-            yaml.dump(spec, f)
+        assert_served_matches_built(openapi.STATUS_API, response)

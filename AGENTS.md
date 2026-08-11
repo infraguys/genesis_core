@@ -120,5 +120,8 @@ All source files must include Apache 2.0 license header:
   `docs/usage/troubleshooting.md`.
 - Update `docs/` for CLI changes
 - Run `tox -e cli_docs` to regenerate CLI docs
+- The OpenAPI documents under `docs/openapi/` are not in the tree: `tox -e
+  docs`/`docs-build` writes them with `ec-openapi-spec` before building the
+  site. Never commit them; to look at one, run `ec-openapi-spec`.
 - Run `make mdlint` for Markdown linting
 - Keep `README.md` synchronized with new features

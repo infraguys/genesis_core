@@ -84,7 +84,8 @@ docs = [
     "zensical>=0.0.51",
     "mkdocs-glightbox",
     "mkdocs-render-swagger-plugin",
-    "mkdocs-static-i18n"
+    "mkdocs-static-i18n",
+    "ruamel-yaml==0.19.1",  # writes the OpenAPI documents the site serves
 ]
 
 [tool.ruff]
@@ -162,6 +163,7 @@ ec-gservice = "exordos_core.cmd.gservice:main"
 ec-core-agent = "exordos_core.cmd.core_agent:main"
 ec-bootstrap = "exordos_core.cmd.bootstrap:main"
 ec-bootstrap-templates = "exordos_core.cmd.bootstrap_templates:main"
+ec-openapi-spec = "exordos_core.cmd.openapi_spec:main"
 exordos-repo-proxy-gservice = "exordos_core.cmd.repo_proxy_gservice:main"
 
 [project.entry-points."gcn_machine_pool_driver"]
