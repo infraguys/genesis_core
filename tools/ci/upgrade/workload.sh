@@ -127,8 +127,10 @@ seed_element_data() {
     api_post "${api_url}" /v1/types/postgres/instances/ "$(
         jq -n \
             --arg name "${MARKER_PG_INSTANCE}" \
+            --arg project_id "${MARKER_PROJECT_ID}" \
             --arg version "/v1/types/postgres/versions/${version}" \
-            '{name: $name, version: $version, cpu: 1, ram: 2048, disk_size: 8,
+            '{name: $name, project_id: $project_id, version: $version,
+              cpu: 1, ram: 2048, disk_size: 8,
               nodes_number: 1, sync_replica_number: 0}'
     )" >/dev/null
 
@@ -138,8 +140,11 @@ seed_element_data() {
     instance_uuid="$(pg_instance "${api_url}" | jq -er '.uuid')"
 
     api_post "${api_url}" "/v1/types/postgres/instances/${instance_uuid}/users/" "$(
-        jq -n --arg name "${MARKER_PG_USER}" --arg password "${MARKER_PG_PASSWORD}" \
-            '{name: $name, password: $password}'
+        jq -n \
+            --arg name "${MARKER_PG_USER}" \
+            --arg project_id "${MARKER_PROJECT_ID}" \
+            --arg password "${MARKER_PG_PASSWORD}" \
+            '{name: $name, project_id: $project_id, password: $password}'
     )" >/dev/null
     user_uuid="$(
         api_get "${api_url}" "/v1/types/postgres/instances/${instance_uuid}/users/" |
@@ -149,8 +154,9 @@ seed_element_data() {
     api_post "${api_url}" "/v1/types/postgres/instances/${instance_uuid}/databases/" "$(
         jq -n \
             --arg name "${MARKER_PG_DATABASE}" \
+            --arg project_id "${MARKER_PROJECT_ID}" \
             --arg owner "/v1/types/postgres/instances/${instance_uuid}/users/${user_uuid}" \
-            '{name: $name, owner: $owner}'
+            '{name: $name, project_id: $project_id, owner: $owner}'
     )" >/dev/null
 
     host="$(pg_instance_address "${api_url}")"

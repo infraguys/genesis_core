@@ -38,6 +38,12 @@ CORE_CLIENT="${CORE_CLIENT:-default}"
 MARKER_ORGANIZATION="upgrade-e2e-organization"
 MARKER_PROJECT="upgrade-e2e-project"
 MARKER_PROJECT_AFTER="upgrade-e2e-project-after"
+# `project_id` is required and has no default: restalchemy declares it
+# read-only with no fallback, so project-scoped resources take it in the
+# payload — the same way `exordos cn add` demands `--project-id`. The service
+# project is the one the installation already runs its own nodes in, so it is
+# known to have quota; a freshly created tenant project would not be.
+MARKER_PROJECT_ID="00000000-0000-0000-0000-000000000000"
 MARKER_PG_INSTANCE="upgrade-e2e-pg"
 MARKER_PG_USER="upgrade_e2e_user"
 MARKER_PG_PASSWORD="upgrade-e2e-password"
@@ -82,17 +88,47 @@ core_token() {
     printf '%s' "${_core_token}"
 }
 
-api_get() { # <base_url> <path>
-    curl -fsS -H "Authorization: Bearer $(core_token)" "${1}${2}"
+# api_request <method> <base_url> <path> [json_body]
+#
+# `curl -f` throws the response body away, which turns every rejected payload
+# into a bare "error 400" and leaves nothing to debug. Capture the body and
+# print it instead. Callers that poll silence stderr, so this stays quiet
+# exactly where failures are expected.
+api_request() {
+    local method="$1" base="$2" path="$3" body="${4:-}"
+    local response status
+    response="$(mktemp)"
+
+    local -a args=(
+        -sS -o "${response}" -w '%{http_code}'
+        -X "${method}"
+        -H "Authorization: Bearer $(core_token)"
+    )
+    if [[ -n "${body}" ]]; then
+        args+=(-H 'Content-Type: application/json' --data "${body}")
+    fi
+
+    if ! status="$(curl "${args[@]}" "${base}${path}")"; then
+        log "${method} ${path}: no response from ${base}"
+        rm -f "${response}"
+        return 1
+    fi
+
+    if ((status >= 400)); then
+        log "${method} ${path}: HTTP ${status}"
+        log "  request:  ${body:-<empty>}"
+        log "  response: $(tr -d '\n' <"${response}")"
+        rm -f "${response}"
+        return 1
+    fi
+
+    cat "${response}"
+    rm -f "${response}"
 }
 
-api_post() { # <base_url> <path> <json_body>
-    curl -fsS -X POST \
-        -H "Authorization: Bearer $(core_token)" \
-        -H 'Content-Type: application/json' \
-        --data "${3}" \
-        "${1}${2}"
-}
+api_get() { api_request GET "$1" "$2"; }
+
+api_post() { api_request POST "$1" "$2" "$3"; }
 
 core_get() { api_get "${CORE_ENDPOINT_URL}" "$1"; }
 
