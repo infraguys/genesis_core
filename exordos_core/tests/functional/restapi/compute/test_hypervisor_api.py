@@ -23,6 +23,7 @@ from gcl_sdk.agents.universal.api import crypto as ua_crypto
 from gcl_sdk.agents.universal.dm import models as ua_models
 import pytest
 from restalchemy.dm import filters as dm_filters
+from restalchemy.storage import exceptions as storage_exc
 
 from exordos_core.compute import constants as nc
 
@@ -347,3 +348,36 @@ class TestHypervisorUserApi:
         assert key.private_key == private_key
 
         client.delete(client.build_resource_uri(["compute", "nodes", str(node_uuid)]))
+
+    def test_hypervisors_add_local_hyper_does_not_provision_a_node_key(
+        self,
+        pool_factory: tp.Callable,
+        user_api_client: iam_clients.GenesisCoreTestRESTClient,
+        auth_user_admin: iam_clients.GenesisCoreAuth,
+    ):
+        # A local hypervisor's universal agent gets its key by calling
+        # the `issue_key` action itself once it registers - creating the
+        # hypervisor resource must not provision one as a side effect.
+        node_uuid = sys_uuid.uuid4()
+        client = user_api_client(auth_user_admin)
+        url = client.build_collection_uri(["compute", "hypervisors"])
+
+        hypervisor = pool_factory(
+            driver_spec={
+                "kind": "exordos_local_hyper",
+                "connection_uri": "qemu:///system",
+                "node": str(node_uuid),
+            },
+        )
+        hypervisor.pop("status", None)
+        response = client.post(url, json=hypervisor)
+        assert response.status_code == 201
+
+        with pytest.raises(storage_exc.RecordNotFound):
+            ua_models.NodeEncryptionKey.objects.get_one(
+                filters={"uuid": dm_filters.EQ(node_uuid)}
+            )
+
+        client.delete(
+            client.build_resource_uri(["compute", "hypervisors", hypervisor["uuid"]])
+        )
