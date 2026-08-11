@@ -32,6 +32,8 @@ from exordos_core.common.utils import validate_url
 
 LOG = logging.getLogger(__name__)
 ELEMENT_NAMESPACE = sys_uuid.UUID("f277e88a-cd58-4c33-a0c3-23a1086a53b7")
+SCHEMA_REF_PREFIX = "#/components/schemas/"
+API_DOC_FRONT_MATTER = "---\nicon: lucide/code\n---\n"
 UUID_PREFIX = "12345678"
 REGEXP = re.compile(r"\$(.+?)(?:\:(.+))?$")
 
@@ -246,6 +248,11 @@ def dump_api_spec(data):
         os.path.join(PROJECT_PATH, "docs", "em", "api_documentation.md"),
         "w",
     ) as f:
+        # The page carries mkdocs front matter that nothing generates, so
+        # every regeneration used to strip the icon back off it and the
+        # next person to regenerate would strip it again. Emitted here so
+        # the file is what its generator produces.
+        f.write(API_DOC_FRONT_MATTER)
         f.write(data)
 
 
@@ -271,6 +278,58 @@ def validate_manifest(data: dict, schema: tp.Optional[dict]) -> None:
     return None
 
 
+def iter_schema_refs(node: tp.Any) -> tp.Iterator[str]:
+    """Names of every component schema ``node`` references, at any depth."""
+    if isinstance(node, dict):
+        ref = node.get("$ref")
+        if isinstance(ref, str) and ref.startswith(SCHEMA_REF_PREFIX):
+            yield ref[len(SCHEMA_REF_PREFIX) :]
+        for value in node.values():
+            yield from iter_schema_refs(value)
+    elif isinstance(node, list):
+        for item in node:
+            yield from iter_schema_refs(item)
+
+
+def copy_schema_closure(source: dict, target: dict, name: str) -> None:
+    """Copy ``name`` into ``target`` along with everything it references.
+
+    Copying the named schema alone was enough while every model spelled its
+    own properties out. It stopped being enough once a create schema became
+    an alias (``Node_Create: {$ref: Node_Get}``): the alias travelled and
+    what it pointed at did not, leaving the manifest schema holding
+    references to components that were not in it.
+    """
+    pending = [name]
+    while pending:
+        current = pending.pop()
+        if current in target or current not in source:
+            continue
+        schema = source[current]
+        target[current] = schema
+        pending.extend(iter_schema_refs(schema))
+
+
+def resolve_schema(schemas: dict, name: str) -> tp.Optional[dict]:
+    """Follow alias schemas to the one that describes the fields.
+
+    A create schema may be a bare ``$ref`` to the model it shares a shape
+    with, so a caller after ``properties`` has to be handed the target and
+    not the alias.
+    """
+    seen: set[str] = set()
+    while name not in seen:
+        seen.add(name)
+        schema = schemas.get(name)
+        if schema is None:
+            return None
+        ref = schema.get("$ref")
+        if not (isinstance(ref, str) and ref.startswith(SCHEMA_REF_PREFIX)):
+            return schema
+        name = ref[len(SCHEMA_REF_PREFIX) :]
+    return None
+
+
 def build_full_schema(
     base_manifest_schema: dict, user_api_spec: dict, specs: list | None = None
 ) -> dict:
@@ -283,6 +342,13 @@ def build_full_schema(
                 schema_ref = post_path["requestBody"]["content"]["application/json"][
                     "schema"
                 ]
+                # A create body that is not a named model is no resource type
+                # a manifest can declare — there is nothing to name it by.
+                # One such path exists (`/v1/iam/idp/{…}/.well_known/`, an
+                # inline `type: object`), and reading `$ref` off it blindly
+                # took the whole schema build down with a bare KeyError.
+                if "$ref" not in schema_ref:
+                    continue
                 model_name = schema_ref["$ref"].split("/")[-1]
                 api_parts = ".".join(
                     [
@@ -296,6 +362,11 @@ def build_full_schema(
                     continue
                 resource = f"$core.{api_parts}"
                 model["path"] = path
+                copy_schema_closure(
+                    user_api_spec["components"]["schemas"],
+                    base_manifest_schema["components"]["schemas"],
+                    model_name,
+                )
                 base_manifest_schema["components"]["schemas"][model_name] = model
                 base_manifest_schema["properties"]["resources"]["properties"][
                     resource
@@ -339,7 +410,10 @@ def search_parameter_example(
     if not ref:
         return None
     model_name = ref.split("/")[-1]
-    model = scheme["components"]["schemas"].get(model_name)
+    # Through the alias, if the create schema is one: an alias has no
+    # `properties` of its own, and reading them off it raised rather than
+    # returning "no example for this parameter".
+    model = resolve_schema(scheme["components"]["schemas"], model_name)
     if model:
         example = model["properties"].get(parameter, {}).get("example")
         if example is not None:
