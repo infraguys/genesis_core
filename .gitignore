@@ -135,6 +135,9 @@ exordos_docs
 # Written by `ec-openapi-spec` when the site is built; see
 # exordos_core/common/openapi.py
 docs/openapi/*.yaml
+# Written by `ec-em-api-docs` when the site is built, out of full_spec.yaml
+docs/em/api_documentation.md
+docs/em/api_documentation.ru.md
 
 # Vagrant
 .vagrant/

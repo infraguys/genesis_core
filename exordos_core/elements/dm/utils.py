@@ -34,7 +34,6 @@ from exordos_core.common.utils import validate_url
 LOG = logging.getLogger(__name__)
 ELEMENT_NAMESPACE = sys_uuid.UUID("f277e88a-cd58-4c33-a0c3-23a1086a53b7")
 SCHEMA_REF_PREFIX = "#/components/schemas/"
-API_DOC_FRONT_MATTER = "---\nicon: lucide/code\n---\n"
 UUID_PREFIX = "12345678"
 REGEXP = re.compile(r"\$(.+?)(?:\:(.+))?$")
 
@@ -242,19 +241,6 @@ def dump_full_manifest_schema(data):
         "w",
     ) as f:
         yaml.safe_dump(data, f)
-
-
-def dump_api_spec(data):
-    with open(
-        os.path.join(PROJECT_PATH, "docs", "em", "api_documentation.md"),
-        "w",
-    ) as f:
-        # The page carries mkdocs front matter that nothing generates, so
-        # every regeneration used to strip the icon back off it and the
-        # next person to regenerate would strip it again. Emitted here so
-        # the file is what its generator produces.
-        f.write(API_DOC_FRONT_MATTER)
-        f.write(data)
 
 
 def load_user_api_spec() -> dict:
@@ -493,8 +479,9 @@ def extract_resources_for_markdown(full_schema):
     return resources
 
 
-def generate_resources_markdown_table(resources):
-    table = "| Entity | Api | Manifest |\n"
+def generate_resources_markdown_table(resources, headers=("Entity", "Api", "Manifest")):
+    entity, api, manifest = headers
+    table = f"| {entity} | {api} | {manifest} |\n"
     table += "| ----- | --- | ------- |\n"
     for resource in resources:
         table += (
