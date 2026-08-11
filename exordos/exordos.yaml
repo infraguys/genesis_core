@@ -42,7 +42,11 @@ build:
     # List of images in the element
     - manifest: manifests/core.yaml.j2
       artifacts:
-        - path: ../docs/openapi/openapi_user.yaml
+        # Generated rather than committed, so it has to be written here
+        # before it can be published.
+        - script: images/build_openapi_spec.sh
+          artifacts:
+            - ../docs/openapi/openapi_user.yaml
       images:
       - name: exordos-core
         format: GEN_IMG_FORMAT_CORE=qcow2
