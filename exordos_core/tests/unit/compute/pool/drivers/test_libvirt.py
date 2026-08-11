@@ -26,19 +26,53 @@ import pytest
 # collection when they're not available.
 pytest.importorskip("libvirt")
 
+from exordos_core.compute import constants as nc  # noqa: E402
 from exordos_core.compute.dm import models  # noqa: E402
 from exordos_core.compute.pool.drivers.libvirt import LibvirtPoolDriver  # noqa: E402
 from exordos_core.compute.pool.drivers.libvirt import XMLLibvirtInstance  # noqa: E402
 from exordos_core.compute.pool.drivers.libvirt import domain_template  # noqa: E402
 
 
-def _local_driver() -> LibvirtPoolDriver:
+def _local_driver(network_type: str = "network") -> LibvirtPoolDriver:
     # libvirt's built-in "test" driver simulates a hypervisor in-memory -
     # no real virtualization or daemon needed, so real libvirt calls
-    # (lookupByUUIDString, etc.) can be exercised end-to-end.
-    spec = models.LibvirtPoolDriverSpec(connection_uri="test:///default")
-    pool = models.MachinePool(uuid=sys_uuid.uuid4(), name="test-pool", driver_spec=spec)
+    # (lookupByUUIDString, etc.) can be exercised end-to-end. It even ships
+    # a default storage pool ("default-pool"), so create_machine() can be
+    # exercised end-to-end too.
+    spec = models.LibvirtPoolDriverSpec(
+        connection_uri="test:///default",
+        network_type=network_type,
+        storage_pool="default-pool",
+    )
+    pool = models.MachinePool(
+        uuid=sys_uuid.uuid4(), name="test-pool", driver_spec=spec
+    )
     return LibvirtPoolDriver(pool)
+
+
+def _machine() -> models.Machine:
+    return models.Machine(
+        uuid=sys_uuid.uuid4(),
+        project_id=sys_uuid.uuid4(),
+        name="test-vm",
+        cores=1,
+        ram=512,
+    )
+
+
+def _port(uuid: sys_uuid.UUID, source: str) -> models.Port:
+    return models.Port(
+        uuid=uuid,
+        project_id=sys_uuid.uuid4(),
+        mac=models.Port.generate_mac(),
+        source=source,
+        status=nc.PortStatus.ACTIVE.value,
+    )
+
+
+def _live_interface(driver: LibvirtPoolDriver, machine: models.Machine) -> ET.Element:
+    domain = driver._client.lookupByUUIDString(str(machine.uuid))
+    return ET.fromstring(domain.XMLDesc()).find(".//devices/interface")
 
 
 def test_domain_console_logs_to_file():
@@ -178,3 +212,92 @@ class TestDeleteMachine:
 
         storage_pool = driver._client.storagePoolLookupByName("default-pool")
         assert list(storage_pool.listAllVolumes()) == []
+
+
+class TestCreateMachine:
+    def test_boot_port_always_uses_network_type_on_a_bridge_hypervisor(self):
+        # Regression: a bridge-type hypervisor must not have the boot
+        # network's (logical, potentially long) name treated as a literal
+        # host bridge device name - libvirt rejects that outright as too
+        # long for IFNAMSIZ.
+        driver = _local_driver(network_type="bridge")
+        machine = _machine()
+        port = _port(nc.BOOT_NETWORK_PORT_UUID, source="exordos-core-boot-net")
+
+        driver.create_machine(machine, volumes=[], ports=[port])
+
+        interface = _live_interface(driver, machine)
+        assert interface.get("type") == "network"
+        assert interface.find("source").get("network") == "exordos-core-boot-net"
+
+    def test_real_port_honors_the_hypervisors_network_type(self):
+        # Regression: on a real bridge-type hypervisor, ports are raw
+        # bridge-type interfaces (source=<bridge device>) - not a libvirt
+        # network wrapping one. create_machine() is also used by
+        # recreate_machine() to rebuild the domain with the real port(s)
+        # post-flash, so it must not force type='network' on those.
+        driver = _local_driver(network_type="bridge")
+        machine = _machine()
+        port = _port(sys_uuid.uuid4(), source="br0")
+
+        driver.create_machine(machine, volumes=[], ports=[port])
+
+        interface = _live_interface(driver, machine)
+        assert interface.get("type") == "bridge"
+        assert interface.find("source").get("bridge") == "br0"
+
+
+class TestListInterfaces:
+    def test_update_preserves_each_ports_original_interface_type(self):
+        # Regression: _list_interfaces() used to reconstruct every live
+        # interface with the same all-zero sentinel UUID reserved for the
+        # transient boot port (BOOT_NETWORK_PORT_UUID). set_machine_cores(),
+        # set_machine_ram(), rename_machine() and recreate_machine(ports=
+        # None) all feed its result straight back into create_machine(), so
+        # on a bridge-type hypervisor a real bridge port would round-trip
+        # back as type='network' too.
+        driver = _local_driver(network_type="bridge")
+        machine = _machine()
+        boot_port = _port(nc.BOOT_NETWORK_PORT_UUID, source="exordos-core-boot-net")
+        real_port = _port(sys_uuid.uuid4(), source="br0")
+
+        driver.create_machine(machine, volumes=[], ports=[boot_port, real_port])
+
+        driver.set_machine_cores(machine, cores=2)
+
+        domain = driver._client.lookupByUUIDString(str(machine.uuid))
+        interfaces = ET.fromstring(domain.XMLDesc()).findall(".//devices/interface")
+        by_mac = {i.find("mac").get("address"): i for i in interfaces}
+
+        boot_iface = by_mac[boot_port.mac]
+        assert boot_iface.get("type") == "network"
+        assert boot_iface.find("source").get("network") == "exordos-core-boot-net"
+
+        real_iface = by_mac[real_port.mac]
+        assert real_iface.get("type") == "bridge"
+        assert real_iface.find("source").get("bridge") == "br0"
+
+
+class TestAttachPort:
+    def test_honors_the_hypervisors_network_type_for_bridge_hypervisors(self):
+        # Regression: attach_port() is only ever used for the real port,
+        # which on a bridge-type hypervisor is a raw bridge-type interface
+        # (source=<bridge device>) - not a libvirt network wrapping one.
+        #
+        # libvirt's test:// driver doesn't support attachDeviceFlags()'s
+        # LIVE+CONFIG flag combination, so mock the domain lookup instead
+        # of exercising a real domain end-to-end.
+        driver = _local_driver(network_type="bridge")
+        machine = _machine()
+        port = _port(sys_uuid.uuid4(), source="br0")
+
+        mock_domain = mock.MagicMock()
+        with mock.patch.object(
+            driver._client, "lookupByUUIDString", return_value=mock_domain
+        ):
+            driver.attach_port(machine, port)
+
+        interface_xml, _flags = mock_domain.attachDeviceFlags.call_args[0]
+        interface = ET.fromstring(interface_xml)
+        assert interface.get("type") == "bridge"
+        assert interface.find("source").get("bridge") == "br0"
