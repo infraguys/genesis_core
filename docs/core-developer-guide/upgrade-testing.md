@@ -8,9 +8,14 @@ is what covers that case.
 
 ## What the job does
 
-It runs on every push, next to `FuncTests`, and reuses the same platform: a
-GitHub-hosted runner that turns itself into a hypervisor and boots the core as
-a real virtual machine.
+It runs next to `FuncTests` — on every push, and once more when a pull request
+is opened — and reuses the same platform: a GitHub-hosted runner that turns
+itself into a hypervisor and boots the core as a real virtual machine.
+
+A pull request from a fork is deliberately not built: `Build` runs on our own
+machine with the push credentials, so it refuses untrusted code, and every job
+downstream depends on the artifacts it produces. Branches in this repository
+are covered either way, because `push` fires for them.
 
 1. **Resolve the version pair.** `NEW` is the version this run built, taken
    from the build artifacts. `PREV` is the newest release tag that is not

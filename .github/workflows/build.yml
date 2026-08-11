@@ -7,6 +7,15 @@ on:
       - 'mkdocs.yml'
       - '.markdownlint.yaml'
       - '*.md'
+  # Only on open: a branch in this repository is already covered by `push`, so
+  # reacting to every update as well would build and upgrade twice per commit.
+  pull_request:
+    types: [opened]
+    paths-ignore:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - '.markdownlint.yaml'
+      - '*.md'
 
 env:
   ARTIFACTS_PATH: artifacts
@@ -20,7 +29,13 @@ env:
 jobs:
   Build:
     runs-on: [ self-hosted, vm ]
-    if: ${{ github.actor != 'dependabot[bot]' }}
+    # A pull request from a fork carries untrusted code, and this job runs on
+    # our own machine with the push credentials. Everything downstream needs
+    # the artifacts it produces, so skipping it here skips the whole workflow.
+    if: >-
+      ${{ github.actor != 'dependabot[bot]'
+          && (github.event_name != 'pull_request'
+              || github.event.pull_request.head.repo.full_name == github.repository) }}
     strategy:
       fail-fast: true
     steps:
