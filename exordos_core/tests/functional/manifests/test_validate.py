@@ -105,11 +105,3 @@ class TestSpec:
         with pytest.raises(exceptions.OpenApiValidateException):
             utils.validate_manifest(manifest, base_manifest_schema)
             utils.validate_manifest(manifest, full_manifest_schema)
-
-    @pytest.mark.skip(reason="for manual running")
-    def test_build_full_schema(self, base_manifest_schema, user_api_spec):
-        """Rewrite the committed manifest schema. The documentation page it
-        used to write too is generated when the site is built, by
-        `ec-em-api-docs`."""
-        full_schema = utils.build_full_schema(base_manifest_schema, user_api_spec)
-        utils.dump_full_manifest_schema(full_schema)

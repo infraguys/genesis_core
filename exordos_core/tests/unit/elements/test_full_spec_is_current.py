@@ -23,8 +23,7 @@ drifted: it offered `$core.iam.organization_members`, a resource type no
 endpoint has ever served, so a manifest declaring it passed validation and
 failed at apply.
 
-To make this pass after an API change, regenerate the schema with
-`test_build_full_schema` in `tests/functional/manifests/test_validate.py`.
+To make this pass after an API change, run `ec-manifest-schema`.
 """
 
 import yaml
