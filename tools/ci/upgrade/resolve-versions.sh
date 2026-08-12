@@ -54,10 +54,19 @@ prev_version="$(
 [[ -n "${prev_version}" ]] ||
     die "no release tag to upgrade from (fetch tags: actions/checkout needs fetch-tags)"
 
-# On a branch cut before a release tag landed, the newest tag can be *newer*
-# than what this run built, and the test would quietly run backwards.
-[[ "$(printf '%s\n%s\n' "${prev_version}" "${new_version}" | sort -V | head -n 1)" == "${prev_version}" ]] ||
+# The built version is the nearest reachable tag with its patch bumped, so it
+# should always outrank every existing tag. When it does not, the build was
+# labelled from a history that was missing tags — a shallow or tagless fetch,
+# or a self-hosted runner reusing an old working directory — and upgrading to
+# it would run the test backwards. Say which tags were visible, because that is
+# the evidence needed to tell a mislabelled build from a genuinely odd branch.
+if [[ "$(printf '%s\n%s\n' "${prev_version}" "${new_version}" | sort -V | head -n 1)" != "${prev_version}" ]]; then
+    log "release tags visible here: $(
+        git tag --list --sort=-v:refname | grep -Ex '[0-9]+\.[0-9]+\.[0-9]+' | head -n 5 | tr '\n' ' '
+    )"
+    log "the built version comes from the nearest tag reachable at build time, patch + 1"
     die "the newest release tag ${prev_version} is newer than the built version ${new_version}"
+fi
 
 # The image of the base release has to exist, otherwise the job would fail
 # later inside bootstrap with a much less obvious error.  This deliberately
