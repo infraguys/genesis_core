@@ -189,12 +189,20 @@ verify_element_data() {
     [[ "${before}" == "1" ]] ||
         die "the pre-upgrade marker row is gone (found ${before} rows)"
 
+    # Count first, then insert, then count again. Asserting the total is 1
+    # conflates "the write worked" with "this script has run once", and the
+    # second is not what is being tested: re-running `verify` is the ordinary
+    # thing to do while diagnosing an upgrade that went wrong, and it used to
+    # fail on its own previous run.
+    local written
+    written="$(psql_marker "${host}" \
+        "SELECT count(*) FROM ${MARKER_TABLE} WHERE note = 'after upgrade'")"
     psql_marker "${host}" \
         "INSERT INTO ${MARKER_TABLE} (note) VALUES ('after upgrade')" >/dev/null
     after="$(psql_marker "${host}" \
         "SELECT count(*) FROM ${MARKER_TABLE} WHERE note = 'after upgrade'")"
-    [[ "${after}" == "1" ]] ||
-        die "cannot write to the database after the upgrade (found ${after} rows)"
+    [[ "${after}" == "$((written + 1))" ]] ||
+        die "cannot write to the database after the upgrade (${written} rows before the insert, ${after} after)"
 
     log "element data survived and the database still accepts writes"
 }
