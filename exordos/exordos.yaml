@@ -74,5 +74,3 @@ build:
           flatten: true
           artifacts:
             - ../exordos_docs/
-    - manifest: manifests/core-node-set-example.yaml.j2
-    - manifest: manifests/core-service-example.yaml.j2

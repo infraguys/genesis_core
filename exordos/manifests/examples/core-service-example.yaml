@@ -1,7 +1,7 @@
 name: "core-service-example"
 description: "Exordos Core Service Example"
 schema_version: 1
-version: "{{ version }}"
+version: "1.0.0"
 api_version: "v1"
 
 requirements:
