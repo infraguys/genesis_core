@@ -679,10 +679,9 @@ dependencies = [
     { name = "gcl-certbot-plugin" },
     { name = "gcl-iam" },
     { name = "gcl-looper" },
-    { name = "gcl-sdk" },
+    { name = "gcl-sdk", extra = ["libvirt"] },
     { name = "izulu" },
     { name = "jinja2" },
-    { name = "libvirt-python" },
     { name = "netaddr" },
     { name = "openapi-schema-validator" },
     { name = "oslo-config" },
@@ -736,10 +735,9 @@ requires-dist = [
     { name = "gcl-certbot-plugin", specifier = ">=0.0.12,<1.0.0" },
     { name = "gcl-iam", specifier = ">=1.3.2,<2.0.0" },
     { name = "gcl-looper", specifier = ">=1.2.3,<2.0.0" },
-    { name = "gcl-sdk", specifier = ">=3.2.2,<4.0.0" },
+    { name = "gcl-sdk", extras = ["libvirt"], specifier = ">=3.3.0,<4.0.0" },
     { name = "izulu", specifier = ">=0.50.0,<1.0.0" },
     { name = "jinja2", specifier = ">=3.1.5,<4.0.0" },
-    { name = "libvirt-python", specifier = ">=11.0.0,<13.0.0" },
     { name = "mkdocs-glightbox", marker = "extra == 'docs'" },
     { name = "mkdocs-render-swagger-plugin", marker = "extra == 'docs'" },
     { name = "mkdocs-static-i18n", marker = "extra == 'docs'" },
@@ -839,7 +837,7 @@ wheels = [
 
 [[package]]
 name = "gcl-sdk"
-version = "3.2.2"
+version = "3.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bjoern" },
@@ -853,9 +851,14 @@ dependencies = [
     { name = "restalchemy" },
     { name = "xxhash" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/0e/e0/021b141e46c8d831dcbfee085c19410e87b2fa91973cc8251e30595b75a9/gcl_sdk-3.2.2.tar.gz", hash = "sha256:6d579d975aefde5b7e399dfafce2738b70123c59bcf2a8c988bc73f74d394cca", size = 299068, upload-time = "2026-07-23T15:11:18.229Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/79/bb/59cf6b8d748122338f59378ee19af06fc5be2444baec8178972ccc4b0d5c/gcl_sdk-3.3.0.tar.gz", hash = "sha256:dbddaa3299aded805fc3c359c63dfce83bcf93e388bcc331fd058d5506bb3fa4", size = 330657, upload-time = "2026-08-14T08:57:15.621Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/05/4d/887c243f693b62ecc149a5ae3452b1d9cb4fe2c043049ab9aac1ce631ed1/gcl_sdk-3.2.2-py3-none-any.whl", hash = "sha256:1f34c569b9dbfa7c0ec0a7d00467846bfa93ed1db190a4750b2bc8c636ecd6a2", size = 247369, upload-time = "2026-07-23T15:11:16.661Z" },
+    { url = "https://files.pythonhosted.org/packages/6c/0f/88fb236e7d01f8768e4f4ed22b9520c27896e85ca63b1d6837e173aa3dc3/gcl_sdk-3.3.0-py3-none-any.whl", hash = "sha256:29a5331013c0e8f51199b4f1a08a9c8e2bd8e234eb5cbf6bac5b56d96a007dc6", size = 285919, upload-time = "2026-08-14T08:57:14.019Z" },
+]
+
+[package.optional-dependencies]
+libvirt = [
+    { name = "libvirt-python" },
 ]
 
 [[package]]
@@ -1360,9 +1363,9 @@ wheels = [
 
 [[package]]
 name = "libvirt-python"
-version = "12.5.0"
+version = "12.6.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/59/5e/4c6a60e1ed061cfc2e1899178b8acc05a350bc93d212940ee61c142664d3/libvirt_python-12.5.0.tar.gz", hash = "sha256:25ea2261e0d6cab9d004b700911d88b57911b14528ed04b3487a617ec2b4cda9", size = 245493, upload-time = "2026-07-01T12:01:36.863Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/1d/18/b64bc6c6739405fddd451f78e756c17411d309265ec748683b806bd1dd47/libvirt_python-12.6.0.tar.gz", hash = "sha256:f390abff81d4afd6c33157ade82912863b87de9c35172e9b0c9f0dfcdc09b139", size = 252693, upload-time = "2026-08-03T09:51:28.683Z" }
 
 [[package]]
 name = "markdown"

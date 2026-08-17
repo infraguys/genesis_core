@@ -23,6 +23,7 @@ import typing as tp
 import uuid as sys_uuid
 
 from gcl_sdk.agents.universal.dm import models as ua_models
+from gcl_sdk.agents.universal.drivers import pool as ua_pool
 from gcl_sdk.infra.dm import models as infra_models
 from restalchemy.dm import filters as dm_filters
 from restalchemy.storage import exceptions as ra_exceptions
@@ -398,6 +399,10 @@ def apply_startup_db(spec: dict[str, tp.Any]) -> None:
         # symmetric key already written to the local agent's disk by the
         # CLI, so it must be popped off before the driver spec is built.
         agent_private_key = hypervisor.pop("private_key", None)
+        # Drop unset optional fields (e.g. `node`, only used by the
+        # "exordos_local_hyper" kind) so they don't trip up spec kinds
+        # that don't define them.
+        hypervisor = {k: v for k, v in hypervisor.items() if v is not None}
         pool_data = {
             "name": "hypervisor",
             "machine_type": "VM",
@@ -420,9 +425,7 @@ def apply_startup_db(spec: dict[str, tp.Any]) -> None:
                 # orch/status APIs with a node encryption key, so
                 # provision one for its node uuid, in sync with the key
                 # already written to the agent's disk by the CLI.
-                if isinstance(
-                    pool.driver_spec, compute_models.ExordosLocalHyperDriverSpec
-                ):
+                if isinstance(pool.driver_spec, ua_pool.ExordosLocalHyperDriverSpec):
                     ua_models.NodeEncryptionKey.get_or_create(
                         pool.driver_spec.node,
                         private_key=agent_private_key,
