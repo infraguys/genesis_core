@@ -18,9 +18,8 @@ import typing as tp
 from unittest import mock
 import uuid as sys_uuid
 
-import pytest
-
 from gcl_sdk.agents.universal.drivers import pool as ua_pool
+import pytest
 
 from exordos_core.compute.scheduler import service
 

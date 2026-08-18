@@ -14,9 +14,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import pytest
-
 from gcl_sdk.agents.universal.drivers import pool as ua_pool
+import pytest
 
 from exordos_core.compute.dm import models
 from exordos_core.compute.scheduler.driver import base
