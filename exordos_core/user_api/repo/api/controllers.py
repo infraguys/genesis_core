@@ -96,11 +96,11 @@ class RepoElementController(
             default=field_p.Permissions.RW,
             fields={
                 "status": {ra_c.ALL: field_p.Permissions.RO},
+                "installation_state": {ra_c.ALL: field_p.Permissions.RO},
                 "created_at": {ra_c.ALL: field_p.Permissions.RO},
                 "updated_at": {ra_c.ALL: field_p.Permissions.RO},
             },
         ),
-        hidden_fields=["installation_state"],
     )
 
     def get(self, uuid, **kwargs):

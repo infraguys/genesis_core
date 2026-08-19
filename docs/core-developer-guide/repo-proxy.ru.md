@@ -383,8 +383,8 @@ User API обслуживается по пути `/v1/repo/` и определ�
 
 - **Repository**: `status`, `created_at`, `updated_at` — только для чтения.
   `next_refresh` скрыт в ответах API.
-- **RepoElement**: `status`, `created_at`, `updated_at` — только для чтения.
-  `installation_state` скрыт в ответах API.
+- **RepoElement**: `status`, `installation_state`, `created_at`, `updated_at`
+  — только для чтения.
 
 ### IAM
 

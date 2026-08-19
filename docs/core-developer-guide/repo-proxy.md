@@ -381,8 +381,8 @@ The User API is served under `/v1/repo/` and defined in
 
 - **Repository**: `status`, `created_at`, `updated_at` are read-only.
   `next_refresh` is hidden from API responses.
-- **RepoElement**: `status`, `created_at`, `updated_at` are read-only.
-  `installation_state` is hidden from API responses.
+- **RepoElement**: `status`, `installation_state`, `created_at`, `updated_at`
+  are read-only.
 
 ### IAM
 
