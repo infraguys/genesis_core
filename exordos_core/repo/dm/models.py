@@ -349,6 +349,7 @@ class Repository(
             repository=self,
             manifest=manifest or {},
         )
+        element.published_at = element.created_at
 
         # Upload element to repository
         driver.upload_element(element)
