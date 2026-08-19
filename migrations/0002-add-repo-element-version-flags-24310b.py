@@ -14,6 +14,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from packaging import version as packaging_version
 from restalchemy.storage.sql import migrations
 
 
@@ -45,10 +46,61 @@ class MigrationStep(migrations.AbstractMigrationStep):
         session.execute(
             "CREATE INDEX IF NOT EXISTS idx_repo_elements_tags ON repo_elements USING GIN (tags)"
         )
+        # The store selects its catalogue by these two flags, so index the
+        # rows it looks at instead of scanning the whole table.
+        session.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_repo_elements_latest_stable
+            ON repo_elements (name) WHERE stable AND latest
+            """
+        )
+        self._backfill_version_flags(session)
+
+    def _backfill_version_flags(self, session):
+        """Set `stable` and `latest` for elements that predate the columns.
+
+        A refresh only calculates the flags for newly discovered versions,
+        so without this the elements already in the database would stay out
+        of the store until their repository publishes a new version.
+        """
+        rows = session.execute(
+            "SELECT uuid, repository, name, version FROM repo_elements"
+        ).fetchall()
+
+        stable_uuids = []
+        latest_by_element = {}
+        for element_uuid, repository, name, version in rows:
+            try:
+                parsed_version = packaging_version.parse(version)
+            except packaging_version.InvalidVersion:
+                continue
+            if parsed_version.is_prerelease:
+                continue
+
+            stable_uuids.append(element_uuid)
+            current = latest_by_element.get((repository, name))
+            if current is None or parsed_version > current[0]:
+                latest_by_element[(repository, name)] = (
+                    parsed_version,
+                    element_uuid,
+                )
+
+        if not stable_uuids:
+            return
+
+        latest_uuids = {element_uuid for _, element_uuid in latest_by_element.values()}
+        session.execute_many(
+            "UPDATE repo_elements SET stable = %s, latest = %s WHERE uuid = %s",
+            [
+                (True, element_uuid in latest_uuids, element_uuid)
+                for element_uuid in stable_uuids
+            ],
+        )
 
     def downgrade(self, session):
         session.execute("DROP INDEX IF EXISTS idx_repo_elements_project_id")
         session.execute("DROP INDEX IF EXISTS idx_repo_elements_tags")
+        session.execute("DROP INDEX IF EXISTS idx_repo_elements_latest_stable")
         session.execute(
             """
             ALTER TABLE repo_elements

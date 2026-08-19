@@ -112,7 +112,55 @@ class LatestStableElementsController(controllers.BaseResourceControllerPaginated
             if current is None or candidate[:2] > current[:2]:
                 elements_by_name[element.name] = candidate
 
-        return [candidate[2] for candidate in elements_by_name.values()]
+        # The per-name entries are selected here, not by storage, so the
+        # requested page has to be cut here as well. Sorted by the marker
+        # column the pagination mixin advances through.
+        catalogue = sorted(
+            (candidate[2] for candidate in elements_by_name.values()),
+            key=lambda element: element.uuid,
+        )
+        return self._paginate(catalogue)
+
+    def _paginate(self, elements):
+        """Return the page requested by `page_limit` and `page_marker`."""
+        if not self._pagination_limit:
+            return elements
+
+        if self._pagination_marker:
+            elements = [
+                element
+                for element in elements
+                if element.uuid > self._pagination_marker
+            ]
+        return elements[: self._pagination_limit]
+
+
+class StoreProxyController(controllers.RoutesListController):
+    __TARGET_PATH__ = "/v1/repo/store/"
+
+
+class StoreElementController(controllers.BaseResourceControllerPaginated):
+    __resource__ = resources.ResourceByRAModel(
+        models.RepoElement,
+        convert_underscore=False,
+        hidden_fields=["installation_state"],
+    )
+
+    @actions.get
+    def stable_versions(self, resource: models.RepoElement):
+        elements = models.RepoElement.objects.get_all(
+            filters={
+                "name": dm_filters.EQ(resource.name),
+                "stable": dm_filters.EQ(True),
+                "uuid": dm_filters.NE(resource.uuid),
+            },
+            order_by={"version": "desc"},
+        )
+        return sorted(
+            elements,
+            key=lambda element: parse_version(element.version),
+            reverse=True,
+        )
 
 
 class RepoElementController(

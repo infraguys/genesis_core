@@ -90,6 +90,32 @@ class RepoElementRoute(routes.Route):
     edit = routes.action(RepoElementEditActionRoute, invoke=True)
 
 
+class StoreElementStableVersionsActionRoute(routes.Action):
+    """Handler for stable store element versions action endpoint"""
+
+    __controller__ = controllers.StoreElementController
+
+
+class StoreElementRoute(routes.Route):
+    """Handler for /v1/repo/store/elements/ endpoint"""
+
+    __controller__ = controllers.StoreElementController
+    # Only the stable_versions action is exposed via the store
+    __allow_methods__ = []
+
+    stable_versions = routes.action(StoreElementStableVersionsActionRoute, invoke=False)
+
+
+class StoreRoute(routes.Route):
+    """Handler for /v1/repo/store/ endpoint"""
+
+    __controller__ = controllers.StoreProxyController
+    __allow_methods__ = [routes.FILTER]
+
+    elements = routes.route(StoreElementRoute)
+    latest_stable_elements = routes.route(LatestStableElementsRoute)
+
+
 class RepoRoute(routes.Route):
     """Handler for /v1/repo/ endpoint"""
 
@@ -99,3 +125,4 @@ class RepoRoute(routes.Route):
     repositories = routes.route(RepositoryRoute)
     elements = routes.route(RepoElementRoute)
     latest_stable_elements = routes.route(LatestStableElementsRoute)
+    store = routes.route(StoreRoute)

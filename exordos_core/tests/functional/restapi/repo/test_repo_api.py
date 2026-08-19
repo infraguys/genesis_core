@@ -249,6 +249,47 @@ class TestRepoElements:
         }
         assert len({element["name"] for element in elements}) == len(elements)
 
+    def test_latest_stable_elements_pagination(
+        self, user_api_client, user_api_noauth_client, auth_user_admin
+    ):
+        repo = self._create_repository(user_api_client, auth_user_admin)
+        elements = [
+            self._create_element(
+                user_api_client,
+                auth_user_admin,
+                repo["uuid"],
+                version="1.0.0",
+            )
+            for _ in range(3)
+        ]
+        for element in elements:
+            model = repo_models.RepoElement.objects.get_one(
+                filters={"uuid": dm_filters.EQ(element["uuid"])}
+            )
+            model.latest = True
+            model.stable = True
+            model.save()
+
+        client = user_api_noauth_client()
+        elements_url = client.build_collection_uri(["repo", "latest_stable_elements"])
+        catalogue = client.get(elements_url).json()
+
+        assert {element["uuid"] for element in elements}.issubset(
+            {element["uuid"] for element in catalogue}
+        )
+
+        first_page = client.get(elements_url, params={"page_limit": 1}).json()
+        assert len(first_page) == 1
+        assert first_page[0]["uuid"] == catalogue[0]["uuid"]
+
+        next_page = client.get(
+            elements_url,
+            params={"page_limit": 2, "page_marker": catalogue[0]["uuid"]},
+        ).json()
+        assert [element["uuid"] for element in next_page] == [
+            element["uuid"] for element in catalogue[1:3]
+        ]
+
     def test_element_stable_versions_action(self, user_api_client, auth_user_admin):
         client = user_api_client(auth_user_admin)
         repo = self._create_repository(user_api_client, auth_user_admin)
