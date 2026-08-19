@@ -87,13 +87,15 @@ class RepoProxyBuilderService(
 
         # Save the elements to the database
         i = -1
+        saved_elements = []
         for i, element in enumerate(instance.iter_elements_in_inventory()):
             # In COPY mode, actualize element to download full data
             if instance.sync_mode == models.SyncMode.COPY:
                 instance.actualize_element(element)
             else:
                 element.save()
-            self._set_latest_for_new_element(instance, element)
+            saved_elements.append(element)
+            self._set_latest_for_new_element(saved_elements, element)
 
         LOG.info(
             "Saved %d elements to the database for repository %s",
@@ -134,7 +136,8 @@ class RepoProxyBuilderService(
                 instance.actualize_element(element)
             else:
                 element.save()
-            self._set_latest_for_new_element(instance, element)
+            existing_elements[key] = element
+            self._set_latest_for_new_element(existing_elements.values(), element)
             new_elements_count += 1
 
         if new_elements_count:
@@ -165,8 +168,11 @@ class RepoProxyBuilderService(
 
             was_latest_stable = element.stable and element.latest
             element.delete()
+            del existing_elements[key]
             if was_latest_stable:
-                self._set_latest_for_outdated_element(instance, element.name)
+                self._set_latest_for_outdated_element(
+                    existing_elements.values(), element.name
+                )
             deleted_elements_count += 1
 
         if deleted_elements_count:
@@ -185,23 +191,27 @@ class RepoProxyBuilderService(
             instance.update()
 
     def _set_latest_for_new_element(
-        self, instance: models.Repository, element: models.RepoElement
+        self,
+        elements: tp.Collection[models.RepoElement],
+        element: models.RepoElement,
     ) -> None:
         """Set `latest` when a new stable element is the greatest version."""
         if not element.stable:
             return
 
-        elements = models.RepoElement.objects.get_all(
-            filters={"repository": instance.uuid, "name": element.name},
-        )
+        same_name = [
+            candidate
+            for candidate in elements
+            if candidate.stable and candidate.name == element.name
+        ]
         latest_element = max(
-            (candidate for candidate in elements if candidate.stable),
+            same_name,
             key=lambda candidate: packaging_version.parse(candidate.version),
         )
         if latest_element.uuid != element.uuid:
             return
 
-        for candidate in elements:
+        for candidate in same_name:
             if candidate.uuid != element.uuid and candidate.latest:
                 candidate.latest = False
                 candidate.update()
@@ -211,13 +221,14 @@ class RepoProxyBuilderService(
             element.update()
 
     def _set_latest_for_outdated_element(
-        self, instance: models.Repository, name: str
+        self, elements: tp.Collection[models.RepoElement], name: str
     ) -> None:
         """Promote the greatest remaining stable version after deleting latest."""
-        elements = models.RepoElement.objects.get_all(
-            filters={"repository": instance.uuid, "name": name},
-        )
-        stable_elements = [element for element in elements if element.stable]
+        stable_elements = [
+            element
+            for element in elements
+            if element.stable and element.name == name
+        ]
         if not stable_elements:
             return
 
