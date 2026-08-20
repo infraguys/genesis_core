@@ -477,7 +477,7 @@ class TestLBApi:
         url = client.build_collection_uri(
             ["network", "lb", lb["uuid"], "vhosts", vhost["uuid"], "routes"]
         )
-        modifier = nm.ModifierInsertHeaderKind(
+        modifier = nm.ModifierSetHeaderKind(
             name="X-Forwarded-For", value="192.168.1.10"
         )
         condition = nm.RouteRegexConditionKind(
@@ -549,7 +549,7 @@ class TestLBApi:
         url = client.build_collection_uri(
             ["network", "lb", lb["uuid"], "vhosts", vhost["uuid"], "routes"]
         )
-        modifier = nm.ModifierInsertHeaderKind(
+        modifier = nm.ModifierSetHeaderKind(
             name="X-Forwarded-For", value="192.168.1.10"
         )
         condition = nm.RouteRegexConditionKind(

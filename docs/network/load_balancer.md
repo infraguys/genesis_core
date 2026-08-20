@@ -97,7 +97,8 @@ Routing rules that define how traffic is handled:
             - X-Forwarded-Port
             - X-Forwarded-Proto
             - X-Forwarded-Prefix
-        - `set_header`: set static header
+        - `set_header`: set static header to request
+        - `set_resp_header`: set static header for response
 
 ## API Structure
 

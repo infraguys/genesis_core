@@ -2910,6 +2910,23 @@ components:
                     properties:
                       kind:
                         enum:
+                        - set_resp_header
+                        type: string
+                      name:
+                        example: any_string
+                        maxLength: 100
+                        minLength: 1
+                        type: string
+                      value:
+                        example: any_string
+                        maxLength: 1000
+                        type: string
+                    type: object
+                  - example:
+                      key: value
+                    properties:
+                      kind:
+                        enum:
                         - rewrite_url
                         type: string
                       regex:
@@ -3099,6 +3116,23 @@ components:
                     properties:
                       kind:
                         enum:
+                        - set_resp_header
+                        type: string
+                      name:
+                        example: any_string
+                        maxLength: 100
+                        minLength: 1
+                        type: string
+                      value:
+                        example: any_string
+                        maxLength: 1000
+                        type: string
+                    type: object
+                  - example:
+                      key: value
+                    properties:
+                      kind:
+                        enum:
                         - rewrite_url
                         type: string
                       regex:
@@ -3270,6 +3304,23 @@ components:
                       kind:
                         enum:
                         - set_header
+                        type: string
+                      name:
+                        example: any_string
+                        maxLength: 100
+                        minLength: 1
+                        type: string
+                      value:
+                        example: any_string
+                        maxLength: 1000
+                        type: string
+                    type: object
+                  - example:
+                      key: value
+                    properties:
+                      kind:
+                        enum:
+                        - set_resp_header
                         type: string
                       name:
                         example: any_string
