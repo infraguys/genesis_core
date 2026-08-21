@@ -477,7 +477,7 @@ class TestLBApi:
         url = client.build_collection_uri(
             ["network", "lb", lb["uuid"], "vhosts", vhost["uuid"], "routes"]
         )
-        modifier = nm.ModifierInsertHeaderKind(
+        modifier = nm.ModifierSetHeaderKind(
             name="X-Forwarded-For", value="192.168.1.10"
         )
         condition = nm.RouteRegexConditionKind(
@@ -497,6 +497,89 @@ class TestLBApi:
         assert response.status_code == 201
         output = response.json()
         assert self._route_cmp_shallow(route, output)
+
+    def test_creates_route_with_set_resp_header_modifier(
+        self,
+        user_api_client,
+        auth_user_admin,
+        lb_factory_with_model,
+        vhost_factory_with_model,
+        route_factory,
+    ):
+        lb, lb_model = lb_factory_with_model()
+
+        client = user_api_client(auth_user_admin)
+        url = client.build_collection_uri(["network", "lb"])
+        response = client.post(url, json=lb)
+        assert response.status_code == 201
+
+        # Create vhost
+        url = client.build_collection_uri(["network", "lb", lb["uuid"], "vhosts"])
+        vhost, vhost_model = vhost_factory_with_model(
+            lb_model,
+            protocol=nm.Protocol.HTTP,
+            port=80,
+            domains=["example.com"],
+        )
+        response = client.post(
+            url,
+            json=vhost,
+        )
+
+        assert response.status_code == 201
+
+        # Create route with request and response header modifiers
+        url = client.build_collection_uri(
+            ["network", "lb", lb["uuid"], "vhosts", vhost["uuid"], "routes"]
+        )
+        condition = nm.RouteRegexConditionKind(
+            value=r"^[a-z_][a-z0-9_]*$",
+            modifiers=[
+                nm.ModifierSetHeaderKind(name="X-Forwarded-For", value="192.168.1.10"),
+                nm.ModifierSetRespHeaderKind(name="X-Frame-Options", value="DENY"),
+            ],
+            actions=[nm.RuleStaticDownloadKind(url="https://example.com/web.tar.gz")],
+        )
+        route = route_factory(
+            vhost_model,
+            condition=condition,
+        )
+        response = client.post(
+            url,
+            json=route,
+        )
+
+        assert response.status_code == 201
+        output = response.json()
+        assert self._route_cmp_shallow(route, output)
+
+        # Ensure the modifiers were persisted
+        url = client.build_resource_uri(
+            [
+                "network",
+                "lb",
+                lb["uuid"],
+                "vhosts",
+                vhost["uuid"],
+                "routes",
+                route["uuid"],
+            ]
+        )
+        response = client.get(url)
+        assert response.status_code == 200
+        output = response.json()
+        assert output["condition"]["modifiers"] == [
+            {
+                "kind": "set_header",
+                "name": "X-Forwarded-For",
+                "value": "192.168.1.10",
+            },
+            {
+                "kind": "set_resp_header",
+                "name": "X-Frame-Options",
+                "value": "DENY",
+            },
+        ]
 
     def test_check_delete_backend_pool(
         self,
@@ -549,7 +632,7 @@ class TestLBApi:
         url = client.build_collection_uri(
             ["network", "lb", lb["uuid"], "vhosts", vhost["uuid"], "routes"]
         )
-        modifier = nm.ModifierInsertHeaderKind(
+        modifier = nm.ModifierSetHeaderKind(
             name="X-Forwarded-For", value="192.168.1.10"
         )
         condition = nm.RouteRegexConditionKind(

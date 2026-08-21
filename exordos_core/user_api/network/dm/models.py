@@ -445,8 +445,14 @@ class ModifierAutoHeaderForRegexKind(AbstractModifierKind):
     )
 
 
-class ModifierInsertHeaderKind(AbstractModifierKind):
+class ModifierSetHeaderKind(AbstractModifierKind):
     KIND = "set_header"
+    name = properties.property(types.String(min_length=1, max_length=100))
+    value = properties.property(types.String(min_length=0, max_length=1000))
+
+
+class ModifierSetRespHeaderKind(AbstractModifierKind):
+    KIND = "set_resp_header"
     name = properties.property(types.String(min_length=1, max_length=100))
     value = properties.property(types.String(min_length=0, max_length=1000))
 
@@ -530,7 +536,8 @@ class AbstractHTTPRouteCondKind(AbstractRouteCondKind):
         types.TypedList(
             types_dynamic.KindModelSelectorType(
                 types_dynamic.KindModelType(ModifierAutoHeaderKind),
-                types_dynamic.KindModelType(ModifierInsertHeaderKind),
+                types_dynamic.KindModelType(ModifierSetHeaderKind),
+                types_dynamic.KindModelType(ModifierSetRespHeaderKind),
                 types_dynamic.KindModelType(ModifierRewriteUrlKind),
             )
         ),
@@ -559,7 +566,8 @@ class RouteRegexConditionKind(AbstractHTTPRouteCondKind):
         types.TypedList(
             types_dynamic.KindModelSelectorType(
                 types_dynamic.KindModelType(ModifierAutoHeaderForRegexKind),
-                types_dynamic.KindModelType(ModifierInsertHeaderKind),
+                types_dynamic.KindModelType(ModifierSetHeaderKind),
+                types_dynamic.KindModelType(ModifierSetRespHeaderKind),
                 types_dynamic.KindModelType(ModifierRewriteUrlKind),
             )
         ),

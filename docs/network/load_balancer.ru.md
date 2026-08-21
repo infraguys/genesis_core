@@ -97,7 +97,8 @@ graph TD
             - X-Forwarded-Port
             - X-Forwarded-Proto
             - X-Forwarded-Prefix
-        - `set_header`: установить статический заголовок
+        - `set_header`: установить статический заголовок для запроса
+        - `set_resp_header`: установить статический заголовок для ответа
 
 ## Структура API
 
