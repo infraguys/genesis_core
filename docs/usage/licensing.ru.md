@@ -31,4 +31,4 @@ Exordos Core также доступен в облаке Exordos. Условия
 
 ## Дополнительная информация
 
-Исходный код Exordos Core и текст лицензии доступны в [репозитории проекта](https://github.com/exordos/exordos_core).
+Исходный код Exordos Core и текст лицензии доступны в [репозитории проекта](https://gitverse.ru/exordos/exordos_core).
