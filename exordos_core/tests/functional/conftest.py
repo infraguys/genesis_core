@@ -207,8 +207,8 @@ def user_api_service(context_storage):
 
 @pytest.fixture()
 def user_api(user_api_service: test_utils.RestServiceTestCase):
-    # setup_method applies the migrations once and resets the database by
-    # truncating it before every later test.
+    # setup_method applies the migrations once and empties the database
+    # before every later test.
     user_api_service.setup_method()
 
     # Keep the legacy baseline for tests: no implicit personal workspace
@@ -421,6 +421,13 @@ def auth_test2_p1_user(
 
 @pytest.fixture()
 def user_api_client(user_api, auth_user_admin):
+    # Built once per test rather than once per build_client call: the client
+    # authenticates lazily, so every extra instance costs another token
+    # request.
+    admin_client = iam_clients.GenericAutoRefreshRESTClient(
+        f"{user_api.get_endpoint()}v1/",
+        auth_user_admin,
+    )
 
     def build_client(
         auth: iam_clients.GenesisCoreAuth,
@@ -432,14 +439,22 @@ def user_api_client(user_api, auth_user_admin):
             f"{user_api.get_endpoint()}v1/",
             auth,
         )
-        admin_client = iam_clients.GenericAutoRefreshRESTClient(
-            f"{user_api.get_endpoint()}v1/",
-            auth_user_admin,
-        )
 
-        admin_client.set_permissions_to_user(
+        # This is set_permissions_to_user without its lookups. That helper
+        # looks the role and the role binding up before creating them, but the
+        # role name is a fresh uuid, so neither lookup can ever hit.
+        role = admin_client.create_role(name=f"TestRole[{sys_uuid.uuid4()}]")
+        for permission_name in permissions:
+            permission = admin_client.create_or_get_permission(
+                name=str(permission_name),
+            )
+            admin_client.create_permission_binding(
+                permission_uuid=permission["uuid"],
+                role_uuid=role["uuid"],
+            )
+        admin_client.bind_role_to_user(
+            role_uuid=role["uuid"],
             user_uuid=auth.uuid,
-            permissions=permissions,
             project_id=project_id,
         )
 
