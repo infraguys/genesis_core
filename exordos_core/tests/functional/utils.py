@@ -35,6 +35,8 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
     __API_VERSION__ = "v1"
     __APP__ = None
 
+    _seed_snapshot: tp.Optional[tp.Dict[str, tp.Any]] = None
+
     @classmethod
     def get_endpoint(cls, template: str = ENDPOINT_TEMPLATE) -> str:
         return template % cls.service_port
@@ -162,8 +164,99 @@ class RestServiceTestCase(ra_db_utils.DBEngineMixin):
             s.execute(f"drop view if exists {session.engine.escape(view_name)}")
 
     def setup_method(self) -> None:
-        # Apply migrations
+        # Rebuilding the whole schema before every test costs ~0.5s. Do it
+        # once, snapshot the rows the migrations seed, and reset later tests
+        # by truncating and restoring that snapshot instead (~0.08s). The
+        # snapshot is only usable while the schema it was taken from is still
+        # there -- another service's teardown_method/teardown_class shares the
+        # database and may have dropped it.
+        if self._seed_snapshot is not None and self._snapshot_is_usable():
+            self._restore_seed_snapshot()
+            return
+
         self.apply_all_migrations()
+        self._seed_snapshot = (
+            self._take_seed_snapshot()
+            if self.engine.dialect.name == "postgresql"
+            else None
+        )
+
+    @classmethod
+    def _base_tables(cls, session) -> tp.List[str]:
+        rows = session.execute(
+            """
+            select table_name as table_name
+            from information_schema.tables
+            where table_schema = current_schema()
+              and table_type = 'BASE TABLE';
+            """
+        ).fetchall()
+        return sorted(
+            row["table_name"]
+            for row in rows
+            if row["table_name"] != migrations.RA_MIGRATION_TABLE_NAME
+        )
+
+    def _take_seed_snapshot(self) -> tp.Dict[str, tp.Any]:
+        with self.engine.session_manager() as s:
+            tables = self._base_tables(s)
+            rows_by_table = {}
+            for table in tables:
+                rows = s.execute(f'select * from "{table}"').fetchall()
+                if rows:
+                    rows_by_table[table] = (
+                        list(rows[0].keys()),
+                        [tuple(row.values()) for row in rows],
+                    )
+            sequences = {
+                row["sequence_name"]: s.execute(
+                    f"""select last_value, is_called from "{row["sequence_name"]}";"""
+                ).fetchall()[0]
+                for row in s.execute(
+                    """
+                    select sequence_name as sequence_name
+                    from information_schema.sequences
+                    where sequence_schema = current_schema();
+                    """
+                ).fetchall()
+            }
+        return {
+            "tables": set(tables),
+            "truncate": "TRUNCATE "
+            + ",".join(f'"{table}"' for table in tables)
+            + " RESTART IDENTITY CASCADE",
+            "rows": rows_by_table,
+            "sequences": sequences,
+        }
+
+    def _snapshot_is_usable(self) -> bool:
+        with self.engine.session_manager() as s:
+            return set(self._base_tables(s)) == self._seed_snapshot["tables"]
+
+    def _restore_seed_snapshot(self) -> None:
+        snapshot = self._seed_snapshot
+        with self.engine.session_manager() as s:
+            # Seeded rows reference each other, so they cannot be restored in
+            # an order that satisfies every foreign key. Turn the constraint
+            # triggers off for the restore instead of topologically sorting.
+            # SET LOCAL keeps the override on this transaction, so a failed
+            # restore cannot hand a pooled connection back with foreign keys
+            # still disabled.
+            s.execute("SET LOCAL session_replication_role = replica")
+            s.execute(snapshot["truncate"])
+            for table, (columns, rows) in snapshot["rows"].items():
+                column_list = ",".join(f'"{column}"' for column in columns)
+                placeholders = ",".join(["%s"] * len(columns))
+                statement = (
+                    f'INSERT INTO "{table}" ({column_list}) VALUES ({placeholders})'
+                )
+                for row in rows:
+                    s.execute(statement, row)
+            for sequence, state in snapshot["sequences"].items():
+                s.execute(
+                    f"select setval('{sequence}', %s, %s)",
+                    (state["last_value"], state["is_called"]),
+                )
 
     def rollback_migrations(self) -> None:
         # Rollback migrations
