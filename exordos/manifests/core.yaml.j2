@@ -502,6 +502,10 @@ resources:
       uuid: "553648f2-0dbc-55bf-80d4-79a6938c0ebf"
       name: "repo.element.read"
       description: "List and read repository elements"
+    repo_artifact_read:
+      uuid: "37ee8a65-ca05-54b2-a603-831511c01b3c"
+      name: "repo.artifact.read"
+      description: "List and read repository artifacts"
     repo_store_element_read:
       uuid: "f2be8c62-6675-4a3a-a24a-508ec976e97d"
       name: "repo.store_element.read"
@@ -737,6 +741,9 @@ resources:
     binding_owner_repo_element_read:
       role: "$core.iam.roles.$owner:uuid"
       permission: "$core.iam.permissions.$repo_element_read:uuid"
+    binding_owner_repo_artifact_read:
+      role: "$core.iam.roles.$owner:uuid"
+      permission: "$core.iam.permissions.$repo_artifact_read:uuid"
     binding_newcomer_repo_store_element_read:
       role: "$core.iam.roles.$newcomer:uuid"
       permission: "$core.iam.permissions.$repo_store_element_read:uuid"

@@ -206,6 +206,26 @@ class StoreElementController(
         )
 
 
+class RepoArtifactController(
+    iam_controllers.PolicyBasedController,
+    controllers.BaseResourceControllerPaginated,
+):
+    __policy_service_name__ = "repo"
+    __policy_name__ = "artifact"
+
+    __resource__ = resources.ResourceByRAModel(
+        models.RepoArtifact,
+        convert_underscore=False,
+        fields_permissions=field_p.FieldsPermissions(
+            default=field_p.Permissions.RW,
+            fields={
+                "created_at": {ra_c.ALL: field_p.Permissions.RO},
+                "updated_at": {ra_c.ALL: field_p.Permissions.RO},
+            },
+        ),
+    )
+
+
 class RepoElementController(
     iam_controllers.PolicyBasedController,
     controllers.BaseResourceControllerPaginated,
