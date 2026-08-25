@@ -68,15 +68,27 @@ jobs:
         run: |
           exordos settings set-realm default --endpoint $CORE_ENDPOINT_URL
           exordos settings set-context default --name default --user $CORE_USERNAME --password $CORE_PASSWORD
-      - name: Install hypervisor
-        run: |
-          EXORDOS_BIN=$(which exordos)
-          sudo $EXORDOS_BIN compute hypervisors init
       - name: Download build artifacts
         uses: actions/download-artifact@v8
         with:
           name: build_artifacts
           path: artifacts/
+      - name: Install hypervisor
+        run: |
+          set -eux
+          VERSION=$(cat artifacts/version.txt)
+
+          # Prefetch the core artifacts into ~/.cache/exordos while the
+          # hypervisor packages are being installed: both steps are
+          # independent and each takes around half a minute.
+          exordos bootstrap -i $VERSION -m core --download-only > prefetch.log 2>&1 &
+          PREFETCH_PID=$!
+
+          EXORDOS_BIN=$(which exordos)
+          sudo $EXORDOS_BIN compute hypervisors init
+
+          wait $PREFETCH_PID || { cat prefetch.log; exit 1; }
+          cat prefetch.log
       - name: bootstrap exordos core
         run: |
           VERSION=$(cat artifacts/version.txt)
@@ -86,13 +98,17 @@ jobs:
         run: |
           set -eux
           
-          for i in {1..20}; do
+          for i in {1..60}; do
             if exordos ready_api; then
               echo "Exordos Core API is ready"
               break
             fi
-            echo "Waiting for Exordos Core API... ($i/20)"
-            sleep 5
+            if [ "$i" -eq 60 ]; then
+              echo "Exordos Core API did not become ready"
+              exit 1
+            fi
+            echo "Waiting for Exordos Core API... ($i/60)"
+            sleep 2
           done
           
           while [ $(exordos ee l -o json -f name=core | jq -r .[0]."status") != "ACTIVE" ]; do
