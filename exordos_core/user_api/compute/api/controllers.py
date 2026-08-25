@@ -24,6 +24,7 @@ from restalchemy.api import controllers
 from restalchemy.api import field_permissions as field_p
 from restalchemy.api import resources
 from restalchemy.common import exceptions as ra_e
+from restalchemy.dm import filters as dm_filters
 from restalchemy.storage import exceptions as storage_exc
 
 from exordos_core.compute import constants as nc
@@ -134,6 +135,24 @@ class NodesController(
         self._enforce("get_private_key")
 
         return resource.get_agent_private_key()
+
+    @actions.get
+    def details(self, resource: user_models.Node):
+        """Return the details the node model itself doesn't carry."""
+        machine = models.Machine.objects.get_one_or_none(
+            filters={"node": dm_filters.EQ(resource.uuid)},
+        )
+        hypervisor = (
+            models.MachinePool.objects.get_one_or_none(
+                filters={"uuid": dm_filters.EQ(machine.pool)},
+            )
+            if machine is not None and machine.pool is not None
+            else None
+        )
+
+        return {
+            "hypervisor": (str(hypervisor.uuid) if hypervisor is not None else None),
+        }
 
 
 class NodeSetsController(
