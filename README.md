@@ -1,6 +1,9 @@
-![Tests workflow](https://github.com/infraguys/exordos_core/actions/workflows/tests.yml/badge.svg)
-![Build workflow](https://github.com/infraguys/exordos_core/actions/workflows/build.yml/badge.svg)
-![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)
+[![Tests](https://img.shields.io/github/actions/workflow/status/exordos/exordos_core/tests.yml?branch=master&label=tests&logo=github&style=flat-square)](https://github.com/exordos/exordos_core/actions/workflows/tests.yml)
+[![Build](https://img.shields.io/github/actions/workflow/status/exordos/exordos_core/build.yml?branch=master&label=build&logo=github&style=flat-square)](https://github.com/exordos/exordos_core/actions/workflows/build.yml)
+[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-3776AB?logo=python&logoColor=white&style=flat-square)](https://www.python.org/)
+[![uv](https://img.shields.io/badge/uv-managed-DE5FE9?logo=uv&logoColor=white&style=flat-square)](https://github.com/astral-sh/uv)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-D7FF64?logo=ruff&logoColor=black&style=flat-square)](https://github.com/astral-sh/ruff)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square)](https://www.apache.org/licenses/LICENSE-2.0)
 
 <p align="center">
   <picture>
