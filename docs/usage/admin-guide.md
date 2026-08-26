@@ -227,6 +227,17 @@ exordos realms delete local
 
 The command deletes the local realm and terminates the local instance. Use it only to finish a test or expert environment. To start a new instance, create the installation again with `exordos bootstrap`.
 
+## Decommissioning
+
+To decommission an installation and remove all platform data:
+
+1. **Back up data** — export any data that must be retained: element configurations, secrets, manifests, and database dumps. Once the installation is deleted, this data cannot be recovered.
+2. **Stop workloads** — stop and remove compute nodes and elements that are no longer needed.
+3. **Remove user accounts** — delete users, roles, and access tokens through the IAM API to prevent orphaned credentials.
+4. **Delete the installation** — run `exordos realms delete local` to remove the local realm and terminate the platform instance.
+5. **Clean up the hypervisor** — remove any remaining virtual machines, disk volumes, and storage pools created by the installation from the hypervisor.
+6. **Remove the CLI context** — run `exordos settings delete-context local` and `exordos settings delete-realm local` to remove the endpoint and credentials from the CLI configuration.
+
 ## Updating
 
 Updates are performed per element. Exordos Core is also an element and is updated with the standard command:
