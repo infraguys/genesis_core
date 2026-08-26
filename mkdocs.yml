@@ -55,6 +55,7 @@ plugins:
             Troubleshooting: Устранение неполадок
             Wizard: Мастер настройки
             Functional Characteristics: Функциональные характеристики
+            Architecture: Архитектура
             Developers: Разработчикам
             App Guide: Руководство по приложениям
             Core Guide: Руководство по ядру
@@ -146,6 +147,7 @@ nav:
     - Troubleshooting: usage/troubleshooting.md
     - Wizard: usage/wizard.md
     - Functional Characteristics: usage/functional-characteristics.md
+    - Architecture: usage/architecture.md
   - Developers:
     - App Guide: app-developer-guide/app-guide.md
     - Core Guide: core-developer-guide/core-guide.md
