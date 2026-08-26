@@ -1,5 +1,5 @@
 ---
-icon: lucide/sitemap
+icon: lucide/layers
 ---
 # Exordos Core Architecture
 
