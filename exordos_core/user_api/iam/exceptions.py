@@ -129,7 +129,7 @@ class CanNotCreateProjectInOrganization(
 ):
     __template__ = (
         "The current user is not permitted to create a project in the"
-        " organization `{uuid}`. Only the owner of the organization may"
+        " organization `{name}`. Only the owner of the organization may"
         " create projects."
     )
 

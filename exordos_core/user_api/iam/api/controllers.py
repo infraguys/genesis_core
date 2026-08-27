@@ -472,7 +472,7 @@ class ProjectController(controllers.BaseResourceControllerPaginated, EnforceMixi
             or self.enforce(c.PERMISSION_PROJECT_WRITE_ALL)
             or self.enforce(c.PERMISSION_ORGANIZATION_WRITE_ALL)
         ):
-            raise iam_e.CanNotCreateProjectInOrganization(uuid=organization.uuid)
+            raise iam_e.CanNotCreateProjectInOrganization(name=organization.name)
 
         project = super().create(organization=organization, **kwargs)
         project.add_owner(models.User.me())
