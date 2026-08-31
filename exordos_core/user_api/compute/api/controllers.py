@@ -139,6 +139,8 @@ class NodesController(
     @actions.get
     def details(self, resource: user_models.Node):
         """Return the details the node model itself doesn't carry."""
+        self._enforce("details")
+
         machine = models.Machine.objects.get_one_or_none(
             filters={"node": dm_filters.EQ(resource.uuid)},
         )
