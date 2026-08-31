@@ -95,11 +95,11 @@ class StoreControllerMixin(iam_controllers.PolicyBasedWithoutProjectController):
         """Restrict a read to the projects the caller may see.
 
         A project scoped caller reads the admin project, which holds the
-        shared catalogue, and their own. A token without a project is not
-        restricted, as elsewhere in the user API.
+        shared catalogue, and their own. A caller without a project, an
+        anonymous request included, reads the shared catalogue only.
         """
         if not self._ctx_project_id:
-            return {}
+            return {"project_id": dm_filters.EQ(c.ZERO_UUID)}
 
         return {"project_id": dm_filters.In([c.ZERO_UUID, self._ctx_project_id])}
 
