@@ -173,7 +173,9 @@ class DNSSyncService(basic.BasicService):
         A record can be there without this mirror having seen it: asking
         for its own records hides anything written before records carried
         an owner. Creating what is already there is then an update, not a
-        conflict to report every minute.
+        conflict to report every minute -- and the update claims a record
+        nobody owns, so the next pass finds it among this mirror's own
+        instead of coming back here forever.
         """
         url = f"{endpoint}/api/core/v1/dns/domains/{eco_domain_uuid}/records/"
         try:

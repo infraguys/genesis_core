@@ -19,6 +19,7 @@
 from unittest import mock
 import uuid as sys_uuid
 
+from gcl_iam import exceptions as iam_exc
 import pytest
 
 from exordos_core.common import constants as c
@@ -51,7 +52,7 @@ def _controller(user_uuid=USER):
     context = mock.Mock()
     context.iam_context.introspection_info.return_value = info
     patcher = mock.patch.object(
-        common_controllers.contexts, "get_context", return_value=context
+        common_models.contexts, "get_context", return_value=context
     )
     return controller, patcher
 
@@ -137,9 +138,9 @@ class TestOwnerSurvivesUpdate:
 
         assert kept == [c.owner_user_tag(USER)]
 
-    def test_an_unowned_row_stays_unowned(self):
-        # Rows that predate the tags carry none, and nothing retro-assigns
-        # them to whoever edits them next.
+    def test_the_merge_alone_assigns_nobody(self):
+        # Rows that predate the tags carry none; who they end up with is
+        # `written_tags`, one layer up, not the merge.
         kept = common_models.merge_tags(stored=[], incoming=["env:prod"])
 
         assert kept == ["env:prod"]
@@ -165,6 +166,108 @@ class TestOwnerSurvivesUpdate:
         )
 
         assert kept == [c.owner_user_tag(USER)]
+
+
+class TestClaimOnWrite:
+    """Who a row belongs to after somebody has written to it.
+
+    A row nobody owns is the writer's from then on: rows written before
+    tags existed are otherwise invisible to the reconciler whose rows
+    they are, which recreates them, is answered with a conflict, updates,
+    and finds them missing again on the next pass.
+    """
+
+    OWNER = c.owner_user_tag(USER)
+
+    def test_a_write_claims_a_row_nobody_owns(self):
+        tags = common_models.written_tags(
+            stored=[],
+            incoming=common_models.KEEP,
+            owner=self.OWNER,
+        )
+
+        assert tags == [self.OWNER]
+
+    def test_a_claim_needs_no_tags_in_the_request(self):
+        # The mirror's update carries the record, not its tags: a row it
+        # rewrites is claimed all the same.
+        tags = common_models.written_tags(
+            stored=["env:prod"],
+            incoming=common_models.KEEP,
+            owner=self.OWNER,
+        )
+
+        assert tags == ["env:prod", self.OWNER]
+
+    def test_a_claim_goes_together_with_what_the_client_sent(self):
+        tags = common_models.written_tags(
+            stored=["env:prod"],
+            incoming=["env:stage"],
+            owner=self.OWNER,
+        )
+
+        assert tags == ["env:stage", self.OWNER]
+
+    def test_a_write_cannot_claim_a_row_that_has_an_owner(self):
+        tags = common_models.written_tags(
+            stored=[c.owner_user_tag(OTHER)],
+            incoming=["env:prod"],
+            owner=self.OWNER,
+        )
+
+        assert tags == [c.owner_user_tag(OTHER), "env:prod"]
+
+    def test_a_writer_without_a_subject_claims_nothing(self):
+        tags = common_models.written_tags(
+            stored=[],
+            incoming=common_models.KEEP,
+            owner=None,
+        )
+
+        assert tags is common_models.KEEP
+
+    def test_a_row_with_nothing_to_change_is_left_alone(self):
+        # Nothing to claim and nothing sent: the update must not carry
+        # tags it has no reason to write.
+        tags = common_models.written_tags(
+            stored=[self.OWNER],
+            incoming=common_models.KEEP,
+            owner=self.OWNER,
+        )
+
+        assert tags is common_models.KEEP
+
+    @pytest.mark.parametrize("incoming", ["env:prod", 5, {"env": "prod"}])
+    def test_a_value_that_is_not_a_list_is_still_the_models_to_refuse(self, incoming):
+        tags = common_models.written_tags(
+            stored=[],
+            incoming=incoming,
+            owner=self.OWNER,
+        )
+
+        assert tags is common_models.KEEP
+
+
+class TestCallerOwnerTag:
+    def test_a_write_outside_a_request_belongs_to_nobody(self):
+        # A service that writes on its own leaves the row as it found it.
+        with mock.patch.object(
+            common_models.contexts,
+            "get_context",
+            side_effect=common_models.contexts.ContextIsNotExistsInStorage(),
+        ):
+            assert common_models.caller_owner_tag() is None
+
+    def test_a_request_without_an_iam_session_belongs_to_nobody(self):
+        context = mock.Mock()
+        type(context).iam_context = mock.PropertyMock(
+            side_effect=iam_exc.NoIamSessionStored()
+        )
+
+        with mock.patch.object(
+            common_models.contexts, "get_context", return_value=context
+        ):
+            assert common_models.caller_owner_tag() is None
 
 
 class TestRecordName:

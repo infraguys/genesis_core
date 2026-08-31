@@ -149,6 +149,35 @@ class TestRecordTags:
         assert response.status_code == 200, response.text
         assert _reserved(response.json()["tags"]) == owner
 
+    def test_a_write_claims_a_record_nobody_owns(
+        self,
+        user_api_client: iam_clients.GenesisCoreTestRESTClient,
+        auth_user_admin: iam_clients.GenesisCoreAuth,
+        domain: tp.Dict,
+    ):
+        """A record written before tags existed becomes the writer's.
+
+        Otherwise the mirror never sees it among its own: it recreates
+        it, is answered with a conflict, updates, and finds it missing
+        again on the next pass -- and never removes it either. The zone's
+        SOA stands in for such a record: the installation writes it, so
+        no caller owns it.
+        """
+        client = user_api_client(auth_user_admin)
+        url = client.build_collection_uri(["dns", "domains", domain["uuid"], "records"])
+        soa = [r for r in client.get(url).json() if r["type"] == "SOA"][0]
+        assert _reserved(soa["tags"]) == []
+
+        response = client.put(
+            client.build_resource_uri(
+                ["dns", "domains", domain["uuid"], "records", soa["uuid"]]
+            ),
+            json={"ttl": 4242},
+        )
+
+        assert response.status_code == 200, response.text
+        assert len(_reserved(response.json()["tags"])) == 1
+
     def test_a_zone_can_be_asked_for_one_owners_records(
         self,
         user_api_client: iam_clients.GenesisCoreTestRESTClient,

@@ -14,9 +14,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from restalchemy.common import contexts
-
-from exordos_core.common import constants as c
 from exordos_core.common.dm import models as common_models
 
 
@@ -29,13 +26,9 @@ class OwnedTagsControllerMixin:
     tags are dropped from the request and the caller's own is added.
 
     A caller with no subject of its own leaves the row unowned, which
-    every reconciler reads as "not mine to remove".
+    every reconciler reads as "not mine to remove" -- until a write
+    finds it that way and claims it, which the model decides.
     """
-
-    def _caller_owner_tag(self):
-        introspection = contexts.get_context().iam_context.introspection_info()
-        user_uuid = ((introspection or {}).get("user_info") or {}).get("uuid")
-        return c.owner_user_tag(user_uuid) if user_uuid else None
 
     def create(self, **kwargs):
         tags = kwargs.get("tags")
@@ -44,7 +37,7 @@ class OwnedTagsControllerMixin:
             # a bad request with a bad request rather than raising here.
             return super().create(**kwargs)
         tags = common_models.client_tags(tags)
-        owner = self._caller_owner_tag()
+        owner = common_models.caller_owner_tag()
         if owner:
             tags = tags + [owner]
         kwargs["tags"] = tags
