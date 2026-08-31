@@ -196,6 +196,15 @@ GET /v1/iam/users/7c3d4e5f-6789-89ab-cdef-123456789012/actions/get_my_roles
 Authorization: Bearer <token>
 ```
 
+#### Get Role Permissions
+
+```http
+GET /v1/iam/roles/6b2c3d4e-5f67-789a-bcde-f01234567890/actions/get_permissions
+Authorization: Bearer <token>
+```
+
+Returns the permissions bound to the role via `Permission Binding`.
+
 ### 2.5. Projects and Role/Permission Scope
 
 In IAM, roles can be assigned as:
