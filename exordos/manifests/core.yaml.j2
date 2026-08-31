@@ -106,6 +106,10 @@ resources:
       uuid: "31eff665-2e96-5202-873a-a2f3c812a281"
       name: "compute.node.delete"
       description: "Delete own nodes"
+    compute_node_details:
+      uuid: "55dce655-0f61-5a61-9be5-4364919387cc"
+      name: "compute.node.details"
+      description: "Get node placement details"
     compute_node_get_private_key:
       uuid: "b043aa0d-2535-5908-9198-42dc7faa1ba1"
       name: "compute.node.get_private_key"
@@ -676,6 +680,10 @@ resources:
     binding_owner_network_lb_backendpool_delete:
       role: "$core.iam.roles.$owner:uuid"
       permission: "$core.iam.permissions.$network_lb_backendpool_delete:uuid"
+      project_id: "$core.iam.projects.$compute_core:uuid"
+    binding_owner_compute_node_details:
+      role: "$core.iam.roles.$owner:uuid"
+      permission: "$core.iam.permissions.$compute_node_details:uuid"
       project_id: "$core.iam.projects.$compute_core:uuid"
     binding_owner_compute_node_get_private_key:
       role: "$core.iam.roles.$owner:uuid"

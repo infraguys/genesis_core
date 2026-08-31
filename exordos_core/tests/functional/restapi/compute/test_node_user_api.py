@@ -22,6 +22,7 @@ from gcl_iam.tests.functional import clients as iam_clients
 import pytest
 
 from exordos_core.compute import constants as nc
+from exordos_core.compute.dm import models as node_models
 
 
 class TestNodeUserApi:
@@ -184,6 +185,43 @@ class TestNodeUserApi:
         assert response.status_code == 201
         assert output["disk_spec"]["size"] == nc.DEF_ROOT_DISK_SIZE
 
+        client.delete(client.build_resource_uri(["compute", "nodes", node["uuid"]]))
+
+    def test_nodes_details(
+        self,
+        user_api_client: iam_clients.GenesisCoreTestRESTClient,
+        auth_user_admin: iam_clients.GenesisCoreAuth,
+        node_factory: tp.Callable,
+        machine_factory: tp.Callable,
+        default_pool: tp.Dict[str, tp.Any],
+    ):
+        node = node_factory()
+        client = user_api_client(auth_user_admin)
+        url = client.build_collection_uri(["compute", "nodes"])
+
+        response = client.post(url, json=node)
+        assert response.status_code == 201
+
+        url = client.build_resource_uri(
+            ["compute", "nodes", node["uuid"], "actions", "details"]
+        )
+        response = client.get(url)
+
+        # The node isn't scheduled to a machine yet
+        assert response.status_code == 200
+        assert response.json() == {"hypervisor": None}
+
+        view = machine_factory(node=sys_uuid.UUID(node["uuid"]))
+        machine = node_models.Machine.restore_from_simple_view(**view)
+        machine.insert()
+
+        response = client.get(url)
+        hypervisor = response.json()["hypervisor"]
+
+        assert response.status_code == 200
+        assert hypervisor == default_pool["uuid"]
+
+        machine.delete()
         client.delete(client.build_resource_uri(["compute", "nodes", node["uuid"]]))
 
     # Hypervisors

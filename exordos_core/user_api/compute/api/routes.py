@@ -46,12 +46,19 @@ class NodePrivateKeyActionRoute(routes.Action):
     __controller__ = controllers.NodesController
 
 
+class NodeDetailsActionRoute(routes.Action):
+    """Handler for /v1/compute/nodes/<uuid>/actions/details endpoint"""
+
+    __controller__ = controllers.NodesController
+
+
 class NodeRoute(routes.Route):
     """Handler for /v1/compute/nodes/ endpoint"""
 
     __controller__ = controllers.NodesController
 
     get_private_key = routes.action(NodePrivateKeyActionRoute)
+    details = routes.action(NodeDetailsActionRoute)
 
 
 class HypervisorRoute(routes.Route):
