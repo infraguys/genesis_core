@@ -26,6 +26,7 @@ from unittest import mock
 import uuid as sys_uuid
 
 from bazooka import exceptions as bazooka_exc
+import jwt
 import pytest
 
 from exordos_core.common import constants as c
@@ -38,12 +39,34 @@ MIRROR_USER = sys_uuid.UUID("11111111-1111-1111-1111-111111111111")
 ECOSYSTEM_USER = sys_uuid.UUID("22222222-2222-2222-2222-222222222222")
 
 
+def _token(sub, aud="core"):
+    """An access token as the ecosystem's IAM issues one.
+
+    Signed with a key nobody here holds: the mirror only reads its own
+    token, and reading is all `_realm_owner_tag` does.
+    """
+    claims = {"aud": aud, "jti": str(sys_uuid.uuid4()), "typ": "Bearer"}
+    if sub is not None:
+        claims["sub"] = str(sub)
+    return jwt.encode(claims, "not-the-verifying-key", algorithm="HS256")
+
+
+def _http_error(status):
+    cause = mock.Mock()
+    cause.response.status_code = status
+    if status == 400:
+        return bazooka_exc.BadRequestError(cause)
+    return bazooka_exc.BaseHTTPException(cause)
+
+
 def _bad_request():
-    return bazooka_exc.BadRequestError(mock.Mock(status_code=400))
+    return _http_error(400)
 
 
 def _conflict():
-    return bazooka_exc.ConflictError(mock.Mock(status_code=409))
+    cause = mock.Mock()
+    cause.response.status_code = 409
+    return bazooka_exc.ConflictError(cause)
 
 
 def _eco_record(uuid, name, tags):
@@ -62,7 +85,7 @@ def dns_sync():
     sync = service.DNSSyncService.__new__(service.DNSSyncService)
     sync._client = mock.Mock()
     sync._owner_tag = c.owner_user_tag(MIRROR_USER)
-    sync._owner_source = (ENDPOINT, HEADERS["Authorization"])
+    sync._owner_token = _token(MIRROR_USER)
     sync._filter_lang_refused = set()
     sync._eco_create_record = mock.Mock()
     sync._eco_update_record = mock.Mock()
@@ -87,7 +110,7 @@ def _run(sync, domain, eco_records, local_records=()):
         mock.patch.object(service, "LOG"),
     ):
         sync._eco_list_records = mock.Mock(return_value=eco_records)
-        sync._full_sync_domain(domain, ENDPOINT, HEADERS, DOMAIN_UUID)
+        sync._full_sync_domain(domain, ENDPOINT, HEADERS, DOMAIN_UUID, sync._owner_tag)
 
 
 class TestFullSyncDeletes:
@@ -159,65 +182,67 @@ class TestFullSyncDeletes:
 
 
 class TestOwnerTag:
-    def test_the_owner_is_asked_of_the_installation_that_stamps_it(self, dns_sync):
-        dns_sync._owner_tag = None
-        dns_sync._client.get.return_value.json.return_value = {
-            "user_info": {"uuid": str(MIRROR_USER)},
-        }
+    """Who this mirror is, read out of the token it writes with."""
 
-        tag = dns_sync._eco_owner_tag(ENDPOINT, HEADERS)
+    def test_the_owner_is_read_out_of_the_token(self, dns_sync):
+        dns_sync._owner_tag = None
+        dns_sync._owner_token = None
+
+        with mock.patch.object(service, "LOG"):
+            tag = dns_sync._realm_owner_tag(_token(MIRROR_USER))
 
         assert tag == c.owner_user_tag(MIRROR_USER)
-        url = dns_sync._client.get.call_args[0][0]
-        # The path segment is the route attribute name, `introspect` --
-        # the docstring next to it in the core says "introspection", and
-        # that spelling 404s (measured on a live core).
-        assert url.endswith("/v1/iam/clients/default/actions/introspect")
 
-    def test_the_answer_is_asked_for_once(self, dns_sync):
+    def test_nobody_is_asked_who_this_realm_is(self, dns_sync):
+        # The token carries the subject the ecosystem would report, so
+        # there is nothing to ask it -- and nothing to retry when it is
+        # an older ecosystem with no such endpoint to ask.
         dns_sync._owner_tag = None
-        dns_sync._client.get.return_value.json.return_value = {
-            "user_info": {"uuid": str(MIRROR_USER)},
-        }
-
-        dns_sync._eco_owner_tag(ENDPOINT, HEADERS)
-        dns_sync._eco_owner_tag(ENDPOINT, HEADERS)
-
-        assert dns_sync._client.get.call_count == 1
-
-    def test_an_answer_without_a_subject_is_no_owner(self, dns_sync):
-        dns_sync._owner_tag = None
-        dns_sync._client.get.return_value.json.return_value = {}
+        dns_sync._owner_token = None
 
         with mock.patch.object(service, "LOG"):
-            assert dns_sync._eco_owner_tag(ENDPOINT, HEADERS) is None
+            dns_sync._realm_owner_tag(_token(MIRROR_USER))
 
-    def test_an_ecosystem_that_cannot_be_asked_owns_nothing(self, dns_sync):
-        # A hard failure leaves the mirror without an owner, which is
-        # what stops it removing anything at all.
+        dns_sync._client.get.assert_not_called()
+
+    def test_a_token_without_a_subject_is_no_owner(self, dns_sync):
         dns_sync._owner_tag = None
-        dns_sync._owner_source = None
-        dns_sync._client.get.side_effect = OSError("connection refused")
+        dns_sync._owner_token = None
 
         with mock.patch.object(service, "LOG"):
-            assert dns_sync._eco_owner_tag(ENDPOINT, HEADERS) is None
+            assert dns_sync._realm_owner_tag(_token(None)) is None
+
+    def test_a_token_that_does_not_parse_owns_nothing(self, dns_sync):
+        # Without an owner the mirror stops removing anything at all,
+        # which is the safe half to lose.
+        dns_sync._owner_tag = None
+        dns_sync._owner_token = None
+
+        with mock.patch.object(service, "LOG"):
+            assert dns_sync._realm_owner_tag("not-a-token") is None
 
         assert dns_sync._owner_tag is None
-        assert dns_sync._owner_source is None
+
+    def test_an_unreadable_token_is_reported_once(self, dns_sync):
+        # Remembered as "no owner" so a broken token does not fill the
+        # log once a minute for as long as it stays broken.
+        dns_sync._owner_tag = None
+        dns_sync._owner_token = None
+
+        with mock.patch.object(service, "LOG") as log:
+            dns_sync._realm_owner_tag("not-a-token")
+            dns_sync._realm_owner_tag("not-a-token")
+
+        assert log.exception.call_count == 1
 
     def test_a_new_token_is_a_new_subject_to_be(self, dns_sync):
-        # ValuesStore can hand out another endpoint or another token
-        # without this service restarting; the tag decides what is
-        # removed, so it is asked again rather than carried over.
-        dns_sync._client.get.return_value.json.return_value = {
-            "user_info": {"uuid": str(ECOSYSTEM_USER)},
-        }
-
+        # ValuesStore can hand out another token without this service
+        # restarting; the tag decides what is removed, so it is read
+        # again rather than carried over.
         with mock.patch.object(service, "LOG"):
-            tag = dns_sync._eco_owner_tag(ENDPOINT, {"Authorization": "Bearer another"})
+            tag = dns_sync._realm_owner_tag(_token(ECOSYSTEM_USER))
 
         assert tag == c.owner_user_tag(ECOSYSTEM_USER)
-        assert dns_sync._client.get.call_count == 1
 
 
 class TestAskingForItsOwnRecords:
@@ -238,11 +263,16 @@ class TestAskingForItsOwnRecords:
 
         assert "params" not in dns_sync._client.get.call_args[1]
 
-    def test_an_ecosystem_that_refuses_the_filter_is_asked_once(self, dns_sync):
-        # An older ecosystem knows no `q`: fall back, and stop asking.
+    @pytest.mark.parametrize("status", sorted(service.FILTER_UNSUPPORTED_STATUSES))
+    def test_an_ecosystem_that_refuses_the_filter_is_asked_once(self, dns_sync, status):
+        # An ecosystem that cannot read `q` refuses it two ways: the
+        # current one rejects the expression as a bad request, and one
+        # that predates it takes `q` for a field of the resource, finds
+        # no such field and fails with a 500. Both mean the same thing --
+        # fall back to the whole zone, and stop asking.
         ok = mock.Mock()
         ok.json.return_value = [_eco_record("a1", "www", [])]
-        dns_sync._client.get.side_effect = [_bad_request(), ok, ok]
+        dns_sync._client.get.side_effect = [_http_error(status), ok, ok]
 
         with mock.patch.object(service, "LOG"):
             first = dns_sync._eco_list_records(
@@ -258,6 +288,26 @@ class TestAskingForItsOwnRecords:
         # which does not try the filter again.
         assert dns_sync._client.get.call_count == 3
         assert "params" not in dns_sync._client.get.call_args[1]
+
+    @pytest.mark.parametrize("status", (401, 403, 404, 502, 503))
+    def test_a_failure_that_is_not_a_refusal_is_raised(self, dns_sync, status):
+        # A token that stopped working or a gateway that is briefly down
+        # says nothing about the filter. Reading the zone again would
+        # fail the same way, so the failure is the caller's to see -- and
+        # the endpoint is not written off as unable to filter, which
+        # would outlive the outage that caused it.
+        dns_sync._client.get.side_effect = _http_error(status)
+
+        with (
+            mock.patch.object(service, "LOG"),
+            pytest.raises(bazooka_exc.BaseHTTPException),
+        ):
+            dns_sync._eco_list_records(
+                ENDPOINT, HEADERS, DOMAIN_UUID, dns_sync._owner_tag
+            )
+
+        assert ENDPOINT not in dns_sync._filter_lang_refused
+        assert dns_sync._client.get.call_count == 1
 
 
 class TestCreatingWhatIsAlreadyThere:
